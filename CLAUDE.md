@@ -11,14 +11,16 @@ has the link). README has setup, layout and how a case is generated.
 
 Phases 1–3 done (content, generator/solver, casebook UI). Next: phase 4,
 minigames that deliver clues. All clues are shown up front until then.
-Open question: what happens when she loses a minigame (see "Clue delivery
-ideas" in the plan: score-scaled clues is the leading option).
 
 ## Rules that are easy to break
 
 - **Puzzle first, clue as reward.** Every minigame is a complete puzzle on its
   own. Its answer is never a room, suspect or weapon name, because the case
   has so few of those that she could guess. Winning reveals the clue.
+- **She can never get stuck.** Every minigame has a "Solve puzzle" button
+  that asks "Are you sure? This can't be undone" (an in-app dialog, not
+  `window.confirm`), then reveals the answer and still unlocks the clue. Record
+  the game as `revealed`, not `won`, so stats can tell them apart.
 - **Wordle answers come from room `objects`** (5-letter words). Words may
   repeat across rooms; the revealed clue names the room. Teasers must never
   show the room or the word (tested).
