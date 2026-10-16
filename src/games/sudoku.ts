@@ -145,3 +145,42 @@ export function sudokuConflicts(p: SudokuPuzzle, grid: readonly number[]): Set<n
 export const sudokuSolved = (p: SudokuPuzzle, grid: readonly number[]) => grid.every((d, i) => d === p.solution[i]);
 
 export const sudokuShape = shape;
+
+/** The two squares for one map statement: their solved digits are the row and column. */
+export interface LocationSquares {
+  row: number;
+  col: number;
+}
+
+/**
+ * For each statement's target map square [r, c] (0-based), pick two empty
+ * squares whose solved digits are r+1 and c+1. Squares are never shared.
+ */
+export function locationSquares(
+  p: SudokuPuzzle,
+  targets: readonly { id: string; target: readonly [number, number] }[],
+  rng: Rng,
+): Record<string, LocationSquares> {
+  const used = new Set<number>();
+  const pick = (digit: number) => {
+    const options = p.solution.map((d, i) => i).filter((i) => p.solution[i] === digit && !p.givens[i] && !used.has(i));
+    if (!options.length) return -1;
+    const i = rng.pick(options);
+    used.add(i);
+    return i;
+  };
+  const out: Record<string, LocationSquares> = {};
+  for (const { id, target } of targets) {
+    const row = pick(target[0] + 1);
+    const col = pick(target[1] + 1);
+    if (row >= 0 && col >= 0) out[id] = { row, col };
+  }
+  return out;
+}
+
+/** Statements whose two squares now hold the right digits. */
+export function foundLocations(p: SudokuPuzzle, squares: Record<string, LocationSquares>, grid: readonly number[]): string[] {
+  return Object.entries(squares)
+    .filter(([, s]) => grid[s.row] === p.solution[s.row] && grid[s.col] === p.solution[s.col])
+    .map(([id]) => id);
+}

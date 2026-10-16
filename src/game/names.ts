@@ -19,3 +19,6 @@ export function suspectColour(id: string) {
   const i = content.suspects.findIndex((s) => s.id === id);
   return COUNTER_COLOURS[(i < 0 ? 0 : i) % COUNTER_COLOURS.length];
 }
+
+/** Floor-plan colour for a room, from the content file. */
+export const roomTint = (id: string) => content.house.rooms.find((r) => r.id === id)?.tint ?? '#ddd6c6';

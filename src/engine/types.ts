@@ -6,6 +6,8 @@ export type Cell = readonly [row: number, col: number];
 export interface Room {
   id: string;
   name: string;
+  /** Floor-plan colour. */
+  tint: string;
   /** 5-letter things found in this room; Wordle answers come from here. */
   objects: readonly string[];
   /** Grid cells this room covers. Rooms must be contiguous and not overlap. */
@@ -82,6 +84,8 @@ export interface GameSpec {
   /** Cat grid size, or sudoku size and how many digits are given. */
   size: number;
   givens?: number;
+  /** Sudoku: clues that unlock early from their two coordinate squares. */
+  located?: readonly string[];
 }
 
 /**
@@ -93,12 +97,35 @@ export interface WordleReveal {
   teaser: string;
 }
 
+/** Who or what the clue comes from. Every clue is true either way. */
+export type ClueSource = 'testimony' | 'evidence';
+
+/**
+ * A sudoku statement that points at its room by map coordinates. When she
+ * fills both squares correctly their digits are the row and column of a
+ * square in the room (1-based), and the statement unlocks.
+ */
+export interface Location {
+  /** Statement text either side of "the room at row ▢, column ▢". */
+  before: string;
+  after: string;
+  /** House map square the digits point to: [row, col], 0-based. */
+  target: readonly [number, number];
+}
+
 export interface Clue {
   id: string;
   fact: ClueFact;
-  /** Full clue as shown once delivered. */
-  text: string;
   delivery: ClueDelivery;
+  source: ClueSource;
+  /** Witness suspect id, for testimony. */
+  speaker?: string;
+  /** The statement: a quote for testimony, a sentence for evidence. */
+  body: string;
+  /** One-line plain version (speaker and quote), for lists and the dev page. */
+  text: string;
+  /** Sudoku statements only. */
+  location?: Location;
   wordle?: WordleReveal;
 }
 

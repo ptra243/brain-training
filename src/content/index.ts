@@ -25,31 +25,37 @@ export const house = houseFromLayout(
   {
     K: {
       id: 'kitchen',
+      tint: '#e7d9bf',
       name: 'Kitchen',
       objects: ['STOVE', 'SPOON', 'PLATE', 'BREAD', 'APRON', 'SPICE', 'TOAST', 'LADLE', 'TABLE', 'CHAIR', 'CLOCK'],
     },
     L: {
       id: 'library',
+      tint: '#cfd8c0',
       name: 'Library',
       objects: ['SHELF', 'NOVEL', 'GLOBE', 'QUILL', 'ATLAS', 'BOOKS', 'PAGES', 'TABLE', 'CHAIR', 'CLOCK'],
     },
     H: {
       id: 'hall',
+      tint: '#d9d2c4',
       name: 'Hall',
       objects: ['COATS', 'STAIR', 'BENCH', 'CHEST', 'PHONE', 'CLOCK', 'TABLE'],
     },
     S: {
       id: 'study',
+      tint: '#e2c9b8',
       name: 'Study',
       objects: ['DIARY', 'STAMP', 'PAPER', 'GLOBE', 'SCALE', 'CHAIR', 'CLOCK', 'TABLE'],
     },
     C: {
       id: 'conservatory',
+      tint: '#c7dacd',
       name: 'Conservatory',
       objects: ['PLANT', 'FERNS', 'PALMS', 'VINES', 'ROSES', 'TULIP', 'DAISY', 'BENCH'],
     },
     B: {
       id: 'bedroom',
+      tint: '#dcd0dc',
       name: 'Bedroom',
       objects: ['DUVET', 'ROBES', 'QUILT', 'SHEET', 'DRESS', 'SHOES', 'CHEST', 'CLOCK'],
     },

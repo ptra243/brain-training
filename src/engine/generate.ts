@@ -1,5 +1,6 @@
 import { roomAdjacency } from './house.ts';
-import { WORDLE_BLANK, cluePool, clueText, type ClueContext } from './clues.ts';
+import { WORDLE_BLANK, cluePool, type ClueContext } from './clues.ts';
+import { canLocate, plainText, wordClue } from './wording.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
 import type { Case, Clue, ClueDelivery, ClueFact, ClueType, Content, Difficulty, GameKind, GameSpec } from './types.ts';
@@ -8,6 +9,8 @@ interface DifficultySettings {
   suspects: number;
   /** Clues she gets for free at the start. */
   freeClues: number;
+  /** Most sudoku statements that unlock early from coordinate squares. */
+  located: number;
   catSize: number;
   sudoku: { size: 6 | 9; givens: number };
   /** Relative chance of each clue type being tried. 0 = never used. */
@@ -20,6 +23,7 @@ export const DIFFICULTY: Record<Difficulty, DifficultySettings> = {
   easy: {
     suspects: 4,
     freeClues: 2,
+    located: 2,
     catSize: 6,
     sudoku: { size: 6, givens: 16 },
     weights: {
@@ -36,6 +40,7 @@ export const DIFFICULTY: Record<Difficulty, DifficultySettings> = {
   medium: {
     suspects: 4,
     freeClues: 2,
+    located: 2,
     catSize: 7,
     sudoku: { size: 6, givens: 13 },
     weights: {
@@ -53,6 +58,7 @@ export const DIFFICULTY: Record<Difficulty, DifficultySettings> = {
   hard: {
     suspects: 5,
     freeClues: 3,
+    located: 3,
     catSize: 8,
     sudoku: { size: 9, givens: 32 },
     weights: {
@@ -133,14 +139,31 @@ export function generateCase(
     if (countSolutions(candidates, without, ctx, 1) === 1) minimal = without;
   }
 
-  // 5. Hand out the clues: a few free, the rest split between the cat puzzle
-  //    and sudoku. Wordle unlocks the scene. Three games keeps a case near
-  //    ten minutes.
+  // 5. Hand out the clues. A few are free (witness testimony). The sudoku
+  //    delivers more testimony: each "located" statement unlocks early when
+  //    her digits in two marked squares point to its room on the map, and
+  //    finishing the grid gives the rest. The cats find the remainder as
+  //    physical evidence. Wordle unlocks the scene.
   const order = rng.shuffle(minimal);
   const free = Math.min(settings.freeClues, order.length - 2);
+  const rest = order.slice(free);
+  const sudokuShare = rest.length >= 3 ? Math.max(2, Math.floor(rest.length / 2)) : 1;
+  const locatedFacts = rest.filter(canLocate).slice(0, Math.min(settings.located, sudokuShare - 1));
+  const completionFacts = rest.filter((f) => !locatedFacts.includes(f)).slice(0, sudokuShare - locatedFacts.length);
+  const deliveryOf = (f: ClueFact, i: number): ClueDelivery =>
+    i < free ? 'given' : locatedFacts.includes(f) || completionFacts.includes(f) ? 'sudoku' : 'cats';
+
   const clues: Clue[] = order.map((fact, i) => {
-    const delivery: ClueDelivery = i < free ? 'given' : (i - free) % 2 === 0 ? 'cats' : 'sudoku';
-    return { id: `c${i + 1}`, fact, text: clueText(fact, content, rng), delivery };
+    const delivery = deliveryOf(fact, i);
+    const source = delivery === 'cats' ? 'evidence' : 'testimony';
+    const isLocated = locatedFacts.includes(fact) && canLocate(fact);
+    const w = wordClue(fact, source, content, suspects, rng, isLocated);
+    const clue: Clue = { id: `c${i + 1}`, fact, delivery, source, speaker: w.speaker, body: w.body, text: plainText(w, content) };
+    if (isLocated && w.located) {
+      const room = house.rooms.find((r) => r.id === fact.room)!;
+      clue.location = { ...w.located, target: rng.pick(room.cells) };
+    }
+    return clue;
   });
 
   // The scene is always a Wordle: "The body was found by the _____."
@@ -164,6 +187,7 @@ export function generateCase(
       unlocksScene: false,
       size: settings.sudoku.size,
       givens: settings.sudoku.givens,
+      located: clues.filter((c) => c.location).map((c) => c.id),
     },
   ];
 

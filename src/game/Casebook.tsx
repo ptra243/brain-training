@@ -95,7 +95,7 @@ export function Casebook() {
             }}
           />
         )}
-        {tab === 'map' && <MapPanel c={c} progress={progress} dispatch={dispatch} />}
+        {tab === 'map' && <MapPanel c={c} progress={progress} dispatch={dispatch} onAccused={() => select('accuse')} />}
         {tab === 'grid' && <GridPanel c={c} progress={progress} dispatch={dispatch} />}
         {tab === 'accuse' && <AccusePanel c={c} progress={progress} dispatch={dispatch} onNextCase={() => openCase(caseNumber + 1)} />}
       </main>

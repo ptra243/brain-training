@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
 import { generateCase } from '../engine/generate.ts';
-import { cellState, cluesAbout, emptyProgress, sceneUnlocked, unlockedClueIds, heldItem, markKey, placedRoom, reduce, type Action, type Progress } from './state.ts';
+import { cellState, cluesAbout, emptyProgress, heldItem, holderOf, itemRoom, mapAccusation, markKey, placedRoom, reduce, sceneUnlocked, unlockedClueIds, type Action, type Progress } from './state.ts';
 
 const c = generateCase(content, 5);
 const [s1, s2] = c.suspects;
@@ -60,14 +60,43 @@ test('held item comes from the suspect×item grid', () => {
   assert.equal(heldItem(c, p, s1), item);
 });
 
-test('accusations count correct parts and only all three solves it', () => {
+test('accusations count who and weapon; both right solves it', () => {
   const wrongSuspect = c.suspects.find((s) => s !== c.murderer)!;
-  let p = run({ type: 'accuse', suspect: wrongSuspect, room: c.sceneRoom, item: c.weapon });
-  assert.equal(p.accusations[0].correct, 2);
+  let p = run({ type: 'accuse', suspect: wrongSuspect, item: c.weapon });
+  assert.equal(p.accusations[0].correct, 1);
   assert.equal(p.solved, false);
-  p = reduce(c, p, { type: 'accuse', suspect: c.murderer, room: c.sceneRoom, item: c.weapon });
+  p = reduce(c, p, { type: 'accuse', suspect: c.murderer, item: c.weapon });
   assert.equal(p.solved, true);
   assert.equal(p.accusations.length, 2);
+});
+
+test('weapons: dropping in a room ticks what-was-where; giving to a suspect ticks who-had-what and it follows them', () => {
+  const [i1, i2] = c.items;
+  let p = run({ type: 'place-item', item: i1, room: r1 });
+  assert.equal(itemRoom(c, p, i1), r1);
+  assert.equal(holderOf(c, p, i1), null);
+  p = reduce(c, p, { type: 'place', suspect: s1, room: r2 });
+  p = reduce(c, p, { type: 'give-item', item: i1, suspect: s1 });
+  assert.equal(holderOf(c, p, i1), s1);
+  assert.equal(itemRoom(c, p, i1), r2, 'weapon goes to its holder\'s room');
+  p = reduce(c, p, { type: 'place', suspect: s1, room: r1 });
+  assert.equal(itemRoom(c, p, i1), r1, 'and moves with them');
+  p = reduce(c, p, { type: 'give-item', item: i2, suspect: s1 });
+  assert.equal(holderOf(c, p, i1), null, 'one weapon per person');
+  assert.equal(holderOf(c, p, i2), s1);
+  p = reduce(c, p, { type: 'place-item', item: i2, room: null });
+  assert.equal(holderOf(c, p, i2), null);
+  assert.equal(itemRoom(c, p, i2), null);
+});
+
+test('the map implies an accusation once one person is in the scene room with a weapon', () => {
+  const other = c.suspects.find((s) => s !== c.murderer)!;
+  let p = run({ type: 'place', suspect: c.murderer, room: c.sceneRoom });
+  assert.equal(mapAccusation(c, p), null, 'no weapon yet');
+  p = reduce(c, p, { type: 'give-item', item: c.weapon, suspect: c.murderer });
+  assert.deepEqual(mapAccusation(c, p), { suspect: c.murderer, item: c.weapon });
+  p = reduce(c, p, { type: 'place', suspect: other, room: c.sceneRoom });
+  assert.notDeepEqual(mapAccusation(c, p)?.suspect, c.murderer, 'moving someone else in takes the room');
 });
 
 test('clues about a suspect are exactly the ones that name them', () => {

@@ -1,39 +1,54 @@
 import { useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { content } from '../content/index.ts';
 import type { Case, Room } from '../engine/types.ts';
-import { itemName, roomName, suspectColour, suspectInitials, suspectName } from './names.ts';
-import { heldItem, placedRoom, type Action, type Progress } from './state.ts';
+import { ClueCard } from './ClueCard.tsx';
+import { Dialog } from './Dialog.tsx';
+import { itemName, roomName, roomTint, suspectColour, suspectInitials, suspectName } from './names.ts';
+import {
+  heldItem,
+  holderOf,
+  itemRoom,
+  mapAccusation,
+  placedRoom,
+  sceneUnlocked,
+  unlockedClueIds,
+  type Action,
+  type Progress,
+} from './state.ts';
 import { SuspectSheet } from './SuspectSheet.tsx';
 
 interface Props {
   c: Case;
   progress: Progress;
   dispatch: (a: Action) => void;
+  /** After accusing from the map, show the result on the Accuse tab. */
+  onAccused: () => void;
 }
 
-const ROOM_TINTS: Record<string, string> = {
-  kitchen: '#e7d9bf',
-  library: '#cfd8c0',
-  hall: '#d9d2c4',
-  study: '#e2c9b8',
-  conservatory: '#c7dacd',
-  bedroom: '#dcd0dc',
-};
+type Piece = { kind: 'suspect' | 'item'; id: string };
 
-/** Where counters gather in a room: the room cell nearest its centre. */
-function anchorCell(room: Room): [number, number] {
+const nearest = (room: Room, r: number, c: number) =>
+  room.cells.reduce((best, cell) =>
+    (cell[0] - r) ** 2 + (cell[1] - c) ** 2 < (best[0] - r) ** 2 + (best[1] - c) ** 2 ? cell : best,
+  );
+
+/** Counters gather at the room square nearest its centre; loose weapons at the square farthest from that. */
+function anchors(room: Room): { people: readonly [number, number]; things: readonly [number, number] } {
   const cr = room.cells.reduce((s, [r]) => s + r, 0) / room.cells.length;
   const cc = room.cells.reduce((s, [, col]) => s + col, 0) / room.cells.length;
-  let best = room.cells[0];
-  let bestD = Infinity;
-  for (const cell of room.cells) {
-    const d = (cell[0] - cr) ** 2 + (cell[1] - cc) ** 2;
-    if (d < bestD) [best, bestD] = [cell, d];
-  }
-  return [best[0], best[1]];
+  const people = nearest(room, cr, cc);
+  const things =
+    room.cells.length === 1
+      ? people
+      : room.cells.reduce((best, cell) =>
+          (cell[0] - people[0]) ** 2 + (cell[1] - people[1]) ** 2 > (best[0] - people[0]) ** 2 + (best[1] - people[1]) ** 2
+            ? cell
+            : best,
+        );
+  return { people, things };
 }
 
-/** Offsets (in cells) so several counters in one room don't sit on top of each other. */
+/** Offsets (in squares) so several counters in one room don't sit on top of each other. */
 const SPREAD: [number, number][][] = [
   [[0, 0]],
   [[0, -0.27], [0, 0.27]],
@@ -42,8 +57,7 @@ const SPREAD: [number, number][][] = [
   [[-0.27, -0.3], [-0.27, 0.3], [0.27, -0.3], [0.27, 0.3], [0, 0]],
 ];
 
-interface Drag {
-  suspect: string;
+interface Drag extends Piece {
   x: number;
   y: number;
   startX: number;
@@ -51,12 +65,13 @@ interface Drag {
   moved: boolean;
 }
 
-export function MapPanel({ c, progress, dispatch }: Props) {
+export function MapPanel({ c, progress, dispatch, onAccused }: Props) {
   const { house } = content;
   const mapRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
-  const [open, setOpen] = useState<string | null>(null);
+  const [open, setOpen] = useState<Piece | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   const owner = useMemo(() => {
     const m = new Map<string, Room>();
@@ -73,169 +88,349 @@ export function MapPanel({ c, progress, dispatch }: Props) {
     return roomAtCell(r, col) ?? null;
   };
 
-  const placeIn = (suspect: string, room: Room | null) => {
+  /** A suspect counter under the finger, for handing someone a weapon. */
+  const suspectAtPoint = (x: number, y: number): string | null => {
+    for (const el of document.elementsFromPoint(x, y)) {
+      const id = (el as HTMLElement).closest?.('[data-suspect]')?.getAttribute('data-suspect');
+      if (id) return id;
+    }
+    return null;
+  };
+
+  const placeSuspect = (suspect: string, room: Room | null) => {
     if (room && !c.rooms.includes(room.id)) return; // empty rooms take no-one
     dispatch({ type: 'place', suspect, room: room?.id ?? null });
   };
 
-  const onDown = (e: PointerEvent<HTMLButtonElement>, suspect: string) => {
-    e.currentTarget.setPointerCapture(e.pointerId);
-    setDrag({ suspect, x: e.clientX, y: e.clientY, startX: e.clientX, startY: e.clientY, moved: false });
+  const drop = (piece: Piece, x: number, y: number) => {
+    if (piece.kind === 'suspect') return placeSuspect(piece.id, roomAtPoint(x, y));
+    const to = suspectAtPoint(x, y);
+    if (to) return dispatch({ type: 'give-item', item: piece.id, suspect: to });
+    const room = roomAtPoint(x, y);
+    if (room && !c.rooms.includes(room.id)) return;
+    dispatch({ type: 'place-item', item: piece.id, room: room?.id ?? null });
   };
-  const onMove = (e: PointerEvent<HTMLButtonElement>) => {
-    if (!drag) return;
-    const moved = drag.moved || Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) > 8;
-    setDrag({ ...drag, x: e.clientX, y: e.clientY, moved });
-  };
-  const onUp = (e: PointerEvent<HTMLButtonElement>) => {
-    if (!drag) return;
-    if (drag.moved) {
-      placeIn(drag.suspect, roomAtPoint(e.clientX, e.clientY));
-      setSelected(null);
-    } else if (selected === drag.suspect) {
-      setSelected(null); // tapping the counter again cancels "tap a room"
-    } else {
-      setSelected(null);
-      setOpen(drag.suspect); // short tap: show this suspect's clues
-    }
-    setDrag(null);
-  };
+
+  const handlers = (piece: Piece) => ({
+    onPointerDown: (e: PointerEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      e.currentTarget.setPointerCapture(e.pointerId);
+      setDrag({ ...piece, x: e.clientX, y: e.clientY, startX: e.clientX, startY: e.clientY, moved: false });
+    },
+    onPointerMove: (e: PointerEvent<HTMLButtonElement>) => {
+      if (!drag) return;
+      const moved = drag.moved || Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) > 8;
+      setDrag({ ...drag, x: e.clientX, y: e.clientY, moved });
+    },
+    onPointerUp: (e: PointerEvent<HTMLButtonElement>) => {
+      if (!drag) return;
+      if (drag.moved) {
+        drop(drag, e.clientX, e.clientY);
+        setSelected(null);
+      } else if (piece.kind === 'suspect' && selected === piece.id) {
+        setSelected(null); // tapping the counter again cancels "tap a room"
+      } else {
+        setSelected(null);
+        setOpen(piece); // short tap: show the clues about it
+      }
+      setDrag(null);
+    },
+    onPointerCancel: () => setDrag(null),
+    // Keyboard activation (Enter/Space) fires click with detail 0 and no pointer events.
+    onClick: (e: { detail: number }) => {
+      if (e.detail === 0) setOpen(piece);
+    },
+  });
 
   const onMapTap = (r: number, col: number) => {
     if (!selected) return;
-    placeIn(selected, roomAtCell(r, col) ?? null);
+    placeSuspect(selected, roomAtCell(r, col) ?? null);
     setSelected(null);
   };
 
-  // Walls: a thick edge wherever the neighbouring cell is another room or outside.
-  const wall = (r: number, col: number, dr: number, dc: number) => {
-    const here = roomAtCell(r, col);
-    const there = roomAtCell(r + dr, col + dc);
-    return here !== there;
-  };
+  // Walls: a thick edge wherever the neighbouring square is another room or outside.
+  const wall = (r: number, col: number, dr: number, dc: number) => roomAtCell(r, col) !== roomAtCell(r + dr, col + dc);
 
-  const placed = c.suspects.map((s) => ({ suspect: s, room: placedRoom(c, progress, s) }));
-  const unplaced = placed.filter((p) => !p.room).map((p) => p.suspect);
+  const lifted = (p: Piece) => drag?.moved && drag.kind === p.kind && drag.id === p.id;
 
-  const counter = (suspect: string, extraClass = '') => (
+  const counter = (suspect: string) => (
     <button
       key={suspect}
-      className={`counter ${extraClass} ${selected === suspect ? 'selected' : ''} ${drag?.suspect === suspect && drag.moved ? 'lifted' : ''}`}
+      data-suspect={suspect}
+      className={`counter ${selected === suspect ? 'selected' : ''} ${lifted({ kind: 'suspect', id: suspect }) ? 'lifted' : ''}`}
       style={{ '--counter': suspectColour(suspect) } as CSSProperties}
       aria-label={`${suspectName(suspect)}${selected === suspect ? ', selected' : ''}`}
       aria-pressed={selected === suspect}
-      onPointerDown={(e) => onDown(e, suspect)}
-      onPointerMove={onMove}
-      onPointerUp={onUp}
-      onPointerCancel={() => setDrag(null)}
-      // Keyboard activation (Enter/Space) fires click with detail 0 and no pointer events.
-      onClick={(e) => e.detail === 0 && setOpen(suspect)}
+      {...handlers({ kind: 'suspect', id: suspect })}
     >
       {suspectInitials(suspect)}
     </button>
   );
+
+  const weapon = (item: string, held = false) => (
+    <button
+      key={item}
+      className={`weapon ${held ? 'carried' : ''} ${lifted({ kind: 'item', id: item }) ? 'lifted' : ''}`}
+      aria-label={`The ${itemName(item)}${held ? `, held by ${suspectName(holderOf(c, progress, item) ?? '')}` : ''}`}
+      {...handlers({ kind: 'item', id: item })}
+    >
+      {itemName(item)}
+    </button>
+  );
+
+  const placed = c.suspects.map((s) => ({ suspect: s, room: placedRoom(c, progress, s) }));
+  const unplaced = placed.filter((p) => !p.room).map((p) => p.suspect);
+  const looseItems = c.items.filter((i) => !holderOf(c, progress, i));
+  const trayItems = looseItems.filter((i) => !itemRoom(c, progress, i));
+  const heldByUnplaced = c.items.filter((i) => {
+    const h = holderOf(c, progress, i);
+    return h && !placedRoom(c, progress, h);
+  });
+
+  const scene = sceneUnlocked(c, progress) ? c.sceneRoom : null;
+  const implied = scene ? mapAccusation(c, progress) : null;
+
+  const pct = (r: number, col: number) => ({
+    top: `${(r / house.rows) * 100}%`,
+    left: `${(col / house.cols) * 100}%`,
+  });
 
   return (
     <section className="panel">
       <p className="hint">
         {selected
           ? `Now tap a room for ${suspectName(selected)}, or tap the counter again to cancel.`
-          : 'Drag a counter into a room. Tap a counter to see the clues about that person.'}
+          : 'Drag people and weapons into rooms. Drop a weapon on someone to hand it to them. Tap anything to see its clues.'}
       </p>
 
       <div className="floorplan-frame">
-        <div
-          ref={mapRef}
-          className={`floorplan ${selected ? 'awaiting' : ''}`}
-          style={{ gridTemplateColumns: `repeat(${house.cols}, 1fr)`, aspectRatio: `${house.cols} / ${house.rows}` }}
-        >
-          {Array.from({ length: house.rows }, (_, r) =>
-            Array.from({ length: house.cols }, (_, col) => {
-              const room = roomAtCell(r, col)!;
-              const inPlay = c.rooms.includes(room.id);
-              const isLabel = room.cells[0][0] === r && room.cells[0][1] === col;
-              return (
-                <div
-                  key={`${r}-${col}`}
-                  className={`tile ${inPlay ? '' : 'closed'}`}
-                  onClick={() => onMapTap(r, col)}
-                  style={{
-                    background: ROOM_TINTS[room.id] ?? '#ddd',
-                    borderTopWidth: wall(r, col, -1, 0) ? 3 : 0,
-                    borderLeftWidth: wall(r, col, 0, -1) ? 3 : 0,
-                    borderBottomWidth: r === house.rows - 1 ? 3 : 0,
-                    borderRightWidth: col === house.cols - 1 ? 3 : 0,
-                  }}
-                >
-                  {isLabel && <span className="room-name">{room.name}</span>}
-                </div>
-              );
-            }),
-          )}
+        <div className="plan-axes" style={{ gridTemplateColumns: `1rem repeat(${house.cols}, 1fr)` }} aria-hidden="true">
+          <span />
+          {Array.from({ length: house.cols }, (_, col) => (
+            <span key={col}>{col + 1}</span>
+          ))}
+        </div>
+        <div className="plan-body">
+          <div className="plan-rows" style={{ gridTemplateRows: `repeat(${house.rows}, 1fr)` }} aria-hidden="true">
+            {Array.from({ length: house.rows }, (_, r) => (
+              <span key={r}>{r + 1}</span>
+            ))}
+          </div>
+          <div
+            ref={mapRef}
+            className={`floorplan ${selected ? 'awaiting' : ''}`}
+            style={{
+              gridTemplateColumns: `repeat(${house.cols}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${house.rows}, minmax(0, 1fr))`,
+              aspectRatio: `${house.cols} / ${house.rows}`,
+            }}
+          >
+            {Array.from({ length: house.rows }, (_, r) =>
+              Array.from({ length: house.cols }, (_, col) => {
+                const room = roomAtCell(r, col)!;
+                const inPlay = c.rooms.includes(room.id);
+                const isLabel = room.cells[0][0] === r && room.cells[0][1] === col;
+                return (
+                  <div
+                    key={`${r}-${col}`}
+                    className={`tile ${inPlay ? '' : 'closed'} ${room.id === scene ? 'scene' : ''}`}
+                    onClick={() => onMapTap(r, col)}
+                    style={{
+                      background: roomTint(room.id),
+                      borderTopWidth: wall(r, col, -1, 0) ? 3 : 0,
+                      borderLeftWidth: wall(r, col, 0, -1) ? 3 : 0,
+                      borderBottomWidth: r === house.rows - 1 ? 3 : 0,
+                      borderRightWidth: col === house.cols - 1 ? 3 : 0,
+                    }}
+                  >
+                    {isLabel && (
+                      <span className="room-name">
+                        {room.name}
+                        {room.id === scene && <span className="body-mark"> ✕ body</span>}
+                      </span>
+                    )}
+                  </div>
+                );
+              }),
+            )}
 
-          {house.rooms.map((room) => {
-            const here = placed.filter((p) => p.room === room.id).map((p) => p.suspect);
-            if (!here.length) return null;
-            const [ar, ac] = anchorCell(room);
-            const spread = SPREAD[Math.min(here.length, SPREAD.length) - 1];
-            return here.map((suspect, i) => {
-              const [dr, dc] = spread[i] ?? [0, 0];
-              const item = heldItem(c, progress, suspect);
-              return (
-                <div
-                  key={suspect}
-                  className="on-map"
-                  style={{
-                    top: `${((ar + 0.5 + dr) / house.rows) * 100}%`,
-                    left: `${((ac + 0.5 + dc) / house.cols) * 100}%`,
-                  }}
-                >
-                  {counter(suspect)}
-                  {item && <span className="held">{itemName(item)}</span>}
-                </div>
-              );
-            });
-          })}
+            {house.rooms.map((room) => {
+              const { people, things } = anchors(room);
+              const here = placed.filter((p) => p.room === room.id).map((p) => p.suspect);
+              const spread = SPREAD[Math.max(0, Math.min(here.length, SPREAD.length) - 1)];
+              const lying = looseItems.filter((i) => itemRoom(c, progress, i) === room.id);
+              return [
+                ...here.map((suspect, i) => {
+                  const [dr, dc] = spread[i] ?? [0, 0];
+                  const item = heldItem(c, progress, suspect);
+                  return (
+                    <div key={suspect} className="on-map" style={pct(people[0] + 0.5 + dr, people[1] + 0.5 + dc)}>
+                      {counter(suspect)}
+                      {item && weapon(item, true)}
+                    </div>
+                  );
+                }),
+                lying.length > 0 && (
+                  <div key={`items-${room.id}`} className="on-map items" style={pct(things[0] + 0.55, things[1] + 0.5)}>
+                    {lying.map((i) => weapon(i))}
+                  </div>
+                ),
+              ];
+            })}
+          </div>
         </div>
       </div>
 
       <div className="tray card">
-        <h2>Not yet placed</h2>
-        {unplaced.length ? (
+        <h2>Not on the map yet</h2>
+        {unplaced.length || trayItems.length ? (
           <ul>
             {unplaced.map((s) => (
               <li key={s}>
                 {counter(s)}
                 <span>{suspectName(s)}</span>
+                {heldByUnplaced.filter((i) => holderOf(c, progress, i) === s).map((i) => weapon(i, true))}
               </li>
+            ))}
+            {trayItems.map((i) => (
+              <li key={i}>{weapon(i)}</li>
             ))}
           </ul>
         ) : (
-          <p className="muted">Everyone is on the map. Drag a counter off the plan to take it back.</p>
+          <p className="muted">Everyone and everything is placed. Drag anything off the plan to take it back.</p>
         )}
       </div>
 
-      <p className="legend">Shaded rooms are empty tonight: {house.rooms.filter((r) => !c.rooms.includes(r.id)).map((r) => roomName(r.id)).join(', ')}.</p>
+      <div className="accuse-bar card">
+        {!scene ? (
+          <p className="muted">Solve the Wordle to learn where the body was found. Then you can accuse from here.</p>
+        ) : implied ? (
+          <>
+            <p>
+              Your map says <strong>{suspectName(implied.suspect)}</strong>, in the {roomName(scene)}, with the{' '}
+              <strong>{itemName(implied.item)}</strong>.
+            </p>
+            <button className="primary" disabled={progress.solved} onClick={() => setConfirming(true)}>
+              {progress.solved ? 'Case closed' : 'Accuse'}
+            </button>
+          </>
+        ) : (
+          <p className="muted">
+            To accuse from the map, put one person in the {roomName(scene)}, where the body was found, and give them a weapon.
+          </p>
+        )}
+      </div>
 
-      {open && (
+      <p className="legend">
+        Shaded rooms are empty tonight: {house.rooms.filter((r) => !c.rooms.includes(r.id)).map((r) => roomName(r.id)).join(', ')}.
+      </p>
+
+      {open?.kind === 'suspect' && (
         <SuspectSheet
           c={c}
           progress={progress}
           dispatch={dispatch}
-          suspect={open}
+          suspect={open.id}
           onClose={() => setOpen(null)}
           onMove={() => {
-            setSelected(open);
+            setSelected(open.id);
             setOpen(null);
           }}
         />
       )}
+      {open?.kind === 'item' && <ItemSheet c={c} progress={progress} dispatch={dispatch} item={open.id} onClose={() => setOpen(null)} />}
 
-      {drag?.moved && (
-        <div className="ghost" style={{ left: drag.x, top: drag.y, '--counter': suspectColour(drag.suspect) } as CSSProperties}>
-          {suspectInitials(drag.suspect)}
-        </div>
+      {confirming && implied && scene && (
+        <Dialog placement="center" labelId="accuse-title" onClose={() => setConfirming(false)}>
+          <h2 id="accuse-title">Make the accusation?</h2>
+          <p className="dialog-text">
+            {suspectName(implied.suspect)}, in the {roomName(scene)}, with the {itemName(implied.item)}. You'll hear how much of
+            it is right.
+          </p>
+          <div className="dialog-actions">
+            <button data-autofocus className="secondary" onClick={() => setConfirming(false)}>
+              Not yet
+            </button>
+            <button
+              className="primary"
+              onClick={() => {
+                setConfirming(false);
+                dispatch({ type: 'accuse', suspect: implied.suspect, item: implied.item });
+                onAccused();
+              }}
+            >
+              Accuse
+            </button>
+          </div>
+        </Dialog>
       )}
+
+      {drag?.moved &&
+        (drag.kind === 'suspect' ? (
+          <div className="ghost" style={{ left: drag.x, top: drag.y, '--counter': suspectColour(drag.id) } as CSSProperties}>
+            {suspectInitials(drag.id)}
+          </div>
+        ) : (
+          <div className="ghost weapon-ghost" style={{ left: drag.x, top: drag.y }}>
+            {itemName(drag.id)}
+          </div>
+        ))}
     </section>
+  );
+}
+
+/** Clues that mention one weapon. */
+function ItemSheet({
+  c,
+  progress,
+  dispatch,
+  item,
+  onClose,
+}: {
+  c: Case;
+  progress: Progress;
+  dispatch: (a: Action) => void;
+  item: string;
+  onClose: () => void;
+}) {
+  const unlocked = unlockedClueIds(c, progress);
+  const clues = c.clues.filter((cl) => unlocked.has(cl.id) && 'item' in cl.fact && cl.fact.item === item);
+  const holder = holderOf(c, progress, item);
+  const room = itemRoom(c, progress, item);
+  const where = holder
+    ? `You've given it to ${suspectName(holder).replace(/^The /, 'the ')}.`
+    : room
+      ? `You've put it in the ${roomName(room)}.`
+      : 'Not placed yet.';
+  return (
+    <Dialog onClose={onClose} labelId="item-title">
+      <header className="sheet-head">
+        <span className="weapon static" aria-hidden="true">
+          {itemName(item)}
+        </span>
+        <div>
+          <h2 id="item-title">The {itemName(item)}</h2>
+          <p className="muted">{where}</p>
+        </div>
+        <button data-autofocus className="sheet-close" aria-label="Close" onClick={onClose}>
+          ✕
+        </button>
+      </header>
+      {clues.length ? (
+        <ul className="clue-list">
+          {clues.map((clue) => (
+            <li key={clue.id}>
+              <ClueCard
+                clue={clue}
+                used={progress.used.includes(clue.id)}
+                onToggle={() => dispatch({ type: 'toggle-used', clue: clue.id })}
+              />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="muted">No clue you've found so far mentions the {itemName(item)}.</p>
+      )}
+    </Dialog>
   );
 }

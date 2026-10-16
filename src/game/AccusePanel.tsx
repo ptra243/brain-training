@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Case } from '../engine/types.ts';
 import { itemName, roomName, suspectName } from './names.ts';
-import type { Action, Progress } from './state.ts';
+import { ACCUSATION_PARTS, sceneUnlocked, type Action, type Progress } from './state.ts';
 
 interface Props {
   c: Case;
@@ -39,8 +39,8 @@ function Picker({
 
 export function AccusePanel({ c, progress, dispatch, onNextCase }: Props) {
   const [suspect, setSuspect] = useState('');
-  const [room, setRoom] = useState('');
   const [item, setItem] = useState('');
+  const scene = sceneUnlocked(c, progress);
   const [error, setError] = useState('');
   const last = progress.accusations.at(-1);
 
@@ -74,20 +74,27 @@ export function AccusePanel({ c, progress, dispatch, onNextCase }: Props) {
   }
 
   const submit = () => {
-    if (!suspect || !room || !item) {
-      setError('Pick a suspect, a room and a weapon first.');
+    if (!suspect || !item) {
+      setError('Pick a suspect and a weapon first.');
       return;
     }
     setError('');
-    dispatch({ type: 'accuse', suspect, room, item });
+    dispatch({ type: 'accuse', suspect, item });
   };
 
   return (
     <section className="panel">
-      <p className="hint">Name the murderer, the room and the weapon. You'll hear how many you got right, but not which.</p>
+      <p className="hint">
+        Name the murderer and the weapon. You'll hear how many you got right, but not which. You can also accuse straight
+        from the map.
+      </p>
       <article className="card">
+        <p className="scene-note">
+          {scene
+            ? `The murder happened in the ${roomName(c.sceneRoom)}, where the body was found.`
+            : 'Solve the Wordle to learn where the body was found.'}
+        </p>
         <Picker legend="Who" options={c.suspects} value={suspect} onChange={(v) => { setSuspect(v); setError(''); }} name={suspectName} />
-        <Picker legend="Where" options={c.rooms} value={room} onChange={(v) => { setRoom(v); setError(''); }} name={roomName} />
         <Picker legend="With what" options={c.items} value={item} onChange={(v) => { setItem(v); setError(''); }} name={itemName} />
         {error && <p className="error" role="alert">{error}</p>}
         <button className="primary" onClick={submit}>
@@ -97,11 +104,15 @@ export function AccusePanel({ c, progress, dispatch, onNextCase }: Props) {
 
       {last && (
         <article className="card result" aria-live="polite">
-          <h2>{last.correct === 0 ? 'None of that was right.' : `${last.correct} of 3 right.`}</h2>
+          <h2>
+            {last.correct === 0
+              ? 'Neither of those was right.'
+              : `${last.correct} of ${ACCUSATION_PARTS} right. Keep digging.`}
+          </h2>
           <ul className="history">
             {progress.accusations.map((a, i) => (
               <li key={i}>
-                {suspectName(a.suspect)}, {roomName(a.room)}, {itemName(a.item)}: <strong>{a.correct} of 3</strong>
+                {suspectName(a.suspect)} with the {itemName(a.item)}: <strong>{a.correct} of {ACCUSATION_PARTS}</strong>
               </li>
             ))}
           </ul>

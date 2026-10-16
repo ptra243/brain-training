@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Rng } from '../engine/rng.ts';
 import { catConflicts, catsSolved, countCatSolutions, generateCats } from './cats.ts';
-import { generateSudoku, solvableBySingles, sudokuConflicts, sudokuShape, sudokuSolved } from './sudoku.ts';
+import { foundLocations, generateSudoku, locationSquares, solvableBySingles, sudokuConflicts, sudokuShape, sudokuSolved } from './sudoku.ts';
 import { keyboardState, scoreGuess } from './wordle.ts';
 
 test('wordle scoring handles repeated letters', () => {
@@ -57,4 +57,32 @@ for (const [size, givens] of [[6, 14], [9, 32]] as const) {
 test('same seed, same puzzles', () => {
   assert.deepEqual(generateCats(7, new Rng(9)), generateCats(7, new Rng(9)));
   assert.deepEqual(generateSudoku(9, 32, new Rng(9)), generateSudoku(9, 32, new Rng(9)));
+});
+
+test('sudoku location squares are empty, distinct, and their solved digits give the target', () => {
+  for (const size of [6, 9] as const) {
+    const p = generateSudoku(size, size === 6 ? 14 : 32, new Rng(size * 13));
+    const targets = [
+      { id: 'a', target: [2, 3] as const },
+      { id: 'b', target: [5, 0] as const },
+      { id: 'c', target: [0, 0] as const },
+    ];
+    const sq = locationSquares(p, targets, new Rng(1));
+    const all = Object.values(sq).flatMap((s) => [s.row, s.col]);
+    assert.equal(new Set(all).size, all.length, 'squares shared');
+    for (const t of targets) {
+      const s = sq[t.id];
+      assert.ok(s, `no squares for ${t.id}`);
+      assert.equal(p.givens[s.row], 0);
+      assert.equal(p.givens[s.col], 0);
+      assert.equal(p.solution[s.row], t.target[0] + 1);
+      assert.equal(p.solution[s.col], t.target[1] + 1);
+    }
+    const grid = p.givens.slice();
+    assert.deepEqual(foundLocations(p, sq, grid), []);
+    grid[sq.a.row] = p.solution[sq.a.row];
+    assert.deepEqual(foundLocations(p, sq, grid), [], 'one square is not enough');
+    grid[sq.a.col] = p.solution[sq.a.col];
+    assert.deepEqual(foundLocations(p, sq, grid), ['a']);
+  }
 });

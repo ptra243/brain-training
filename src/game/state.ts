@@ -13,11 +13,13 @@ export type GridKind = 'suspect-room' | 'suspect-item' | 'item-room';
 
 export interface Accusation {
   suspect: string;
-  room: string;
   item: string;
-  /** How many of the three parts were right. */
+  /** How many of the two parts (who, weapon) were right. */
   correct: number;
 }
+
+/** Parts in an accusation: who and with what. The room is the scene, so it isn't asked. */
+export const ACCUSATION_PARTS = 2;
 
 export interface GameRecord {
   /** `revealed` = she pressed Solve; the clues still unlock. */
@@ -34,9 +36,11 @@ export interface Progress {
   accusations: Accusation[];
   solved: boolean;
   games: Partial<Record<GameKind, GameRecord>>;
+  /** Sudoku statements unlocked early from their coordinate squares. Kept once found. */
+  found: string[];
 }
 
-export const emptyProgress = (): Progress => ({ marks: {}, used: [], accusations: [], solved: false, games: {} });
+export const emptyProgress = (): Progress => ({ marks: {}, used: [], accusations: [], solved: false, games: {}, found: [] });
 
 export const markKey = (kind: GridKind, row: string, col: string) => `${kind}|${row}|${col}`;
 
@@ -59,11 +63,34 @@ export function axes(c: Case, kind: GridKind): GridAxes {
 export type Action =
   | { type: 'cycle'; kind: GridKind; row: string; col: string }
   | { type: 'place'; suspect: string; room: string | null }
+  | { type: 'place-item'; item: string; room: string | null }
+  | { type: 'give-item'; item: string; suspect: string }
   | { type: 'toggle-used'; clue: string }
-  | { type: 'accuse'; suspect: string; room: string; item: string }
+  | { type: 'accuse'; suspect: string; item: string }
   | { type: 'game-save'; kind: GameKind; data: unknown }
   | { type: 'game-finish'; kind: GameKind; status: 'won' | 'revealed'; data: unknown }
+  | { type: 'found'; clues: string[] }
   | { type: 'reset' };
+
+function clearTicks(marks: Record<string, Mark>, kind: GridKind, row: string | null, col: string | null, c: Case) {
+  const { rows, cols } = axes(c, kind);
+  for (const r of rows) {
+    for (const cl of cols) {
+      if ((row === null || r === row) && (col === null || cl === col) && marks[markKey(kind, r, cl)] === 'o') {
+        delete marks[markKey(kind, r, cl)];
+      }
+    }
+  }
+}
+
+/** Keep a held weapon in the same room as its holder. */
+function carryItem(marks: Record<string, Mark>, c: Case, suspect: string) {
+  const item = c.items.find((i) => marks[markKey('suspect-item', suspect, i)] === 'o');
+  if (!item) return;
+  clearTicks(marks, 'item-room', item, null, c);
+  const room = c.rooms.find((r) => marks[markKey('suspect-room', suspect, r)] === 'o');
+  if (room) setTick(marks, c, 'item-room', item, room);
+}
 
 /** Set a tick, clearing any other tick in the same row and column (one per line). */
 function setTick(marks: Record<string, Mark>, c: Case, kind: GridKind, row: string, col: string) {
@@ -92,6 +119,21 @@ export function reduce(c: Case, p: Progress, action: Action): Progress {
         if (marks[key] === 'o') delete marks[key];
       }
       if (action.room) setTick(marks, c, 'suspect-room', action.suspect, action.room);
+      carryItem(marks, c, action.suspect);
+      return { ...p, marks };
+    }
+    case 'place-item': {
+      // Put a weapon down in a room (or back in the tray): nobody holds it now.
+      const marks = { ...p.marks };
+      clearTicks(marks, 'suspect-item', null, action.item, c);
+      clearTicks(marks, 'item-room', action.item, null, c);
+      if (action.room) setTick(marks, c, 'item-room', action.item, action.room);
+      return { ...p, marks };
+    }
+    case 'give-item': {
+      const marks = { ...p.marks };
+      setTick(marks, c, 'suspect-item', action.suspect, action.item);
+      carryItem(marks, c, action.suspect);
       return { ...p, marks };
     }
     case 'toggle-used': {
@@ -100,10 +142,9 @@ export function reduce(c: Case, p: Progress, action: Action): Progress {
     }
     case 'accuse': {
       if (p.solved) return p;
-      const correct =
-        Number(action.suspect === c.murderer) + Number(action.room === c.sceneRoom) + Number(action.item === c.weapon);
-      const accusation: Accusation = { suspect: action.suspect, room: action.room, item: action.item, correct };
-      return { ...p, accusations: [...p.accusations, accusation], solved: correct === 3 };
+      const correct = Number(action.suspect === c.murderer) + Number(action.item === c.weapon);
+      const accusation: Accusation = { suspect: action.suspect, item: action.item, correct };
+      return { ...p, accusations: [...p.accusations, accusation], solved: correct === ACCUSATION_PARTS };
     }
     case 'game-save': {
       const current = p.games[action.kind];
@@ -114,6 +155,10 @@ export function reduce(c: Case, p: Progress, action: Action): Progress {
       const current = p.games[action.kind];
       if (current && current.status !== 'playing') return p;
       return { ...p, games: { ...p.games, [action.kind]: { status: action.status, data: action.data } } };
+    }
+    case 'found': {
+      const add = action.clues.filter((id) => !p.found.includes(id));
+      return add.length ? { ...p, found: [...p.found, ...add] } : p;
     }
     case 'reset':
       return emptyProgress();
@@ -138,6 +183,7 @@ export const gameDone = (p: Progress, kind: GameKind) => {
 /** Ids of the clues she can see: the free ones plus every finished game's. */
 export function unlockedClueIds(c: Case, p: Progress): Set<string> {
   const ids = new Set(c.clues.filter((clue) => clue.delivery === 'given').map((clue) => clue.id));
+  for (const id of p.found) ids.add(id);
   for (const g of c.games) if (gameDone(p, g.kind)) for (const id of g.clues) ids.add(id);
   return ids;
 }
@@ -160,4 +206,29 @@ export function placedRoom(c: Case, p: Progress, suspect: string): string | null
 /** The item she has ticked for a suspect, shown under the token on the map. */
 export function heldItem(c: Case, p: Progress, suspect: string): string | null {
   return c.items.find((item) => p.marks[markKey('suspect-item', suspect, item)] === 'o') ?? null;
+}
+
+/** Who holds a weapon (suspect×item tick), if anyone. */
+export function holderOf(c: Case, p: Progress, item: string): string | null {
+  return c.suspects.find((s) => p.marks[markKey('suspect-item', s, item)] === 'o') ?? null;
+}
+
+/** The room she has put a weapon in (item×room tick), if any. */
+export function itemRoom(c: Case, p: Progress, item: string): string | null {
+  return c.rooms.find((r) => p.marks[markKey('item-room', item, r)] === 'o') ?? null;
+}
+
+/**
+ * The accusation her map implies: the one person she's placed in the room
+ * where the body was found, and the weapon they hold (or the one weapon
+ * lying in that room). Null when the map doesn't say yet.
+ */
+export function mapAccusation(c: Case, p: Progress): { suspect: string; item: string } | null {
+  const there = c.suspects.filter((s) => placedRoom(c, p, s) === c.sceneRoom);
+  if (there.length !== 1) return null;
+  const [suspect] = there;
+  const held = heldItem(c, p, suspect);
+  const lying = c.items.filter((i) => itemRoom(c, p, i) === c.sceneRoom && !holderOf(c, p, i));
+  const item = held ?? (lying.length === 1 ? lying[0] : null);
+  return item ? { suspect, item } : null;
 }

@@ -1,6 +1,16 @@
 import { useState } from 'react';
-import { sudokuConflicts, sudokuSolved, type SudokuPuzzle } from '../../games/sudoku.ts';
+import type { Clue } from '../../engine/types.ts';
+import { sudokuConflicts, sudokuSolved, type LocationSquares, type SudokuPuzzle } from '../../games/sudoku.ts';
+import { ClueCard } from '../ClueCard.tsx';
 import type { GameProps } from './types.ts';
+
+/** A statement unlocked by two marked squares: their digits are a row and column on the floor plan. */
+export interface SudokuStatement {
+  label: string;
+  clue: Clue;
+  squares: LocationSquares;
+  found: boolean;
+}
 
 export interface SudokuData {
   /** Row-major digits, 0 = empty. Givens are included. */
@@ -10,7 +20,19 @@ export interface SudokuData {
 export const sudokuInitial = (p: SudokuPuzzle): SudokuData => ({ grid: p.givens.slice() });
 export const sudokuSolvedData = (p: SudokuPuzzle): SudokuData => ({ grid: p.solution.slice() });
 
-export function SudokuGame({ puzzle, data, finished, onChange, onFinish }: GameProps<SudokuPuzzle, SudokuData>) {
+export function SudokuGame({
+  puzzle,
+  data,
+  finished,
+  onChange,
+  onFinish,
+  statements,
+}: GameProps<SudokuPuzzle, SudokuData> & { statements: SudokuStatement[] }) {
+  const tags = new Map<number, string>();
+  for (const st of statements) {
+    tags.set(st.squares.row, `${st.label}↓`);
+    tags.set(st.squares.col, `${st.label}→`);
+  }
   const { size, boxRows, boxCols, givens } = puzzle;
   const [selected, setSelected] = useState<number | null>(() => givens.findIndex((d) => d === 0));
   const bad = sudokuConflicts(puzzle, data.grid);
@@ -37,6 +59,8 @@ export function SudokuGame({ puzzle, data, finished, onChange, onFinish }: GameP
     <div className="sudoku">
       <p className="hint dark">
         Fill the grid so every row, column and box has 1 to {size} once each. Tap a square, then a number.
+        {statements.length > 0 &&
+          ' Lettered squares point at the floor plan: ↓ is the row, → the column. Fill both to hear that statement.'}
       </p>
       <div
         className={`sudoku-grid size-${size}`}
@@ -53,6 +77,7 @@ export function SudokuGame({ puzzle, data, finished, onChange, onFinish }: GameP
             i === sel ? 'selected' : sameUnit(i) ? 'peer' : '',
             d && d === selDigit && i !== sel ? 'same' : '',
             bad.has(i) && !givens[i] ? 'clash' : '',
+            tags.has(i) ? 'tagged' : '',
           ].join(' ');
           return (
             <button
@@ -65,9 +90,10 @@ export function SudokuGame({ puzzle, data, finished, onChange, onFinish }: GameP
                 borderBottomWidth: r === size - 1 ? 2.5 : 0.5,
                 borderRightWidth: c === size - 1 ? 2.5 : 0.5,
               }}
-              aria-label={`Row ${r + 1}, column ${c + 1}: ${d || 'empty'}${givens[i] ? ', given' : ''}`}
+              aria-label={`Row ${r + 1}, column ${c + 1}: ${d || 'empty'}${givens[i] ? ', given' : ''}${tags.has(i) ? `, square ${tags.get(i)}` : ''}`}
               onClick={() => !finished && setSelected(i)}
             >
+              {tags.has(i) && <span className="cell-tag">{tags.get(i)}</span>}
               {d || ''}
             </button>
           );
@@ -88,6 +114,26 @@ export function SudokuGame({ puzzle, data, finished, onChange, onFinish }: GameP
       <p className="game-message" role="status">
         {finished ? (finished === 'won' ? 'Solved.' : 'Here is the finished grid.') : bad.size ? 'Some numbers clash.' : ''}
       </p>
+      {statements.length > 0 && (
+        <section className="statements">
+          <h2>Statements</h2>
+          {statements.map((st) => {
+            const digit = (i: number) => (data.grid[i] ? data.grid[i] : null);
+            return (
+              <div key={st.clue.id} className={`statement ${st.found ? 'found' : ''}`}>
+                <span className="statement-label" aria-hidden="true">
+                  {st.label}
+                </span>
+                <ClueCard
+                  clue={st.clue}
+                  compact
+                  coords={{ row: digit(st.squares.row), col: digit(st.squares.col), found: st.found }}
+                />
+              </div>
+            );
+          })}
+        </section>
+      )}
     </div>
   );
 }

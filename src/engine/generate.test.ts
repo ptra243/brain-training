@@ -85,3 +85,37 @@ test('every clue is free or unlocked by exactly one game, and each case has thre
     for (const g of c.games.slice(1)) assert.ok(g.clues.length > 0, `case ${n}: ${g.kind} unlocks nothing`);
   }
 });
+
+test('clue sources: free and sudoku clues are testimony, cat clues are evidence; witnesses never vouch for themselves', () => {
+  for (let n = 1; n <= 30; n++) {
+    const c = generateCase(content, n);
+    for (const clue of c.clues) {
+      assert.equal(clue.source, clue.delivery === 'cats' ? 'evidence' : 'testimony', `case ${n} ${clue.id}`);
+      if (clue.source === 'testimony') {
+        assert.ok(clue.speaker && c.suspects.includes(clue.speaker));
+        if ('suspect' in clue.fact) assert.notEqual(clue.speaker, clue.fact.suspect, `case ${n}: ${clue.text}`);
+      } else assert.equal(clue.speaker, undefined);
+      assert.ok(!/\{\w+\}/.test(clue.body), `unfilled placeholder: ${clue.body}`);
+    }
+  }
+});
+
+test('located sudoku statements point at a square inside their own room', () => {
+  let seen = 0;
+  for (let n = 1; n <= 30; n++) {
+    const c = generateCase(content, n);
+    const sudoku = c.games.find((g) => g.kind === 'sudoku')!;
+    for (const clue of c.clues.filter((cl) => cl.location)) {
+      seen++;
+      assert.equal(clue.delivery, 'sudoku');
+      assert.ok(sudoku.located?.includes(clue.id));
+      assert.ok('room' in clue.fact);
+      const room = content.house.rooms.find((r) => 'room' in clue.fact && r.id === clue.fact.room)!;
+      const [tr, tc] = clue.location!.target;
+      assert.ok(room.cells.some(([r, col]) => r === tr && col === tc), `case ${n}: target outside ${room.name}`);
+      assert.equal(`${clue.location!.before}the ${room.name}${clue.location!.after}`, clue.body);
+    }
+    assert.ok(c.clues.some((cl) => cl.delivery === 'sudoku' && !cl.location), `case ${n}: sudoku has no completion clue`);
+  }
+  assert.ok(seen > 20, `only ${seen} located statements in 30 cases`);
+});

@@ -9,8 +9,10 @@ has the link). README has setup, layout and how a case is generated.
 
 ## Status
 
-Phases 1–4 done (content, generator/solver, casebook UI, minigames). Next:
-phase 5 (modes, campaign progression) and playtesting on her phone.
+Phases 1–4 done (content, generator/solver, casebook UI, minigames), plus
+testimony/evidence clues, sudoku map coordinates and weapons on the map.
+Next: phase 5 (modes, campaign progression), playtesting, and the
+interrogation minigame ("Catch the lie", see the plan's minigame ideas).
 Known gaps: Wordle accepts any 5 letters (no dictionary yet: needs a word
 list package added from the owner's machine); cat puzzles are unique but not
 checked for how much look-ahead they need.
@@ -24,9 +26,13 @@ checked for how much look-ahead they need.
   that asks "Are you sure? This can't be undone" (an in-app dialog, not
   `window.confirm`), then reveals the answer and still unlocks the clue. Record
   the game as `revealed`, not `won`, so stats can tell them apart.
-- **Each case has three games**: Wordle unlocks the scene, the cat puzzle and
-  sudoku each unlock about half the clues, and 2–3 clues are free at the
-  start. Puzzles are rebuilt from `GameSpec.seed`; only her moves are saved.
+- **Each case has three games**: Wordle unlocks the scene; the cat puzzle
+  unlocks physical evidence ("found by the cats"); the sudoku unlocks witness
+  testimony. Each sudoku statement has two marked squares whose digits are
+  a row and column on the floor plan pointing at its room; it unlocks the
+  moment both are right, and finishing the grid gives one more. 2–3
+  testimony clues are free at the start. Every clue is true, and a witness
+  never vouches for themselves. Puzzles are rebuilt from `GameSpec.seed`; only her moves are saved.
   Generate a puzzle once per game screen, never per render or per move.
 - **Generated puzzles must be fair**: cat puzzles have exactly one answer and
   even-ish zones; sudoku has one answer and is solvable by singles alone.
@@ -36,8 +42,14 @@ checked for how much look-ahead they need.
 - **Every case must have exactly one solution** and a minimal clue set.
   Never ship a generator change without `npm run check-cases` passing.
 - **Map and grid share one source of truth**: a counter is in a room exactly
-  when the suspect×room cell is ticked. Change `src/game/state.ts`, not the
-  panels, to change that behaviour.
+  when the suspect×room cell is ticked; a weapon tag is in a room when
+  item×room is ticked, and held when suspect×item is ticked (a held weapon
+  follows its holder). Change `src/game/state.ts`, not the panels.
+- **Accusations are who + weapon.** The room is always where the body was
+  found (the Wordle), so it isn't asked. She can accuse from the map: the one
+  person in the scene room and the weapon they hold.
+- **Room colours and all names live in `src/content/`.** Bump the storage
+  prefix in `src/game/storage.ts` when saved data stops matching the cases.
 - **Content is data.** Names, rooms, objects and items live only in
   `src/content/`; code must not refer to them by name. The theme is still
   placeholder.
@@ -51,8 +63,9 @@ checked for how much look-ahead they need.
 - Test interactions with real touch events (CDP `Input.dispatchTouchEvent`),
   not just mouse clicks: a touch tap sends a late `click` that can land on
   whatever the tap just opened (fixed once already in `SuspectSheet`).
-- On the map, a short tap on a counter opens that suspect's clues; dragging
-  moves it. "Tap a room to place" starts from the button in that card.
+- On the map, a short tap on a counter or weapon opens its clues; dragging
+  moves it. Keep the tray of unplaced pieces right under the map so every
+  drag starts and ends on one phone screen.
 - Look: a card table in the manor library. Green baize background, ivory
   cards, brass suspect counters, red-pencil crosses, serif headings. The floor
   plan is the one bold element; keep everything else quiet.

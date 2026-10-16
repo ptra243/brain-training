@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { Case } from '../engine/types.ts';
 import { itemName, roomName, suspectColour, suspectInitials, suspectName } from './names.ts';
+import { ClueCard } from './ClueCard.tsx';
 import { Dialog } from './Dialog.tsx';
 import { cluesAbout, heldItem, placedRoom, unlockedClueIds, type Action, type Progress } from './state.ts';
 
@@ -42,20 +43,15 @@ export function SuspectSheet({ c, progress, dispatch, suspect, onClose, onMove }
 
         {clues.length ? (
           <ul className="clue-list">
-            {clues.map((clue) => {
-              const used = progress.used.includes(clue.id);
-              return (
-                <li key={clue.id}>
-                  <button
-                    className={`card clue ${used ? 'used' : ''}`}
-                    aria-pressed={used}
-                    onClick={() => dispatch({ type: 'toggle-used', clue: clue.id })}
-                  >
-                    {clue.text}
-                  </button>
-                </li>
-              );
-            })}
+            {clues.map((clue) => (
+              <li key={clue.id}>
+                <ClueCard
+                  clue={clue}
+                  used={progress.used.includes(clue.id)}
+                  onToggle={() => dispatch({ type: 'toggle-used', clue: clue.id })}
+                />
+              </li>
+            ))}
           </ul>
         ) : (
           <p className="muted">No clue you've found so far names {suspectName(suspect)}. Play the games to unlock more, or work them out from everyone else.</p>

@@ -2,7 +2,8 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { Rng } from '../../engine/rng.ts';
 import type { Case, GameKind, GameSpec } from '../../engine/types.ts';
 import { generateCats, type CatPuzzle } from '../../games/cats.ts';
-import { generateSudoku, type SudokuPuzzle } from '../../games/sudoku.ts';
+import { foundLocations, generateSudoku, locationSquares, type LocationSquares, type SudokuPuzzle } from '../../games/sudoku.ts';
+import { ClueCard } from '../ClueCard.tsx';
 import { Dialog } from '../Dialog.tsx';
 import type { Action, Progress } from '../state.ts';
 import { CatsGame, catsInitial, catsSolvedData, type CatsData } from './CatsGame.tsx';
@@ -12,7 +13,7 @@ import { WordleGame, wordleInitial, wordleSolved, type WordleData, type WordlePu
 type Built =
   | { kind: 'wordle'; puzzle: WordlePuzzle }
   | { kind: 'cats'; puzzle: CatPuzzle }
-  | { kind: 'sudoku'; puzzle: SudokuPuzzle };
+  | { kind: 'sudoku'; puzzle: SudokuPuzzle; squares: Record<string, LocationSquares> };
 
 function buildPuzzle(c: Case, spec: GameSpec): Built {
   const rng = new Rng(spec.seed);
@@ -21,8 +22,11 @@ function buildPuzzle(c: Case, spec: GameSpec): Built {
       return { kind: 'wordle', puzzle: { answer: c.sceneClue.wordle.answer, teaser: c.sceneClue.wordle.teaser } };
     case 'cats':
       return { kind: 'cats', puzzle: generateCats(spec.size, rng) };
-    case 'sudoku':
-      return { kind: 'sudoku', puzzle: generateSudoku(spec.size === 9 ? 9 : 6, spec.givens ?? 0, rng) };
+    case 'sudoku': {
+      const puzzle = generateSudoku(spec.size === 9 ? 9 : 6, spec.givens ?? 0, rng);
+      const targets = c.clues.filter((cl) => cl.location && spec.located?.includes(cl.id)).map((cl) => ({ id: cl.id, target: cl.location!.target }));
+      return { kind: 'sudoku', puzzle, squares: locationSquares(puzzle, targets, new Rng(spec.seed ^ 0x5eed)) };
+    }
   }
 }
 
@@ -61,18 +65,42 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
       solved = () => catsSolvedData(built.puzzle);
       view = <CatsGame puzzle={built.puzzle} data={(record?.data as CatsData) ?? catsInitial()} {...props} />;
       break;
-    case 'sudoku':
+    case 'sudoku': {
       solved = () => sudokuSolvedData(built.puzzle);
+      const { puzzle, squares } = built;
+      const data = (record?.data as SudokuData) ?? sudokuInitial(puzzle);
+      // A statement unlocks the moment both its squares are right, even mid-game.
+      const check = (d: SudokuData) => {
+        const ids = foundLocations(puzzle, squares, d.grid);
+        if (ids.length) dispatch({ type: 'found', clues: ids });
+      };
+      const statements = Object.entries(squares).map(([id, sq], i) => ({
+        label: String.fromCharCode(65 + i),
+        clue: c.clues.find((cl) => cl.id === id)!,
+        squares: sq,
+        found: progress.found.includes(id) || finished !== null,
+      }));
       view = (
-        <SudokuGame puzzle={built.puzzle} data={(record?.data as SudokuData) ?? sudokuInitial(built.puzzle)} {...props} />
+        <SudokuGame
+          puzzle={puzzle}
+          data={data}
+          statements={statements}
+          finished={finished}
+          onChange={(d: SudokuData) => {
+            check(d);
+            save(d);
+          }}
+          onFinish={(status, d: SudokuData) => {
+            check(d);
+            finish(status, d);
+          }}
+        />
       );
       break;
+    }
   }
 
-  const unlocked = [
-    ...(spec.unlocksScene ? [{ id: 'scene', text: c.sceneClue.text }] : []),
-    ...c.clues.filter((cl) => spec.clues.includes(cl.id)),
-  ];
+  const unlocked = c.clues.filter((cl) => spec.clues.includes(cl.id));
 
   return (
     <div className="game-screen">
@@ -94,9 +122,14 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
         <section className="unlocked card" aria-live="polite">
           <h2>{finished === 'won' ? 'Clues unlocked' : 'Puzzle solved for you. Clues unlocked'}</h2>
           <ul>
+            {spec.unlocksScene && (
+              <li className="scene-line" style={{ animationDelay: '120ms' }}>
+                {c.sceneClue.text}
+              </li>
+            )}
             {unlocked.map((u, i) => (
-              <li key={u.id} style={{ animationDelay: `${120 + i * 140}ms` }}>
-                {u.text}
+              <li key={u.id} style={{ animationDelay: `${120 + (i + 1) * 140}ms` }}>
+                <ClueCard clue={u} compact />
               </li>
             ))}
           </ul>

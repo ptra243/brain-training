@@ -4,7 +4,8 @@
 
 import { emptyProgress, type Progress } from './state.ts';
 
-const PREFIX = 'brain-training:v1:';
+// v2: clue wording, sudoku statements and two-part accusations changed what's saved.
+const PREFIX = 'brain-training:v2:';
 
 function read<T>(key: string): T | null {
   try {
