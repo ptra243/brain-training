@@ -92,6 +92,13 @@ function carryItem(marks: Record<string, Mark>, c: Case, suspect: string) {
   if (room) setTick(marks, c, 'item-room', item, room);
 }
 
+/** When a suspect has both a room and a weapon ticked, tick the weapon in that room. Never clears. */
+function linkItem(marks: Record<string, Mark>, c: Case, suspect: string) {
+  const item = c.items.find((i) => marks[markKey('suspect-item', suspect, i)] === 'o');
+  const room = c.rooms.find((r) => marks[markKey('suspect-room', suspect, r)] === 'o');
+  if (item && room) setTick(marks, c, 'item-room', item, room);
+}
+
 /** Set a tick, clearing any other tick in the same row and column (one per line). */
 function setTick(marks: Record<string, Mark>, c: Case, kind: GridKind, row: string, col: string) {
   const { rows, cols } = axes(c, kind);
@@ -108,8 +115,11 @@ export function reduce(c: Case, p: Progress, action: Action): Progress {
       const key = markKey(action.kind, action.row, action.col);
       const current = marks[key];
       if (!current) marks[key] = 'x';
-      else if (current === 'x') setTick(marks, c, action.kind, action.row, action.col);
-      else delete marks[key];
+      else if (current === 'x') {
+        setTick(marks, c, action.kind, action.row, action.col);
+        // Ticking someone's room and weapon puts the weapon in that room too, as on the map.
+        if (action.kind !== 'item-room') linkItem(marks, c, action.row);
+      } else delete marks[key];
       return { ...p, marks };
     }
     case 'place': {

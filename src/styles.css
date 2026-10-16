@@ -50,10 +50,25 @@ h1, h2 { font-family: var(--serif); font-weight: 600; margin: 0; }
 }
 .step:disabled { opacity: 0.35; cursor: default; }
 
+/* Tab bar, with the clue drawer above it on the map and grid. */
+.dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; max-width: 30rem; margin: 0 auto; }
+.casebook.with-drawer { padding-bottom: calc(7.75rem + env(safe-area-inset-bottom)); }
+.casebook.with-drawer.open { padding-bottom: calc(7.75rem + 40dvh + env(safe-area-inset-bottom)); }
+.clue-drawer { background: var(--card); color: var(--ink); border-top: 1px solid var(--card-edge); border-radius: 0.6rem 0.6rem 0 0; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3); }
+.drawer-handle {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 0.6rem;
+  width: 100%; min-height: 3rem; padding: 0.4rem 1rem; border: 0; background: none; cursor: pointer; text-align: left;
+}
+.drawer-title { font-family: var(--serif); font-weight: 600; font-size: 1.05rem; }
+.drawer-count { font-size: 0.82rem; color: var(--ink-soft); }
+.drawer-chevron { font-size: 0.9rem; color: var(--ink-soft); }
+.drawer-body { max-height: 40dvh; overflow-y: auto; overscroll-behavior: contain; padding: 0 0.75rem 0.75rem; display: grid; gap: 0.5rem; align-content: start; }
+.drawer-scene { margin: 0; padding-left: 0.6rem; border-left: 4px solid var(--pencil); font-family: var(--serif); line-height: 1.4; }
+.clue-drawer .clue { background: #fffcf3; }
+.clue-drawer .clue.used { background: #e6e0cf; }
+
 .tabbar {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
   display: grid; grid-template-columns: repeat(4, 1fr);
-  max-width: 30rem; margin: 0 auto;
   padding: 0.35rem 0.5rem calc(0.35rem + env(safe-area-inset-bottom));
   background: var(--baize-deep); border-top: 1px solid var(--baize-line);
 }
@@ -151,18 +166,25 @@ h1, h2 { font-family: var(--serif); font-weight: 600; margin: 0; }
 .tray li { display: flex; align-items: center; gap: 0.45rem; font-size: 0.9rem; }
 .legend { margin: 0; font-size: 0.8rem; color: var(--on-baize-soft); }
 
-/* ---------- Logic grids ---------- */
-.grid-card { padding: 0.75rem 0.6rem 0.8rem; }
-.grid-card h2 { padding-left: 0.3rem; }
+/* ---------- Logic grid (one staircase: rooms | weapons across, suspects then weapons down) ---------- */
+.grid-card { margin: 0 -0.6rem; padding: 0.6rem 0.4rem 0.7rem; }
 .logic-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .logic-grid th { font-weight: 600; font-size: 0.72rem; color: var(--ink); }
-.logic-grid thead th { vertical-align: bottom; padding: 0 0 0.3rem; text-align: center; }
-.logic-grid thead th span { display: block; line-height: 1.15; overflow-wrap: anywhere; }
-.logic-grid thead th:first-child { width: 4.6rem; }
-.logic-grid tbody th { text-align: left; padding-right: 0.3rem; font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.logic-grid thead th { vertical-align: bottom; padding: 0 0 0.35rem; }
+.logic-grid thead th span {
+  display: block; margin: 0 auto; writing-mode: vertical-rl; transform: rotate(180deg);
+  white-space: nowrap; line-height: 1.1; text-align: left;
+}
+.logic-grid thead th:first-child { width: 3.4rem; }
+.logic-grid tbody th { text-align: left; padding-right: 0.3rem; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .logic-grid td { border: 1px solid #b9b09a; padding: 0; }
+.logic-grid .split { border-left: 2px solid var(--ink); }
+.logic-grid tbody.lower tr:first-child > * { border-top: 2px solid var(--ink); }
+.logic-grid td.void { border: 0; border-left: 2px solid var(--ink); }
+.logic-grid tbody.lower tr:first-child > td.void { border-top: 2px solid var(--ink); }
+.counter.mini { width: 1.9rem; height: 1.9rem; font-size: 0.75rem; border-width: 2px; box-shadow: 0 1px 0 var(--brass-deep); }
 .mark {
-  display: grid; place-items: center; width: 100%; aspect-ratio: 1; min-height: 2.5rem;
+  display: grid; place-items: center; width: 100%; min-height: 2.5rem;
   border: 0; background: none; cursor: pointer;
   font-size: 1.25rem; line-height: 1;
 }

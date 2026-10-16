@@ -89,6 +89,17 @@ test('weapons: dropping in a room ticks what-was-where; giving to a suspect tick
   assert.equal(itemRoom(c, p, i2), null);
 });
 
+test('ticking a suspect’s room and weapon in the grid puts the weapon in that room', () => {
+  const [i1] = c.items;
+  const tick = (kind: 'suspect-room' | 'suspect-item', col: string): Action[] => [
+    { type: 'cycle', kind, row: s1, col },
+    { type: 'cycle', kind, row: s1, col },
+  ];
+  const p = run(...tick('suspect-item', i1), ...tick('suspect-room', r1));
+  assert.equal(itemRoom(c, p, i1), r1);
+  assert.equal(run(...tick('suspect-item', i1)).marks[markKey('item-room', i1, r1)], undefined);
+});
+
 test('the map implies an accusation once one person is in the scene room with a weapon', () => {
   const other = c.suspects.find((s) => s !== c.murderer)!;
   let p = run({ type: 'place', suspect: c.murderer, room: c.sceneRoom });

@@ -49,7 +49,16 @@ checked for how much look-ahead they need.
 - **Map and grid share one source of truth**: a counter is in a room exactly
   when the suspect×room cell is ticked; a weapon tag is in a room when
   item×room is ticked, and held when suspect×item is ticked (a held weapon
-  follows its holder). Change `src/game/state.ts`, not the panels.
+  follows its holder). Ticking a suspect's room and weapon in the grid also
+  ticks that weapon in that room. Change `src/game/state.ts`, not the panels.
+- **The grid is one staircase**: suspects (as their map counters) and then
+  weapons down the side, rooms | weapons across, bottom-right corner empty.
+  Keep the weapons×rooms block: item-room clues have nowhere else to go.
+  At 5 suspects cells are ~27px wide (40px tall), the one accepted exception
+  to the 44px rule, so the whole grid fits without sideways scroll.
+- **Clues stay reachable while working**: the Map and Grid tabs have a clue
+  drawer above the tab bar (`ClueDrawer`). Don't make her switch tabs to
+  read a clue.
 - **Accusations are who + weapon.** The room is always where the body was
   found (the Wordle), so it isn't asked. She can accuse from the map: the one
   person in the scene room and the weapon they hold.

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { content } from '../content/index.ts';
 import { generateCase } from '../engine/generate.ts';
 import { AccusePanel } from './AccusePanel.tsx';
+import { ClueDrawer } from './ClueDrawer.tsx';
 import { CluesPanel } from './CluesPanel.tsx';
 import { GridPanel } from './GridPanel.tsx';
 import { MapPanel } from './MapPanel.tsx';
@@ -26,6 +27,7 @@ export function Casebook() {
   const [progress, setProgress] = useState<Progress>(() => loadProgress(caseNumber));
   const [tab, setTab] = useState<Tab>('clues');
   const [playing, setPlaying] = useState<GameKind | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => saveProgress(caseNumber, progress), [caseNumber, progress]);
   useEffect(() => saveCurrentCase(caseNumber), [caseNumber]);
@@ -66,8 +68,10 @@ export function Casebook() {
     );
   }
 
+  const drawer = tab === 'map' || tab === 'grid';
+
   return (
-    <div className="casebook">
+    <div className={`casebook ${drawer ? (drawerOpen ? 'with-drawer open' : 'with-drawer') : ''}`}>
       <header className="case-header">
         <button className="step" aria-label="Previous case" disabled={caseNumber <= 1} onClick={() => openCase(caseNumber - 1)}>
           ‹
@@ -100,13 +104,18 @@ export function Casebook() {
         {tab === 'accuse' && <AccusePanel c={c} progress={progress} dispatch={dispatch} onNextCase={() => openCase(caseNumber + 1)} />}
       </main>
 
-      <nav className="tabbar" aria-label="Casebook">
-        {TABS.map((t) => (
-          <button key={t.id} aria-current={tab === t.id ? 'page' : undefined} onClick={() => select(t.id)}>
-            {t.label}
-          </button>
-        ))}
-      </nav>
+      <div className="dock">
+        {drawer && (
+          <ClueDrawer c={c} progress={progress} dispatch={dispatch} open={drawerOpen} onToggle={() => setDrawerOpen((o) => !o)} />
+        )}
+        <nav className="tabbar" aria-label="Casebook">
+          {TABS.map((t) => (
+            <button key={t.id} aria-current={tab === t.id ? 'page' : undefined} onClick={() => select(t.id)}>
+              {t.label}
+            </button>
+          ))}
+        </nav>
+      </div>
     </div>
   );
 }
