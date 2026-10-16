@@ -49,6 +49,8 @@ h2 { font-size: 1.1rem; }
 
 .clues { margin: 0; padding-left: 1.4rem; display: grid; gap: 0.5rem; }
 .clues .scene { font-weight: 600; }
+.teaser { display: block; font-size: 0.8rem; font-weight: 400; color: var(--muted); }
+.teaser b { letter-spacing: 0.1em; color: var(--accent); }
 .tag { font-size: 0.7rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0 0.4rem; white-space: nowrap; }
 
 .answer { width: 100%; margin-top: 0.75rem; border-collapse: collapse; background: var(--card); }

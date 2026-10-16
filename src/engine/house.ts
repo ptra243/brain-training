@@ -1,10 +1,6 @@
 import type { Cell, House, Room } from './types.ts';
 
-interface RoomMeta {
-  id: string;
-  name: string;
-  word: string;
-}
+type RoomMeta = Omit<Room, 'cells'>;
 
 /**
  * Build a house from an ASCII layout: one letter per grid cell, rows separated

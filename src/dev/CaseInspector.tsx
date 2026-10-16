@@ -97,9 +97,13 @@ export function CaseInspector() {
       <section>
         <h2>Clues</h2>
         <ol className="clues">
-          <li className="scene">{c.sceneClue.text} <span className="tag">{c.sceneClue.delivery}</span></li>
-          {c.clues.map((cl) => (
-            <li key={cl.id}>
+          {[c.sceneClue, ...c.clues].map((cl, i) => (
+            <li key={i} className={i === 0 ? 'scene' : ''}>
+              {cl.wordle && (
+                <span className="teaser">
+                  {cl.wordle.teaser} <b>{cl.wordle.answer}</b>
+                </span>
+              )}
               {cl.text} <span className="tag">{cl.delivery}</span>
             </li>
           ))}

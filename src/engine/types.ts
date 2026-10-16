@@ -6,8 +6,8 @@ export type Cell = readonly [row: number, col: number];
 export interface Room {
   id: string;
   name: string;
-  /** Short word used when a minigame (e.g. Wordle) needs to spell the room. */
-  word: string;
+  /** 5-letter things found in this room; Wordle answers come from here. */
+  objects: readonly string[];
   /** Grid cells this room covers. Rooms must be contiguous and not overlap. */
   cells: readonly Cell[];
 }
@@ -29,8 +29,6 @@ export interface Suspect {
 export interface Item {
   id: string;
   name: string;
-  /** Short word used when a minigame needs to spell the item. */
-  word: string;
 }
 
 export interface Content {
@@ -70,11 +68,22 @@ export type ClueType = ClueFact['type'];
 /** Which minigame hands this clue to the player (built in phase 4). */
 export type ClueDelivery = 'wordle' | 'sudoku' | 'cat-zones' | 'number' | 'given';
 
+/**
+ * A Wordle-delivered clue: before solving she sees `teaser` with a blank;
+ * solving reveals `answer` and the full clue text, room included.
+ */
+export interface WordleReveal {
+  answer: string;
+  teaser: string;
+}
+
 export interface Clue {
   id: string;
   fact: ClueFact;
+  /** Full clue as shown once delivered. */
   text: string;
   delivery: ClueDelivery;
+  wordle?: WordleReveal;
 }
 
 export interface Case {
@@ -97,7 +106,7 @@ export interface Case {
    * Where the body was found. Not a placement clue: it tells the player which
    * room matters once the grid is solved. Always delivered, never trimmed.
    */
-  sceneClue: { text: string; delivery: ClueDelivery };
+  sceneClue: { text: string; delivery: 'wordle'; wordle: WordleReveal };
   /** Minimal clue set: removing any one allows a second solution. */
   clues: readonly Clue[];
 }

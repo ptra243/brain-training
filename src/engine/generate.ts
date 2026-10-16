@@ -1,5 +1,5 @@
 import { roomAdjacency } from './house.ts';
-import { cluePool, clueText, type ClueContext } from './clues.ts';
+import { WORDLE_BLANK, canDeliverByWordle, cluePool, clueText, wordleClue, type ClueContext } from './clues.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
 import type { Case, Clue, ClueDelivery, ClueFact, ClueType, Content, Difficulty } from './types.ts';
@@ -122,19 +122,32 @@ export function generateCase(
     if (countSolutions(candidates, without, ctx, 1) === 1) minimal = without;
   }
 
-  // 5. Hand each clue to a minigame. Placeholder split until phase 4 decides
-  //    which game suits which clue type.
+  // 5. Hand each clue to a minigame. One room clue goes to Wordle (the answer
+  //    is an object in that room); the rest are split across the other games
+  //    until phase 4 decides which game suits which clue type.
   const order = rng.shuffle(minimal);
-  const clues: Clue[] = order.map((fact, i) => ({
-    id: `c${i + 1}`,
-    fact,
-    text: clueText(fact, content, rng),
-    delivery: i < GAMES.length * CLUES_PER_GAME ? GAMES[i % GAMES.length] : 'given',
-  }));
+  const wordleIndex = order.findIndex(canDeliverByWordle);
+  let slot = 0;
+  const clues: Clue[] = order.map((fact, i) => {
+    const id = `c${i + 1}`;
+    if (i === wordleIndex && canDeliverByWordle(fact)) {
+      const w = wordleClue(fact, content, rng);
+      return { id, fact, text: w.text, delivery: 'wordle', wordle: { answer: w.answer, teaser: w.teaser } };
+    }
+    const delivery = slot < GAMES.length * CLUES_PER_GAME ? GAMES[slot % GAMES.length] : 'given';
+    slot++;
+    return { id, fact, text: clueText(fact, content, rng), delivery };
+  });
 
+  // The scene is always a Wordle: "The body was found by the _____."
   const sceneRoom = solution.room[murdererIndex];
-  const sceneName = house.rooms.find((r) => r.id === sceneRoom)?.name ?? sceneRoom;
-  const sceneClue = { text: `The body was found in the ${sceneName}.`, delivery: 'wordle' as const };
+  const scene = house.rooms.find((r) => r.id === sceneRoom)!;
+  const sceneWord = rng.pick(scene.objects);
+  const sceneClue = {
+    text: `The body was found by the ${sceneWord.toLowerCase()} in the ${scene.name}.`,
+    delivery: 'wordle' as const,
+    wordle: { answer: sceneWord, teaser: `The body was found by the ${WORDLE_BLANK}.` },
+  };
 
   return {
     number: caseNumber,
