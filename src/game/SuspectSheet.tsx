@@ -3,7 +3,7 @@ import type { Case } from '../engine/types.ts';
 import { itemName, roomName, suspectColour, suspectInitials, suspectName } from './names.ts';
 import { ClueCard } from './ClueCard.tsx';
 import { Dialog } from './Dialog.tsx';
-import { cluesAbout, heldItem, placedRoom, unlockedClueIds, type Action, type Progress } from './state.ts';
+import { heldItem, mentionsSuspect, placedRoom, visibleClues, type Action, type Progress } from './state.ts';
 
 interface Props {
   c: Case;
@@ -17,8 +17,7 @@ interface Props {
 
 /** Card that slides up over the map with the clues naming one suspect. */
 export function SuspectSheet({ c, progress, dispatch, suspect, onClose, onMove }: Props) {
-  const unlocked = unlockedClueIds(c, progress);
-  const clues = cluesAbout(c, suspect).filter((clue) => unlocked.has(clue.id));
+  const clues = visibleClues(c, progress).filter((clue) => mentionsSuspect(clue, suspect));
   const room = placedRoom(c, progress, suspect);
   const item = heldItem(c, progress, suspect);
 

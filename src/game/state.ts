@@ -4,7 +4,7 @@
 // The map and the grid share one source of truth: a suspect's token sits in
 // a room exactly when the suspect×room cell holds a tick ('o').
 
-import type { Case, GameKind } from '../engine/types.ts';
+import type { Case, Clue, GameKind } from '../engine/types.ts';
 
 export type Mark = 'x' | 'o';
 
@@ -200,13 +200,14 @@ export function unlockedClueIds(c: Case, p: Progress): Set<string> {
 
 export const sceneUnlocked = (c: Case, p: Progress) => c.games.some((g) => g.unlocksScene && gameDone(p, g.kind));
 
-/** Clues that name this suspect, in casebook order. */
-export function cluesAbout(c: Case, suspect: string) {
-  return c.clues.filter((clue) => {
-    const f = clue.fact;
-    return ('suspect' in f && f.suspect === suspect) || ('suspects' in f && f.suspects.includes(suspect));
-  });
+/** Whether a clue names this suspect. */
+export function mentionsSuspect(clue: Clue, suspect: string): boolean {
+  const f = clue.fact;
+  return ('suspect' in f && f.suspect === suspect) || ('suspects' in f && f.suspects.includes(suspect));
 }
+
+/** Clues that name this suspect, in casebook order. */
+export const cluesAbout = (c: Case, suspect: string) => c.clues.filter((clue) => mentionsSuspect(clue, suspect));
 
 /** The room a suspect's token is in, if she has placed (ticked) one. */
 export function placedRoom(c: Case, p: Progress, suspect: string): string | null {
@@ -241,4 +242,35 @@ export function mapAccusation(c: Case, p: Progress): { suspect: string; item: st
   const lying = c.items.filter((i) => itemRoom(c, p, i) === c.sceneRoom && !holderOf(c, p, i));
   const item = held ?? (lying.length === 1 ? lying[0] : null);
   return item ? { suspect, item } : null;
+}
+
+/** What an interrogation saves: questions asked, wrong presses, and whether she caught the lie. */
+export interface InterrogationData {
+  asked: string[];
+  strikes: number;
+  caught: boolean;
+}
+
+/**
+ * The finale opens once every other puzzle is finished, because its
+ * evidence is everything else in her casebook.
+ */
+export const finaleOpen = (c: Case, p: Progress) =>
+  c.games.filter((g) => g.kind !== 'finale').every((g) => gameDone(p, g.kind));
+
+/**
+ * Everything she can read in her casebook: unlocked case clues, plus what
+ * finished interrogations produced (the evidence cards on the table and the
+ * true answers she drew out; never the lie).
+ */
+export function visibleClues(c: Case, p: Progress): Clue[] {
+  const unlocked = unlockedClueIds(c, p);
+  const out = c.clues.filter((clue) => unlocked.has(clue.id));
+  for (const g of c.games) {
+    if (!g.interrogation || !gameDone(p, g.kind)) continue;
+    const data = p.games[g.kind]?.data as InterrogationData | undefined;
+    out.push(...g.interrogation.cards);
+    for (const q of g.interrogation.questions) if (!q.lie && data?.asked.includes(q.id)) out.push(q.answer);
+  }
+  return out;
 }

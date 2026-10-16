@@ -1,7 +1,8 @@
 import type { Case, GameKind } from '../engine/types.ts';
 import { ClueCard } from './ClueCard.tsx';
 import { GAME_NAMES } from './games/GameScreen.tsx';
-import { gameDone, sceneUnlocked, unlockedClueIds, type Action, type Progress } from './state.ts';
+import { suspectName } from './names.ts';
+import { finaleOpen, gameDone, sceneUnlocked, unlockedClueIds, visibleClues, type Action, type Progress } from './state.ts';
 
 interface Props {
   c: Case;
@@ -12,11 +13,11 @@ interface Props {
 
 export function CluesPanel({ c, progress, dispatch, onPlay }: Props) {
   const unlocked = unlockedClueIds(c, progress);
-  const visible = c.clues.filter((clue) => unlocked.has(clue.id));
+  const visible = visibleClues(c, progress);
   // Sudoku statements she hasn't pinned to the map yet: shown with blanks.
   const sudokuDone = gameDone(progress, 'sudoku');
   const waiting = sudokuDone ? [] : c.clues.filter((clue) => clue.location && !unlocked.has(clue.id));
-  const hidden = c.clues.length - visible.length - waiting.length;
+  const hidden = c.clues.filter((clue) => !unlocked.has(clue.id)).length - waiting.length;
   const scene = sceneUnlocked(c, progress);
 
   return (
@@ -27,16 +28,24 @@ export function CluesPanel({ c, progress, dispatch, onPlay }: Props) {
           {c.games.map((g) => {
             const status = progress.games[g.kind]?.status;
             const done = status === 'won' || status === 'revealed';
-            const reward = g.unlocksScene
-              ? 'Shows where the body was found'
-              : `Unlocks ${g.clues.length} clue${g.clues.length === 1 ? '' : 's'}`;
+            const locked = g.kind === 'finale' && !finaleOpen(c, progress);
+            const who = g.interrogation ? ` ${suspectName(g.interrogation.suspect).replace(/^The /, 'the ')}` : '';
+            const reward = locked
+              ? 'Opens when the other puzzles are done'
+              : g.unlocksScene
+                ? 'Shows where the body was found'
+                : `${who ? `Question${who}. ` : ''}Unlocks ${g.clues.length} clue${g.clues.length === 1 ? '' : 's'}`;
             return (
               <li key={g.kind}>
-                <button className={`puzzle-row ${done ? 'done' : ''}`} onClick={() => onPlay(g.kind)}>
+                <button
+                  className={`puzzle-row ${done ? 'done' : ''} ${locked ? 'locked' : ''}`}
+                  disabled={locked}
+                  onClick={() => onPlay(g.kind)}
+                >
                   <span className="puzzle-name">{GAME_NAMES[g.kind]}</span>
                   <span className="puzzle-reward">{done ? (status === 'won' ? 'Solved' : 'Solved for you') : reward}</span>
                   <span className="puzzle-action" aria-hidden="true">
-                    {done ? '✓' : status === 'playing' ? 'Continue' : 'Play'}
+                    {done ? '✓' : locked ? 'Later' : status === 'playing' ? 'Continue' : 'Play'}
                   </span>
                 </button>
               </li>

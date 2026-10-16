@@ -67,8 +67,8 @@ export type ClueFact =
 
 export type ClueType = ClueFact['type'];
 
-/** Minigames that unlock clues. */
-export type GameKind = 'wordle' | 'cats' | 'sudoku';
+/** Minigames that unlock clues. `finale` is the closing interrogation on hard cases. */
+export type GameKind = 'wordle' | 'cats' | 'sudoku' | 'interrogation' | 'finale';
 
 /** How a clue reaches her: free at the start, or as a minigame's reward. */
 export type ClueDelivery = GameKind | 'given';
@@ -86,6 +86,36 @@ export interface GameSpec {
   givens?: number;
   /** Sudoku: clues that unlock early from their two coordinate squares. */
   located?: readonly string[];
+  /** Interrogation and finale: the suspect, evidence and questions. */
+  interrogation?: Interrogation;
+}
+
+/** One question she can ask; the answer is a statement by the suspect in the chair. */
+export interface Question {
+  id: string;
+  ask: string;
+  /** The answer as a clue (testimony from the suspect). Not a real clue if it's the lie. */
+  answer: Clue;
+  lie: boolean;
+}
+
+/**
+ * Questioning a suspect. They answer every question truthfully except one.
+ * She catches the lie by presenting evidence that disproves it.
+ */
+export interface Interrogation {
+  suspect: string;
+  /**
+   * Evidence on the table. Self-contained games bring their own cards
+   * (`cards`); the finale uses her casebook (`useCaseClues`).
+   */
+  cards: readonly Clue[];
+  useCaseClues: boolean;
+  questions: readonly Question[];
+  /** One smallest set of evidence ids that disproves the lie (any set that does is accepted). */
+  proof: readonly string[];
+  maxQuestions: number;
+  strikes: number;
 }
 
 /**

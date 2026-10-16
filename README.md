@@ -51,6 +51,6 @@ Settings > Pages > Source: GitHub Actions.
 - [x] Phase 1: content data
 - [x] Phase 2: generator and solver
 - [x] Phase 3: casebook UI (map, cross-out grid, accusation)
-- [x] Phase 4: minigames that deliver clues (Wordle, cat puzzle, sudoku)
+- [x] Phase 4: minigames that deliver clues (Wordle, cat puzzle, sudoku, questioning, final questioning)
 - [ ] Phase 5: modes, campaign progression, saved progress
 - [ ] Phase 6: playtest and tuning

@@ -132,13 +132,13 @@ test('free clues show at the start; finishing a game unlocks its clues and the W
   let p = emptyProgress();
   assert.deepEqual([...unlockedClueIds(c, p)].sort(), free.sort());
   assert.equal(sceneUnlocked(c, p), false);
-  p = reduce(c, p, { type: 'game-save', kind: 'cats', data: { marks: 1 } });
+  const game = c.games.find((g) => g.kind !== 'wordle' && g.kind !== 'sudoku')!;
+  p = reduce(c, p, { type: 'game-save', kind: game.kind, data: { marks: 1 } });
   assert.equal(unlockedClueIds(c, p).size, free.length, 'saving progress unlocks nothing');
-  p = reduce(c, p, { type: 'game-finish', kind: 'cats', status: 'revealed', data: null });
-  const cats = c.games.find((g) => g.kind === 'cats')!;
-  for (const id of cats.clues) assert.ok(unlockedClueIds(c, p).has(id));
+  p = reduce(c, p, { type: 'game-finish', kind: game.kind, status: 'revealed', data: null });
+  for (const id of game.clues) assert.ok(unlockedClueIds(c, p).has(id));
   p = reduce(c, p, { type: 'game-finish', kind: 'wordle', status: 'won', data: null });
   assert.equal(sceneUnlocked(c, p), true);
   // A finished game can't be reopened by a late save.
-  assert.equal(reduce(c, p, { type: 'game-save', kind: 'cats', data: {} }).games.cats?.status, 'revealed');
+  assert.equal(reduce(c, p, { type: 'game-save', kind: game.kind, data: {} }).games[game.kind]?.status, 'revealed');
 });

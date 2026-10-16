@@ -31,7 +31,7 @@ export function Dialog({ children, onClose, placement = 'sheet', labelId }: Prop
 
   return (
     <div
-      className={`sheet-backdrop ${placement}`}
+      className={`sheet-backdrop at-${placement}`}
       onPointerDown={(e) => {
         downOnBackdrop.current = e.target === e.currentTarget;
       }}
@@ -40,7 +40,7 @@ export function Dialog({ children, onClose, placement = 'sheet', labelId }: Prop
         downOnBackdrop.current = false;
       }}
     >
-      <div ref={boxRef} className={`sheet card ${placement}`} role="dialog" aria-modal="true" aria-labelledby={labelId}>
+      <div ref={boxRef} className={`sheet card at-${placement}`} role="dialog" aria-modal="true" aria-labelledby={labelId}>
         {children}
       </div>
     </div>

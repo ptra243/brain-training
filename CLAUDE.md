@@ -10,9 +10,10 @@ has the link). README has setup, layout and how a case is generated.
 ## Status
 
 Phases 1–4 done (content, generator/solver, casebook UI, minigames), plus
-testimony/evidence clues, sudoku map coordinates and weapons on the map.
-Next: phase 5 (modes, campaign progression), playtesting, and the
-interrogation minigame ("Catch the lie", see the plan's minigame ideas).
+testimony/evidence clues, sudoku map coordinates, weapons on the map, a
+Wordle word list, the staircase grid with clue drawer, and interrogations
+(rotating "Questioning" game and a "Final questioning" on hard cases).
+Next: phase 5 (modes, campaign progression) and playtesting.
 Known gaps: cat puzzles are unique but not
 checked for how much look-ahead they need.
 
@@ -25,9 +26,11 @@ checked for how much look-ahead they need.
   that asks "Are you sure? This can't be undone" (an in-app dialog, not
   `window.confirm`), then reveals the answer and still unlocks the clue. Record
   the game as `revealed`, not `won`, so stats can tell them apart.
-- **Each case has three games**: Wordle unlocks the scene; the cat puzzle
-  unlocks physical evidence ("found by the cats"); the sudoku unlocks witness
-  testimony. Each sudoku statement has two marked squares whose digits are
+- **Each case has the Wordle (the scene) plus two rotating games** drawn
+  from cat puzzle, sudoku and interrogation; hard cases add a finale
+  interrogation that opens once the others are done and uses her casebook
+  as evidence. The cat puzzle unlocks physical evidence ("found by the
+  cats"); the sudoku and interrogations unlock testimony. Each sudoku statement has two marked squares whose digits are
   a row and column on the floor plan pointing at its room; it unlocks the
   moment both are right, and finishing the grid gives one more. 2–3
   testimony clues are free at the start. Every clue is true, and a witness
@@ -35,6 +38,14 @@ checked for how much look-ahead they need.
   Generate a puzzle once per game screen, never per render or per move.
 - **Generated puzzles must be fair**: cat puzzles have exactly one answer and
   even-ish zones; sudoku has one answer and is solvable by singles alone.
+- **Interrogations**: the suspect answers 8 possible questions truthfully
+  except exactly one (the lie). She asks up to 5 (6 in the finale) and
+  presents exactly `proof.length` pieces of evidence; any set that
+  logically disproves the lie (checked by `disproves`) wins. Easy: one card
+  disproves it; harder: only two together. Interrogation clues are the
+  suspect's confession, in their voice. True answers she drew out and the
+  evidence cards join her casebook when it ends; the lie never does.
+  `npm run check-cases` verifies every interrogation in 300 cases.
 - **Wordle answers come from room `objects`** (5-letter words). Words may
   repeat across rooms; the revealed clue names the room. Teasers must never
   show the room or the word (tested).
@@ -76,7 +87,8 @@ checked for how much look-ahead they need.
   every screen at 360px wide with no sideways scroll; touch targets ≥ 44px.
 - Test interactions with real touch events (CDP `Input.dispatchTouchEvent`),
   not just mouse clicks: a touch tap sends a late `click` that can land on
-  whatever the tap just opened (fixed once already in `SuspectSheet`).
+  whatever the tap just opened. All pop-ups go through `Dialog`, which
+  handles this; don't build another.
 - On the map, a short tap on a counter or weapon opens its clues; dragging
   moves it. Keep the tray of unplaced pieces right under the map so every
   drag starts and ends on one phone screen.

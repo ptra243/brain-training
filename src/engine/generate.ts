@@ -3,7 +3,8 @@ import { WORDLE_BLANK, cluePool, type ClueContext } from './clues.ts';
 import { canLocate, plainText, wordClue } from './wording.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
-import type { Case, Clue, ClueDelivery, ClueFact, ClueType, Content, Difficulty, GameKind, GameSpec } from './types.ts';
+import type { Case, Clue, ClueDelivery, ClueFact, ClueSource, ClueType, Content, Difficulty, GameKind, GameSpec, Interrogation } from './types.ts';
+import { buildInterrogation, type CaseFacts } from './interrogation.ts';
 
 interface DifficultySettings {
   suspects: number;
@@ -11,6 +12,8 @@ interface DifficultySettings {
   freeClues: number;
   /** Most sudoku statements that unlock early from coordinate squares. */
   located: number;
+  /** End with a finale interrogation using her casebook. */
+  finale: boolean;
   catSize: number;
   sudoku: { size: 6 | 9; givens: number };
   /** Relative chance of each clue type being tried. 0 = never used. */
@@ -24,6 +27,7 @@ export const DIFFICULTY: Record<Difficulty, DifficultySettings> = {
     suspects: 4,
     freeClues: 2,
     located: 2,
+    finale: false,
     catSize: 6,
     sudoku: { size: 6, givens: 16 },
     weights: {
@@ -41,6 +45,7 @@ export const DIFFICULTY: Record<Difficulty, DifficultySettings> = {
     suspects: 4,
     freeClues: 2,
     located: 2,
+    finale: false,
     catSize: 7,
     sudoku: { size: 6, givens: 13 },
     weights: {
@@ -59,6 +64,7 @@ export const DIFFICULTY: Record<Difficulty, DifficultySettings> = {
     suspects: 5,
     freeClues: 3,
     located: 3,
+    finale: true,
     catSize: 8,
     sudoku: { size: 9, givens: 32 },
     weights: {
@@ -139,31 +145,76 @@ export function generateCase(
     if (countSolutions(candidates, without, ctx, 1) === 1) minimal = without;
   }
 
-  // 5. Hand out the clues. A few are free (witness testimony). The sudoku
-  //    delivers more testimony: each "located" statement unlocks early when
-  //    her digits in two marked squares point to its room on the map, and
-  //    finishing the grid gives the rest. The cats find the remainder as
-  //    physical evidence. Wordle unlocks the scene.
+  // 5. Pick tonight's games: the Wordle always gives the scene; two of the
+  //    cat puzzle, sudoku and interrogation share the clues. Hard cases end
+  //    with a finale interrogation that uses her casebook as evidence.
   const order = rng.shuffle(minimal);
-  const free = Math.min(settings.freeClues, order.length - 2);
-  const rest = order.slice(free);
-  const sudokuShare = rest.length >= 3 ? Math.max(2, Math.floor(rest.length / 2)) : 1;
-  const locatedFacts: ClueFact[] = rest.filter(canLocate).slice(0, Math.min(settings.located, sudokuShare - 1));
-  const completionFacts = rest.filter((f) => !locatedFacts.includes(f)).slice(0, sudokuShare - locatedFacts.length);
-  const deliveryOf = (f: ClueFact, i: number): ClueDelivery =>
-    i < free ? 'given' : locatedFacts.includes(f) || completionFacts.includes(f) ? 'sudoku' : 'cats';
+  const ROTATION: GameKind[] = ['cats', 'sudoku', 'interrogation'];
+  const picked = rng.shuffle(ROTATION).slice(0, 2);
+  const kinds = ROTATION.filter((k) => picked.includes(k));
+  if (settings.finale) kinds.push('finale');
 
-  const clues: Clue[] = order.map((fact, i) => {
+  // 6. Hand out the clues. A few are free testimony. The finale gets up to
+  //    two; the rest are split between the two rotating games. A sudoku's
+  //    "located" statements unlock early from two coordinate squares.
+  const free = Math.min(settings.freeClues, order.length - 2);
+  let rest = order.slice(free);
+  const finaleFacts = settings.finale ? rest.slice(-Math.min(2, rest.length - 2)) : [];
+  rest = rest.filter((f) => !finaleFacts.includes(f));
+  const [gameA, gameB] = kinds;
+  const shareA =
+    gameA === 'sudoku' ? (rest.length >= 3 ? Math.max(2, Math.floor(rest.length / 2)) : 1) : Math.ceil(rest.length / 2);
+  const shareOf = (k: GameKind) => (k === gameA ? rest.slice(0, shareA) : k === gameB ? rest.slice(shareA) : []);
+  const sudokuFacts = shareOf('sudoku');
+  // Sudoku: room clues first so they can be located, and keep one back for finishing the grid.
+  const locatedFacts: ClueFact[] = sudokuFacts.filter(canLocate).slice(0, Math.min(settings.located, sudokuFacts.length - 1));
+  const deliveryOf = (f: ClueFact, i: number): ClueDelivery => {
+    if (i < free) return 'given';
+    if (finaleFacts.includes(f)) return 'finale';
+    return kinds.find((k) => shareOf(k).includes(f)) ?? 'given';
+  };
+  const SOURCE: Record<ClueDelivery, ClueSource> = {
+    given: 'testimony',
+    sudoku: 'testimony',
+    interrogation: 'testimony',
+    finale: 'testimony',
+    cats: 'evidence',
+    wordle: 'testimony',
+  };
+
+  const wordAs = (fact: ClueFact, i: number, speaker?: string): Clue => {
     const delivery = deliveryOf(fact, i);
-    const source = delivery === 'cats' ? 'evidence' : 'testimony';
     const isLocated = locatedFacts.includes(fact) && canLocate(fact);
-    const w = wordClue(fact, source, content, suspects, rng, isLocated);
-    const clue: Clue = { id: `c${i + 1}`, fact, delivery, source, speaker: w.speaker, body: w.body, text: plainText(w, content) };
+    const w = wordClue(fact, SOURCE[delivery], content, suspects, rng, isLocated, speaker);
+    const clue: Clue = { id: `c${i + 1}`, fact, delivery, source: SOURCE[delivery], speaker: w.speaker, body: w.body, text: plainText(w, content) };
     if (isLocated && w.located) {
       const room = house.rooms.find((r) => r.id === fact.room)!;
       clue.location = { ...w.located, target: rng.pick(room.cells) };
     }
     return clue;
+  };
+  const clues: Clue[] = order.map((fact, i) => wordAs(fact, i));
+
+  // 7. Interrogations. Their clues are the suspect's confession, so they're
+  //    reworded in that suspect's voice once we know who is in the chair.
+  const cf: CaseFacts = { suspects, rooms, items, solution, ctx };
+  const known = order;
+  const interrogations: Partial<Record<GameKind, Interrogation>> = {};
+  if (kinds.includes('interrogation')) {
+    interrogations.interrogation = buildInterrogation({
+      cf, content, rng: new Rng(hashSeed(`${seed}-interrogation`)), idPrefix: 'iq-', delivery: 'interrogation', hard: difficulty !== 'easy', known,
+    });
+  }
+  if (kinds.includes('finale')) {
+    interrogations.finale = buildInterrogation({
+      cf, content, rng: new Rng(hashSeed(`${seed}-finale`)), idPrefix: 'fq-', delivery: 'finale', hard: true, known,
+      caseClues: clues.filter((c) => c.delivery !== 'finale'),
+    });
+  }
+  order.forEach((fact, i) => {
+    const kind = clues[i].delivery;
+    const chair = kind === 'interrogation' || kind === 'finale' ? interrogations[kind]?.suspect : undefined;
+    if (chair) clues[i] = { ...wordAs(fact, i, chair), id: clues[i].id };
   });
 
   // The scene is always a Wordle: "The body was found by the _____."
@@ -179,16 +230,18 @@ export function generateCase(
   const idsFor = (kind: GameKind) => clues.filter((c) => c.delivery === kind).map((c) => c.id);
   const games: GameSpec[] = [
     { kind: 'wordle', seed: hashSeed(`${seed}-wordle`), clues: [], unlocksScene: true, size: 5 },
-    { kind: 'cats', seed: hashSeed(`${seed}-cats`), clues: idsFor('cats'), unlocksScene: false, size: settings.catSize },
-    {
-      kind: 'sudoku',
-      seed: hashSeed(`${seed}-sudoku`),
-      clues: idsFor('sudoku'),
-      unlocksScene: false,
-      size: settings.sudoku.size,
-      givens: settings.sudoku.givens,
-      located: clues.filter((c) => c.location).map((c) => c.id),
-    },
+    ...kinds.map((kind): GameSpec => {
+      const base = { kind, seed: hashSeed(`${seed}-${kind}`), clues: idsFor(kind), unlocksScene: false };
+      if (kind === 'cats') return { ...base, size: settings.catSize };
+      if (kind === 'sudoku')
+        return {
+          ...base,
+          size: settings.sudoku.size,
+          givens: settings.sudoku.givens,
+          located: clues.filter((c) => c.location).map((c) => c.id),
+        };
+      return { ...base, size: 0, interrogation: interrogations[kind] };
+    }),
   ];
 
   return {

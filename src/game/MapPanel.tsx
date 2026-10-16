@@ -11,7 +11,7 @@ import {
   mapAccusation,
   placedRoom,
   sceneUnlocked,
-  unlockedClueIds,
+  visibleClues,
   type Action,
   type Progress,
 } from './state.ts';
@@ -393,8 +393,7 @@ function ItemSheet({
   item: string;
   onClose: () => void;
 }) {
-  const unlocked = unlockedClueIds(c, progress);
-  const clues = c.clues.filter((cl) => unlocked.has(cl.id) && 'item' in cl.fact && cl.fact.item === item);
+  const clues = visibleClues(c, progress).filter((cl) => 'item' in cl.fact && cl.fact.item === item);
   const holder = holderOf(c, progress, item);
   const room = itemRoom(c, progress, item);
   const where = holder

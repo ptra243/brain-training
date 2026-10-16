@@ -4,8 +4,8 @@
 
 import { emptyProgress, type Progress } from './state.ts';
 
-// v2: clue wording, sudoku statements and two-part accusations changed what's saved.
-const PREFIX = 'brain-training:v2:';
+// v3: games now rotate per case and interrogations were added, so old saves no longer match.
+const PREFIX = 'brain-training:v3:';
 
 function read<T>(key: string): T | null {
   try {

@@ -36,6 +36,30 @@ const EVIDENCE: Record<ClueType, readonly string[]> = {
   'suspects-not-adjacent': ["The cats checked every connecting door. None joins {a}'s room to {b}'s."],
 };
 
+/** A suspect talking about themselves (in an interrogation). */
+const FIRST_PERSON: Partial<Record<ClueType, readonly string[]>> = {
+  'suspect-room': ['I was in the {r} all evening.', 'The {r}. I was there the whole time.'],
+  'suspect-not-room': ['I never set foot in the {r}.', "I wasn't in the {r}, if that's what you're asking."],
+  'suspect-item': ['Yes, I had the {i}. What of it?'],
+  'suspect-not-item': ['I never touched the {i}.', 'The {i}? Not me.'],
+  'suspect-either-room': ['I was in the {r} or the {r2}. I moved about a bit.'],
+  'suspect-next-to-room': ["I was in a room next to the {r}. That's all I'll say."],
+};
+
+/** What she asks to get each kind of answer. Lowercase placeholders are mid-sentence. */
+const QUESTIONS: Record<ClueType, { self: string; other: string }> = {
+  'suspect-room': { self: 'Did you go into the {r}?', other: 'Was {s} in the {r}?' },
+  'suspect-not-room': { self: 'Did you go into the {r}?', other: 'Was {s} in the {r}?' },
+  'suspect-either-room': { self: 'Where were you this evening?', other: 'Where was {s} this evening?' },
+  'suspect-next-to-room': { self: 'Where were you this evening?', other: 'Where was {s} this evening?' },
+  'suspect-item': { self: 'Did you have the {i}?', other: 'Did {s} have the {i}?' },
+  'suspect-not-item': { self: 'Did you have the {i}?', other: 'Did {s} have the {i}?' },
+  'item-room': { self: 'Where was the {i}?', other: 'Where was the {i}?' },
+  'item-not-room': { self: 'Was the {i} in the {r}?', other: 'Was the {i} in the {r}?' },
+  'suspects-adjacent': { self: 'Could you hear {b} from your room?', other: 'Were {a} and {b} next door to each other?' },
+  'suspects-not-adjacent': { self: 'Could you hear {b} from your room?', other: 'Were {a} and {b} next door to each other?' },
+};
+
 /** Stand-in for a room in a sudoku statement until its two squares are filled. */
 export const LOCATION_TOKEN = '\u0000';
 
@@ -58,18 +82,18 @@ function pickSpeaker(fact: ClueFact, suspects: readonly string[], rng: Rng): str
   return rng.pick(others);
 }
 
-export function wordClue(
-  fact: ClueFact,
-  source: ClueSource,
-  content: Content,
-  suspects: readonly string[],
-  rng: Rng,
-  located = false,
-): Worded {
+/** Pair facts are symmetric for adjacency: put the speaker first so they talk about "my room". */
+export function speakerFirst(fact: ClueFact, speaker: string): ClueFact {
+  if ('suspects' in fact && fact.suspects[1] === speaker) {
+    return { ...fact, suspects: [fact.suspects[1], fact.suspects[0]] } as ClueFact;
+  }
+  return fact;
+}
+
+function fillFor(fact: ClueFact, content: Content): Record<string, string> {
   const suspect = (id: string) => midSentence(content.suspects.find((s) => s.id === id)?.name ?? id);
   const room = (id: string) => content.house.rooms.find((r) => r.id === id)?.name ?? id;
   const item = (id: string) => content.items.find((i) => i.id === id)?.name ?? id;
-
   const fill: Record<string, string> = {};
   if ('suspect' in fact) {
     fill.s = suspect(fact.suspect);
@@ -87,14 +111,38 @@ export function wordClue(
     fill.r = room(fact.rooms[0]);
     fill.r2 = room(fact.rooms[1]);
   }
+  return fill;
+}
 
-  let template = rng.pick((source === 'testimony' ? TESTIMONY : EVIDENCE)[fact.type]);
+const subjectOf = (fact: ClueFact) => ('suspect' in fact ? fact.suspect : 'suspects' in fact ? fact.suspects[0] : null);
+const fillIn = (template: string, fill: Record<string, string>) => template.replace(/\{(\w+)\}/g, (_, k: string) => fill[k] ?? k);
+
+/** The question she asks that this fact answers, from the point of view of `speaker`. */
+export function questionFor(fact: ClueFact, speaker: string, content: Content): string {
+  const f = speakerFirst(fact, speaker);
+  return capital(fillIn(QUESTIONS[f.type][subjectOf(f) === speaker ? 'self' : 'other'], fillFor(f, content)));
+}
+
+export function wordClue(
+  fact: ClueFact,
+  source: ClueSource,
+  content: Content,
+  suspects: readonly string[],
+  rng: Rng,
+  located = false,
+  /** Force the witness (interrogations: the suspect in the chair). */
+  forcedSpeaker?: string,
+): Worded {
+  if (forcedSpeaker) fact = speakerFirst(fact, forcedSpeaker);
+  const fill = fillFor(fact, content);
+  const self = forcedSpeaker !== undefined && subjectOf(fact) === forcedSpeaker ? FIRST_PERSON[fact.type] : undefined;
+  let template = rng.pick(self ?? (source === 'testimony' ? TESTIMONY : EVIDENCE)[fact.type]);
   if (located) {
     if (!template.includes('the {r}') || 'rooms' in fact) throw new Error(`${fact.type} can't be located`);
     template = template.replace('the {r}', LOCATION_TOKEN);
   }
-  const body = template.replace(/\{(\w+)\}/g, (_, k: string) => fill[k] ?? k);
-  const speaker = source === 'testimony' ? pickSpeaker(fact, suspects, rng) : undefined;
+  const body = fillIn(template, fill);
+  const speaker = source === 'testimony' ? (forcedSpeaker ?? pickSpeaker(fact, suspects, rng)) : undefined;
   if (!located) return { speaker, body };
   const [before, after] = body.split(LOCATION_TOKEN);
   return { speaker, body: body.replace(LOCATION_TOKEN, `the ${fill.r}`), located: { before, after } };

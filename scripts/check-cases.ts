@@ -3,6 +3,7 @@
 import { content } from '../src/content/index.ts';
 import { roomAdjacency } from '../src/engine/house.ts';
 import { generateCase } from '../src/engine/generate.ts';
+import { disproves } from '../src/engine/interrogation.ts';
 import { allCandidates, countSolutions } from '../src/engine/solver.ts';
 import type { Difficulty } from '../src/engine/types.ts';
 
@@ -26,6 +27,18 @@ for (const difficulty of ['easy', 'medium', 'hard'] as Difficulty[]) {
         failures++;
         console.log(`  FAIL ${difficulty} case ${n}: ${solutions} solutions`);
       }
+      // Every interrogation: one lie, and its proof really disproves it.
+      for (const g of c.games.filter((g) => g.interrogation)) {
+        const it = g.interrogation!;
+        const lies = it.questions.filter((q) => q.lie);
+        const evidence = it.useCaseClues ? c.clues : it.cards;
+        const proof = it.proof.map((id) => evidence.find((e) => e.id === id)?.fact).filter((f) => f !== undefined);
+        const cf = { suspects: c.suspects, rooms: c.rooms, items: c.items, solution: c.solution, ctx: { suspects: c.suspects, adjacency } };
+        if (lies.length !== 1 || proof.length !== it.proof.length || !disproves(cf, proof, lies[0].answer.fact)) {
+          failures++;
+          console.log(`  FAIL ${difficulty} case ${n}: ${g.kind} interrogation can't be caught fairly`);
+        }
+      }
       counts.push(c.clues.length);
       for (const cl of c.clues) types.set(cl.fact.type, (types.get(cl.fact.type) ?? 0) + 1);
     } catch (err) {
@@ -45,5 +58,5 @@ for (const difficulty of ['easy', 'medium', 'hard'] as Difficulty[]) {
   );
 }
 
-console.log(failures ? `\n${failures} bad cases` : '\nAll 300 cases have exactly one solution.');
+console.log(failures ? `\n${failures} bad cases` : '\nAll 300 cases have exactly one solution, and every interrogation can be caught fairly.');
 process.exit(failures ? 1 : 0);

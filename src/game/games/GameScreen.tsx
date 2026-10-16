@@ -1,16 +1,21 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Rng } from '../../engine/rng.ts';
-import type { Case, GameKind, GameSpec } from '../../engine/types.ts';
+import { content } from '../../content/index.ts';
+import { roomAdjacency } from '../../engine/house.ts';
+import { disproves } from '../../engine/interrogation.ts';
+import type { Case, GameKind, GameSpec, Interrogation } from '../../engine/types.ts';
 import { generateCats, type CatPuzzle } from '../../games/cats.ts';
 import { foundLocations, generateSudoku, locationSquares, type LocationSquares, type SudokuPuzzle } from '../../games/sudoku.ts';
 import { ClueCard } from '../ClueCard.tsx';
 import { Dialog } from '../Dialog.tsx';
-import type { Action, Progress } from '../state.ts';
+import type { Action, InterrogationData, Progress } from '../state.ts';
+import { InterrogationGame, interrogationInitial } from './InterrogationGame.tsx';
 import { CatsGame, catsInitial, catsSolvedData, type CatsData } from './CatsGame.tsx';
 import { SudokuGame, sudokuInitial, sudokuSolvedData, type SudokuData } from './SudokuGame.tsx';
 import { WordleGame, wordleInitial, wordleSolved, type WordleData, type WordlePuzzle } from './WordleGame.tsx';
 
 type Built =
+  | { kind: 'interrogation'; puzzle: Interrogation }
   | { kind: 'wordle'; puzzle: WordlePuzzle }
   | { kind: 'cats'; puzzle: CatPuzzle }
   | { kind: 'sudoku'; puzzle: SudokuPuzzle; squares: Record<string, LocationSquares> };
@@ -18,6 +23,9 @@ type Built =
 function buildPuzzle(c: Case, spec: GameSpec): Built {
   const rng = new Rng(spec.seed);
   switch (spec.kind) {
+    case 'interrogation':
+    case 'finale':
+      return { kind: 'interrogation', puzzle: spec.interrogation! };
     case 'wordle':
       return { kind: 'wordle', puzzle: { answer: c.sceneClue.wordle.answer, teaser: c.sceneClue.wordle.teaser } };
     case 'cats':
@@ -30,7 +38,13 @@ function buildPuzzle(c: Case, spec: GameSpec): Built {
   }
 }
 
-export const GAME_NAMES: Record<GameKind, string> = { wordle: 'Wordle', cats: 'Cat puzzle', sudoku: 'Sudoku' };
+export const GAME_NAMES: Record<GameKind, string> = {
+  wordle: 'Wordle',
+  cats: 'Cat puzzle',
+  sudoku: 'Sudoku',
+  interrogation: 'Questioning',
+  finale: 'Final questioning',
+};
 
 interface Props {
   c: Case;
@@ -57,6 +71,29 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
   let view: ReactNode = null;
   let solved: () => unknown = () => null;
   switch (built.kind) {
+    case 'interrogation': {
+      const puzzle = built.puzzle;
+      const data = (record?.data as InterrogationData) ?? interrogationInitial();
+      const evidence = puzzle.useCaseClues ? c.clues.filter((cl) => cl.delivery !== 'finale') : puzzle.cards;
+      const cf = {
+        suspects: c.suspects,
+        rooms: c.rooms,
+        items: c.items,
+        solution: c.solution,
+        ctx: { suspects: c.suspects, adjacency: roomAdjacency(content.house) },
+      };
+      solved = () => ({ ...data, caught: false });
+      view = (
+        <InterrogationGame
+          puzzle={puzzle}
+          data={data}
+          evidence={evidence}
+          disproves={(cards, answer) => disproves(cf, cards.map((x) => x.fact), answer.answer.fact)}
+          {...props}
+        />
+      );
+      break;
+    }
     case 'wordle':
       solved = () => wordleSolved(built.puzzle);
       view = <WordleGame puzzle={built.puzzle} data={(record?.data as WordleData) ?? wordleInitial()} {...props} />;
@@ -120,7 +157,15 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
 
       {finished && (
         <section className="unlocked card" aria-live="polite">
-          <h2>{finished === 'won' ? 'Clues unlocked' : 'Puzzle solved for you. Clues unlocked'}</h2>
+          <h2>
+            {finished === 'won'
+              ? spec.interrogation
+                ? 'The confession'
+                : 'Clues unlocked'
+              : spec.interrogation
+                ? 'They told you anyway'
+                : 'Puzzle solved for you. Clues unlocked'}
+          </h2>
           <ul>
             {spec.unlocksScene && (
               <li className="scene-line" style={{ animationDelay: '120ms' }}>

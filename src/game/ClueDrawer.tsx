@@ -1,6 +1,6 @@
 import type { Case } from '../engine/types.ts';
 import { ClueCard } from './ClueCard.tsx';
-import { sceneUnlocked, unlockedClueIds, type Action, type Progress } from './state.ts';
+import { sceneUnlocked, visibleClues, type Action, type Progress } from './state.ts';
 
 interface Props {
   c: Case;
@@ -12,8 +12,8 @@ interface Props {
 
 /** The clues she has found, in a drawer above the tab bar so she can read them while working the map or grid. */
 export function ClueDrawer({ c, progress, dispatch, open, onToggle }: Props) {
-  const unlocked = unlockedClueIds(c, progress);
-  const visible = c.clues.filter((clue) => unlocked.has(clue.id));
+  // Includes what finished interrogations produced (evidence cards, true answers).
+  const visible = visibleClues(c, progress);
   const left = visible.filter((clue) => !progress.used.includes(clue.id)).length;
   const scene = sceneUnlocked(c, progress);
 

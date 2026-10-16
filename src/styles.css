@@ -287,9 +287,9 @@ body.dev { background: #f2f1ec; color: #222; }
 }
 
 /* Dialog in the middle of the screen (Solve confirmation) */
-.sheet-backdrop.center { align-items: center; padding: 1rem; }
-.sheet.center { border-radius: 0.5rem; border-bottom: 1px solid var(--card-edge); max-width: 22rem; padding: 1.1rem; }
-.sheet.center h2 { font-size: 1.25rem; margin: 0; }
+.sheet-backdrop.at-center { align-items: center; padding: 1rem; }
+.sheet.at-center { border-radius: 0.5rem; border-bottom: 1px solid var(--card-edge); max-width: 22rem; padding: 1.1rem; }
+.sheet.at-center h2 { font-size: 1.25rem; margin: 0; }
 .dialog-text { margin: 0; line-height: 1.45; }
 .dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
 .dialog-actions .primary, .dialog-actions .secondary { width: auto; }
@@ -429,3 +429,48 @@ body.dev { background: #f2f1ec; color: #222; }
 .accuse-bar p { margin: 0; line-height: 1.45; }
 .primary:disabled { opacity: 0.5; cursor: default; }
 .scene-note { margin: 0 0 0.8rem; font-family: var(--serif); }
+
+/* ---------- Interrogation ---------- */
+.interrogation { display: grid; gap: 0.9rem; }
+.chair { display: grid; grid-template-columns: auto 1fr; gap: 0.75rem; align-items: center; }
+.chair h2 { margin: 0; font-size: 1.15rem; }
+.chair .muted { font-size: 0.85rem; margin-top: 0.15rem; }
+.interrogation h2 { font-size: 1.05rem; }
+.interrogation > section > h2 { color: var(--on-baize); margin-bottom: 0.5rem; }
+.interrogation .hint.dark { margin: 0; }
+.transcript { display: grid; gap: 0.5rem; }
+.exchange {
+  display: grid; gap: 0.25rem; padding: 0.7rem 0.8rem; border-radius: 0.35rem;
+  background: var(--card); color: var(--ink); border-left: 4px solid var(--brass);
+}
+.exchange .q { margin: 0; font-size: 0.85rem; color: var(--ink-soft); }
+.exchange .a { margin: 0; font-family: var(--serif); font-size: 1.02rem; line-height: 1.4; }
+.exchange.lie { border-left-color: var(--pencil); }
+.exchange.lie .a { text-decoration: line-through; text-decoration-color: var(--pencil); text-decoration-thickness: 2px; }
+.lie-tag {
+  display: inline-block; margin-left: 0.4rem; padding: 0 0.4rem; border-radius: 999px; vertical-align: 0.1em;
+  background: var(--pencil); color: #fff; font-family: var(--sans); font-size: 0.7rem; font-weight: 700;
+}
+.challenge {
+  justify-self: start; min-height: 2.5rem; padding: 0 0.9rem; margin-top: 0.15rem; cursor: pointer;
+  border: 1.5px solid var(--pencil); border-radius: 999px; background: transparent; color: var(--pencil); font-weight: 600;
+}
+.crack { margin: 0; padding: 0.7rem 0.8rem; background: #3d6b4f; color: #fff; border-radius: 0.35rem; font-family: var(--serif); }
+.question-list { display: grid; gap: 0.4rem; }
+.question {
+  min-height: 2.9rem; padding: 0.5rem 0.8rem; text-align: left; cursor: pointer;
+  border: 1px solid var(--baize-line); border-radius: 0.35rem; background: var(--baize-deep); color: var(--on-baize);
+  font-family: var(--serif); font-size: 1rem;
+}
+.question:disabled { opacity: 0.4; cursor: default; }
+.questions .muted, .transcript .muted { color: var(--on-baize-soft); }
+.pick { position: relative; display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.4rem; align-items: center; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; }
+.pick .tick {
+  display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 0.3rem;
+  border: 2px solid var(--ink-soft); color: #fff; font-weight: 700;
+}
+.pick.on .tick { background: #3d6b4f; border-color: #3d6b4f; }
+.pick.on .clue { outline: 2px solid #3d6b4f; }
+.puzzle-row.locked { opacity: 0.6; cursor: default; }
+.puzzle-row.locked .puzzle-action { background: #8b8676; }
+.pick:disabled { opacity: 0.45; cursor: default; }
