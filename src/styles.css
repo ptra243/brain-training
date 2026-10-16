@@ -1,58 +1,197 @@
+/* Card table in the manor library: green baize, ivory cards, brass counters,
+   red-pencil crosses. The floor plan is the one bold element. */
 :root {
-  --ink: #2b2340;
-  --muted: #6d6680;
-  --paper: #f6f2ea;
-  --card: #fffdf8;
-  --line: #ddd5c6;
-  --accent: #b5452f;
-  --ok: #2f7a4f;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  color: var(--ink);
-  background: var(--paper);
+  --baize: #24463c;
+  --baize-deep: #1a352d;
+  --baize-line: #35594d;
+  --card: #f4f0e4;
+  --card-edge: #d8d0bb;
+  --ink: #1e2a2f;
+  --ink-soft: #55615f;
+  --on-baize: #e9e4d2;
+  --on-baize-soft: #b5c2b6;
+  --brass: #c8a24c;
+  --brass-deep: #8e6f27;
+  --pencil: #a8322d;
+  --wall: #2a2620;
+  --serif: 'Palatino Linotype', Palatino, 'Book Antiqua', 'Noto Serif', Georgia, serif;
+  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--sans);
+  color: var(--on-baize);
+  background: var(--baize);
   -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; }
-h1, h2 { margin: 0 0 0.5rem; font-weight: 600; }
-h1 { font-size: 1.5rem; }
-h2 { font-size: 1.1rem; }
-.muted { color: var(--muted); margin: 0; }
-.ok { color: var(--ok); font-weight: 600; }
-.bad { color: var(--accent); font-weight: 600; }
+body { margin: 0; min-height: 100dvh; background: var(--baize); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+h1, h2 { font-family: var(--serif); font-weight: 600; margin: 0; }
+.muted { color: var(--ink-soft); margin: 0; }
 
-.inspector {
-  max-width: 34rem;
-  margin: 0 auto;
-  padding: max(1rem, env(safe-area-inset-top)) 1rem 3rem;
+/* ---------- Shell ---------- */
+.casebook { max-width: 30rem; margin: 0 auto; padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
+
+.case-header {
   display: grid;
-  gap: 1.25rem;
+  grid-template-columns: 2.75rem 1fr 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: calc(0.75rem + env(safe-area-inset-top)) 1rem 0.75rem;
+}
+.case-title { text-align: center; }
+.case-title h1 { font-size: 1.6rem; letter-spacing: 0.01em; }
+.case-title p { margin: 0.1rem 0 0; font-size: 0.85rem; color: var(--on-baize-soft); }
+.step {
+  width: 2.75rem; height: 2.75rem; border-radius: 50%;
+  border: 1px solid var(--baize-line); background: var(--baize-deep);
+  font-size: 1.4rem; line-height: 1; cursor: pointer;
+}
+.step:disabled { opacity: 0.35; cursor: default; }
+
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  max-width: 30rem; margin: 0 auto;
+  padding: 0.35rem 0.5rem calc(0.35rem + env(safe-area-inset-bottom));
+  background: var(--baize-deep); border-top: 1px solid var(--baize-line);
+}
+.tabbar button {
+  min-height: 3rem; border: 0; background: none; cursor: pointer;
+  font-family: var(--serif); font-size: 1.02rem; color: var(--on-baize-soft);
+  border-radius: 0.5rem;
+}
+.tabbar button[aria-current='page'] { color: var(--brass); box-shadow: inset 0 -3px 0 var(--brass); border-radius: 0; }
+
+.panel { display: grid; gap: 0.85rem; padding: 0 1rem; }
+.hint { margin: 0; font-size: 0.85rem; line-height: 1.45; color: var(--on-baize-soft); }
+
+.card {
+  background: var(--card); color: var(--ink);
+  border: 1px solid var(--card-edge); border-radius: 0.35rem;
+  padding: 0.9rem 1rem;
+}
+.card h2 { font-size: 1.05rem; margin-bottom: 0.5rem; }
+
+/* ---------- Clues ---------- */
+.scene-card { border-left: 5px solid var(--pencil); border-radius: 0; }
+.scene-card p { margin: 0; font-family: var(--serif); font-size: 1.1rem; line-height: 1.45; }
+.clue-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.clue {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  font-family: var(--serif); font-size: 1.02rem; line-height: 1.45;
+}
+.clue.used { background: #e6e0cf; color: var(--ink-soft); text-decoration: line-through; text-decoration-color: var(--pencil); text-decoration-thickness: 2px; opacity: 0.75; }
+
+/* ---------- Floor plan ---------- */
+.floorplan-frame { padding: 0.5rem; background: #3b342a; border-radius: 0.35rem; }
+.floorplan { position: relative; display: grid; width: 100%; touch-action: manipulation; }
+.floorplan.awaiting .tile:not(.closed) { cursor: pointer; filter: brightness(1.04); }
+.tile {
+  position: relative; border: 0 solid var(--wall);
+  min-width: 0;
+}
+.tile.closed {
+  background-image: repeating-linear-gradient(135deg, rgba(42, 38, 32, 0.22) 0 2px, transparent 2px 7px) !important;
+}
+.room-name {
+  position: absolute; top: 0.2rem; left: 0.3rem; right: 0.1rem;
+  font-family: var(--serif); font-size: 0.7rem; font-weight: 600; color: var(--wall);
+  white-space: nowrap; overflow: visible; pointer-events: none; z-index: 1;
+}
+.on-map { position: absolute; transform: translate(-50%, -50%); display: grid; justify-items: center; z-index: 2; }
+.held {
+  margin-top: -0.15rem; padding: 0 0.3rem; border-radius: 0.2rem;
+  background: rgba(244, 240, 228, 0.92); color: var(--ink);
+  font-size: 0.6rem; white-space: nowrap; pointer-events: none;
 }
 
+.counter, .ghost {
+  width: 2.2rem; height: 2.2rem; border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--serif); font-size: 0.85rem; font-weight: 700; color: #fbf7ea;
+  background: var(--counter);
+  border: 3px solid var(--brass);
+  box-shadow: 0 2px 0 var(--brass-deep), 0 3px 6px rgba(0, 0, 0, 0.35);
+}
+.counter { cursor: grab; touch-action: none; padding: 0; }
+.counter.selected { border-color: #fff4cf; transform: translateY(-3px); box-shadow: 0 0 0 3px var(--brass), 0 6px 10px rgba(0, 0, 0, 0.4); }
+.counter.lifted { opacity: 0.3; }
+.ghost { position: fixed; z-index: 20; transform: translate(-50%, -60%) scale(1.15); pointer-events: none; }
+
+.tray ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; }
+.tray li { display: flex; align-items: center; gap: 0.45rem; font-size: 0.9rem; }
+.legend { margin: 0; font-size: 0.8rem; color: var(--on-baize-soft); }
+
+/* ---------- Logic grids ---------- */
+.grid-card { padding: 0.75rem 0.6rem 0.8rem; }
+.grid-card h2 { padding-left: 0.3rem; }
+.logic-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.logic-grid th { font-weight: 600; font-size: 0.72rem; color: var(--ink); }
+.logic-grid thead th { vertical-align: bottom; padding: 0 0 0.3rem; text-align: center; }
+.logic-grid thead th span { display: block; line-height: 1.15; overflow-wrap: anywhere; }
+.logic-grid thead th:first-child { width: 4.6rem; }
+.logic-grid tbody th { text-align: left; padding-right: 0.3rem; font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.logic-grid td { border: 1px solid #b9b09a; padding: 0; }
+.mark {
+  display: grid; place-items: center; width: 100%; aspect-ratio: 1; min-height: 2.5rem;
+  border: 0; background: none; cursor: pointer;
+  font-size: 1.25rem; line-height: 1;
+}
+.mark.x { color: var(--pencil); }
+.mark.auto-x { color: var(--pencil); opacity: 0.28; }
+.mark.o { color: #fbf7ea; background: #3d6b4f; font-weight: 700; }
+
+/* ---------- Accuse ---------- */
+.picker { border: 0; padding: 0; margin: 0 0 0.9rem; }
+.picker legend { font-family: var(--serif); font-weight: 600; font-size: 1rem; margin-bottom: 0.4rem; padding: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.chip {
+  min-height: 2.6rem; padding: 0 0.85rem; border-radius: 999px; cursor: pointer;
+  border: 1px solid #b9b09a; background: #fffcf3; color: var(--ink);
+}
+.chip[aria-pressed='true'] { background: var(--ink); color: var(--card); border-color: var(--ink); }
+.primary {
+  width: 100%; min-height: 3rem; border: 0; border-radius: 0.35rem; cursor: pointer;
+  background: var(--pencil); color: #fff7ee; font-family: var(--serif); font-size: 1.05rem; font-weight: 600;
+}
+.error { color: var(--pencil); font-size: 0.85rem; margin: 0 0 0.6rem; }
+.result h2 { margin-bottom: 0.4rem; }
+.history { margin: 0; padding-left: 1.1rem; font-size: 0.88rem; line-height: 1.6; color: var(--ink-soft); }
+.verdict { display: grid; gap: 0.6rem; }
+.verdict h2 { font-size: 1.4rem; margin: 0; }
+.verdict-line { margin: 0; font-family: var(--serif); font-size: 1.15rem; line-height: 1.4; }
+.answer { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.answer th, .answer td { text-align: left; padding: 0.45rem 0.3rem; border-bottom: 1px solid var(--card-edge); font-weight: 400; }
+.answer .murderer th, .answer .murderer td { color: var(--pencil); font-weight: 600; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .counter { transition: transform 120ms ease, box-shadow 120ms ease; }
+}
+
+/* ---------- Dev case inspector (#dev) ---------- */
+body.dev { background: #f2f1ec; color: #222; }
+.inspector { max-width: 34rem; margin: 0 auto; padding: 1rem 1rem 3rem; display: grid; gap: 1.25rem; color: #222; }
+.inspector h1 { font-size: 1.5rem; }
+.inspector h2 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+.inspector .muted { color: #666; }
+.ok { color: #2f7a4f; font-weight: 600; }
+.bad { color: #a8322d; font-weight: 600; }
 .controls { display: flex; gap: 0.5rem; }
 .controls button, .controls input, .controls select, .reveal {
-  min-height: 2.75rem;
-  border: 1px solid var(--line);
-  border-radius: 0.6rem;
-  background: var(--card);
-  color: var(--ink);
-  font: inherit;
-  padding: 0 0.9rem;
+  min-height: 2.75rem; border: 1px solid #ccc; border-radius: 0.5rem; background: #fff; color: #222; padding: 0 0.9rem;
 }
 .controls input { width: 4rem; min-width: 0; text-align: center; }
 .controls select { flex: 1; min-width: 0; }
-
-.map { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 0.5rem; overflow: hidden; }
-.map .axis { background: var(--paper); font-size: 0.75rem; color: var(--muted); display: grid; place-items: center; }
+.map { display: grid; gap: 1px; background: #ccc; border: 1px solid #ccc; border-radius: 0.5rem; overflow: hidden; }
+.map .axis { background: #f2f1ec; font-size: 0.75rem; color: #666; display: grid; place-items: center; }
 .map .cell { aspect-ratio: 1; min-width: 0; font-size: 0.6rem; word-break: break-word; padding: 0.2rem; line-height: 1.1; overflow: hidden; }
 .map .cell.empty { opacity: 0.45; }
-
 .clues { margin: 0; padding-left: 1.4rem; display: grid; gap: 0.5rem; }
 .clues .scene { font-weight: 600; }
-.teaser { display: block; font-size: 0.8rem; font-weight: 400; color: var(--muted); }
-.teaser b { letter-spacing: 0.1em; color: var(--accent); }
-.tag { font-size: 0.7rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0 0.4rem; white-space: nowrap; }
-
-.answer { width: 100%; margin-top: 0.75rem; border-collapse: collapse; background: var(--card); }
-.answer th, .answer td { text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--line); }
-.answer .murderer td { color: var(--accent); font-weight: 600; }
+.teaser { display: block; font-size: 0.8rem; font-weight: 400; color: #666; }
+.teaser b { letter-spacing: 0.1em; color: #a8322d; }
+.tag { font-size: 0.7rem; color: #666; border: 1px solid #ccc; border-radius: 999px; padding: 0 0.4rem; white-space: nowrap; }
+.inspector .answer { margin-top: 0.75rem; background: #fff; }
+.inspector .answer th, .inspector .answer td { border-bottom: 1px solid #ddd; }
