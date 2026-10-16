@@ -79,6 +79,9 @@ checked for how much look-ahead they need.
 - Keep logic in plain TS (`src/engine/`, `src/game/state.ts`) with node tests
   next to it; React components stay thin.
 - Checks before committing: `npm test`, `npm run check-cases`, `npm run build`.
+  In a cloud session without `node_modules`, at least run the global `tsc`
+  over the non-React files (`src/engine`, `src/games`, `src/game/state.ts`)
+  with `--strict --noUnusedLocals --noUnusedParameters`; CI catches the rest.
 - Tests run on Node's built-in runner with type stripping (`node --test`), so
   TS in `src/engine` and `src/game/*.ts` must be erasable syntax only.
 - Cloud Claude sessions cannot reach the npm registry. New dependencies must
