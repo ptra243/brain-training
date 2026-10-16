@@ -54,7 +54,9 @@ export function CatsGame({ puzzle, data, finished, onChange, onFinish }: GamePro
         Put one cat in every row, every column and every colour. Cats can't touch, not even corner to corner. Tap once
         for a dot (your note that no cat goes there), twice for a cat.
       </p>
-      <div className="cat-grid" style={{ gridTemplateColumns: `repeat(${n}, 1fr)` }} role="grid" aria-label="Cat puzzle">
+      <div
+        className="cat-grid"
+        style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${n}, minmax(0, 1fr))` }} role="grid" aria-label="Cat puzzle">
         {Array.from({ length: n }, (_, r) =>
           Array.from({ length: n }, (_, c) => {
             const z = zone(r, c);

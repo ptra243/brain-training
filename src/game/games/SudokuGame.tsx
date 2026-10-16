@@ -40,7 +40,7 @@ export function SudokuGame({ puzzle, data, finished, onChange, onFinish }: GameP
       </p>
       <div
         className={`sudoku-grid size-${size}`}
-        style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}
+        style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${size}, minmax(0, 1fr))` }}
         role="grid"
         aria-label="Sudoku"
       >
