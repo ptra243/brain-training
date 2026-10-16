@@ -5,7 +5,9 @@ import { AccusePanel } from './AccusePanel.tsx';
 import { CluesPanel } from './CluesPanel.tsx';
 import { GridPanel } from './GridPanel.tsx';
 import { MapPanel } from './MapPanel.tsx';
+import { GameScreen } from './games/GameScreen.tsx';
 import { reduce, type Action, type Progress } from './state.ts';
+import type { GameKind } from '../engine/types.ts';
 import { loadCurrentCase, loadProgress, saveCurrentCase, saveProgress } from './storage.ts';
 
 type Tab = 'clues' | 'map' | 'grid' | 'accuse';
@@ -23,6 +25,7 @@ export function Casebook() {
   const c = useMemo(() => generateCase(content, caseNumber), [caseNumber]);
   const [progress, setProgress] = useState<Progress>(() => loadProgress(caseNumber));
   const [tab, setTab] = useState<Tab>('clues');
+  const [playing, setPlaying] = useState<GameKind | null>(null);
 
   useEffect(() => saveProgress(caseNumber, progress), [caseNumber, progress]);
   useEffect(() => saveCurrentCase(caseNumber), [caseNumber]);
@@ -34,6 +37,7 @@ export function Casebook() {
     setCaseNumber(next);
     setProgress(loadProgress(next));
     setTab('clues');
+    setPlaying(null);
     window.scrollTo(0, 0);
   };
 
@@ -41,6 +45,26 @@ export function Casebook() {
     setTab(t);
     window.scrollTo(0, 0);
   };
+
+  const game = playing ? c.games.find((g) => g.kind === playing) : undefined;
+  if (game) {
+    return (
+      <div className="casebook">
+        <GameScreen
+          key={`${c.number}-${game.kind}`}
+          c={c}
+          spec={game}
+          progress={progress}
+          dispatch={dispatch}
+          onBack={() => {
+            setPlaying(null);
+            setTab('clues');
+            window.scrollTo(0, 0);
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="casebook">
@@ -60,7 +84,17 @@ export function Casebook() {
       </header>
 
       <main>
-        {tab === 'clues' && <CluesPanel c={c} progress={progress} dispatch={dispatch} />}
+        {tab === 'clues' && (
+          <CluesPanel
+            c={c}
+            progress={progress}
+            dispatch={dispatch}
+            onPlay={(kind) => {
+              setPlaying(kind);
+              window.scrollTo(0, 0);
+            }}
+          />
+        )}
         {tab === 'map' && <MapPanel c={c} progress={progress} dispatch={dispatch} />}
         {tab === 'grid' && <GridPanel c={c} progress={progress} dispatch={dispatch} />}
         {tab === 'accuse' && <AccusePanel c={c} progress={progress} dispatch={dispatch} onNextCase={() => openCase(caseNumber + 1)} />}

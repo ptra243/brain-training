@@ -1,11 +1,15 @@
 import { roomAdjacency } from './house.ts';
-import { WORDLE_BLANK, canDeliverByWordle, cluePool, clueText, wordleClue, type ClueContext } from './clues.ts';
+import { WORDLE_BLANK, cluePool, clueText, type ClueContext } from './clues.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
-import type { Case, Clue, ClueDelivery, ClueFact, ClueType, Content, Difficulty } from './types.ts';
+import type { Case, Clue, ClueDelivery, ClueFact, ClueType, Content, Difficulty, GameKind, GameSpec } from './types.ts';
 
 interface DifficultySettings {
   suspects: number;
+  /** Clues she gets for free at the start. */
+  freeClues: number;
+  catSize: number;
+  sudoku: { size: 6 | 9; givens: number };
   /** Relative chance of each clue type being tried. 0 = never used. */
   weights: Partial<Record<ClueType, number>>;
   /** Most clues of a type allowed in one case. */
@@ -15,6 +19,9 @@ interface DifficultySettings {
 export const DIFFICULTY: Record<Difficulty, DifficultySettings> = {
   easy: {
     suspects: 4,
+    freeClues: 2,
+    catSize: 6,
+    sudoku: { size: 6, givens: 16 },
     weights: {
       'suspect-room': 1,
       'suspect-item': 1,
@@ -28,6 +35,9 @@ export const DIFFICULTY: Record<Difficulty, DifficultySettings> = {
   },
   medium: {
     suspects: 4,
+    freeClues: 2,
+    catSize: 7,
+    sudoku: { size: 6, givens: 13 },
     weights: {
       'suspect-not-room': 2,
       'suspect-not-item': 2,
@@ -42,6 +52,9 @@ export const DIFFICULTY: Record<Difficulty, DifficultySettings> = {
   },
   hard: {
     suspects: 5,
+    freeClues: 3,
+    catSize: 8,
+    sudoku: { size: 9, givens: 32 },
     weights: {
       'suspect-not-room': 2,
       'suspect-not-item': 2,
@@ -61,8 +74,6 @@ export function campaignDifficulty(caseNumber: number): Difficulty {
   return caseNumber % 3 === 0 ? 'hard' : 'medium';
 }
 
-const GAMES: readonly ClueDelivery[] = ['cat-zones', 'sudoku', 'number'];
-const CLUES_PER_GAME = 3;
 
 export function generateCase(
   content: Content,
@@ -122,21 +133,14 @@ export function generateCase(
     if (countSolutions(candidates, without, ctx, 1) === 1) minimal = without;
   }
 
-  // 5. Hand each clue to a minigame. One room clue goes to Wordle (the answer
-  //    is an object in that room); the rest are split across the other games
-  //    until phase 4 decides which game suits which clue type.
+  // 5. Hand out the clues: a few free, the rest split between the cat puzzle
+  //    and sudoku. Wordle unlocks the scene. Three games keeps a case near
+  //    ten minutes.
   const order = rng.shuffle(minimal);
-  const wordleIndex = order.findIndex(canDeliverByWordle);
-  let slot = 0;
+  const free = Math.min(settings.freeClues, order.length - 2);
   const clues: Clue[] = order.map((fact, i) => {
-    const id = `c${i + 1}`;
-    if (i === wordleIndex && canDeliverByWordle(fact)) {
-      const w = wordleClue(fact, content, rng);
-      return { id, fact, text: w.text, delivery: 'wordle', wordle: { answer: w.answer, teaser: w.teaser } };
-    }
-    const delivery = slot < GAMES.length * CLUES_PER_GAME ? GAMES[slot % GAMES.length] : 'given';
-    slot++;
-    return { id, fact, text: clueText(fact, content, rng), delivery };
+    const delivery: ClueDelivery = i < free ? 'given' : (i - free) % 2 === 0 ? 'cats' : 'sudoku';
+    return { id: `c${i + 1}`, fact, text: clueText(fact, content, rng), delivery };
   });
 
   // The scene is always a Wordle: "The body was found by the _____."
@@ -148,6 +152,20 @@ export function generateCase(
     delivery: 'wordle' as const,
     wordle: { answer: sceneWord, teaser: `The body was found by the ${WORDLE_BLANK}.` },
   };
+
+  const idsFor = (kind: GameKind) => clues.filter((c) => c.delivery === kind).map((c) => c.id);
+  const games: GameSpec[] = [
+    { kind: 'wordle', seed: hashSeed(`${seed}-wordle`), clues: [], unlocksScene: true, size: 5 },
+    { kind: 'cats', seed: hashSeed(`${seed}-cats`), clues: idsFor('cats'), unlocksScene: false, size: settings.catSize },
+    {
+      kind: 'sudoku',
+      seed: hashSeed(`${seed}-sudoku`),
+      clues: idsFor('sudoku'),
+      unlocksScene: false,
+      size: settings.sudoku.size,
+      givens: settings.sudoku.givens,
+    },
+  ];
 
   return {
     number: caseNumber,
@@ -163,5 +181,6 @@ export function generateCase(
     weapon: solution.item[murdererIndex],
     sceneClue,
     clues,
+    games,
   };
 }

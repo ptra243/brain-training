@@ -65,8 +65,24 @@ export type ClueFact =
 
 export type ClueType = ClueFact['type'];
 
-/** Which minigame hands this clue to the player (built in phase 4). */
-export type ClueDelivery = 'wordle' | 'sudoku' | 'cat-zones' | 'number' | 'given';
+/** Minigames that unlock clues. */
+export type GameKind = 'wordle' | 'cats' | 'sudoku';
+
+/** How a clue reaches her: free at the start, or as a minigame's reward. */
+export type ClueDelivery = GameKind | 'given';
+
+/** One minigame in a case. The puzzle itself is built from `seed` when opened. */
+export interface GameSpec {
+  kind: GameKind;
+  seed: number;
+  /** Clue ids this game unlocks. */
+  clues: readonly string[];
+  /** Wordle unlocks the scene. */
+  unlocksScene: boolean;
+  /** Cat grid size, or sudoku size and how many digits are given. */
+  size: number;
+  givens?: number;
+}
 
 /**
  * A Wordle-delivered clue: before solving she sees `teaser` with a blank;
@@ -109,4 +125,6 @@ export interface Case {
   sceneClue: { text: string; delivery: 'wordle'; wordle: WordleReveal };
   /** Minimal clue set: removing any one allows a second solution. */
   clues: readonly Clue[];
+  /** Minigames in play order; together with the free clues they unlock everything. */
+  games: readonly GameSpec[];
 }

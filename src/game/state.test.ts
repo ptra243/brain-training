@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
 import { generateCase } from '../engine/generate.ts';
-import { cellState, cluesAbout, emptyProgress, heldItem, markKey, placedRoom, reduce, type Action, type Progress } from './state.ts';
+import { cellState, cluesAbout, emptyProgress, sceneUnlocked, unlockedClueIds, heldItem, markKey, placedRoom, reduce, type Action, type Progress } from './state.ts';
 
 const c = generateCase(content, 5);
 const [s1, s2] = c.suspects;
@@ -85,4 +85,20 @@ test('struck-through clues toggle', () => {
   const id = c.clues[0].id;
   assert.deepEqual(run({ type: 'toggle-used', clue: id }).used, [id]);
   assert.deepEqual(run({ type: 'toggle-used', clue: id }, { type: 'toggle-used', clue: id }).used, []);
+});
+
+test('free clues show at the start; finishing a game unlocks its clues and the Wordle unlocks the scene', () => {
+  const free = c.clues.filter((cl) => cl.delivery === 'given').map((cl) => cl.id);
+  let p = emptyProgress();
+  assert.deepEqual([...unlockedClueIds(c, p)].sort(), free.sort());
+  assert.equal(sceneUnlocked(c, p), false);
+  p = reduce(c, p, { type: 'game-save', kind: 'cats', data: { marks: 1 } });
+  assert.equal(unlockedClueIds(c, p).size, free.length, 'saving progress unlocks nothing');
+  p = reduce(c, p, { type: 'game-finish', kind: 'cats', status: 'revealed', data: null });
+  const cats = c.games.find((g) => g.kind === 'cats')!;
+  for (const id of cats.clues) assert.ok(unlockedClueIds(c, p).has(id));
+  p = reduce(c, p, { type: 'game-finish', kind: 'wordle', status: 'won', data: null });
+  assert.equal(sceneUnlocked(c, p), true);
+  // A finished game can't be reopened by a late save.
+  assert.equal(reduce(c, p, { type: 'game-save', kind: 'cats', data: {} }).games.cats?.status, 'revealed');
 });

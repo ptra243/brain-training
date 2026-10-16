@@ -72,3 +72,16 @@ test('the murderer is the suspect in the scene room holding the weapon', () => {
   assert.equal(c.solution.room[i], c.sceneRoom);
   assert.equal(c.solution.item[i], c.weapon);
 });
+
+test('every clue is free or unlocked by exactly one game, and each case has three games', () => {
+  for (let n = 1; n <= 30; n++) {
+    const c = generateCase(content, n);
+    assert.deepEqual(c.games.map((g) => g.kind), ['wordle', 'cats', 'sudoku']);
+    for (const clue of c.clues) {
+      const owners = c.games.filter((g) => g.clues.includes(clue.id)).length;
+      assert.equal(owners, clue.delivery === 'given' ? 0 : 1, `case ${n} ${clue.id}`);
+    }
+    assert.ok(c.clues.some((cl) => cl.delivery === 'given'), `case ${n} has no free clue`);
+    for (const g of c.games.slice(1)) assert.ok(g.clues.length > 0, `case ${n}: ${g.kind} unlocks nothing`);
+  }
+});

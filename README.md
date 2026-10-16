@@ -23,7 +23,8 @@ npm run check-cases  # generate 300 cases and confirm each has exactly one solut
 | --- | --- |
 | `src/content/` | House, suspects, items. Placeholder names; swap the theme here. |
 | `src/engine/` | Seeded generator, clue pool, solver and clue trimmer. No React. |
-| `src/game/` | The casebook: clues, map, grids, accusation, saved progress. |
+| `src/game/` | The casebook: clues, map, grids, accusation, saved progress, game screens. |
+| `src/games/` | Puzzle logic: Wordle scoring, cat puzzle and sudoku generators. No React. |
 | `src/dev/CaseInspector.tsx` | Dev page (add `#dev` to the URL): step through cases, see clues and the answer. |
 | `scripts/check-cases.ts` | The 100-cases-per-difficulty uniqueness check. |
 
@@ -50,6 +51,6 @@ Settings > Pages > Source: GitHub Actions.
 - [x] Phase 1: content data
 - [x] Phase 2: generator and solver
 - [x] Phase 3: casebook UI (map, cross-out grid, accusation)
-- [ ] Phase 4: minigames that deliver clues
+- [x] Phase 4: minigames that deliver clues (Wordle, cat puzzle, sudoku)
 - [ ] Phase 5: modes, campaign progression, saved progress
 - [ ] Phase 6: playtest and tuning

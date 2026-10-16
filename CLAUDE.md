@@ -9,8 +9,11 @@ has the link). README has setup, layout and how a case is generated.
 
 ## Status
 
-Phases 1–3 done (content, generator/solver, casebook UI). Next: phase 4,
-minigames that deliver clues. All clues are shown up front until then.
+Phases 1–4 done (content, generator/solver, casebook UI, minigames). Next:
+phase 5 (modes, campaign progression) and playtesting on her phone.
+Known gaps: Wordle accepts any 5 letters (no dictionary yet: needs a word
+list package added from the owner's machine); cat puzzles are unique but not
+checked for how much look-ahead they need.
 
 ## Rules that are easy to break
 
@@ -21,6 +24,12 @@ minigames that deliver clues. All clues are shown up front until then.
   that asks "Are you sure? This can't be undone" (an in-app dialog, not
   `window.confirm`), then reveals the answer and still unlocks the clue. Record
   the game as `revealed`, not `won`, so stats can tell them apart.
+- **Each case has three games**: Wordle unlocks the scene, the cat puzzle and
+  sudoku each unlock about half the clues, and 2–3 clues are free at the
+  start. Puzzles are rebuilt from `GameSpec.seed`; only her moves are saved.
+  Generate a puzzle once per game screen, never per render or per move.
+- **Generated puzzles must be fair**: cat puzzles have exactly one answer and
+  even-ish zones; sudoku has one answer and is solvable by singles alone.
 - **Wordle answers come from room `objects`** (5-letter words). Words may
   repeat across rooms; the revealed clue names the room. Teasers must never
   show the room or the word (tested).

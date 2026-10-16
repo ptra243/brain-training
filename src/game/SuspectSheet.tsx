@@ -1,7 +1,8 @@
-import { useEffect, useRef, type CSSProperties } from 'react';
+import type { CSSProperties } from 'react';
 import type { Case } from '../engine/types.ts';
 import { itemName, roomName, suspectColour, suspectInitials, suspectName } from './names.ts';
-import { cluesAbout, heldItem, placedRoom, type Action, type Progress } from './state.ts';
+import { Dialog } from './Dialog.tsx';
+import { cluesAbout, heldItem, placedRoom, unlockedClueIds, type Action, type Progress } from './state.ts';
 
 interface Props {
   c: Case;
@@ -15,42 +16,17 @@ interface Props {
 
 /** Card that slides up over the map with the clues naming one suspect. */
 export function SuspectSheet({ c, progress, dispatch, suspect, onClose, onMove }: Props) {
-  const closeRef = useRef<HTMLButtonElement>(null);
-  const downOnBackdrop = useRef(false);
-  const clues = cluesAbout(c, suspect);
+  const unlocked = unlockedClueIds(c, progress);
+  const clues = cluesAbout(c, suspect).filter((clue) => unlocked.has(clue.id));
   const room = placedRoom(c, progress, suspect);
   const item = heldItem(c, progress, suspect);
-
-  useEffect(() => {
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
 
   const placedLine = [room && `You've placed them in the ${roomName(room)}`, item && `with the ${itemName(item)}`]
     .filter(Boolean)
     .join(' ');
 
   return (
-    // Close only on taps that start on the backdrop: on touchscreens the tap
-    // that opened the sheet sends a late click that would otherwise land here.
-    <div
-      className="sheet-backdrop"
-      onPointerDown={(e) => {
-        downOnBackdrop.current = e.target === e.currentTarget;
-      }}
-      onClick={(e) => {
-        if (downOnBackdrop.current && e.target === e.currentTarget) onClose();
-        downOnBackdrop.current = false;
-      }}
-    >
-      <div
-        className="sheet card"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="sheet-title"
-      >
+    <Dialog onClose={onClose} labelId="sheet-title">
         <header className="sheet-head">
           <span className="counter static" style={{ '--counter': suspectColour(suspect) } as CSSProperties} aria-hidden="true">
             {suspectInitials(suspect)}
@@ -59,7 +35,7 @@ export function SuspectSheet({ c, progress, dispatch, suspect, onClose, onMove }
             <h2 id="sheet-title">{suspectName(suspect)}</h2>
             <p className="muted">{placedLine ? `${placedLine}.` : 'Not placed yet.'}</p>
           </div>
-          <button ref={closeRef} className="sheet-close" aria-label="Close" onClick={onClose}>
+          <button data-autofocus className="sheet-close" aria-label="Close" onClick={onClose}>
             ✕
           </button>
         </header>
@@ -82,13 +58,12 @@ export function SuspectSheet({ c, progress, dispatch, suspect, onClose, onMove }
             })}
           </ul>
         ) : (
-          <p className="muted">No clue names {suspectName(suspect)} directly. Work them out from everyone else.</p>
+          <p className="muted">No clue you've found so far names {suspectName(suspect)}. Play the games to unlock more, or work them out from everyone else.</p>
         )}
 
         <button className="secondary" onClick={onMove}>
           {room ? 'Move to another room' : 'Place in a room'}
         </button>
-      </div>
-    </div>
+    </Dialog>
   );
 }

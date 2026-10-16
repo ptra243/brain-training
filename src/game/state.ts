@@ -4,7 +4,7 @@
 // The map and the grid share one source of truth: a suspect's token sits in
 // a room exactly when the suspect×room cell holds a tick ('o').
 
-import type { Case } from '../engine/types.ts';
+import type { Case, GameKind } from '../engine/types.ts';
 
 export type Mark = 'x' | 'o';
 
@@ -19,6 +19,13 @@ export interface Accusation {
   correct: number;
 }
 
+export interface GameRecord {
+  /** `revealed` = she pressed Solve; the clues still unlock. */
+  status: 'playing' | 'won' | 'revealed';
+  /** The game's own saved state (guesses, marks, digits). */
+  data?: unknown;
+}
+
 export interface Progress {
   /** Key `${kind}|${row}|${col}`; missing = blank. */
   marks: Record<string, Mark>;
@@ -26,9 +33,10 @@ export interface Progress {
   used: string[];
   accusations: Accusation[];
   solved: boolean;
+  games: Partial<Record<GameKind, GameRecord>>;
 }
 
-export const emptyProgress = (): Progress => ({ marks: {}, used: [], accusations: [], solved: false });
+export const emptyProgress = (): Progress => ({ marks: {}, used: [], accusations: [], solved: false, games: {} });
 
 export const markKey = (kind: GridKind, row: string, col: string) => `${kind}|${row}|${col}`;
 
@@ -53,6 +61,8 @@ export type Action =
   | { type: 'place'; suspect: string; room: string | null }
   | { type: 'toggle-used'; clue: string }
   | { type: 'accuse'; suspect: string; room: string; item: string }
+  | { type: 'game-save'; kind: GameKind; data: unknown }
+  | { type: 'game-finish'; kind: GameKind; status: 'won' | 'revealed'; data: unknown }
   | { type: 'reset' };
 
 /** Set a tick, clearing any other tick in the same row and column (one per line). */
@@ -95,6 +105,16 @@ export function reduce(c: Case, p: Progress, action: Action): Progress {
       const accusation: Accusation = { suspect: action.suspect, room: action.room, item: action.item, correct };
       return { ...p, accusations: [...p.accusations, accusation], solved: correct === 3 };
     }
+    case 'game-save': {
+      const current = p.games[action.kind];
+      if (current && current.status !== 'playing') return p; // finished games are frozen
+      return { ...p, games: { ...p.games, [action.kind]: { status: 'playing', data: action.data } } };
+    }
+    case 'game-finish': {
+      const current = p.games[action.kind];
+      if (current && current.status !== 'playing') return p;
+      return { ...p, games: { ...p.games, [action.kind]: { status: action.status, data: action.data } } };
+    }
     case 'reset':
       return emptyProgress();
   }
@@ -109,6 +129,20 @@ export function cellState(c: Case, p: Progress, kind: GridKind, row: string, col
   const tickedInCol = rows.some((other) => p.marks[markKey(kind, other, col)] === 'o');
   return tickedInRow || tickedInCol ? 'auto-x' : null;
 }
+
+export const gameDone = (p: Progress, kind: GameKind) => {
+  const status = p.games[kind]?.status;
+  return status === 'won' || status === 'revealed';
+};
+
+/** Ids of the clues she can see: the free ones plus every finished game's. */
+export function unlockedClueIds(c: Case, p: Progress): Set<string> {
+  const ids = new Set(c.clues.filter((clue) => clue.delivery === 'given').map((clue) => clue.id));
+  for (const g of c.games) if (gameDone(p, g.kind)) for (const id of g.clues) ids.add(id);
+  return ids;
+}
+
+export const sceneUnlocked = (c: Case, p: Progress) => c.games.some((g) => g.unlocksScene && gameDone(p, g.kind));
 
 /** Clues that name this suspect, in casebook order. */
 export function cluesAbout(c: Case, suspect: string) {
