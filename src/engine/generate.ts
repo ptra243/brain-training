@@ -148,7 +148,7 @@ export function generateCase(
   const free = Math.min(settings.freeClues, order.length - 2);
   const rest = order.slice(free);
   const sudokuShare = rest.length >= 3 ? Math.max(2, Math.floor(rest.length / 2)) : 1;
-  const locatedFacts = rest.filter(canLocate).slice(0, Math.min(settings.located, sudokuShare - 1));
+  const locatedFacts: ClueFact[] = rest.filter(canLocate).slice(0, Math.min(settings.located, sudokuShare - 1));
   const completionFacts = rest.filter((f) => !locatedFacts.includes(f)).slice(0, sudokuShare - locatedFacts.length);
   const deliveryOf = (f: ClueFact, i: number): ClueDelivery =>
     i < free ? 'given' : locatedFacts.includes(f) || completionFacts.includes(f) ? 'sudoku' : 'cats';

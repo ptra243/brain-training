@@ -163,7 +163,7 @@ export function locationSquares(
 ): Record<string, LocationSquares> {
   const used = new Set<number>();
   const pick = (digit: number) => {
-    const options = p.solution.map((d, i) => i).filter((i) => p.solution[i] === digit && !p.givens[i] && !used.has(i));
+    const options = p.solution.map((_, i) => i).filter((i) => p.solution[i] === digit && !p.givens[i] && !used.has(i));
     if (!options.length) return -1;
     const i = rng.pick(options);
     used.add(i);
