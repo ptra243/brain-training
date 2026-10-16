@@ -39,6 +39,11 @@ minigames that deliver clues. All clues are shown up front until then.
 
 - Target device: Samsung Galaxy S26, **360 × 780 CSS px**, portrait. Check
   every screen at 360px wide with no sideways scroll; touch targets ≥ 44px.
+- Test interactions with real touch events (CDP `Input.dispatchTouchEvent`),
+  not just mouse clicks: a touch tap sends a late `click` that can land on
+  whatever the tap just opened (fixed once already in `SuspectSheet`).
+- On the map, a short tap on a counter opens that suspect's clues; dragging
+  moves it. "Tap a room to place" starts from the button in that card.
 - Look: a card table in the manor library. Green baize background, ivory
   cards, brass suspect counters, red-pencil crosses, serif headings. The floor
   plan is the one bold element; keep everything else quiet.

@@ -3,6 +3,7 @@ import { content } from '../content/index.ts';
 import type { Case, Room } from '../engine/types.ts';
 import { itemName, roomName, suspectColour, suspectInitials, suspectName } from './names.ts';
 import { heldItem, placedRoom, type Action, type Progress } from './state.ts';
+import { SuspectSheet } from './SuspectSheet.tsx';
 
 interface Props {
   c: Case;
@@ -55,6 +56,7 @@ export function MapPanel({ c, progress, dispatch }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [open, setOpen] = useState<string | null>(null);
 
   const owner = useMemo(() => {
     const m = new Map<string, Room>();
@@ -90,8 +92,11 @@ export function MapPanel({ c, progress, dispatch }: Props) {
     if (drag.moved) {
       placeIn(drag.suspect, roomAtPoint(e.clientX, e.clientY));
       setSelected(null);
+    } else if (selected === drag.suspect) {
+      setSelected(null); // tapping the counter again cancels "tap a room"
     } else {
-      setSelected((s) => (s === drag.suspect ? null : drag.suspect));
+      setSelected(null);
+      setOpen(drag.suspect); // short tap: show this suspect's clues
     }
     setDrag(null);
   };
@@ -123,6 +128,8 @@ export function MapPanel({ c, progress, dispatch }: Props) {
       onPointerMove={onMove}
       onPointerUp={onUp}
       onPointerCancel={() => setDrag(null)}
+      // Keyboard activation (Enter/Space) fires click with detail 0 and no pointer events.
+      onClick={(e) => e.detail === 0 && setOpen(suspect)}
     >
       {suspectInitials(suspect)}
     </button>
@@ -133,7 +140,7 @@ export function MapPanel({ c, progress, dispatch }: Props) {
       <p className="hint">
         {selected
           ? `Now tap a room for ${suspectName(selected)}, or tap the counter again to cancel.`
-          : 'Drag a counter into a room, or tap it and then tap a room. Placing someone ticks them in the grid.'}
+          : 'Drag a counter into a room. Tap a counter to see the clues about that person.'}
       </p>
 
       <div className="floorplan-frame">
@@ -209,6 +216,20 @@ export function MapPanel({ c, progress, dispatch }: Props) {
       </div>
 
       <p className="legend">Shaded rooms are empty tonight: {house.rooms.filter((r) => !c.rooms.includes(r.id)).map((r) => roomName(r.id)).join(', ')}.</p>
+
+      {open && (
+        <SuspectSheet
+          c={c}
+          progress={progress}
+          dispatch={dispatch}
+          suspect={open}
+          onClose={() => setOpen(null)}
+          onMove={() => {
+            setSelected(open);
+            setOpen(null);
+          }}
+        />
+      )}
 
       {drag?.moved && (
         <div className="ghost" style={{ left: drag.x, top: drag.y, '--counter': suspectColour(drag.suspect) } as CSSProperties}>

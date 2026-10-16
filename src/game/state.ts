@@ -110,6 +110,14 @@ export function cellState(c: Case, p: Progress, kind: GridKind, row: string, col
   return tickedInRow || tickedInCol ? 'auto-x' : null;
 }
 
+/** Clues that name this suspect, in casebook order. */
+export function cluesAbout(c: Case, suspect: string) {
+  return c.clues.filter((clue) => {
+    const f = clue.fact;
+    return ('suspect' in f && f.suspect === suspect) || ('suspects' in f && f.suspects.includes(suspect));
+  });
+}
+
 /** The room a suspect's token is in, if she has placed (ticked) one. */
 export function placedRoom(c: Case, p: Progress, suspect: string): string | null {
   return c.rooms.find((room) => p.marks[markKey('suspect-room', suspect, room)] === 'o') ?? null;

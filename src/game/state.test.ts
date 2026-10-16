@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
 import { generateCase } from '../engine/generate.ts';
-import { cellState, emptyProgress, heldItem, markKey, placedRoom, reduce, type Action, type Progress } from './state.ts';
+import { cellState, cluesAbout, emptyProgress, heldItem, markKey, placedRoom, reduce, type Action, type Progress } from './state.ts';
 
 const c = generateCase(content, 5);
 const [s1, s2] = c.suspects;
@@ -68,6 +68,17 @@ test('accusations count correct parts and only all three solves it', () => {
   p = reduce(c, p, { type: 'accuse', suspect: c.murderer, room: c.sceneRoom, item: c.weapon });
   assert.equal(p.solved, true);
   assert.equal(p.accusations.length, 2);
+});
+
+test('clues about a suspect are exactly the ones that name them', () => {
+  for (const s of c.suspects) {
+    const about = cluesAbout(c, s);
+    for (const clue of c.clues) {
+      const f = clue.fact;
+      const names = ('suspect' in f && f.suspect === s) || ('suspects' in f && f.suspects.includes(s));
+      assert.equal(about.includes(clue), names, `${clue.text} vs ${s}`);
+    }
+  }
 });
 
 test('struck-through clues toggle', () => {
