@@ -1,8 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { content } from '../content/index.ts';
 import { Rng } from '../engine/rng.ts';
 import { catConflicts, catsSolved, countCatSolutions, generateCats } from './cats.ts';
 import { foundLocations, generateSudoku, locationSquares, solvableBySingles, sudokuConflicts, sudokuShape, sudokuSolved } from './sudoku.ts';
+import { isAllowedGuess, parseWords } from './dictionary.ts';
 import { keyboardState, scoreGuess } from './wordle.ts';
 
 test('wordle scoring handles repeated letters', () => {
@@ -17,6 +20,21 @@ test('keyboard keeps the best colour seen for each letter', () => {
   assert.equal(keys.B, 'hit');
   assert.equal(keys.A, 'hit');
   assert.equal(keys.T, 'miss');
+});
+
+const dictionary = parseWords(readFileSync(new URL('../../public/words.txt', import.meta.url), 'utf8'));
+
+test('word list: 4–9 letter upper-case words, including every room object', () => {
+  assert.ok(dictionary.size > 100_000);
+  for (const word of dictionary) assert.match(word, /^[A-Z]{4,9}$/);
+  for (const room of content.house.rooms) for (const word of room.objects) assert.ok(dictionary.has(word), word);
+});
+
+test('wordle accepts real words and the answer, and anything before the list loads', () => {
+  assert.ok(isAllowedGuess('CRANE', 'STOVE', dictionary));
+  assert.ok(!isAllowedGuess('QZXJV', 'STOVE', dictionary));
+  assert.ok(isAllowedGuess('QZXJV', 'QZXJV', dictionary));
+  assert.ok(isAllowedGuess('QZXJV', 'STOVE', null));
 });
 
 for (const size of [6, 7, 8]) {

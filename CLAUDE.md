@@ -13,8 +13,7 @@ Phases 1–4 done (content, generator/solver, casebook UI, minigames), plus
 testimony/evidence clues, sudoku map coordinates and weapons on the map.
 Next: phase 5 (modes, campaign progression), playtesting, and the
 interrogation minigame ("Catch the lie", see the plan's minigame ideas).
-Known gaps: Wordle accepts any 5 letters (no dictionary yet: needs a word
-list package added from the owner's machine); cat puzzles are unique but not
+Known gaps: cat puzzles are unique but not
 checked for how much look-ahead they need.
 
 ## Rules that are easy to break
@@ -39,6 +38,12 @@ checked for how much look-ahead they need.
 - **Wordle answers come from room `objects`** (5-letter words). Words may
   repeat across rooms; the revealed clue names the room. Teasers must never
   show the room or the word (tested).
+- **Guesses are checked against `public/words.txt`** (4–9 letters, from the
+  `word-list` package via `npm run build-words`; committed, fetched on demand,
+  precached for offline). It's full of obscure words: use it only to accept
+  guesses, never to pick answers or set targets (that needs a common-word
+  list, still to add). Until it loads, any guess is accepted. Every room
+  object must be in it (tested).
 - **Every case must have exactly one solution** and a minimal clue set.
   Never ship a generator change without `npm run check-cases` passing.
 - **Map and grid share one source of truth**: a counter is in a room exactly
@@ -85,7 +90,8 @@ checked for how much look-ahead they need.
 - Tests run on Node's built-in runner with type stripping (`node --test`), so
   TS in `src/engine` and `src/game/*.ts` must be erasable syntax only.
 - Cloud Claude sessions cannot reach the npm registry. New dependencies must
-  be added and tested on the owner's machine (Windows) or via CI.
+  be added and tested on the owner's machine (Windows) or via CI. That
+  machine has Node 20, so run scripts there as `npx -y node@22 <script>`.
 - Pushing to `main` runs tests, the case check and the build, then deploys to
   https://ptra243.github.io/brain-training/. `#dev` opens the case inspector.
 - Update this file's Status section at the end of each phase, and add a rule

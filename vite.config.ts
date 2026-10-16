@@ -11,6 +11,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
+      // words.txt is fetched on demand, but precache it so word games work offline.
+      workbox: { globPatterns: ['**/*.{js,css,html,svg,txt}'] },
       manifest: {
         name: 'Brain Training',
         short_name: 'Brain',

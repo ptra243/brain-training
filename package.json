@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "node --test \"src/**/*.test.ts\"",
-    "check-cases": "node scripts/check-cases.ts"
+    "check-cases": "node scripts/check-cases.ts",
+    "build-words": "node scripts/build-words.ts"
   },
   "dependencies": {
     "react": "^19.1.0",
@@ -21,7 +22,8 @@
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.9.0",
     "vite": "^7.0.0",
-    "vite-plugin-pwa": "^1.0.0"
+    "vite-plugin-pwa": "^1.0.0",
+    "word-list": "^4.1.0"
   },
   "engines": {
     "node": ">=22.18"

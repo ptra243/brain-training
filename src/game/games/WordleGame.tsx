@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { isAllowedGuess, loadDictionary, type Dictionary } from '../../games/dictionary.ts';
 import { MAX_GUESSES, WORD_LENGTH, keyboardState, scoreGuess } from '../../games/wordle.ts';
 import type { GameProps } from './types.ts';
 
@@ -19,7 +20,16 @@ export const wordleSolved = (p: WordlePuzzle): WordleData => ({ guesses: [p.answ
 export function WordleGame({ puzzle, data, finished, onChange, onFinish }: GameProps<WordlePuzzle, WordleData>) {
   const [typing, setTyping] = useState('');
   const [message, setMessage] = useState('');
+  const [dictionary, setDictionary] = useState<Dictionary | null>(null);
   const { guesses } = data;
+
+  useEffect(() => {
+    let live = true;
+    loadDictionary().then((d) => live && setDictionary(d));
+    return () => {
+      live = false;
+    };
+  }, []);
   const keys = keyboardState(guesses, puzzle.answer);
 
   const press = (key: string) => {
@@ -28,6 +38,7 @@ export function WordleGame({ puzzle, data, finished, onChange, onFinish }: GameP
     if (key === 'BACK') return setTyping((t) => t.slice(0, -1));
     if (key === 'ENTER') {
       if (typing.length < WORD_LENGTH) return setMessage(`Type ${WORD_LENGTH} letters first.`);
+      if (!isAllowedGuess(typing, puzzle.answer, dictionary)) return setMessage(`${typing} isn't in the word list.`);
       const next = { guesses: [...guesses, typing] };
       setTyping('');
       if (typing === puzzle.answer) return onFinish('won', next);
