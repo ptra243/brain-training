@@ -39,12 +39,12 @@ h2 { font-size: 1.1rem; }
   font: inherit;
   padding: 0 0.9rem;
 }
-.controls input { width: 4.5rem; text-align: center; }
-.controls select { flex: 1; }
+.controls input { width: 4rem; min-width: 0; text-align: center; }
+.controls select { flex: 1; min-width: 0; }
 
 .map { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 0.5rem; overflow: hidden; }
 .map .axis { background: var(--paper); font-size: 0.75rem; color: var(--muted); display: grid; place-items: center; }
-.map .cell { aspect-ratio: 1; font-size: 0.65rem; padding: 0.2rem; line-height: 1.1; overflow: hidden; }
+.map .cell { aspect-ratio: 1; min-width: 0; font-size: 0.6rem; word-break: break-word; padding: 0.2rem; line-height: 1.1; overflow: hidden; }
 .map .cell.empty { opacity: 0.45; }
 
 .clues { margin: 0; padding-left: 1.4rem; display: grid; gap: 0.5rem; }

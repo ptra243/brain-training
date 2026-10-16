@@ -68,7 +68,7 @@ export function CaseInspector() {
 
       <section>
         <h2>{house.name}</h2>
-        <div className="map" style={{ gridTemplateColumns: `1.5rem repeat(${house.cols}, 1fr)` }}>
+        <div className="map" style={{ gridTemplateColumns: `1.5rem repeat(${house.cols}, minmax(0, 1fr))` }}>
           <span />
           {Array.from({ length: house.cols }, (_, col) => (
             <span key={col} className="axis">{cellLabel([0, col])[0]}</span>
