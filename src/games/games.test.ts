@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { content } from '../content/index.ts';
 import { Rng } from '../engine/rng.ts';
-import { catConflicts, catsSolved, countCatSolutions, generateCats } from './cats.ts';
+import { autoDots, catConflicts, catsSolved, countCatSolutions, generateCats } from './cats.ts';
 import { foundLocations, generateSudoku, locationSquares, solvableBySingles, sudokuConflicts, sudokuShape, sudokuSolved } from './sudoku.ts';
 import { isAllowedGuess, parseWords } from './dictionary.ts';
 import { keyboardState, scoreGuess } from './wordle.ts';
@@ -50,6 +50,24 @@ for (const size of [6, 7, 8]) {
     }
   });
 }
+
+test('a placed cat rules out its row, column, zone and neighbours, and only while it is there', () => {
+  const p = generateCats(6, new Rng(3));
+  const cat: [number, number] = [2, p.solution[2]];
+  const dots = autoDots(p, [cat]);
+  assert.ok(!dots.has(`${cat[0]},${cat[1]}`));
+  for (let r = 0; r < 6; r++) {
+    for (let c = 0; c < 6; c++) {
+      const expected =
+        !(r === cat[0] && c === cat[1]) &&
+        (r === cat[0] || c === cat[1] || p.zones[r][c] === p.zones[cat[0]][cat[1]] || (Math.abs(r - cat[0]) <= 1 && Math.abs(c - cat[1]) <= 1));
+      assert.equal(dots.has(`${r},${c}`), expected, `${r},${c}`);
+    }
+  }
+  // The solution's other cats are never ruled out by a correct cat.
+  for (let r = 0; r < 6; r++) if (r !== cat[0]) assert.ok(!dots.has(`${r},${p.solution[r]}`));
+  assert.equal(autoDots(p, []).size, 0);
+});
 
 test('cat conflicts flag touching cats', () => {
   const p = generateCats(6, new Rng(3));

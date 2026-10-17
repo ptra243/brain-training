@@ -335,6 +335,7 @@ body.dev { background: #f2f1ec; color: #222; }
   position: absolute; left: 50%; top: 50%; width: 22%; aspect-ratio: 1; transform: translate(-50%, -50%);
   border-radius: 50%; background: rgba(42, 38, 32, 0.55);
 }
+.cat-cell .dot.auto { background: rgba(42, 38, 32, 0.32); }
 .cat-icon { position: absolute; inset: 16%; width: 68%; height: 68%; }
 .cat-icon path { fill: var(--wall); }
 .cat-icon .eye { fill: var(--brass); }

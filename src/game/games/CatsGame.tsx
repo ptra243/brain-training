@@ -1,4 +1,4 @@
-import { catConflicts, catsSolved, type CatMark, type CatPuzzle } from '../../games/cats.ts';
+import { autoDots, catConflicts, catsSolved, type CatMark, type CatPuzzle } from '../../games/cats.ts';
 import type { GameProps } from './types.ts';
 
 export interface CatsData {
@@ -32,13 +32,16 @@ export function CatsGame({ puzzle, data, finished, onChange, onFinish }: GamePro
   const n = puzzle.size;
   const placed = cats(data.marks);
   const bad = catConflicts(puzzle, placed);
+  // Dots every cat implies (row, column, colour, touching). Not saved: they go when the cat does.
+  const implied = autoDots(puzzle, placed);
 
   const tap = (r: number, c: number) => {
     if (finished) return;
     const key = `${r},${c}`;
     const marks = { ...data.marks };
     const now = marks[key];
-    if (!now) marks[key] = 'dot';
+    // A square a cat has already dotted goes straight to a cat on the first tap.
+    if (!now) marks[key] = implied.has(key) ? 'cat' : 'dot';
     else if (now === 'dot') marks[key] = 'cat';
     else delete marks[key];
     const next = { marks };
@@ -52,7 +55,7 @@ export function CatsGame({ puzzle, data, finished, onChange, onFinish }: GamePro
     <div className="cats">
       <p className="hint dark">
         Put one cat in every row, every column and every colour. Cats can't touch, not even corner to corner. Tap once
-        for a dot (your note that no cat goes there), twice for a cat.
+        for a dot (your note that no cat goes there), twice for a cat. Each cat dots the squares it rules out for you.
       </p>
       <div
         className="cat-grid"
@@ -60,7 +63,8 @@ export function CatsGame({ puzzle, data, finished, onChange, onFinish }: GamePro
         {Array.from({ length: n }, (_, r) =>
           Array.from({ length: n }, (_, c) => {
             const z = zone(r, c);
-            const mark = data.marks[`${r},${c}`];
+            const own = data.marks[`${r},${c}`];
+            const mark = own ?? (implied.has(`${r},${c}`) ? 'dot' : undefined);
             const wall = (dr: number, dc: number) => (zone(r + dr, c + dc) !== z ? 3 : 1);
             return (
               <button
@@ -77,7 +81,7 @@ export function CatsGame({ puzzle, data, finished, onChange, onFinish }: GamePro
                 aria-label={`Row ${r + 1}, column ${c + 1}: ${mark === 'cat' ? 'cat' : mark === 'dot' ? 'dot' : 'empty'}`}
                 onClick={() => tap(r, c)}
               >
-                {mark === 'cat' ? <CatIcon /> : mark === 'dot' ? <span className="dot" /> : null}
+                {mark === 'cat' ? <CatIcon /> : mark === 'dot' ? <span className={`dot ${own ? '' : 'auto'}`} /> : null}
               </button>
             );
           }),

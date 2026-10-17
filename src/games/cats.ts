@@ -183,6 +183,25 @@ export function catConflicts(p: CatPuzzle, cats: readonly [number, number][]): S
   return bad;
 }
 
+/**
+ * Cells a placed cat rules out: the rest of its row, column and zone, and the
+ * squares touching it. Worked out from the cats, never stored, so removing a
+ * cat takes its dots away again and her own dots are left alone.
+ */
+export function autoDots(p: CatPuzzle, cats: readonly [number, number][]): Set<string> {
+  const out = new Set<string>();
+  for (const [cr, cc] of cats) {
+    for (let r = 0; r < p.size; r++) {
+      for (let c = 0; c < p.size; c++) {
+        if (r === cr && c === cc) continue;
+        const near = Math.abs(r - cr) <= 1 && Math.abs(c - cc) <= 1;
+        if (r === cr || c === cc || near || p.zones[r][c] === p.zones[cr][cc]) out.add(`${r},${c}`);
+      }
+    }
+  }
+  return out;
+}
+
 export function catsSolved(p: CatPuzzle, cats: readonly [number, number][]): boolean {
   return cats.length === p.size && cats.every(([r, c]) => p.solution[r] === c);
 }
