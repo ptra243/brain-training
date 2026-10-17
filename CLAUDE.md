@@ -16,8 +16,8 @@ Wordle word list, the staircase grid with clue drawer, interrogations
 a choice of three scene word games (Wordle, mini crossword, word search)
 that all type with the phone's own keyboard.
 Next: phase 5 (modes, campaign progression) and playtesting.
-Known gaps: cat puzzles are unique but not
-checked for how much look-ahead they need.
+Known gaps: medium and hard cat puzzles are unique but not
+checked for how much look-ahead they need (easy ones are).
 
 ## Rules that are easy to break
 
@@ -44,6 +44,9 @@ checked for how much look-ahead they need.
   Generate a puzzle once per game screen, never per render or per move.
 - **Generated puzzles must be fair**: cat puzzles have exactly one answer and
   even-ish zones; sudoku has one answer and is solvable by singles alone.
+  Easy cat puzzles (`GameSpec.easy`) have exactly one one-square zone, as a
+  forced first move, and must pass `solvableBySimpleSteps`; other cat puzzles
+  have no one-square zone.
 - **Interrogations**: the suspect answers 8 possible questions truthfully
   except exactly one (the lie). She asks up to 5 (6 in the finale) and
   presents exactly `proof.length` pieces of evidence; any set that

@@ -40,7 +40,7 @@ function buildPuzzle(c: Case, spec: GameSpec): Built {
     case 'wordsearch':
       return { kind: 'wordsearch', puzzle: sceneWordSearch(c, spec) };
     case 'cats':
-      return { kind: 'cats', puzzle: generateCats(spec.size, rng) };
+      return { kind: 'cats', puzzle: generateCats(spec.size, rng, spec.easy) };
     case 'sudoku': {
       const puzzle = generateSudoku(spec.size === 9 ? 9 : 6, spec.givens ?? 0, rng);
       const targets = c.clues.filter((cl) => cl.location && spec.located?.includes(cl.id)).map((cl) => ({ id: cl.id, target: cl.location!.target }));

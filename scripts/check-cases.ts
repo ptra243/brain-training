@@ -6,6 +6,8 @@ import { generateCase } from '../src/engine/generate.ts';
 import { disproves } from '../src/engine/interrogation.ts';
 import { allCandidates, countSolutions } from '../src/engine/solver.ts';
 import { sceneCrossword, sceneWordSearch } from '../src/game/sceneGames.ts';
+import { Rng } from '../src/engine/rng.ts';
+import { countCatSolutions, generateCats, solvableBySimpleSteps } from '../src/games/cats.ts';
 import { solutionAt } from '../src/games/crossword.ts';
 import { everyWordOnce, leftovers } from '../src/games/wordsearch.ts';
 import type { Difficulty } from '../src/engine/types.ts';
@@ -60,6 +62,14 @@ for (const difficulty of ['easy', 'medium', 'hard'] as Difficulty[]) {
           console.log(`  FAIL ${difficulty} case ${n}: ${g.kind} spells ${spelled}, not ${answer}`);
         }
       }
+      // Cat puzzle: one answer; easy ones also come out by simple steps.
+      for (const g of c.games.filter((g) => g.kind === 'cats')) {
+        const p = generateCats(g.size, new Rng(g.seed), g.easy);
+        if (countCatSolutions(p.zones, 2) !== 1 || (g.easy && !solvableBySimpleSteps(p.zones))) {
+          failures++;
+          console.log(`  FAIL ${difficulty} case ${n}: cat puzzle isn't fair`);
+        }
+      }
       counts.push(c.clues.length);
       for (const cl of c.clues) types.set(cl.fact.type, (types.get(cl.fact.type) ?? 0) + 1);
     } catch (err) {
@@ -79,5 +89,5 @@ for (const difficulty of ['easy', 'medium', 'hard'] as Difficulty[]) {
   );
 }
 
-console.log(failures ? `\n${failures} bad cases` : '\nAll 300 cases have exactly one solution, every interrogation can be caught fairly, and every word game spells its word.');
+console.log(failures ? `\n${failures} bad cases` : '\nAll 300 cases have exactly one solution, every interrogation can be caught fairly, every cat puzzle is fair, and every word game spells its word.');
 process.exit(failures ? 1 : 0);

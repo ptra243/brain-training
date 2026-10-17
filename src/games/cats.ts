@@ -1,6 +1,7 @@
 // The cat puzzle: an n×n grid split into n coloured zones. Place one cat in
 // every row, every column and every zone, and no two cats may touch, not
-// even diagonally. Generated puzzles have exactly one solution.
+// even diagonally. Generated puzzles have exactly one solution. Easy ones
+// also have a one-square zone to start from and need no looking ahead.
 
 import type { Rng } from '../engine/rng.ts';
 
@@ -33,9 +34,10 @@ function randomPlacement(n: number, rng: Rng): number[] | null {
 /**
  * Grow one zone from each cat until the grid is full. Small zones are grown
  * first most of the time, so zones end up roughly even rather than one
- * sprawling zone next to several one-square ones.
+ * sprawling zone next to several one-square ones. Zone `single`, if given,
+ * stays one square.
  */
-function growZones(n: number, cats: number[], rng: Rng): number[][] {
+function growZones(n: number, cats: number[], rng: Rng, single = -1): number[][] {
   const zones = Array.from({ length: n }, () => Array<number>(n).fill(-1));
   const sizes = new Array<number>(n).fill(1);
   cats.forEach((c, r) => (zones[r][c] = r));
@@ -52,7 +54,7 @@ function growZones(n: number, cats: number[], rng: Rng): number[][] {
   };
   let left = n * n - n;
   while (left > 0) {
-    const growable = Array.from({ length: n }, (_, z) => z).filter((z) => frontierOf(z).length > 0);
+    const growable = Array.from({ length: n }, (_, z) => z).filter((z) => z !== single && frontierOf(z).length > 0);
     const smallest = Math.min(...growable.map((z) => sizes[z]));
     const pool = rng.next() < 0.75 ? growable.filter((z) => sizes[z] === smallest) : growable;
     const z = rng.pick(pool);
@@ -64,12 +66,15 @@ function growZones(n: number, cats: number[], rng: Rng): number[][] {
   return zones;
 }
 
-/** Zones within a sensible size range: no single squares, no zone hogging the grid. */
-function balanced(zones: number[][]): boolean {
+/**
+ * Zones within a sensible size range: exactly `singles` one-square zones,
+ * every other zone at least two, and no zone hogging the grid.
+ */
+function balanced(zones: number[][], singles: number): boolean {
   const n = zones.length;
   const sizes = new Array<number>(n).fill(0);
   for (const row of zones) for (const z of row) sizes[z]++;
-  return Math.min(...sizes) >= 2 && Math.max(...sizes) <= Math.ceil(n * 2.2);
+  return sizes.filter((k) => k === 1).length === singles && Math.max(...sizes) <= Math.ceil(n * 2.2);
 }
 
 /** Number of solutions, stopping once it passes `limit`. */
@@ -122,7 +127,7 @@ function contiguous(zones: number[][], z: number): boolean {
  * is kept when it doesn't add answers, which lets the layout drift towards
  * a unique one.
  */
-function makeUnique(zones: number[][], cats: number[], rng: Rng, steps: number): boolean {
+function makeUnique(zones: number[][], cats: number[], rng: Rng, steps: number, single = -1): boolean {
   const n = zones.length;
   const maxSize = Math.ceil(n * 2.2);
   let count = countCatSolutions(zones, 60);
@@ -137,7 +142,7 @@ function makeUnique(zones: number[][], cats: number[], rng: Rng, steps: number):
     if (!neighbours.length) continue;
     const to = rng.pick(neighbours);
     const sizeOf = (z: number) => zones.flat().filter((x) => x === z).length;
-    if (sizeOf(from) <= 2 || sizeOf(to) >= maxSize) continue;
+    if (sizeOf(from) <= 2 || sizeOf(to) >= maxSize || to === single) continue;
     zones[r][c] = to;
     if (!contiguous(zones, from)) {
       zones[r][c] = from;
@@ -150,14 +155,77 @@ function makeUnique(zones: number[][], cats: number[], rng: Rng, steps: number):
   return count === 1;
 }
 
-export function generateCats(size: number, rng: Rng): CatPuzzle {
-  for (let attempt = 0; attempt < 200; attempt++) {
+/**
+ * Whether the puzzle comes out by simple steps alone, never looking further
+ * ahead than one cat: put a cat where a row, column or zone has only one
+ * square left, and rule out any square whose cat would leave some other row,
+ * column or zone with no squares at all.
+ */
+export function solvableBySimpleSteps(zones: number[][]): boolean {
+  const n = zones.length;
+  const open = zones.map((row) => row.map(() => true));
+  const units: [number, number][][] = [];
+  for (let i = 0; i < n; i++) {
+    units.push(Array.from({ length: n }, (_, c): [number, number] => [i, c]));
+    units.push(Array.from({ length: n }, (_, r): [number, number] => [r, i]));
+  }
+  for (let z = 0; z < n; z++) {
+    const cells: [number, number][] = [];
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (zones[r][c] === z) cells.push([r, c]);
+    units.push(cells);
+  }
+  const done = units.map(() => false);
+  const holds = (cells: [number, number][], r: number, c: number) => cells.some(([rr, cc]) => rr === r && cc === c);
+  /** Would a cat at (r, c) rule out (rr, cc)? Its row, column, zone and neighbours. */
+  const rules = (r: number, c: number, rr: number, cc: number) =>
+    rr === r || cc === c || (Math.abs(rr - r) <= 1 && Math.abs(cc - c) <= 1) || zones[rr][cc] === zones[r][c];
+  let placed = 0;
+  while (placed < n) {
+    // A row, column or zone with one square left: the cat goes there.
+    const u = units.findIndex((cells, u) => !done[u] && cells.filter(([r, c]) => open[r][c]).length <= 1);
+    if (u >= 0) {
+      const left = units[u].filter(([r, c]) => open[r][c]);
+      if (!left.length) return false;
+      const [r, c] = left[0];
+      for (let rr = 0; rr < n; rr++) for (let cc = 0; cc < n; cc++) if (rules(r, c, rr, cc)) open[rr][cc] = false;
+      units.forEach((cells, v) => holds(cells, r, c) && (done[v] = true));
+      placed++;
+      continue;
+    }
+    // Otherwise rule out squares whose cat would leave another row, column or zone empty.
+    let progress = false;
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (!open[r][c]) continue;
+        const empties = units.some(
+          (cells, v) => !done[v] && !holds(cells, r, c) && cells.every(([rr, cc]) => !open[rr][cc] || rules(r, c, rr, cc)),
+        );
+        if (empties) {
+          open[r][c] = false;
+          progress = true;
+        }
+      }
+    }
+    if (!progress) return false;
+  }
+  return true;
+}
+
+/**
+ * `easy`: one zone is a single square, so her first cat is forced, and the
+ * rest comes out by simple steps (`solvableBySimpleSteps`).
+ */
+export function generateCats(size: number, rng: Rng, easy = false): CatPuzzle {
+  for (let attempt = 0; attempt < (easy ? 400 : 200); attempt++) {
     const cats = randomPlacement(size, rng);
     if (!cats) continue;
-    const zones = growZones(size, cats, rng);
-    if (makeUnique(zones, cats, rng, size * size * 12) && balanced(zones)) return { size, zones, solution: cats };
+    const single = easy ? rng.int(size) : -1;
+    const zones = growZones(size, cats, rng, single);
+    if (!makeUnique(zones, cats, rng, size * size * 12, single) || !balanced(zones, easy ? 1 : 0)) continue;
+    if (easy && !solvableBySimpleSteps(zones)) continue;
+    return { size, zones, solution: cats };
   }
-  throw new Error(`Could not generate a ${size}×${size} cat puzzle`);
+  throw new Error(`Could not generate ${easy ? 'an easy' : 'a'} ${size}×${size} cat puzzle`);
 }
 
 export type CatMark = 'cat' | 'dot';

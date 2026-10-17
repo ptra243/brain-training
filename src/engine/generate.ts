@@ -15,6 +15,8 @@ interface DifficultySettings {
   /** End with a finale interrogation using her casebook. */
   finale: boolean;
   catSize: number;
+  /** Cat puzzle starts from a one-square zone and needs no looking ahead. */
+  catEasy: boolean;
   sudoku: { size: 6 | 9; givens: number };
   /** Relative chance of each clue type being tried. 0 = never used. */
   weights: Partial<Record<ClueType, number>>;
@@ -29,6 +31,7 @@ export const DIFFICULTY: Record<Difficulty, DifficultySettings> = {
     located: 2,
     finale: false,
     catSize: 6,
+    catEasy: true,
     sudoku: { size: 6, givens: 16 },
     weights: {
       'suspect-room': 1,
@@ -47,6 +50,7 @@ export const DIFFICULTY: Record<Difficulty, DifficultySettings> = {
     located: 2,
     finale: false,
     catSize: 7,
+    catEasy: false,
     sudoku: { size: 6, givens: 13 },
     weights: {
       'suspect-not-room': 2,
@@ -66,6 +70,7 @@ export const DIFFICULTY: Record<Difficulty, DifficultySettings> = {
     located: 3,
     finale: true,
     catSize: 8,
+    catEasy: false,
     sudoku: { size: 9, givens: 32 },
     weights: {
       'suspect-not-room': 2,
@@ -247,7 +252,7 @@ export function generateCase(
     }),
     ...kinds.map((kind): GameSpec => {
       const base = { kind, seed: hashSeed(`${seed}-${kind}`), clues: idsFor(kind), unlocksScene: false };
-      if (kind === 'cats') return { ...base, size: settings.catSize };
+      if (kind === 'cats') return { ...base, size: settings.catSize, ...(settings.catEasy && { easy: true }) };
       if (kind === 'sudoku')
         return {
           ...base,

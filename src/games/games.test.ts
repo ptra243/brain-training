@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { content } from '../content/index.ts';
 import { Rng } from '../engine/rng.ts';
-import { autoDots, catConflicts, catsSolved, countCatSolutions, generateCats } from './cats.ts';
+import { autoDots, catConflicts, catsSolved, countCatSolutions, generateCats, solvableBySimpleSteps } from './cats.ts';
 import { foundLocations, generateSudoku, locationSquares, solvableBySingles, sudokuConflicts, sudokuShape, sudokuSolved } from './sudoku.ts';
 import { isAllowedGuess, parseWords } from './dictionary.ts';
 import { keyboardState, scoreGuess } from './wordle.ts';
@@ -51,6 +51,30 @@ for (const size of [6, 7, 8]) {
     }
   });
 }
+
+for (const size of [6, 7, 8]) {
+  test(`easy cat puzzles ${size}×${size}: one solution, one one-square zone, simple steps solve it`, () => {
+    for (let seed = 1; seed <= 15; seed++) {
+      const p = generateCats(size, new Rng(seed * 101 + size), true);
+      assert.equal(countCatSolutions(p.zones, 2), 1);
+      const sizes = new Array<number>(size).fill(0);
+      for (const row of p.zones) for (const z of row) sizes[z]++;
+      assert.equal(sizes.filter((k) => k === 1).length, 1, 'one one-square zone');
+      assert.ok(Math.min(...sizes.filter((k) => k > 1)) >= 2);
+      assert.ok(solvableBySimpleSteps(p.zones));
+    }
+  });
+}
+
+test('normal cat puzzles have no one-square zone, and some need looking ahead', () => {
+  let needsLookAhead = 0;
+  for (let seed = 1; seed <= 30; seed++) {
+    const p = generateCats(8, new Rng(seed));
+    for (const row of p.zones) for (const z of row) assert.ok(p.zones.flat().filter((x) => x === z).length >= 2);
+    if (!solvableBySimpleSteps(p.zones)) needsLookAhead++;
+  }
+  assert.ok(needsLookAhead > 0, 'the simple-steps check should reject some puzzles');
+});
 
 test('a placed cat rules out its row, column, zone and neighbours, and only while it is there', () => {
   const p = generateCats(6, new Rng(3));

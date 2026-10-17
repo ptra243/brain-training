@@ -92,6 +92,8 @@ export interface GameSpec {
   /** Cat grid size, sudoku size, or word game grid width. Sudoku also has how many digits are given. */
   size: number;
   givens?: number;
+  /** Cat puzzle: has a one-square zone and comes out by simple steps alone. */
+  easy?: boolean;
   /** Sudoku: clues that unlock early from their two coordinate squares. */
   located?: readonly string[];
   /** Interrogation and finale: the suspect, evidence and questions. */
