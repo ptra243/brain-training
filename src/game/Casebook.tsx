@@ -7,7 +7,7 @@ import { CluesPanel } from './CluesPanel.tsx';
 import { GridPanel } from './GridPanel.tsx';
 import { MapPanel } from './MapPanel.tsx';
 import { GameScreen } from './games/GameScreen.tsx';
-import { reduce, type Action, type Progress } from './state.ts';
+import { reduce, type Action, type Progress, type Subject } from './state.ts';
 import type { GameKind } from '../engine/types.ts';
 import { loadCurrentCase, loadProgress, saveCurrentCase, saveProgress } from './storage.ts';
 
@@ -28,6 +28,8 @@ export function Casebook() {
   const [tab, setTab] = useState<Tab>('clues');
   const [playing, setPlaying] = useState<GameKind | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // A grid label she tapped: the drawer then shows only clues about it.
+  const [focus, setFocus] = useState<Subject | null>(null);
 
   useEffect(() => saveProgress(caseNumber, progress), [caseNumber, progress]);
   useEffect(() => saveCurrentCase(caseNumber), [caseNumber]);
@@ -40,6 +42,7 @@ export function Casebook() {
     setProgress(loadProgress(next));
     setTab('clues');
     setPlaying(null);
+    setFocus(null);
     window.scrollTo(0, 0);
   };
 
@@ -100,13 +103,33 @@ export function Casebook() {
           />
         )}
         {tab === 'map' && <MapPanel c={c} progress={progress} dispatch={dispatch} onAccused={() => select('accuse')} />}
-        {tab === 'grid' && <GridPanel c={c} progress={progress} dispatch={dispatch} />}
+        {tab === 'grid' && (
+          <GridPanel
+            c={c}
+            progress={progress}
+            dispatch={dispatch}
+            focus={focus}
+            onFocus={(s) => {
+              const same = focus?.kind === s.kind && focus.id === s.id;
+              setFocus(same ? null : s);
+              if (!same) setDrawerOpen(true);
+            }}
+          />
+        )}
         {tab === 'accuse' && <AccusePanel c={c} progress={progress} dispatch={dispatch} onNextCase={() => openCase(caseNumber + 1)} />}
       </main>
 
       <div className="dock">
         {drawer && (
-          <ClueDrawer c={c} progress={progress} dispatch={dispatch} open={drawerOpen} onToggle={() => setDrawerOpen((o) => !o)} />
+          <ClueDrawer
+            c={c}
+            progress={progress}
+            dispatch={dispatch}
+            open={drawerOpen}
+            onToggle={() => setDrawerOpen((o) => !o)}
+            focus={tab === 'grid' ? focus : null}
+            onClearFocus={() => setFocus(null)}
+          />
         )}
         <nav className="tabbar" aria-label="Casebook">
           {TABS.map((t) => (

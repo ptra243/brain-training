@@ -213,6 +213,20 @@ export function mentionsSuspect(clue: Clue, suspect: string): boolean {
   return ('suspect' in f && f.suspect === suspect) || ('suspects' in f && f.suspects.includes(suspect));
 }
 
+/** A person, room or weapon she can ask "which clues are about this?" of. */
+export interface Subject {
+  kind: 'suspect' | 'room' | 'item';
+  id: string;
+}
+
+/** Whether a clue names this suspect, room or weapon. */
+export function mentions(clue: Clue, s: Subject): boolean {
+  if (s.kind === 'suspect') return mentionsSuspect(clue, s.id);
+  const f = clue.fact;
+  if (s.kind === 'item') return 'item' in f && f.item === s.id;
+  return ('room' in f && f.room === s.id) || ('rooms' in f && f.rooms.includes(s.id));
+}
+
 /** Clues that name this suspect, in casebook order. */
 export const cluesAbout = (c: Case, suspect: string) => c.clues.filter((clue) => mentionsSuspect(clue, suspect));
 

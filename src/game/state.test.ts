@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
 import { generateCase } from '../engine/generate.ts';
-import { cellState, cluesAbout, emptyProgress, heldItem, holderOf, itemRoom, mapAccusation, markKey, placedRoom, reduce, sceneUnlocked, unlockedClueIds, type Action, type Progress } from './state.ts';
+import { cellState, cluesAbout, emptyProgress, mentions, heldItem, holderOf, itemRoom, mapAccusation, markKey, placedRoom, reduce, sceneUnlocked, unlockedClueIds, type Action, type Progress } from './state.ts';
 
 const c = generateCase(content, 5);
 const [s1, s2] = c.suspects;
@@ -118,6 +118,23 @@ test('clues about a suspect are exactly the ones that name them', () => {
       const names = ('suspect' in f && f.suspect === s) || ('suspects' in f && f.suspects.includes(s));
       assert.equal(about.includes(clue), names, `${clue.text} vs ${s}`);
     }
+  }
+});
+
+test('clues about a room or weapon: every clue naming it, and each clue is about something', () => {
+  for (const clue of c.clues) {
+    const f = clue.fact;
+    for (const room of c.rooms) {
+      const names = ('room' in f && f.room === room) || ('rooms' in f && f.rooms.includes(room));
+      assert.equal(mentions(clue, { kind: 'room', id: room }), names, `${clue.text} vs ${room}`);
+    }
+    for (const item of c.items) assert.equal(mentions(clue, { kind: 'item', id: item }), 'item' in f && f.item === item);
+    const subjects = [
+      ...c.suspects.map((id) => ({ kind: 'suspect' as const, id })),
+      ...c.rooms.map((id) => ({ kind: 'room' as const, id })),
+      ...c.items.map((id) => ({ kind: 'item' as const, id })),
+    ];
+    assert.ok(subjects.some((s) => mentions(clue, s)), clue.text);
   }
 });
 

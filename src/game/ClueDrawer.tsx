@@ -1,6 +1,7 @@
 import type { Case } from '../engine/types.ts';
 import { ClueCard } from './ClueCard.tsx';
-import { SCENE_TEASER, sceneText, visibleClues, type Action, type Progress } from './state.ts';
+import { itemName, roomName, suspectName } from './names.ts';
+import { SCENE_TEASER, mentions, sceneText, visibleClues, type Action, type Progress, type Subject } from './state.ts';
 
 interface Props {
   c: Case;
@@ -8,12 +9,19 @@ interface Props {
   dispatch: (a: Action) => void;
   open: boolean;
   onToggle: () => void;
+  /** Show only the clues about this person, room or weapon (picked from the grid's labels). */
+  focus?: Subject | null;
+  onClearFocus?: () => void;
 }
 
+export const subjectName = (s: Subject) =>
+  s.kind === 'suspect' ? suspectName(s.id) : s.kind === 'room' ? `the ${roomName(s.id)}` : `the ${itemName(s.id)}`;
+
 /** The clues she has found, in a drawer above the tab bar so she can read them while working the map or grid. */
-export function ClueDrawer({ c, progress, dispatch, open, onToggle }: Props) {
+export function ClueDrawer({ c, progress, dispatch, open, onToggle, focus, onClearFocus }: Props) {
   // Includes what finished interrogations produced (evidence cards, true answers).
   const visible = visibleClues(c, progress);
+  const shown = focus ? visible.filter((clue) => mentions(clue, focus)) : visible;
   const left = visible.filter((clue) => !progress.used.includes(clue.id)).length;
   const scene = sceneText(c, progress);
 
@@ -22,7 +30,11 @@ export function ClueDrawer({ c, progress, dispatch, open, onToggle }: Props) {
       <button className="drawer-handle" aria-expanded={open} aria-controls="drawer-body" onClick={onToggle}>
         <span className="drawer-title">Clues</span>
         <span className="drawer-count">
-          {visible.length ? `${left} of ${visible.length} still to use` : 'None found yet'}
+          {focus
+            ? `${shown.length} about ${subjectName(focus)}`
+            : visible.length
+              ? `${left} of ${visible.length} still to use`
+              : 'None found yet'}
         </span>
         <span className="drawer-chevron" aria-hidden="true">
           {open ? '▾' : '▴'}
@@ -30,10 +42,21 @@ export function ClueDrawer({ c, progress, dispatch, open, onToggle }: Props) {
       </button>
       {open && (
         <div id="drawer-body" className="drawer-body">
-          <p className="drawer-scene">{scene ?? SCENE_TEASER}</p>
-          {visible.length ? (
+          {focus ? (
+            <p className="drawer-filter">
+              <span>
+                Showing clues about <strong>{subjectName(focus)}</strong>
+              </span>
+              <button className="chip" onClick={onClearFocus}>
+                Show all
+              </button>
+            </p>
+          ) : (
+            <p className="drawer-scene">{scene ?? SCENE_TEASER}</p>
+          )}
+          {shown.length ? (
             <ul className="clue-list">
-              {visible.map((clue) => (
+              {shown.map((clue) => (
                 <li key={clue.id}>
                   <ClueCard
                     clue={clue}
@@ -45,7 +68,11 @@ export function ClueDrawer({ c, progress, dispatch, open, onToggle }: Props) {
               ))}
             </ul>
           ) : (
-            <p className="muted">Play tonight's puzzles on the Clues tab to find some.</p>
+            <p className="muted">
+              {focus
+                ? `No clue you've found so far names ${subjectName(focus)}. Work it out from everything else.`
+                : "Play tonight's puzzles on the Clues tab to find some."}
+            </p>
           )}
         </div>
       )}
