@@ -91,7 +91,8 @@ checked for how much look-ahead they need (easy ones are).
   to the 44px rule, so the whole grid fits without sideways scroll.
 - **Clues stay reachable while working**: the Map and Grid tabs have a clue
   drawer above the tab bar (`ClueDrawer`). Don't make her switch tabs to
-  read a clue.
+  read a clue. Every grid label (suspect, room, weapon) is a button that
+  filters the drawer to the clues naming it (`mentions` in `state.ts`).
 - **Accusations are who + weapon.** The room is always where the body was
   found (the scene word game), so it isn't asked. She can accuse from the map: the one
   person in the scene room and the weapon they hold.
