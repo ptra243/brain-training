@@ -6,7 +6,7 @@ import { generateCase } from '../src/engine/generate.ts';
 import { disproves } from '../src/engine/interrogation.ts';
 import { allCandidates, countSolutions } from '../src/engine/solver.ts';
 import { sceneCrossword, sceneWordSearch } from '../src/game/sceneGames.ts';
-import { shadedIndex } from '../src/games/crossword.ts';
+import { solutionAt } from '../src/games/crossword.ts';
 import { everyWordOnce, leftovers } from '../src/games/wordsearch.ts';
 import type { Difficulty } from '../src/engine/types.ts';
 
@@ -49,7 +49,7 @@ for (const difficulty of ['easy', 'medium', 'hard'] as Difficulty[]) {
           g.kind === 'crossword'
             ? (() => {
                 const cw = sceneCrossword(g);
-                return cw.rows.map((row, r) => row.word[shadedIndex(cw, r)]).join('');
+                return cw.shaded.map(([r, col]) => solutionAt(cw, r, col)).join('');
               })()
             : (() => {
                 const ws = sceneWordSearch(c, g);

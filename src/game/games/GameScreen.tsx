@@ -113,7 +113,7 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
       break;
     case 'crossword':
       solved = () => crosswordSolved(built.puzzle);
-      view = <CrosswordGame puzzle={built.puzzle} data={(record?.data as CrosswordData) ?? crosswordInitial(built.puzzle)} {...props} />;
+      view = <CrosswordGame puzzle={built.puzzle} data={(record?.data as CrosswordData) ?? crosswordInitial()} {...props} />;
       break;
     case 'wordsearch':
       solved = () => wordSearchSolved(built.puzzle);

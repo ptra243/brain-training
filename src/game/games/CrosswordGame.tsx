@@ -1,173 +1,268 @@
-import { useEffect, useRef, useState } from 'react';
-import { crosswordWon, emptyEntries, rowSolved, setCell, shadedIndex, type CrosswordPuzzle } from '../../games/crossword.ts';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  cellKey,
+  crosswordWon,
+  entryCells,
+  entrySolved,
+  fullLetters,
+  letterAt,
+  type CrosswordEntry,
+  type CrosswordPuzzle,
+  type Direction,
+} from '../../games/crossword.ts';
 import { TypingInput, focusTyping, hasFinePointer } from './TypingInput.tsx';
 import type { GameProps } from './types.ts';
 
 export interface CrosswordData {
-  /** One string per row, a character per square, ' ' for empty. */
-  entries: string[];
+  /** Her letters, keyed "r,c". */
+  letters: Record<string, string>;
 }
 
-export const crosswordInitial = (p: CrosswordPuzzle): CrosswordData => ({ entries: emptyEntries(p) });
-export const crosswordSolved = (p: CrosswordPuzzle): CrosswordData => ({ entries: p.rows.map((r) => r.word) });
+export const crosswordInitial = (): CrosswordData => ({ letters: {} });
+export const crosswordSolved = (p: CrosswordPuzzle): CrosswordData => ({ letters: fullLetters(p) });
 
 interface Cursor {
-  row: number;
-  /** Index into the row's word. */
-  i: number;
+  r: number;
+  c: number;
+  dir: Direction;
 }
+
+interface Square {
+  across?: CrosswordEntry;
+  down?: CrosswordEntry;
+  number?: number;
+  /** 1-based place in the hidden word, for shaded squares. */
+  shaded?: number;
+}
+
+const label = (e: CrosswordEntry) => `${e.number} ${e.dir}`;
 
 export function CrosswordGame({ puzzle, data, finished, onChange, onFinish }: GameProps<CrosswordPuzzle, CrosswordData>) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [focused, setFocused] = useState(false);
-  const entries = data.entries.length === puzzle.rows.length ? data.entries : emptyEntries(puzzle);
-  const [cursor, setCursor] = useState<Cursor>(() => ({ row: 0, i: Math.max(0, entries[0].indexOf(' ')) }));
-  const { rows, width, column } = puzzle;
+  // Saves from the old one-line crossword have no `letters`: start afresh.
+  const letters = data?.letters ?? {};
+  const { entries, shaded, answer } = puzzle;
+
+  const squares = useMemo(() => {
+    const m = new Map<string, Square>();
+    for (const e of entries) {
+      entryCells(e).forEach(([r, c], i) => {
+        const sq = m.get(cellKey(r, c)) ?? {};
+        sq[e.dir] = e;
+        if (i === 0) sq.number = e.number;
+        m.set(cellKey(r, c), sq);
+      });
+    }
+    shaded.forEach(([r, c], k) => (m.get(cellKey(r, c))!.shaded = k + 1));
+    return m;
+  }, [entries, shaded]);
+
+  // Only draw the rows and columns the words use.
+  const keys = [...squares.keys()].map((k) => k.split(',').map(Number));
+  const top = Math.min(...keys.map(([r]) => r));
+  const left = Math.min(...keys.map(([, c]) => c));
+  const rows = Math.max(...keys.map(([r]) => r)) - top + 1;
+  const cols = Math.max(...keys.map(([, c]) => c)) - left + 1;
+
+  const firstEmpty = (e: CrosswordEntry, l: Record<string, string>) => {
+    const cells = entryCells(e);
+    return cells.find(([r, c]) => !letterAt(l, r, c)) ?? cells[0];
+  };
+  const start = (e: CrosswordEntry, l: Record<string, string>): Cursor => {
+    const [r, c] = firstEmpty(e, l);
+    return { r, c, dir: e.dir };
+  };
+
+  const [cursor, setCursor] = useState<Cursor>(() => start(entries[0], letters));
+  const sq = squares.get(cellKey(cursor.r, cursor.c));
+  const active = sq?.[cursor.dir] ?? sq?.across ?? sq?.down ?? entries[0];
+  const activeCells = entryCells(active);
+  const at = activeCells.findIndex(([r, c]) => r === cursor.r && c === cursor.c);
 
   useEffect(() => {
     if (!finished && hasFinePointer()) focusTyping(inputRef);
   }, []); // once, when the game opens
 
-  const len = (r: number) => rows[r].word.length;
-  const firstEmpty = (r: number, e: readonly string[]) => Math.max(0, e[r].indexOf(' '));
+  const commit = (next: Record<string, string>) => {
+    if (crosswordWon(puzzle, next)) onFinish('won', { letters: next });
+    else onChange({ letters: next });
+  };
 
-  const select = (row: number, i: number) => {
+  /** The next word after `e` (across then down) that still has an empty square. */
+  const nextOpen = (e: CrosswordEntry, l: Record<string, string>) => {
+    const k = entries.indexOf(e);
+    for (let d = 1; d <= entries.length; d++) {
+      const cand = entries[(k + d) % entries.length];
+      if (entryCells(cand).some(([r, c]) => !letterAt(l, r, c))) return cand;
+    }
+    return e;
+  };
+
+  const select = (r: number, c: number) => {
     if (finished) return;
-    setCursor({ row, i });
+    const here = squares.get(cellKey(r, c))!;
+    let dir = cursor.dir;
+    // Tapping the square you're on turns the word round, where there is one the other way.
+    if (r === cursor.r && c === cursor.c) dir = dir === 'across' ? 'down' : 'across';
+    if (!here[dir]) dir = dir === 'across' ? 'down' : 'across';
+    setCursor({ r, c, dir });
     focusTyping(inputRef);
   };
 
-  const commit = (next: string[]) => {
-    if (crosswordWon(puzzle, next)) onFinish('won', { entries: next });
-    else onChange({ entries: next });
-  };
-
-  /** Next row that still has an empty square, after `from`. */
-  const nextOpenRow = (from: number, e: readonly string[]) => {
-    for (let k = 1; k <= rows.length; k++) {
-      const r = (from + k) % rows.length;
-      if (e[r].includes(' ')) return r;
-    }
-    return from;
+  const selectEntry = (e: CrosswordEntry) => {
+    if (finished) return;
+    setCursor(start(e, letters));
+    focusTyping(inputRef);
   };
 
   const type = (deleted: number, inserted: string) => {
     if (finished) return;
-    let e = entries.slice();
-    let { row, i } = cursor;
+    const l = { ...letters };
+    let e = active;
+    let i = Math.max(0, at);
+    let cells = entryCells(e);
     for (let d = 0; d < deleted; d++) {
       // Clear this square if it has a letter, else step back and clear that one.
-      if (e[row][i] === ' ' && i > 0) i--;
-      e = setCell(e, row, i, '');
+      if (!l[cellKey(...cells[i])] && i > 0) i--;
+      delete l[cellKey(...cells[i])];
     }
     for (const letter of inserted) {
-      e = setCell(e, row, i, letter);
-      if (i < len(row) - 1) i++;
-      else if (!e[row].includes(' ')) {
-        // Row full: move on to the next unfinished clue.
-        row = nextOpenRow(row, e);
-        i = firstEmpty(row, e);
+      l[cellKey(...cells[i])] = letter;
+      if (i < cells.length - 1) i++;
+      else if (cells.every(([r, c]) => letterAt(l, r, c))) {
+        // Word full: move on to the next one with gaps.
+        e = nextOpen(e, l);
+        cells = entryCells(e);
+        const [er, ec] = firstEmpty(e, l);
+        i = cells.findIndex(([r, c]) => r === er && c === ec);
       }
     }
-    setCursor({ row, i });
-    commit(e);
+    setCursor({ r: cells[i][0], c: cells[i][1], dir: e.dir });
+    commit(l);
   };
 
   const arrow = (key: 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown') => {
-    const { row, i } = cursor;
-    if (key === 'ArrowLeft') return setCursor({ row, i: Math.max(0, i - 1) });
-    if (key === 'ArrowRight') return setCursor({ row, i: Math.min(len(row) - 1, i + 1) });
-    const r = Math.min(rows.length - 1, Math.max(0, row + (key === 'ArrowUp' ? -1 : 1)));
-    // Keep the same grid column where the new row allows it.
-    const col = rows[row].start + i;
-    setCursor({ row: r, i: Math.min(len(r) - 1, Math.max(0, col - rows[r].start)) });
+    const [dr, dc] = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }[key];
+    const dir: Direction = dc ? 'across' : 'down';
+    for (let r = cursor.r + dr, c = cursor.c + dc; r >= 0 && c >= 0 && r < puzzle.height && c < puzzle.width; r += dr, c += dc) {
+      const here = squares.get(cellKey(r, c));
+      if (here) return setCursor({ r, c, dir: here[dir] ? dir : dir === 'across' ? 'down' : 'across' });
+    }
+    if (squares.get(cellKey(cursor.r, cursor.c))?.[dir]) setCursor({ ...cursor, dir });
   };
 
-  const active = rows[cursor.row];
-  const shadedLetters = rows.map((_, r) => entries[r][shadedIndex(puzzle, r)]).join('');
+  const spelled = shaded.map(([r, c]) => letterAt(letters, r, c));
+
+  const clueList = (dir: Direction) => (
+    <section className="crossword-clue-group">
+      <h3>{dir === 'across' ? 'Across' : 'Down'}</h3>
+      <ol className="crossword-clues">
+        {entries
+          .filter((e) => e.dir === dir)
+          .map((e) => (
+            <li key={label(e)}>
+              <button
+                className={`crossword-clue-row ${!finished && e === active ? 'current' : ''} ${entrySolved(e, letters) ? 'solved' : ''}`}
+                onPointerDown={(ev) => ev.preventDefault()}
+                onClick={() => selectEntry(e)}
+                disabled={!!finished}
+              >
+                <b>{e.number}.</b> {e.clue}
+                {finished && <span className="crossword-answer"> {e.word}</span>}
+              </button>
+            </li>
+          ))}
+      </ol>
+    </section>
+  );
 
   return (
     <div className="crossword">
       <p className="hint dark">
-        Read down the shaded squares to find what the body was lying by. Fill in enough answers to read it; you don't need them all.
+        The numbered shaded squares spell what the body was lying by: 1 is its first letter. Fill in enough answers to read it; you don't
+        need them all.
       </p>
       {!finished && (
         <p className="crossword-clue" aria-live="polite">
-          <b>{cursor.row + 1}.</b> {active.clue} <span className="muted-on-card">({active.word.length})</span>
+          <b>
+            {active.number} {active.dir}.
+          </b>{' '}
+          {active.clue} <span className="muted-on-card">({active.word.length})</span>
         </p>
       )}
       <div className="typing-host">
-        <div className="crossword-grid" role="grid" aria-label="Crossword" style={{ gridTemplateColumns: `repeat(${width}, minmax(0, 1fr))` }}>
-          {rows.map((row, r) => {
-            const solved = rowSolved(puzzle, entries, r);
-            return Array.from({ length: width }, (_, col) => {
-                const i = col - row.start;
-                if (i < 0 || i >= row.word.length) return <span key={`${r}-${col}`} className="crossword-gap" />;
-                const letter = entries[r][i]?.trim() ?? '';
-                const isCursor = !finished && focused && cursor.row === r && cursor.i === i;
-                const inRow = !finished && cursor.row === r;
-                return (
-                  <button
-                    key={`${r}-${col}`}
-                    className={`crossword-cell ${col === column ? 'shaded' : ''} ${inRow ? 'in-row' : ''} ${isCursor ? 'cursor' : ''} ${solved ? 'solved' : ''}`}
-                    aria-label={`${r + 1} across, square ${i + 1}${letter ? `, ${letter}` : ''}${col === column ? ', shaded' : ''}`}
-                    // Keep the keyboard up while moving between squares.
-                    onPointerDown={(e) => e.preventDefault()}
-                    onClick={() => select(r, i)}
-                    disabled={!!finished}
-                  >
-                    {i === 0 && (
-                      <span className="crossword-num" aria-hidden="true">
-                        {r + 1}
-                      </span>
-                    )}
-                    {letter}
-                  </button>
-                );
-              });
-          })}
+        <div
+          className="crossword-grid"
+          role="grid"
+          aria-label="Crossword"
+          style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, maxWidth: `${cols * 3.4}rem` }}
+        >
+          {Array.from({ length: rows }, (_, y) =>
+            Array.from({ length: cols }, (_, x) => {
+              const r = top + y;
+              const c = left + x;
+              const here = squares.get(cellKey(r, c));
+              if (!here) return <span key={`${r}-${c}`} className="crossword-gap" />;
+              const letter = letterAt(letters, r, c);
+              const isCursor = !finished && focused && cursor.r === r && cursor.c === c;
+              const inWord = !finished && activeCells.some(([ar, ac]) => ar === r && ac === c);
+              const solved = (here.across && entrySolved(here.across, letters)) || (here.down && entrySolved(here.down, letters));
+              const words = [here.across, here.down].filter(Boolean).map((e) => label(e!)).join(' and ');
+              return (
+                <button
+                  key={`${r}-${c}`}
+                  className={`crossword-cell ${here.shaded ? 'shaded' : ''} ${inWord ? 'in-row' : ''} ${isCursor ? 'cursor' : ''} ${solved ? 'solved' : ''}`}
+                  aria-label={`${words}${letter ? `, ${letter}` : ''}${here.shaded ? `, shaded square ${here.shaded}` : ''}`}
+                  // Keep the keyboard up while moving between squares.
+                  onPointerDown={(e) => e.preventDefault()}
+                  onClick={() => select(r, c)}
+                  disabled={!!finished}
+                >
+                  {here.number && (
+                    <span className="crossword-num" aria-hidden="true">
+                      {here.number}
+                    </span>
+                  )}
+                  {here.shaded && (
+                    <span className="crossword-order" aria-hidden="true">
+                      {here.shaded}
+                    </span>
+                  )}
+                  {letter}
+                </button>
+              );
+            }),
+          )}
         </div>
         {!finished && (
           <TypingInput
             inputRef={inputRef}
-            value={entries[cursor.row].slice(0, cursor.i).replace(/ /g, '-')}
+            value={activeCells
+              .slice(0, Math.max(0, at))
+              .map(([r, c]) => letterAt(letters, r, c) || '-')
+              .join('')}
             onType={type}
-            onEnter={() => {
-              const r = nextOpenRow(cursor.row, entries);
-              setCursor({ row: r, i: firstEmpty(r, entries) });
-            }}
+            onEnter={() => setCursor(start(nextOpen(active, letters), letters))}
             onArrow={arrow}
             onFocusChange={setFocused}
             enterKeyHint="next"
-            label={`${cursor.row + 1} across: ${active.clue}`}
+            label={`${active.number} ${active.dir}: ${active.clue}`}
           />
         )}
       </div>
       <p className="game-message" role="status">
-        {finished ? `The shaded squares spell ${puzzle.answer}.` : focused ? '' : 'Tap a square to type.'}
+        {finished ? `The shaded squares spell ${answer}.` : focused ? '' : 'Tap a square to type. Tap it again to switch between across and down.'}
       </p>
-      {finished === null && shadedLetters.trim() && (
+      {finished === null && spelled.some(Boolean) && (
         <p className="crossword-shaded" aria-label="Shaded letters so far">
-          {[...shadedLetters].map((l, k) => (
-            <span key={k}>{l.trim() || '·'}</span>
+          {spelled.map((l, k) => (
+            <span key={k}>{l || '·'}</span>
           ))}
         </p>
       )}
-      <ol className="crossword-clues">
-        {rows.map((row, r) => (
-          <li key={r}>
-            <button
-              className={`crossword-clue-row ${!finished && cursor.row === r ? 'current' : ''} ${rowSolved(puzzle, entries, r) ? 'solved' : ''}`}
-              onPointerDown={(e) => e.preventDefault()}
-              onClick={() => select(r, firstEmpty(r, entries))}
-              disabled={!!finished}
-            >
-              <b>{r + 1}.</b> {row.clue}
-              {finished && <span className="crossword-answer"> {row.word}</span>}
-            </button>
-          </li>
-        ))}
-      </ol>
+      {clueList('across')}
+      {clueList('down')}
     </div>
   );
 }

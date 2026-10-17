@@ -352,7 +352,9 @@ body.dev { background: #f2f1ec; color: #222; }
 .crossword-gap { aspect-ratio: 1; }
 .crossword-shaded { display: flex; justify-content: center; gap: 0.25rem; margin: 0.2rem 0 0; font-family: var(--serif); font-weight: 700; letter-spacing: 0.05em; color: #e8d39a; }
 .crossword-shaded span { min-width: 1.2rem; text-align: center; border-bottom: 2px solid #e8d39a; }
-.crossword-clues { list-style: none; margin: 0.9rem 0 0; padding: 0; display: grid; gap: 0.3rem; }
+.crossword-order { position: absolute; right: 3px; bottom: 1px; font-family: var(--sans); font-size: 0.6rem; font-weight: 700; color: var(--brass-deep); }
+.crossword-clue-group h3 { margin: 0.9rem 0 0.35rem; font-family: var(--serif); font-size: 1rem; color: var(--on-baize); }
+.crossword-clues { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.3rem; }
 .crossword-clue-row {
   width: 100%; min-height: 2.75rem; padding: 0.45rem 0.7rem; text-align: left; cursor: pointer;
   border: 1px solid var(--card-edge); border-radius: 0.3rem; background: #fffcf3; color: var(--ink); font-size: 0.95rem; line-height: 1.35;

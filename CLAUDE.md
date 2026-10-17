@@ -55,8 +55,10 @@ checked for how much look-ahead they need.
 - **Wordle answers come from room `objects`** (5-letter words). Words may
   repeat across rooms; the revealed clue names the room. Teasers must never
   show the room or the word (tested). **The crossword and word search hide a
-  room `thing`** (4–9 letters, no J/X/Z). The crossword's shaded column
-  spells it and she wins once that column is right; the word search's
+  room `thing`** (4–9 letters, no J/X/Z). The crossword is a real
+  interlocking grid (up to 7×7, across and down words crossing, no stray
+  runs, tested); shaded squares numbered 1, 2, 3... spell the word, spread
+  over different words, and she wins once they're right. The word search's
   leftover letters spell it, every listed word appears exactly once, and she
   can type the word early. Their fill comes from `src/content/words.ts`
   (common words with clues), never from `words.txt`, and never uses a theme
