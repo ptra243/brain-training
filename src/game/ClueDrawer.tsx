@@ -1,6 +1,6 @@
 import type { Case } from '../engine/types.ts';
 import { ClueCard } from './ClueCard.tsx';
-import { sceneUnlocked, visibleClues, type Action, type Progress } from './state.ts';
+import { SCENE_TEASER, sceneText, visibleClues, type Action, type Progress } from './state.ts';
 
 interface Props {
   c: Case;
@@ -15,7 +15,7 @@ export function ClueDrawer({ c, progress, dispatch, open, onToggle }: Props) {
   // Includes what finished interrogations produced (evidence cards, true answers).
   const visible = visibleClues(c, progress);
   const left = visible.filter((clue) => !progress.used.includes(clue.id)).length;
-  const scene = sceneUnlocked(c, progress);
+  const scene = sceneText(c, progress);
 
   return (
     <div className={`clue-drawer ${open ? 'open' : ''}`}>
@@ -30,7 +30,7 @@ export function ClueDrawer({ c, progress, dispatch, open, onToggle }: Props) {
       </button>
       {open && (
         <div id="drawer-body" className="drawer-body">
-          <p className="drawer-scene">{scene ? c.sceneClue.text : c.sceneClue.wordle.teaser}</p>
+          <p className="drawer-scene">{scene ?? SCENE_TEASER}</p>
           {visible.length ? (
             <ul className="clue-list">
               {visible.map((clue) => (

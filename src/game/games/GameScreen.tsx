@@ -5,6 +5,9 @@ import { roomAdjacency } from '../../engine/house.ts';
 import { disproves } from '../../engine/interrogation.ts';
 import type { Case, GameKind, GameSpec, Interrogation } from '../../engine/types.ts';
 import { generateCats, type CatPuzzle } from '../../games/cats.ts';
+import type { CrosswordPuzzle } from '../../games/crossword.ts';
+import type { WordSearchPuzzle } from '../../games/wordsearch.ts';
+import { sceneCrossword, sceneWordSearch } from '../sceneGames.ts';
 import { foundLocations, generateSudoku, locationSquares, type LocationSquares, type SudokuPuzzle } from '../../games/sudoku.ts';
 import { ClueCard } from '../ClueCard.tsx';
 import { Dialog } from '../Dialog.tsx';
@@ -13,10 +16,14 @@ import { InterrogationGame, interrogationInitial } from './InterrogationGame.tsx
 import { CatsGame, catsInitial, catsSolvedData, type CatsData } from './CatsGame.tsx';
 import { SudokuGame, sudokuInitial, sudokuSolvedData, type SudokuData } from './SudokuGame.tsx';
 import { WordleGame, wordleInitial, wordleSolved, type WordleData, type WordlePuzzle } from './WordleGame.tsx';
+import { CrosswordGame, crosswordInitial, crosswordSolved, type CrosswordData } from './CrosswordGame.tsx';
+import { WordSearchGame, wordSearchInitial, wordSearchSolved, type WordSearchData } from './WordSearchGame.tsx';
 
 type Built =
   | { kind: 'interrogation'; puzzle: Interrogation }
   | { kind: 'wordle'; puzzle: WordlePuzzle }
+  | { kind: 'crossword'; puzzle: CrosswordPuzzle }
+  | { kind: 'wordsearch'; puzzle: WordSearchPuzzle }
   | { kind: 'cats'; puzzle: CatPuzzle }
   | { kind: 'sudoku'; puzzle: SudokuPuzzle; squares: Record<string, LocationSquares> };
 
@@ -28,6 +35,10 @@ function buildPuzzle(c: Case, spec: GameSpec): Built {
       return { kind: 'interrogation', puzzle: spec.interrogation! };
     case 'wordle':
       return { kind: 'wordle', puzzle: { answer: c.sceneClue.wordle.answer, teaser: c.sceneClue.wordle.teaser } };
+    case 'crossword':
+      return { kind: 'crossword', puzzle: sceneCrossword(spec) };
+    case 'wordsearch':
+      return { kind: 'wordsearch', puzzle: sceneWordSearch(c, spec) };
     case 'cats':
       return { kind: 'cats', puzzle: generateCats(spec.size, rng) };
     case 'sudoku': {
@@ -40,6 +51,8 @@ function buildPuzzle(c: Case, spec: GameSpec): Built {
 
 export const GAME_NAMES: Record<GameKind, string> = {
   wordle: 'Wordle',
+  crossword: 'Mini crossword',
+  wordsearch: 'Word search',
   cats: 'Cat puzzle',
   sudoku: 'Sudoku',
   interrogation: 'Questioning',
@@ -97,6 +110,14 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
     case 'wordle':
       solved = () => wordleSolved(built.puzzle);
       view = <WordleGame puzzle={built.puzzle} data={(record?.data as WordleData) ?? wordleInitial()} {...props} />;
+      break;
+    case 'crossword':
+      solved = () => crosswordSolved(built.puzzle);
+      view = <CrosswordGame puzzle={built.puzzle} data={(record?.data as CrosswordData) ?? crosswordInitial(built.puzzle)} {...props} />;
+      break;
+    case 'wordsearch':
+      solved = () => wordSearchSolved(built.puzzle);
+      view = <WordSearchGame puzzle={built.puzzle} data={(record?.data as WordSearchData) ?? wordSearchInitial()} {...props} />;
       break;
     case 'cats':
       solved = () => catsSolvedData(built.puzzle);
@@ -169,7 +190,7 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
           <ul>
             {spec.unlocksScene && (
               <li className="scene-line" style={{ animationDelay: '120ms' }}>
-                {c.sceneClue.text}
+                {spec.scene?.text ?? c.sceneClue.text}
               </li>
             )}
             {unlocked.map((u, i) => (

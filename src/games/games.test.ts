@@ -7,6 +7,7 @@ import { autoDots, catConflicts, catsSolved, countCatSolutions, generateCats } f
 import { foundLocations, generateSudoku, locationSquares, solvableBySingles, sudokuConflicts, sudokuShape, sudokuSolved } from './sudoku.ts';
 import { isAllowedGuess, parseWords } from './dictionary.ts';
 import { keyboardState, scoreGuess } from './wordle.ts';
+import { typedEdit } from './typing.ts';
 
 test('wordle scoring handles repeated letters', () => {
   assert.deepEqual(scoreGuess('STOVE', 'STOVE'), ['hit', 'hit', 'hit', 'hit', 'hit']);
@@ -121,4 +122,14 @@ test('sudoku location squares are empty, distinct, and their solved digits give 
     grid[sq.a.col] = p.solution[sq.a.col];
     assert.deepEqual(foundLocations(p, sq, grid), ['a']);
   }
+});
+
+test('typing: plain keys, backspace, and keyboards that resend or autocorrect the word', () => {
+  assert.deepEqual(typedEdit('CA', 'CAT'), { deleted: 0, inserted: 'T' });
+  assert.deepEqual(typedEdit('CAT', 'CA'), { deleted: 1, inserted: '' });
+  assert.deepEqual(typedEdit('CA', 'cat'), { deleted: 0, inserted: 'T' });
+  assert.deepEqual(typedEdit('CA', 'Car '), { deleted: 0, inserted: 'R' });
+  assert.deepEqual(typedEdit('CRAN', 'CRANE'), { deleted: 0, inserted: 'E' });
+  assert.deepEqual(typedEdit('TEH', 'THE'), { deleted: 2, inserted: 'HE' });
+  assert.deepEqual(typedEdit('', '1'), { deleted: 0, inserted: '' });
 });

@@ -92,7 +92,7 @@ export function AccusePanel({ c, progress, dispatch, onNextCase }: Props) {
         <p className="scene-note">
           {scene
             ? `The murder happened in the ${roomName(c.sceneRoom)}, where the body was found.`
-            : 'Solve the Wordle to learn where the body was found.'}
+            : 'Solve a word game on the Clues tab to learn where the body was found.'}
         </p>
         <Picker legend="Who" options={c.suspects} value={suspect} onChange={(v) => { setSuspect(v); setError(''); }} name={suspectName} />
         <Picker legend="With what" options={c.items} value={item} onChange={(v) => { setItem(v); setError(''); }} name={itemName} />

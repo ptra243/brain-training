@@ -5,6 +5,9 @@ import { roomAdjacency } from '../src/engine/house.ts';
 import { generateCase } from '../src/engine/generate.ts';
 import { disproves } from '../src/engine/interrogation.ts';
 import { allCandidates, countSolutions } from '../src/engine/solver.ts';
+import { sceneCrossword, sceneWordSearch } from '../src/game/sceneGames.ts';
+import { shadedIndex } from '../src/games/crossword.ts';
+import { everyWordOnce, leftovers } from '../src/games/wordsearch.ts';
 import type { Difficulty } from '../src/engine/types.ts';
 
 const adjacency = roomAdjacency(content.house);
@@ -39,6 +42,24 @@ for (const difficulty of ['easy', 'medium', 'hard'] as Difficulty[]) {
           console.log(`  FAIL ${difficulty} case ${n}: ${g.kind} interrogation can't be caught fairly`);
         }
       }
+      // Scene word games: each builds, and spells its hidden word.
+      for (const g of c.games.filter((g) => g.unlocksScene && g.kind !== 'wordle')) {
+        const answer = g.scene!.answer;
+        const spelled =
+          g.kind === 'crossword'
+            ? (() => {
+                const cw = sceneCrossword(g);
+                return cw.rows.map((row, r) => row.word[shadedIndex(cw, r)]).join('');
+              })()
+            : (() => {
+                const ws = sceneWordSearch(c, g);
+                return everyWordOnce(ws) ? leftovers(ws).map(([r, col]) => ws.grid[r][col]).join('') : '';
+              })();
+        if (spelled !== answer) {
+          failures++;
+          console.log(`  FAIL ${difficulty} case ${n}: ${g.kind} spells ${spelled}, not ${answer}`);
+        }
+      }
       counts.push(c.clues.length);
       for (const cl of c.clues) types.set(cl.fact.type, (types.get(cl.fact.type) ?? 0) + 1);
     } catch (err) {
@@ -58,5 +79,5 @@ for (const difficulty of ['easy', 'medium', 'hard'] as Difficulty[]) {
   );
 }
 
-console.log(failures ? `\n${failures} bad cases` : '\nAll 300 cases have exactly one solution, and every interrogation can be caught fairly.');
+console.log(failures ? `\n${failures} bad cases` : '\nAll 300 cases have exactly one solution, every interrogation can be caught fairly, and every word game spells its word.');
 process.exit(failures ? 1 : 0);

@@ -3,7 +3,7 @@ import { WORDLE_BLANK, cluePool, type ClueContext } from './clues.ts';
 import { canLocate, plainText, wordClue } from './wording.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
-import type { Case, Clue, ClueDelivery, ClueFact, ClueSource, ClueType, Content, Difficulty, GameKind, GameSpec, Interrogation } from './types.ts';
+import { SCENE_GAMES, type Case, type Clue, type ClueDelivery, type ClueFact, type ClueSource, type ClueType, type Content, type Difficulty, type GameKind, type GameSpec, type Interrogation } from './types.ts';
 import { buildInterrogation, type CaseFacts } from './interrogation.ts';
 
 interface DifficultySettings {
@@ -145,7 +145,7 @@ export function generateCase(
     if (countSolutions(candidates, without, ctx, 1) === 1) minimal = without;
   }
 
-  // 5. Pick tonight's games: the Wordle always gives the scene; two of the
+  // 5. Pick tonight's games: a word game of her choice gives the scene; two of the
   //    cat puzzle, sudoku and interrogation share the clues. Hard cases end
   //    with a finale interrogation that uses her casebook as evidence.
   const order = rng.shuffle(minimal);
@@ -180,6 +180,8 @@ export function generateCase(
     finale: 'testimony',
     cats: 'evidence',
     wordle: 'testimony',
+    crossword: 'testimony',
+    wordsearch: 'testimony',
   };
 
   const wordAs = (fact: ClueFact, i: number, speaker?: string): Clue => {
@@ -217,19 +219,32 @@ export function generateCase(
     if (chair) clues[i] = { ...wordAs(fact, i, chair), id: clues[i].id };
   });
 
-  // The scene is always a Wordle: "The body was found by the _____."
+  // The scene is a hidden word, found by whichever word game she picks: "The body was found by the _____."
   const sceneRoom = solution.room[murdererIndex];
   const scene = house.rooms.find((r) => r.id === sceneRoom)!;
   const sceneWord = rng.pick(scene.objects);
+  const sceneText = (word: string) => `The body was found by the ${word.toLowerCase()} in the ${scene.name}.`;
   const sceneClue = {
-    text: `The body was found by the ${sceneWord.toLowerCase()} in the ${scene.name}.`,
+    text: sceneText(sceneWord),
     delivery: 'wordle' as const,
     wordle: { answer: sceneWord, teaser: `The body was found by the ${WORDLE_BLANK}.` },
   };
 
   const idsFor = (kind: GameKind) => clues.filter((c) => c.delivery === kind).map((c) => c.id);
   const games: GameSpec[] = [
-    { kind: 'wordle', seed: hashSeed(`${seed}-wordle`), clues: [], unlocksScene: true, size: 5 },
+    // Seeded separately so adding word games never changes the case itself.
+    // The Wordle hides a 5-letter object; the others hide a room thing of any length.
+    ...SCENE_GAMES.map((kind): GameSpec => {
+      const answer = kind === 'wordle' ? sceneWord : new Rng(hashSeed(`${seed}-${kind}-word`)).pick(scene.things);
+      return {
+        kind,
+        seed: hashSeed(`${seed}-${kind}`),
+        clues: [],
+        unlocksScene: true,
+        size: kind === 'wordle' ? 5 : 7,
+        scene: { answer, text: sceneText(answer) },
+      };
+    }),
     ...kinds.map((kind): GameSpec => {
       const base = { kind, seed: hashSeed(`${seed}-${kind}`), clues: idsFor(kind), unlocksScene: false };
       if (kind === 'cats') return { ...base, size: settings.catSize };
