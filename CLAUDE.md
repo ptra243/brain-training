@@ -11,8 +11,10 @@ has the link). README has setup, layout and how a case is generated.
 
 Phases 1–4 done (content, generator/solver, casebook UI, minigames), plus
 testimony/evidence clues, sudoku map coordinates, weapons on the map, a
-Wordle word list, the staircase grid with clue drawer, and interrogations
-(rotating "Questioning" game and a "Final questioning" on hard cases).
+Wordle word list, the staircase grid with clue drawer, interrogations
+(rotating "Questioning" game and a "Final questioning" on hard cases), and
+a choice of three scene word games (Wordle, mini crossword, word search)
+that all type with the phone's own keyboard.
 Next: phase 5 (modes, campaign progression) and playtesting.
 Known gaps: cat puzzles are unique but not
 checked for how much look-ahead they need.
@@ -26,10 +28,14 @@ checked for how much look-ahead they need.
   that asks "Are you sure? This can't be undone" (an in-app dialog, not
   `window.confirm`), then reveals the answer and still unlocks the clue. Record
   the game as `revealed`, not `won`, so stats can tell them apart.
-- **Each case has the Wordle (the scene) plus two rotating games** drawn
+- **Each case has three scene word games plus two rotating games** drawn
   from cat puzzle, sudoku and interrogation; hard cases add a finale
   interrogation that opens once the others are done and uses her casebook
-  as evidence. The cat puzzle unlocks physical evidence ("found by the
+  as evidence. The scene games (Wordle, mini crossword, word search) all have
+  `unlocksScene`; she picks one from a chooser and any one reveals the scene
+  (the casebook shows them as one row, and the finale counts them as done
+  once one is). Each hides its own word in `spec.scene` and reveals its own
+  sentence (`sceneText`), always naming the scene room. The cat puzzle unlocks physical evidence ("found by the
   cats"); the sudoku and interrogations unlock testimony. Each sudoku statement has two marked squares whose digits are
   a row and column on the floor plan pointing at its room; it unlocks the
   moment both are right, and finishing the grid gives one more. 2–3
@@ -48,7 +54,18 @@ checked for how much look-ahead they need.
   `npm run check-cases` verifies every interrogation in 300 cases.
 - **Wordle answers come from room `objects`** (5-letter words). Words may
   repeat across rooms; the revealed clue names the room. Teasers must never
-  show the room or the word (tested).
+  show the room or the word (tested). **The crossword and word search hide a
+  room `thing`** (4–9 letters, no J/X/Z). The crossword's shaded column
+  spells it and she wins once that column is right; the word search's
+  leftover letters spell it, every listed word appears exactly once, and she
+  can type the word early. Their fill comes from `src/content/words.ts`
+  (common words with clues), never from `words.txt`, and never uses a theme
+  word (`themeWords`). `npm run check-cases` builds both for all 300 cases.
+- **Word games type with the phone's keyboard**, through `TypingInput` (one
+  hidden input; tapping the board focuses it). Don't build on-screen
+  keyboards. Buttons that sit beside a focused board use
+  `onPointerDown={(e) => e.preventDefault()}` so the keyboard stays up.
+  Autofocus only with a fine pointer; phones need the tap.
 - **Guesses are checked against `public/words.txt`** (4–9 letters, from the
   `word-list` package via `npm run build-words`; committed, fetched on demand,
   precached for offline). It's full of obscure words: use it only to accept
@@ -71,7 +88,7 @@ checked for how much look-ahead they need.
   drawer above the tab bar (`ClueDrawer`). Don't make her switch tabs to
   read a clue.
 - **Accusations are who + weapon.** The room is always where the body was
-  found (the Wordle), so it isn't asked. She can accuse from the map: the one
+  found (the scene word game), so it isn't asked. She can accuse from the map: the one
   person in the scene room and the weapon they hold.
 - **Room colours and all names live in `src/content/`.** Bump the storage
   prefix in `src/game/storage.ts` when saved data stops matching the cases.
@@ -108,6 +125,8 @@ checked for how much look-ahead they need.
   In a cloud session without `node_modules`, at least run the global `tsc`
   over the non-React files (`src/engine`, `src/games`, `src/game/state.ts`)
   with `--strict --noUnusedLocals --noUnusedParameters`; CI catches the rest.
+  (`@types/react` can be sparse-cloned from DefinitelyTyped on GitHub, with
+  `csstype`, to type-check the components too.)
 - Tests run on Node's built-in runner with type stripping (`node --test`), so
   TS in `src/engine` and `src/game/*.ts` must be erasable syntax only.
 - Cloud Claude sessions cannot reach the npm registry. New dependencies must

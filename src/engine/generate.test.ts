@@ -73,13 +73,14 @@ test('the murderer is the suspect in the scene room holding the weapon', () => {
   assert.equal(c.solution.item[i], c.weapon);
 });
 
-test('every clue is free or unlocked by exactly one game; Wordle plus two rotating games, and a finale on hard cases', () => {
+test('every clue is free or unlocked by exactly one game; three scene word games plus two rotating games, and a finale on hard cases', () => {
   const seen = new Set<string>();
   for (let n = 1; n <= 30; n++) {
     const c = generateCase(content, n);
     const kinds = c.games.map((g) => g.kind);
-    assert.equal(kinds[0], 'wordle');
-    const rotating = kinds.filter((k) => k !== 'wordle' && k !== 'finale');
+    assert.deepEqual(kinds.slice(0, 3), ['wordle', 'crossword', 'wordsearch']);
+    assert.ok(c.games.every((g) => g.unlocksScene === kinds.slice(0, 3).includes(g.kind)));
+    const rotating = kinds.slice(3).filter((k) => k !== 'finale');
     assert.equal(rotating.length, 2, `case ${n}: ${kinds}`);
     rotating.forEach((k) => seen.add(k));
     assert.equal(kinds.includes('finale'), c.difficulty === 'hard');
@@ -88,7 +89,7 @@ test('every clue is free or unlocked by exactly one game; Wordle plus two rotati
       assert.equal(owners, clue.delivery === 'given' ? 0 : 1, `case ${n} ${clue.id}`);
     }
     assert.ok(c.clues.some((cl) => cl.delivery === 'given'), `case ${n} has no free clue`);
-    for (const g of c.games.slice(1)) assert.ok(g.clues.length > 0, `case ${n}: ${g.kind} unlocks nothing`);
+    for (const g of c.games.slice(3)) assert.ok(g.clues.length > 0, `case ${n}: ${g.kind} unlocks nothing`);
   }
   assert.deepEqual([...seen].sort(), ['cats', 'interrogation', 'sudoku'], 'all three games should come up');
 });

@@ -10,6 +10,8 @@ export interface Room {
   tint: string;
   /** 5-letter things found in this room; Wordle answers come from here. */
   objects: readonly string[];
+  /** More things in this room, 4–9 letters; the crossword and word search hide one. */
+  things: readonly string[];
   /** Grid cells this room covers. Rooms must be contiguous and not overlap. */
   cells: readonly Cell[];
 }
@@ -67,8 +69,14 @@ export type ClueFact =
 
 export type ClueType = ClueFact['type'];
 
-/** Minigames that unlock clues. `finale` is the closing interrogation on hard cases. */
-export type GameKind = 'wordle' | 'cats' | 'sudoku' | 'interrogation' | 'finale';
+/**
+ * Minigames. The three word games each reveal the scene (she plays whichever
+ * she likes); the rest unlock clues. `finale` is the closing interrogation on hard cases.
+ */
+export type GameKind = 'wordle' | 'crossword' | 'wordsearch' | 'cats' | 'sudoku' | 'interrogation' | 'finale';
+
+/** Word games that reveal the scene. Any one of them is enough. */
+export const SCENE_GAMES: readonly GameKind[] = ['wordle', 'crossword', 'wordsearch'];
 
 /** How a clue reaches her: free at the start, or as a minigame's reward. */
 export type ClueDelivery = GameKind | 'given';
@@ -79,15 +87,23 @@ export interface GameSpec {
   seed: number;
   /** Clue ids this game unlocks. */
   clues: readonly string[];
-  /** Wordle unlocks the scene. */
+  /** The word games unlock the scene (any one will do). */
   unlocksScene: boolean;
-  /** Cat grid size, or sudoku size and how many digits are given. */
+  /** Cat grid size, sudoku size, or word game grid width. Sudoku also has how many digits are given. */
   size: number;
   givens?: number;
   /** Sudoku: clues that unlock early from their two coordinate squares. */
   located?: readonly string[];
   /** Interrogation and finale: the suspect, evidence and questions. */
   interrogation?: Interrogation;
+  /** Scene word games: the hidden word and the scene text it reveals. */
+  scene?: SceneWord;
+}
+
+/** A word hidden by a scene game, and the scene sentence solving it reveals ("…by the bookcase in the Library."). */
+export interface SceneWord {
+  answer: string;
+  text: string;
 }
 
 /** One question she can ask; the answer is a statement by the suspect in the chair. */
@@ -178,6 +194,7 @@ export interface Case {
   /**
    * Where the body was found. Not a placement clue: it tells the player which
    * room matters once the grid is solved. Always delivered, never trimmed.
+   * `wordle.answer` is the hidden word for all three scene games.
    */
   sceneClue: { text: string; delivery: 'wordle'; wordle: WordleReveal };
   /** Minimal clue set: removing any one allows a second solution. */

@@ -303,7 +303,7 @@ export function MapPanel({ c, progress, dispatch, onAccused }: Props) {
 
       <div className="accuse-bar card">
         {!scene ? (
-          <p className="muted">Solve the Wordle to learn where the body was found. Then you can accuse from here.</p>
+          <p className="muted">Solve a word game on the Clues tab to learn where the body was found. Then you can accuse from here.</p>
         ) : implied ? (
           <>
             <p>

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { isAllowedGuess, loadDictionary, type Dictionary } from '../../games/dictionary.ts';
 import { MAX_GUESSES, WORD_LENGTH, keyboardState, scoreGuess } from '../../games/wordle.ts';
+import { TypingInput, focusTyping, hasFinePointer } from './TypingInput.tsx';
 import type { GameProps } from './types.ts';
 
 export interface WordleData {
@@ -12,7 +13,7 @@ export interface WordlePuzzle {
   teaser: string;
 }
 
-const ROWS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 export const wordleInitial = (): WordleData => ({ guesses: [] });
 export const wordleSolved = (p: WordlePuzzle): WordleData => ({ guesses: [p.answer] });
@@ -20,105 +21,110 @@ export const wordleSolved = (p: WordlePuzzle): WordleData => ({ guesses: [p.answ
 export function WordleGame({ puzzle, data, finished, onChange, onFinish }: GameProps<WordlePuzzle, WordleData>) {
   const [typing, setTyping] = useState('');
   const [message, setMessage] = useState('');
+  const [focused, setFocused] = useState(false);
   const [dictionary, setDictionary] = useState<Dictionary | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { guesses } = data;
 
   useEffect(() => {
     let live = true;
     loadDictionary().then((d) => live && setDictionary(d));
+    if (!finished && hasFinePointer()) focusTyping(inputRef);
     return () => {
       live = false;
     };
-  }, []);
-  const keys = keyboardState(guesses, puzzle.answer);
+  }, []); // once, when the game opens
+  const letters = keyboardState(guesses, puzzle.answer);
 
-  const press = (key: string) => {
+  const type = (deleted: number, inserted: string) => {
     if (finished) return;
     setMessage('');
-    if (key === 'BACK') return setTyping((t) => t.slice(0, -1));
-    if (key === 'ENTER') {
-      if (typing.length < WORD_LENGTH) return setMessage(`Type ${WORD_LENGTH} letters first.`);
-      if (!isAllowedGuess(typing, puzzle.answer, dictionary)) return setMessage(`${typing} isn't in the word list.`);
-      const next = { guesses: [...guesses, typing] };
-      setTyping('');
-      if (typing === puzzle.answer) return onFinish('won', next);
-      if (next.guesses.length >= MAX_GUESSES) return onFinish('revealed', next);
-      return onChange(next);
-    }
-    if (/^[A-Z]$/.test(key) && typing.length < WORD_LENGTH) setTyping((t) => t + key);
+    setTyping((t) => (t.slice(0, Math.max(0, t.length - deleted)) + inserted).slice(0, WORD_LENGTH));
   };
 
-  // A physical keyboard works too (handy on a laptop).
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === 'Enter') press('ENTER');
-      else if (e.key === 'Backspace') press('BACK');
-      else if (/^[a-z]$/i.test(e.key)) press(e.key.toUpperCase());
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  });
+  const submit = () => {
+    if (finished) return;
+    if (typing.length < WORD_LENGTH) return setMessage(`Type ${WORD_LENGTH} letters first.`);
+    if (!isAllowedGuess(typing, puzzle.answer, dictionary)) return setMessage(`${typing} isn't in the word list.`);
+    const next = { guesses: [...guesses, typing] };
+    setTyping('');
+    if (typing === puzzle.answer) return onFinish('won', next);
+    if (next.guesses.length >= MAX_GUESSES) return onFinish('revealed', next);
+    return onChange(next);
+  };
 
   const rows = Array.from({ length: MAX_GUESSES }, (_, r) => {
-    if (r < guesses.length) return { letters: guesses[r], scores: scoreGuess(guesses[r], puzzle.answer) };
-    if (r === guesses.length && !finished) return { letters: typing, scores: null };
-    return { letters: '', scores: null };
+    if (r < guesses.length) return { letters: guesses[r], scores: scoreGuess(guesses[r], puzzle.answer), current: false };
+    if (r === guesses.length && !finished) return { letters: typing, scores: null, current: true };
+    return { letters: '', scores: null, current: false };
   });
 
   return (
     <div className="wordle">
       <p className="teaser-line">{puzzle.teaser}</p>
-      <div className="wordle-board" role="grid" aria-label="Guesses">
-        {rows.map((row, r) => (
-          <div key={r} className="wordle-row" role="row">
-            {Array.from({ length: WORD_LENGTH }, (_, i) => {
-              const letter = row.letters[i] ?? '';
-              const score = row.scores?.[i];
-              return (
-                <span
-                  key={i}
-                  role="gridcell"
-                  className={`wordle-tile ${score ?? (letter ? 'typed' : '')}`}
-                  aria-label={letter ? `${letter}${score ? `, ${score === 'hit' ? 'right place' : score === 'near' ? 'wrong place' : 'not in word'}` : ''}` : 'empty'}
-                >
-                  {letter}
-                </span>
-              );
-            })}
-          </div>
-        ))}
+      <div className="typing-host">
+        <div className="wordle-board" role="grid" aria-label="Guesses">
+          {rows.map((row, r) => (
+            <div
+              key={r}
+              className={`wordle-row ${row.current ? 'current' : ''} ${row.current && focused ? 'active' : ''}`}
+              role="row"
+              onClick={row.current ? () => focusTyping(inputRef) : undefined}
+            >
+              {Array.from({ length: WORD_LENGTH }, (_, i) => {
+                const letter = row.letters[i] ?? '';
+                const score = row.scores?.[i];
+                const cursor = row.current && focused && i === Math.min(typing.length, WORD_LENGTH - 1);
+                return (
+                  <span
+                    key={i}
+                    role="gridcell"
+                    className={`wordle-tile ${score ?? (letter ? 'typed' : '')} ${cursor ? 'cursor' : ''}`}
+                    aria-label={letter ? `${letter}${score ? `, ${score === 'hit' ? 'right place' : score === 'near' ? 'wrong place' : 'not in word'}` : ''}` : 'empty'}
+                  >
+                    {letter}
+                  </span>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+        {!finished && (
+          <TypingInput
+            inputRef={inputRef}
+            value={typing}
+            onType={type}
+            onEnter={submit}
+            onFocusChange={setFocused}
+            enterKeyHint="go"
+            label="Your guess"
+          />
+        )}
       </div>
       <p className="game-message" role="status">
         {finished
           ? guesses.at(-1) === puzzle.answer
             ? `Got it in ${guesses.length}.`
             : `The word was ${puzzle.answer}.`
-          : message}
+          : message || (focused ? '' : 'Tap the empty row to type.')}
       </p>
       {!finished && (
-        <div className="keyboard">
-          {ROWS.map((row, i) => (
-            <div key={row} className="key-row">
-              {i === 2 && (
-                <button className="key wide" onClick={() => press('ENTER')}>
-                  Enter
-                </button>
-              )}
-              {row.split('').map((k) => (
-                <button key={k} className={`key ${keys[k] ?? ''}`} onClick={() => press(k)}>
-                  {k}
-                </button>
-              ))}
-              {i === 2 && (
-                <button className="key wide" aria-label="Delete letter" onClick={() => press('BACK')}>
-                  ⌫
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
+        <button
+          className="primary check-word"
+          // Keep the keyboard up: don't let the button take focus.
+          onPointerDown={(e) => e.preventDefault()}
+          onClick={submit}
+        >
+          Check word
+        </button>
       )}
+      <div className="letter-strip" aria-label="Letters tried">
+        {ALPHABET.map((l) => (
+          <span key={l} className={`letter-chip ${letters[l] ?? ''}`}>
+            {l}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

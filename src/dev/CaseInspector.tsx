@@ -108,6 +108,13 @@ export function CaseInspector() {
             </li>
           ))}
         </ol>
+        <p className="teaser">
+          Scene words:{' '}
+          {c.games
+            .filter((g) => g.scene)
+            .map((g) => `${g.kind} ${g.scene!.answer}`)
+            .join(' · ')}
+        </p>
       </section>
 
       <section>

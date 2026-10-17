@@ -200,6 +200,13 @@ export function unlockedClueIds(c: Case, p: Progress): Set<string> {
 
 export const sceneUnlocked = (c: Case, p: Progress) => c.games.some((g) => g.unlocksScene && gameDone(p, g.kind));
 
+/** Before: a blank. After: the sentence from whichever scene game she solved. */
+export const SCENE_TEASER = 'The body was found by the …';
+export function sceneText(c: Case, p: Progress): string | null {
+  const done = c.games.find((g) => g.unlocksScene && gameDone(p, g.kind));
+  return done ? (done.scene?.text ?? c.sceneClue.text) : null;
+}
+
 /** Whether a clue names this suspect. */
 export function mentionsSuspect(clue: Clue, suspect: string): boolean {
   const f = clue.fact;
@@ -252,11 +259,18 @@ export interface InterrogationData {
 }
 
 /**
- * The finale opens once every other puzzle is finished, because its
- * evidence is everything else in her casebook.
+ * The finale opens once every other puzzle is finished (the scene counts
+ * once any word game is done), because its evidence is everything else in
+ * her casebook.
  */
 export const finaleOpen = (c: Case, p: Progress) =>
-  c.games.filter((g) => g.kind !== 'finale').every((g) => gameDone(p, g.kind));
+  sceneUnlocked(c, p) && c.games.filter((g) => g.kind !== 'finale' && !g.unlocksScene).every((g) => gameDone(p, g.kind));
+
+/** The scene game she has finished, or else the one she's partway through. */
+export function sceneGameInPlay(c: Case, p: Progress): GameKind | null {
+  const scene = c.games.filter((g) => g.unlocksScene);
+  return (scene.find((g) => gameDone(p, g.kind)) ?? scene.find((g) => p.games[g.kind]))?.kind ?? null;
+}
 
 /**
  * Everything she can read in her casebook: unlocked case clues, plus what
