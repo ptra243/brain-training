@@ -310,6 +310,7 @@ body.dev { background: #f2f1ec; color: #222; }
 .wordle-tile.near { background: var(--brass); border-color: var(--brass); color: #2a2109; }
 .wordle-tile.miss { background: #5a625c; border-color: #5a625c; color: #e9e4d2; }
 .wordle-row.current { cursor: text; }
+.wordle-row.current .wordle-tile:not(.typed) { border-color: #6f8f82; }
 .wordle-tile.cursor { border-color: var(--brass); box-shadow: inset 0 -4px 0 var(--brass); }
 .check-word { margin-top: 0.4rem; }
 .letter-strip { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 0.2rem; margin-top: 0.9rem; }
