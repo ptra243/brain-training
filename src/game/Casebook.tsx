@@ -1,6 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
-import { content } from '../content/index.ts';
-import { generateCase } from '../engine/generate.ts';
+import { useState } from 'react';
 import { AccusePanel } from './AccusePanel.tsx';
 import { ClueDrawer } from './ClueDrawer.tsx';
 import { CluesPanel } from './CluesPanel.tsx';
@@ -8,8 +6,7 @@ import { GridPanel } from './GridPanel.tsx';
 import { MapPanel } from './MapPanel.tsx';
 import { GameScreen } from './games/GameScreen.tsx';
 import { reduce, type Action, type Progress, type Subject } from './state.ts';
-import type { GameKind } from '../engine/types.ts';
-import { loadCurrentCase, loadProgress, saveCurrentCase, saveProgress } from './storage.ts';
+import type { Case, GameKind } from '../engine/types.ts';
 
 type Tab = 'clues' | 'map' | 'grid' | 'accuse';
 const TABS: { id: Tab; label: string }[] = [
@@ -19,32 +16,27 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'accuse', label: 'Accuse' },
 ];
 
-const DIFFICULTY_LABEL = { easy: 'Easy', medium: 'Medium', hard: 'Hard' } as const;
+export const DIFFICULTY_LABEL = { easy: 'Easy', medium: 'Medium', hard: 'Hard' } as const;
 
-export function Casebook() {
-  const [caseNumber, setCaseNumber] = useState(loadCurrentCase);
-  const c = useMemo(() => generateCase(content, caseNumber), [caseNumber]);
-  const [progress, setProgress] = useState<Progress>(() => loadProgress(caseNumber));
+interface Props {
+  c: Case;
+  progress: Progress;
+  /** Her moves; the app saves them. */
+  onProgress: (update: (p: Progress) => Progress) => void;
+  onHome: () => void;
+  /** A fresh case with the same difficulty and length. */
+  onNewCase: () => void;
+}
+
+/** One case: clues, map, grid and accusation. Remount it (key) for another case. */
+export function Casebook({ c, progress, onProgress, onHome, onNewCase }: Props) {
   const [tab, setTab] = useState<Tab>('clues');
   const [playing, setPlaying] = useState<GameKind | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   // A grid label she tapped: the drawer then shows only clues about it.
   const [focus, setFocus] = useState<Subject | null>(null);
 
-  useEffect(() => saveProgress(caseNumber, progress), [caseNumber, progress]);
-  useEffect(() => saveCurrentCase(caseNumber), [caseNumber]);
-
-  const dispatch = (a: Action) => setProgress((p) => reduce(c, p, a));
-
-  const openCase = (n: number) => {
-    const next = Math.max(1, n);
-    setCaseNumber(next);
-    setProgress(loadProgress(next));
-    setTab('clues');
-    setPlaying(null);
-    setFocus(null);
-    window.scrollTo(0, 0);
-  };
+  const dispatch = (a: Action) => onProgress((p) => reduce(c, p, a));
 
   const select = (t: Tab) => {
     setTab(t);
@@ -56,7 +48,7 @@ export function Casebook() {
     return (
       <div className="casebook">
         <GameScreen
-          key={`${c.number}-${game.kind}`}
+          key={`${c.code}-${game.kind}`}
           c={c}
           spec={game}
           progress={progress}
@@ -76,18 +68,16 @@ export function Casebook() {
   return (
     <div className={`casebook ${drawer ? (drawerOpen ? 'with-drawer open' : 'with-drawer') : ''}`}>
       <header className="case-header">
-        <button className="step" aria-label="Previous case" disabled={caseNumber <= 1} onClick={() => openCase(caseNumber - 1)}>
+        <button className="step" aria-label="Home" onClick={onHome}>
           ‹
         </button>
         <div className="case-title">
-          <h1>Case {c.number}</h1>
+          <h1>Case {c.code}</h1>
           <p>
             {DIFFICULTY_LABEL[c.difficulty]}, {c.suspects.length} suspects{progress.solved ? ', solved' : ''}
           </p>
         </div>
-        <button className="step" aria-label="Next case" onClick={() => openCase(caseNumber + 1)}>
-          ›
-        </button>
+        <span aria-hidden="true" />
       </header>
 
       <main>
@@ -116,7 +106,7 @@ export function Casebook() {
             }}
           />
         )}
-        {tab === 'accuse' && <AccusePanel c={c} progress={progress} dispatch={dispatch} onNextCase={() => openCase(caseNumber + 1)} />}
+        {tab === 'accuse' && <AccusePanel c={c} progress={progress} dispatch={dispatch} onNextCase={onNewCase} />}
       </main>
 
       <div className="dock">

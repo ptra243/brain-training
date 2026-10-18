@@ -3,9 +3,10 @@
 // npm run check-cases
 import { content } from '../src/content/index.ts';
 import { roomAdjacency } from '../src/engine/house.ts';
+import { caseCode, caseFor, codeFor, type QuickRef } from '../src/engine/caseRef.ts';
 import { generateCase } from '../src/engine/generate.ts';
 import { disproves } from '../src/engine/interrogation.ts';
-import { PRESETS, allLevels, caseSettings, levelsKey, presetOf, type CaseLevels } from '../src/engine/settings.ts';
+import { DIFFICULTIES, LENGTHS, PRESETS, allLevels, caseSettings, levelsKey, presetOf, type CaseLevels } from '../src/engine/settings.ts';
 import { allCandidates, countSolutions } from '../src/engine/solver.ts';
 import { sceneCrossword, sceneWordSearch } from '../src/game/sceneGames.ts';
 import { Rng } from '../src/engine/rng.ts';
@@ -108,7 +109,27 @@ for (const levels of others) {
 }
 console.log(`\n${others.length} other combinations × ${PER_COMBINATION} cases (slowest ${slowest.label}, ${slowest.ms.toFixed(1)} ms per case)`);
 
-const total = 3 * PER_PRESET + others.length * PER_COMBINATION;
+// Quick start: every difficulty and length she can pick, from codes spread over the range.
+const PER_QUICK = 20;
+for (const difficulty of DIFFICULTIES) {
+  for (const length of LENGTHS) {
+    for (let i = 1; i <= PER_QUICK; i++) {
+      const ref: QuickRef = { mode: 'quick', code: codeFor(i * 1_215_773), difficulty, length };
+      try {
+        for (const p of problems(caseFor(content, ref))) {
+          failures++;
+          console.log(`  FAIL quick ${caseCode(ref)}: ${p}`);
+        }
+      } catch (err) {
+        failures++;
+        console.log(`  FAIL quick ${caseCode(ref)}: ${(err as Error).message}`);
+      }
+    }
+  }
+}
+console.log(`${DIFFICULTIES.length * LENGTHS.length} Quick start choices × ${PER_QUICK} codes`);
+
+const total = 3 * PER_PRESET + others.length * PER_COMBINATION + DIFFICULTIES.length * LENGTHS.length * PER_QUICK;
 console.log(
   failures
     ? `\n${failures} problems`

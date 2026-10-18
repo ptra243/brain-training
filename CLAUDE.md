@@ -15,7 +15,9 @@ Wordle word list, the staircase grid with clue drawer, interrogations
 (rotating "Questioning" game and a "Final questioning" on hard cases), and
 a choice of three scene word games (Wordle, mini crossword, word search)
 that all type with the phone's own keyboard.
-Next: phase 5 (modes, campaign progression) and playtesting.
+Phase 5 under way: case settings as levels, and a home screen with Quick
+start (one case in progress, replayable case codes). Next: the campaign
+(see the build plan) and playtesting.
 Known gaps: medium and hard cat puzzles are unique but not
 checked for how much look-ahead they need (easy ones are).
 
@@ -116,8 +118,12 @@ checked for how much look-ahead they need (easy ones are).
 - **Content is data.** Names, rooms, objects and items live only in
   `src/content/`; code must not refer to them by name. The theme is still
   placeholder.
-- **Same case number = same case.** All randomness goes through the seeded
-  `Rng`; never use `Math.random()` in the engine.
+- **Same ref = same case.** Each mode seeds from its own text (`case-6-easy`,
+  `quick-K7QF2-medium`; see `src/engine/caseRef.ts`), so modes never share
+  cases. A case code like `K7QF2-MN` rebuilds a Quick start case exactly;
+  `#dev` can load and play one. Only one Quick start case is saved at a time.
+  All randomness goes through the seeded `Rng`; never use `Math.random()` in
+  the engine (the UI picks new codes with `crypto`).
 
 ## Design
 

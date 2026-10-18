@@ -200,6 +200,15 @@ export function unlockedClueIds(c: Case, p: Progress): Set<string> {
 
 export const sceneUnlocked = (c: Case, p: Progress) => c.games.some((g) => g.unlocksScene && gameDone(p, g.kind));
 
+/** Puzzles done out of the case's total, counting the scene word games as one. */
+export function puzzlesDone(c: Case, p: Progress): { done: number; total: number } {
+  const others = c.games.filter((g) => !g.unlocksScene);
+  return {
+    done: (sceneUnlocked(c, p) ? 1 : 0) + others.filter((g) => gameDone(p, g.kind)).length,
+    total: 1 + others.length,
+  };
+}
+
 /** Before: a blank. After: the sentence from whichever scene game she solved. */
 export const SCENE_TEASER = 'The body was found by the …';
 export function sceneText(c: Case, p: Progress): string | null {

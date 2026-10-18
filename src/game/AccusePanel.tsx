@@ -10,7 +10,7 @@ interface Props {
   onNextCase: () => void;
 }
 
-function Picker({
+export function Picker({
   legend,
   options,
   value,
@@ -66,7 +66,7 @@ export function AccusePanel({ c, progress, dispatch, onNextCase }: Props) {
             </tbody>
           </table>
           <button className="primary" onClick={onNextCase}>
-            Open case {c.number + 1}
+            Start a new case
           </button>
         </article>
       </section>

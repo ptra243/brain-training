@@ -181,6 +181,8 @@ export interface Clue {
 
 export interface Case {
   number: number;
+  /** What she sees as the case's name: "6", or a quick case's "K7QF2". */
+  code: string;
   seed: number;
   /** The logic level, shown as the case's difficulty. */
   difficulty: Difficulty;

@@ -5,9 +5,13 @@
 import { useMemo, useState } from 'react';
 import { content } from '../content/index.ts';
 import { cellLabel, roomAdjacency } from '../engine/house.ts';
-import { generateCase } from '../engine/generate.ts';
+import { caseCode, caseFor, parseCaseCode } from '../engine/caseRef.ts';
+import { campaignDifficulty, generateCase } from '../engine/generate.ts';
+import { PRESETS, type Length } from '../engine/settings.ts';
 import { allCandidates, countSolutions } from '../engine/solver.ts';
 import type { Difficulty } from '../engine/types.ts';
+import { emptyProgress } from '../game/state.ts';
+import { saveQuick, saveScreen } from '../game/storage.ts';
 
 const ROOM_COLOURS = ['#e8d7c3', '#cfdcc8', '#d6d3e6', '#ecd0cf', '#cfe0e6', '#ece2bf'];
 const nameOf = <T extends { id: string; name: string }>(list: readonly T[], id: string) =>
@@ -16,12 +20,25 @@ const nameOf = <T extends { id: string; name: string }>(list: readonly T[], id: 
 export function CaseInspector() {
   const [number, setNumber] = useState(1);
   const [difficulty, setDifficulty] = useState<Difficulty | 'campaign'>('campaign');
+  const [length, setLength] = useState<Length>('normal');
   const [reveal, setReveal] = useState(false);
+  // A case code ("K7QF2-MN") overrides the number: the exact case she was playing.
+  const [codeText, setCodeText] = useState('');
+  const ref = parseCaseCode(codeText);
 
-  const c = useMemo(
-    () => generateCase(content, number, difficulty === 'campaign' ? undefined : difficulty),
-    [number, difficulty],
-  );
+  const c = useMemo(() => {
+    if (ref) return caseFor(content, ref);
+    const preset = difficulty === 'campaign' ? undefined : difficulty;
+    if (length === 'normal') return generateCase(content, number, preset);
+    return generateCase(content, number, { ...PRESETS[preset ?? campaignDifficulty(number)], length });
+  }, [ref && caseCode(ref), number, difficulty, length]);
+
+  const play = () => {
+    if (!ref) return;
+    saveQuick({ ref, progress: emptyProgress() });
+    saveScreen('case');
+    window.location.hash = '';
+  };
   const solutions = useMemo(
     () =>
       countSolutions(
@@ -40,7 +57,7 @@ export function CaseInspector() {
   return (
     <main className="inspector">
       <header>
-        <h1>Case {c.number}</h1>
+        <h1>Case {c.code}</h1>
         <p className="muted">
           {c.difficulty} · {c.suspects.length} suspects · {c.clues.length} clues ·{' '}
           <span className={solutions === 1 ? 'ok' : 'bad'}>
@@ -64,7 +81,27 @@ export function CaseInspector() {
           <option value="medium">Medium</option>
           <option value="hard">Hard</option>
         </select>
+        <select value={length} onChange={(e) => setLength(e.target.value as Length)}>
+          <option value="short">Short</option>
+          <option value="normal">Normal</option>
+          <option value="long">Long</option>
+        </select>
       </div>
+
+      <div className="controls">
+        <input
+          className="code"
+          placeholder="Case code, e.g. K7QF2-MN"
+          value={codeText}
+          onChange={(e) => setCodeText(e.target.value)}
+          aria-label="Case code"
+        />
+        <button onClick={play} disabled={!ref}>
+          Play it
+        </button>
+      </div>
+      {codeText && !ref && <p className="bad">Not a case code.</p>}
+      {ref && <p className="muted">Quick start case {caseCode(ref)}. Playing it replaces the case in progress.</p>}
 
       <section>
         <h2>{house.name}</h2>

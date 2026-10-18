@@ -2,7 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
 import { generateCase } from '../engine/generate.ts';
-import { cellState, cluesAbout, emptyProgress, mentions, heldItem, holderOf, itemRoom, mapAccusation, markKey, placedRoom, reduce, sceneUnlocked, unlockedClueIds, type Action, type Progress } from './state.ts';
+import type { GameKind } from '../engine/types.ts';
+import { cellState, cluesAbout, emptyProgress, mentions, heldItem, holderOf, itemRoom, mapAccusation, markKey, placedRoom, puzzlesDone, reduce, sceneUnlocked, unlockedClueIds, type Action, type Progress } from './state.ts';
 
 const c = generateCase(content, 5);
 const [s1, s2] = c.suspects;
@@ -158,4 +159,13 @@ test('free clues show at the start; finishing a game unlocks its clues and the W
   assert.equal(sceneUnlocked(c, p), true);
   // A finished game can't be reopened by a late save.
   assert.equal(reduce(c, p, { type: 'game-save', kind: game.kind, data: {} }).games[game.kind]?.status, 'revealed');
+});
+
+test('puzzles done count the scene word games as one', () => {
+  const rotating = c.games.filter((g) => !g.unlocksScene);
+  assert.deepEqual(puzzlesDone(c, emptyProgress()), { done: 0, total: 1 + rotating.length });
+  const finish = (kind: GameKind): Action => ({ type: 'game-finish', kind, status: 'won', data: null });
+  const both = run(finish('wordle'), finish('crossword'));
+  assert.equal(puzzlesDone(c, both).done, 1);
+  assert.equal(puzzlesDone(c, reduce(c, both, { type: 'game-finish', kind: rotating[0].kind, status: 'revealed', data: null })).done, 2);
 });

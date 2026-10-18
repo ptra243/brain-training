@@ -14,15 +14,24 @@ export function campaignDifficulty(caseNumber: number): Difficulty {
 }
 
 
-/** A case from a preset ("easy") or any levels. Same number and levels, same case. */
+/** A numbered case from a preset ("easy") or any levels. Same number and levels, same case. */
 export function generateCase(
   content: Content,
   caseNumber: number,
   levelsOrPreset: Difficulty | CaseLevels = campaignDifficulty(caseNumber),
 ): Case {
   const levels = typeof levelsOrPreset === 'string' ? PRESETS[levelsOrPreset] : levelsOrPreset;
+  return buildCase(content, `case-${caseNumber}-${levelsKey(levels)}`, caseNumber, String(caseNumber), levels);
+}
+
+/**
+ * The case for a seed text. Each mode seeds from its own text ("case-6-easy",
+ * "quick-K7QF2-medium"), so modes never share cases. `number` and `code`
+ * only label it.
+ */
+export function buildCase(content: Content, seedText: string, caseNumber: number, code: string, levels: CaseLevels): Case {
   const difficulty = levels.logic;
-  const seed = hashSeed(`case-${caseNumber}-${levelsKey(levels)}`);
+  const seed = hashSeed(seedText);
   const rng = new Rng(seed);
   const settings = caseSettings(levels);
   const n = settings.suspects;
@@ -65,7 +74,7 @@ export function generateCase(
     }
   }
   if (remaining.length !== 1) {
-    throw new Error(`Case ${caseNumber}: clue pool could not pin down a single solution`);
+    throw new Error(`Case ${code}: clue pool could not pin down a single solution`);
   }
 
   // 4. Trim: drop any clue the others make redundant.
@@ -193,6 +202,7 @@ export function generateCase(
 
   return {
     number: caseNumber,
+    code,
     seed,
     difficulty,
     levels,
