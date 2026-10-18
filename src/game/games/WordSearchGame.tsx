@@ -56,18 +56,25 @@ export function WordSearchGame({ puzzle, data, finished, onChange, onFinish }: G
     e.preventDefault();
     setMessage('');
     press.current = { at, fresh: !start };
+    setHover(null);
     if (!start) setStart(at);
   };
   const move = (e: ReactPointerEvent) => {
-    if (!press.current) return;
+    const p = press.current;
+    if (!p) return;
     const at = cellAt(e.clientX, e.clientY);
-    if (at && !same(at, hover)) setHover(at);
+    if (!at || same(at, hover)) return;
+    // A drag runs from where this press began, so the highlight matches what she'll get.
+    if (!same(at, p.at) && !same(start, p.at)) setStart(p.at);
+    setHover(at);
   };
   const up = (e: ReactPointerEvent) => {
     const p = press.current;
     press.current = null;
     if (!p || finished) return;
-    const at = cellAt(e.clientX, e.clientY) ?? p.at;
+    // Lifting just off the grid or between squares keeps the last square she was on,
+    // so a word on the edge counts when it's highlighted.
+    const at = cellAt(e.clientX, e.clientY) ?? hover ?? p.at;
     if (!same(at, p.at)) return choose(p.at, at); // a drag
     if (p.fresh) return; // first tap: wait for the second
     if (same(at, start)) {
