@@ -309,6 +309,18 @@ body.dev { background: #f2f1ec; color: #222; }
   content: ''; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(to top right, transparent calc(50% - 1.5px), var(--pencil) calc(50% - 1.5px), var(--pencil) calc(50% + 1.5px), transparent calc(50% + 1.5px));
 }
+/* Map and grid hints */
+.case-header .hint-button { justify-self: end; }
+.casebook-hint { position: sticky; top: 0.5rem; z-index: 4; margin: 0 1rem 0.6rem; }
+.mark.wrong { box-shadow: inset 0 0 0 2.5px var(--pencil); border-radius: 50%; }
+.mark.pawed { color: var(--brass-deep); background: #f3e6bf; }
+.mark.pawed .paw { width: 70%; height: 70%; }
+.counter.wrong { box-shadow: 0 0 0 3px var(--pencil), 0 3px 6px rgba(0, 0, 0, 0.35); }
+.weapon.wrong { border-color: var(--pencil); box-shadow: 0 0 0 2px var(--pencil); }
+.counter.hinted, .weapon.hinted { outline: 3px dashed var(--brass); outline-offset: 2px; }
+.tile.hinted { box-shadow: inset 0 0 0 100px rgba(200, 162, 76, 0.35); }
+.clue-list li.pawed { position: relative; border-radius: 0.35rem; box-shadow: 0 0 0 3px var(--brass); }
+.clue-list li.pawed > .paw { position: absolute; top: -0.55rem; right: -0.4rem; z-index: 1; width: 1.4rem; height: 1.4rem; color: var(--brass-deep); }
 @keyframes hint-in { from { opacity: 0; transform: translateY(-6px) rotate(-2deg); } }
 @media (prefers-reduced-motion: reduce) { .hint-note { animation: none; } }
 

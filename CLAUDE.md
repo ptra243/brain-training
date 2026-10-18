@@ -44,50 +44,6 @@ checked for how much look-ahead they need (easy ones are).
   simple steps), a "why" step comes before the fill, and the board lights up
   what the hint is about (paw on the square). Done: crossword, sudoku, cat
   puzzle. To do: Wordle, word search, interrogation.
-rain-training games for one player (the owner's wife) plus a murder-mystery
-campaign: each minigame she wins unlocks a clue, and she solves the case on a
-floor-plan map and logic grids. Played mostly on her phone.
-
-Plan and design decisions: the "Murder Mystery Mode — Build Plan" doc (owner
-has the link). README has setup, layout and how a case is generated.
-
-## Status
-
-Phases 1–4 done (content, generator/solver, casebook UI, minigames), plus
-testimony/evidence clues, sudoku map coordinates, weapons on the map, a
-Wordle word list, the staircase grid with clue drawer, interrogations
-(rotating "Questioning" game and a "Final questioning" on hard cases), and
-a choice of three scene word games (Wordle, mini crossword, word search)
-that all type with the phone's own keyboard.
-Phase 5 under way: case settings as levels, a home screen with Quick start
-(one case in progress, replayable case codes), and 7-guest cases with shared
-rooms (a Quick start choice), and the campaign: one long mystery over up to
-3 rounds. Next: rumours and the time grid (see the build plan), and
-playtesting.
-Known gaps: medium and hard cat puzzles are unique but not
-checked for how much look-ahead they need (easy ones are).
-
-## Rules that are easy to break
-
-- **Puzzle first, clue as reward.** Every minigame is a complete puzzle on its
-  own. Its answer is never a room, suspect or weapon name, because the case
-  has so few of those that she could guess. Winning reveals the clue.
-- **She can never get stuck.** Every minigame has a "Solve puzzle" button
-  that asks "Are you sure? This can't be undone" (an in-app dialog, not
-  `window.confirm`), then reveals the answer and still unlocks the clue. Record
-  the game as `revealed`, not `won`, so stats can tell them apart.
-- **Hints come from the house cat** helping on the case (`cats` in
-  `src/content/`, picked by case number; not part of `Content`, so they never
-  change puzzle words). Each ask gives the next step on a gentle-to-strong
-  ladder: point out wrong letters/moves (red pencil), then where to look,
-  then fill in one square. The logic is a pure `…Hint()` function in
-  `src/games/` with tests that following hints always reaches a win; the UI
-  is `HintButton` + `HintNote` (`Hints.tsx`), the copy says what the cat did.
-  Save the hint count in the game's data; a game won with hints is still
-  `won`. Where the move has a reason (sudoku singles, the cat puzzle's
-  simple steps), a "why" step comes before the fill, and the board lights up
-  what the hint is about (paw on the square). Done: crossword, sudoku, cat
-  puzzle. To do: Wordle, word search, interrogation.
   **Map and grid hints** (`src/game/gridHints.ts`, Hint button in the case
   header on those tabs) only use clues she has found, never ones still
   locked in a puzzle. The cat points the way and doesn't fill: wrong marks

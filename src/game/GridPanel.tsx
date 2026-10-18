@@ -1,7 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { Case } from '../engine/types.ts';
 import { itemName, roomName, suspectColour, suspectInitials, suspectName } from './names.ts';
-import { cellState, sharedRooms, type Action, type GridKind, type Progress, type Subject } from './state.ts';
+import { Paw } from './games/Hints.tsx';
+import { showsWrong } from './gridHints.ts';
+import { cellState, markKey, sharedRooms, type Action, type GridKind, type Progress, type Subject } from './state.ts';
 
 interface Props {
   c: Case;
@@ -10,6 +12,8 @@ interface Props {
   /** The label she last tapped, highlighted while the clue drawer shows its clues. */
   focus: Subject | null;
   onFocus: (s: Subject) => void;
+  /** `markKey` of the square the cat's hint is about. */
+  pawedSquare?: string;
 }
 
 /**
@@ -28,7 +32,7 @@ const shortLabel = (name: string) => {
 
 const LABEL: Record<string, string> = { x: 'crossed out', o: 'ticked', 'auto-x': 'ruled out by a tick', none: 'blank' };
 
-export function GridPanel({ c, progress, dispatch, focus, onFocus }: Props) {
+export function GridPanel({ c, progress, dispatch, focus, onFocus, pawedSquare }: Props) {
   /** A row or column label: tap it to see the clues about that person, room or weapon. */
   const label = (s: Subject, name: string, content: ReactNode, className = 'axis-label') => {
     const on = focus?.kind === s.kind && focus.id === s.id;
@@ -41,14 +45,17 @@ export function GridPanel({ c, progress, dispatch, focus, onFocus }: Props) {
 
   const cell = (kind: GridKind, row: string, col: string, rowLabel: string, colLabel: string, split = false) => {
     const state = cellState(c, progress, kind, row, col);
+    const key = markKey(kind, row, col);
+    const wrong = showsWrong(progress, progress.gridHints, key);
+    const pawed = pawedSquare === key && !state;
     return (
       <td key={col} className={split ? 'split' : undefined}>
         <button
-          className={`mark ${state ?? ''}`}
-          aria-label={`${rowLabel}, ${colLabel}: ${LABEL[state ?? 'none']}`}
+          className={`mark ${state ?? ''} ${wrong ? 'wrong' : ''} ${pawed ? 'pawed' : ''}`}
+          aria-label={`${rowLabel}, ${colLabel}: ${LABEL[state ?? 'none']}${wrong ? ', circled as wrong' : ''}${pawed ? ', the cat is sitting here' : ''}`}
           onClick={() => dispatch({ type: 'cycle', kind, row, col })}
         >
-          {state === 'o' ? '✓' : state ? '✕' : ''}
+          {state === 'o' ? '✓' : state ? '✕' : pawed ? <Paw /> : ''}
         </button>
       </td>
     );

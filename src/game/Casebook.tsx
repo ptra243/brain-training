@@ -5,7 +5,11 @@ import { CluesPanel, type PuzzleGate } from './CluesPanel.tsx';
 import { GridPanel } from './GridPanel.tsx';
 import { MapPanel } from './MapPanel.tsx';
 import { GameScreen } from './games/GameScreen.tsx';
-import { reduce, type Action, type Progress, type Subject } from './state.ts';
+import { HintButton, HintNote } from './games/Hints.tsx';
+import { afterHint, gridHint, markActions } from './gridHints.ts';
+import { gridHintText } from './gridHintText.ts';
+import { reduce, sceneUnlocked, unlockedClueIds, visibleClues, type Action, type Progress, type Subject } from './state.ts';
+import { cats } from '../content/index.ts';
 import type { Case, GameKind } from '../engine/types.ts';
 
 type Tab = 'clues' | 'map' | 'grid' | 'accuse';
@@ -48,6 +52,28 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
     if (!readOnly) onProgress((p) => reduce(c, p, a));
   };
 
+  // Hints on the map and grid come from the house cat.
+  const helper = cats[c.number % cats.length];
+  const [hintNote, setHintNote] = useState<string | null>(null);
+  // Clues the last "why" hint pawed at, marked in the drawer.
+  const [pawed, setPawed] = useState<string[]>([]);
+  const askHint = () => {
+    const clues = visibleClues(c, progress);
+    const state = progress.gridHints ?? {};
+    // Only fill a square in once every clue is found: until then, a puzzle can still help.
+    const unlocked = unlockedClueIds(c, progress);
+    const h = gridHint(c, progress, clues, state, c.clues.every((cl) => unlocked.has(cl.id)));
+    setHintNote(gridHintText(helper, h, clues, sceneUnlocked(c, progress)));
+    const pawing = h.kind === 'why' && h.reason.type === 'clues' ? h.reason.clues : [];
+    setPawed(pawing);
+    if (pawing.length) {
+      setFocus(null);
+      setDrawerOpen(true);
+    }
+    if (h.kind === 'fill') markActions(h.cell, h.value).forEach(dispatch);
+    dispatch({ type: 'grid-hint', hints: afterHint(state, h) });
+  };
+
   const select = (t: Tab) => {
     setTab(t);
     window.scrollTo(0, 0);
@@ -85,12 +111,17 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
           <h1>{title ?? `Case ${c.code}`}</h1>
           <p>{subtitle ?? `${DIFFICULTY_LABEL[c.difficulty]}, ${c.suspects.length} suspects${progress.solved ? ', solved' : ''}`}</p>
         </div>
-        <span aria-hidden="true" />
+        {drawer && !readOnly ? <HintButton helper={helper} onAsk={askHint} /> : <span aria-hidden="true" />}
       </header>
 
       {banner}
 
       <main>
+        {drawer && hintNote && (
+          <div className="casebook-hint">
+            <HintNote text={hintNote} onClose={() => setHintNote(null)} />
+          </div>
+        )}
         {tab === 'clues' && (
           <CluesPanel
             c={c}
@@ -104,12 +135,21 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
             }}
           />
         )}
-        {tab === 'map' && <MapPanel c={c} progress={progress} dispatch={dispatch} onAccused={() => select('accuse')} />}
+        {tab === 'map' && (
+          <MapPanel
+            c={c}
+            progress={progress}
+            dispatch={dispatch}
+            onAccused={() => select('accuse')}
+            pawedSquare={hintNote ? progress.gridHints?.target : undefined}
+          />
+        )}
         {tab === 'grid' && (
           <GridPanel
             c={c}
             progress={progress}
             dispatch={dispatch}
+            pawedSquare={hintNote ? progress.gridHints?.target : undefined}
             focus={focus}
             onFocus={(s) => {
               const same = focus?.kind === s.kind && focus.id === s.id;
@@ -131,6 +171,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
             onToggle={() => setDrawerOpen((o) => !o)}
             focus={tab === 'grid' ? focus : null}
             onClearFocus={() => setFocus(null)}
+            pawed={pawed}
           />
         )}
         <nav className="tabbar" aria-label="Casebook">

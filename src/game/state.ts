@@ -5,6 +5,7 @@
 // a room exactly when the suspect×room cell holds a tick ('o').
 
 import type { Case, Clue, GameKind } from '../engine/types.ts';
+import type { GridHintState } from './gridHints.ts';
 
 export type Mark = 'x' | 'o';
 
@@ -38,6 +39,8 @@ export interface Progress {
   games: Partial<Record<GameKind, GameRecord>>;
   /** Sudoku statements unlocked early from their coordinate squares. Kept once found. */
   found: string[];
+  /** The cat's hints on the map and grid (`gridHints.ts`). */
+  gridHints?: GridHintState;
 }
 
 export const emptyProgress = (): Progress => ({ marks: {}, used: [], accusations: [], solved: false, games: {}, found: [] });
@@ -70,6 +73,7 @@ export type Action =
   | { type: 'game-save'; kind: GameKind; data: unknown }
   | { type: 'game-finish'; kind: GameKind; status: 'won' | 'revealed'; data: unknown }
   | { type: 'found'; clues: string[] }
+  | { type: 'grid-hint'; hints: GridHintState }
   | { type: 'reset' };
 
 function clearTicks(marks: Record<string, Mark>, kind: GridKind, row: string | null, col: string | null, c: Case) {
@@ -182,6 +186,8 @@ export function reduce(c: Case, p: Progress, action: Action): Progress {
       const add = action.clues.filter((id) => !p.found.includes(id));
       return add.length ? { ...p, found: [...p.found, ...add] } : p;
     }
+    case 'grid-hint':
+      return { ...p, gridHints: action.hints };
     case 'reset':
       return emptyProgress();
   }

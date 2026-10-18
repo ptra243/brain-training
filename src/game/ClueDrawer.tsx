@@ -1,5 +1,6 @@
 import type { Case } from '../engine/types.ts';
 import { ClueCard } from './ClueCard.tsx';
+import { Paw } from './games/Hints.tsx';
 import { itemName, roomName, suspectName } from './names.ts';
 import { SCENE_TEASER, mentions, sceneText, visibleClues, type Action, type Progress, type Subject } from './state.ts';
 
@@ -12,13 +13,15 @@ interface Props {
   /** Show only the clues about this person, room or weapon (picked from the grid's labels). */
   focus?: Subject | null;
   onClearFocus?: () => void;
+  /** Ids of clues the cat's hint is pawing at. */
+  pawed?: readonly string[];
 }
 
 export const subjectName = (s: Subject) =>
   s.kind === 'suspect' ? suspectName(s.id) : s.kind === 'room' ? `the ${roomName(s.id)}` : `the ${itemName(s.id)}`;
 
 /** The clues she has found, in a drawer above the tab bar so she can read them while working the map or grid. */
-export function ClueDrawer({ c, progress, dispatch, open, onToggle, focus, onClearFocus }: Props) {
+export function ClueDrawer({ c, progress, dispatch, open, onToggle, focus, onClearFocus, pawed = [] }: Props) {
   // Includes what finished interrogations produced (evidence cards, true answers).
   const visible = visibleClues(c, progress);
   const shown = focus ? visible.filter((clue) => mentions(clue, focus)) : visible;
@@ -57,7 +60,8 @@ export function ClueDrawer({ c, progress, dispatch, open, onToggle, focus, onCle
           {shown.length ? (
             <ul className="clue-list">
               {shown.map((clue) => (
-                <li key={clue.id}>
+                <li key={clue.id} className={pawed.includes(clue.id) ? 'pawed' : undefined}>
+                  {pawed.includes(clue.id) && <Paw />}
                   <ClueCard
                     clue={clue}
                     compact

@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, type CSSProperties, type PointerEvent } from
 import { content } from '../content/index.ts';
 import type { Case, Room } from '../engine/types.ts';
 import { ClueCard } from './ClueCard.tsx';
+import { cellOf, showsWrong } from './gridHints.ts';
 import { Dialog } from './Dialog.tsx';
 import { itemName, roomName, roomTint, suspectColour, suspectInitials, suspectName } from './names.ts';
 import {
@@ -9,6 +10,7 @@ import {
   holderOf,
   itemRoom,
   mapAccusation,
+  markKey,
   placedRoom,
   sceneUnlocked,
   visibleClues,
@@ -23,6 +25,8 @@ interface Props {
   dispatch: (a: Action) => void;
   /** After accusing from the map, show the result on the Accuse tab. */
   onAccused: () => void;
+  /** `markKey` of the grid square the cat's hint is about. */
+  pawedSquare?: string;
 }
 
 type Piece = { kind: 'suspect' | 'item'; id: string };
@@ -65,7 +69,17 @@ interface Drag extends Piece {
   moved: boolean;
 }
 
-export function MapPanel({ c, progress, dispatch, onAccused }: Props) {
+export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare }: Props) {
+  // The cat's hint: the person or weapon and the room (or weapon) its square is about.
+  const hint = pawedSquare ? cellOf(pawedSquare) : null;
+  const hintedPiece = (p: Piece) => !!hint && hint.row === p.id;
+  const hintedRoom = (room: string) => !!hint && hint.kind !== 'suspect-item' && hint.col === room;
+  // Red-pencil rings: a person or weapon whose place on the map was pointed out as wrong.
+  const wrongSuspect = (s: string) =>
+    c.rooms.some((r) => progress.marks[markKey('suspect-room', s, r)] === 'o' && showsWrong(progress, progress.gridHints, markKey('suspect-room', s, r)));
+  const wrongItem = (i: string) =>
+    c.rooms.some((r) => progress.marks[markKey('item-room', i, r)] === 'o' && showsWrong(progress, progress.gridHints, markKey('item-room', i, r))) ||
+    c.suspects.some((s) => progress.marks[markKey('suspect-item', s, i)] === 'o' && showsWrong(progress, progress.gridHints, markKey('suspect-item', s, i)));
   const { house } = content;
   const mapRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -157,7 +171,7 @@ export function MapPanel({ c, progress, dispatch, onAccused }: Props) {
     <button
       key={suspect}
       data-suspect={suspect}
-      className={`counter ${selected === suspect ? 'selected' : ''} ${lifted({ kind: 'suspect', id: suspect }) ? 'lifted' : ''}`}
+      className={`counter ${selected === suspect ? 'selected' : ''} ${lifted({ kind: 'suspect', id: suspect }) ? 'lifted' : ''} ${wrongSuspect(suspect) ? 'wrong' : ''} ${hintedPiece({ kind: 'suspect', id: suspect }) ? 'hinted' : ''}`}
       style={{ '--counter': suspectColour(suspect) } as CSSProperties}
       aria-label={`${suspectName(suspect)}${selected === suspect ? ', selected' : ''}`}
       aria-pressed={selected === suspect}
@@ -170,7 +184,7 @@ export function MapPanel({ c, progress, dispatch, onAccused }: Props) {
   const weapon = (item: string, held = false) => (
     <button
       key={item}
-      className={`weapon ${held ? 'carried' : ''} ${lifted({ kind: 'item', id: item }) ? 'lifted' : ''}`}
+      className={`weapon ${held ? 'carried' : ''} ${lifted({ kind: 'item', id: item }) ? 'lifted' : ''} ${wrongItem(item) ? 'wrong' : ''} ${hintedPiece({ kind: 'item', id: item }) || (hint?.kind === 'suspect-item' && hint.col === item) ? 'hinted' : ''}`}
       aria-label={`The ${itemName(item)}${held ? `, held by ${suspectName(holderOf(c, progress, item) ?? '')}` : ''}`}
       {...handlers({ kind: 'item', id: item })}
     >
@@ -233,7 +247,7 @@ export function MapPanel({ c, progress, dispatch, onAccused }: Props) {
                 return (
                   <div
                     key={`${r}-${col}`}
-                    className={`tile ${inPlay ? '' : 'closed'} ${room.id === scene ? 'scene' : ''}`}
+                    className={`tile ${inPlay ? '' : 'closed'} ${room.id === scene ? 'scene' : ''} ${hintedRoom(room.id) ? 'hinted' : ''}`}
                     onClick={() => onMapTap(r, col)}
                     style={{
                       background: roomTint(room.id),
