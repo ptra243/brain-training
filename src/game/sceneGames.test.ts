@@ -5,7 +5,19 @@ import { clueWords } from '../content/words.ts';
 import { generateCase } from '../engine/generate.ts';
 import { Rng } from '../engine/rng.ts';
 import { SCENE_GAMES, type Difficulty } from '../engine/types.ts';
-import { CROSSWORD_SIZE, cellKey, crosswordWon, entryCells, entrySolved, fullLetters, generateCrossword, solutionAt } from '../games/crossword.ts';
+import {
+  CROSSWORD_SIZE,
+  cellKey,
+  crosswordHint,
+  crosswordWon,
+  entryCells,
+  entryLabel,
+  entrySolved,
+  fullLetters,
+  generateCrossword,
+  newlyWrong,
+  solutionAt,
+} from '../games/crossword.ts';
 import { everyWordOnce, leftovers, lineBetween, wordAt } from '../games/wordsearch.ts';
 import { emptyProgress, finaleOpen, reduce, sceneGameInPlay, sceneText, sceneUnlocked } from './state.ts';
 import { sceneCrossword, sceneWordSearch, themeWords } from './sceneGames.ts';
@@ -103,6 +115,59 @@ test('crossword: won as soon as the shaded squares are right; words check on the
   delete letters[cellKey(...p.shaded[0])];
   assert.equal(crosswordWon(p, letters), false);
   assert.ok(crosswordWon(p, fullLetters(p)));
+});
+
+test('crossword hints: wrong letters first, then a word, then its letters until it is solved', () => {
+  const p = generateCrossword('TABLE', clueWords, new Set(), new Rng(4));
+  let letters: Record<string, string> = {};
+  const first = p.entries[0];
+  const [r0, c0] = entryCells(first)[0];
+  const bad = first.word[0] === 'Q' ? 'X' : 'Q';
+  letters[cellKey(r0, c0)] = bad;
+
+  const wrong = crosswordHint(p, letters);
+  assert.deepEqual(wrong, { kind: 'wrong', squares: { [cellKey(r0, c0)]: bad } });
+  const flagged = { [cellKey(r0, c0)]: bad };
+  // Pointed out once; a different wrong letter there is new.
+  assert.deepEqual(newlyWrong(p, letters, flagged), {});
+  assert.ok(Object.keys(newlyWrong(p, { ...letters, [cellKey(r0, c0)]: bad === 'Q' ? 'X' : 'Q' }, flagged)).length);
+
+  const nudge = crosswordHint(p, letters, { flagged });
+  assert.equal(nudge?.kind, 'nudge');
+  if (nudge?.kind !== 'nudge') return;
+  assert.ok(nudge.shadedSquares > 0, 'points at a word with an unsolved shaded square');
+  const state = { flagged, nudged: entryLabel(nudge.entry) };
+
+  // Taking letter hints fills that word and nothing else, then moves on.
+  for (let n = 0; n < nudge.entry.word.length; n++) {
+    const h = crosswordHint(p, letters, state);
+    assert.equal(h?.kind, 'letter');
+    if (h?.kind !== 'letter') return;
+    assert.equal(h.entry, nudge.entry);
+    assert.equal(h.letter, solutionAt(p, ...h.square));
+    assert.notEqual(letters[cellKey(...h.square)], h.letter, 'never a square she already has');
+    letters = { ...letters, [cellKey(...h.square)]: h.letter };
+    if (entrySolved(nudge.entry, letters)) break;
+  }
+  assert.ok(entrySolved(nudge.entry, letters));
+  assert.equal(crosswordHint(p, letters, state)?.kind === 'letter', false, 'solved word: a new nudge (or wrong letters) next');
+  assert.equal(crosswordHint(p, fullLetters(p)), null);
+});
+
+test('crossword hints always lead to a win', () => {
+  for (let seed = 1; seed <= 30; seed++) {
+    const p = generateCrossword('TABLE', clueWords, new Set(), new Rng(seed));
+    let letters: Record<string, string> = {};
+    let state: { flagged?: Record<string, string>; nudged?: string } = {};
+    let asks = 0;
+    while (!crosswordWon(p, letters)) {
+      const h = crosswordHint(p, letters, state)!;
+      if (h.kind === 'wrong') state = { ...state, flagged: { ...state.flagged, ...h.squares } };
+      else if (h.kind === 'nudge') state = { ...state, nudged: entryLabel(h.entry) };
+      else letters = { ...letters, [cellKey(...h.square)]: h.letter };
+      assert.ok(++asks < 200, `seed ${seed}: hints go round in circles`);
+    }
+  }
 });
 
 test('word search: lines, either-way reading, and the leftovers spell the hidden word', () => {

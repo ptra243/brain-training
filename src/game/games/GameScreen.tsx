@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Rng } from '../../engine/rng.ts';
-import { content } from '../../content/index.ts';
+import { cats, content } from '../../content/index.ts';
 import { roomAdjacency } from '../../engine/house.ts';
 import { disproves } from '../../engine/interrogation.ts';
 import type { Case, GameKind, GameSpec, Interrogation } from '../../engine/types.ts';
@@ -80,7 +80,7 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
 
   // The puzzle is rebuilt from the seed once per game; only her moves are saved.
   const built = useMemo(() => buildPuzzle(c, spec), [c, spec]);
-  const props = { finished, onChange: save, onFinish: finish };
+  const props = { finished, helper: cats[c.number % cats.length], onChange: save, onFinish: finish };
   let view: ReactNode = null;
   let solved: () => unknown = () => null;
   switch (built.kind) {

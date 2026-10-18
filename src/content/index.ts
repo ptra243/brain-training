@@ -90,3 +90,9 @@ export const items: readonly Item[] = [
 ];
 
 export const content: Content = { house, suspects, items };
+
+/**
+ * The house cats, who give hints in the minigames. One helps on each case.
+ * Kept out of `content` so they never change which words a puzzle may use.
+ */
+export const cats: readonly string[] = ['Biscuit', 'Marmalade', 'Pepper', 'Sooty', 'Duchess'];

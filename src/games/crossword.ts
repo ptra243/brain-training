@@ -250,6 +250,73 @@ export const entrySolved = (e: CrosswordEntry, letters: CrosswordLetters) =>
 export const crosswordWon = (p: CrosswordPuzzle, letters: CrosswordLetters) =>
   p.shaded.every(([r, c], k) => letterAt(letters, r, c) === p.answer[k]);
 
+// ---------- Hints ----------
+// Each ask gives the next most useful thing, gentlest first: point out wrong
+// letters, then name a word to try, then fill that word in a letter at a time.
+
+export const entryLabel = (e: Pick<CrosswordEntry, 'number' | 'dir'>) => `${e.number} ${e.dir}`;
+
+export type CrosswordHint =
+  /** Her letters that are wrong, keyed "r,c" with the wrong letter. */
+  | { kind: 'wrong'; squares: Record<string, string> }
+  /** A word worth trying next. */
+  | { kind: 'nudge'; entry: CrosswordEntry; shadedSquares: number }
+  /** One right letter, in the word she was nudged towards. */
+  | { kind: 'letter'; entry: CrosswordEntry; index: number; square: [number, number]; letter: string };
+
+export interface CrosswordHintState {
+  /** Wrong letters already pointed out, keyed "r,c". Not pointed out again while unchanged. */
+  flagged?: Readonly<Record<string, string>>;
+  /** `entryLabel` of the word she was last nudged towards. */
+  nudged?: string;
+}
+
+/** Her letters that are wrong and haven't been pointed out yet (or have changed since). */
+export function newlyWrong(p: CrosswordPuzzle, letters: CrosswordLetters, flagged: Readonly<Record<string, string>> = {}): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [key, letter] of Object.entries(letters)) {
+    const [r, c] = key.split(',').map(Number);
+    if (letter && letter !== solutionAt(p, r, c) && flagged[key] !== letter) out[key] = letter;
+  }
+  return out;
+}
+
+/** The word most worth trying: it reaches an unsolved shaded square, she has most of it, and it crosses others. */
+function bestEntry(p: CrosswordPuzzle, letters: CrosswordLetters): CrosswordEntry {
+  const shadedKeys = new Set(p.shaded.filter(([r, c], k) => letterAt(letters, r, c) !== p.answer[k]).map(([r, c]) => cellKey(r, c)));
+  const crossCount = new Map<string, number>();
+  for (const e of p.entries) for (const [r, c] of entryCells(e)) crossCount.set(cellKey(r, c), (crossCount.get(cellKey(r, c)) ?? 0) + 1);
+  const score = (e: CrosswordEntry) => {
+    const cells = entryCells(e);
+    const right = cells.filter(([r, c], i) => letterAt(letters, r, c) === e.word[i]).length;
+    const shaded = cells.filter(([r, c]) => shadedKeys.has(cellKey(r, c))).length;
+    const crosses = cells.filter(([r, c]) => crossCount.get(cellKey(r, c))! > 1).length;
+    return (shaded ? 100 : 0) + (right / cells.length) * 10 + crosses;
+  };
+  const open = p.entries.filter((e) => !entrySolved(e, letters));
+  return open.reduce((a, b) => (score(b) > score(a) ? b : a));
+}
+
+/** The next hint, or null once every square is right. */
+export function crosswordHint(p: CrosswordPuzzle, letters: CrosswordLetters, state: CrosswordHintState = {}): CrosswordHint | null {
+  const wrong = newlyWrong(p, letters, state.flagged);
+  if (Object.keys(wrong).length) return { kind: 'wrong', squares: wrong };
+  if (p.entries.every((e) => entrySolved(e, letters))) return null;
+
+  const nudged = p.entries.find((e) => entryLabel(e) === state.nudged && !entrySolved(e, letters));
+  if (!nudged) {
+    const entry = bestEntry(p, letters);
+    const shadedSquares = entryCells(entry).filter(([r, c]) => p.shaded.some(([sr, sc]) => sr === r && sc === c)).length;
+    return { kind: 'nudge', entry, shadedSquares };
+  }
+  // Fill a square shared with another word first: it helps both.
+  const cells = entryCells(nudged);
+  const open = cells.map((sq, i) => ({ sq, i })).filter(({ sq: [r, c], i }) => letterAt(letters, r, c) !== nudged.word[i]);
+  const shared = open.find(({ sq: [r, c] }) => p.entries.some((e) => e !== nudged && entryCells(e).some(([er, ec]) => er === r && ec === c)));
+  const { sq, i } = shared ?? open[0];
+  return { kind: 'letter', entry: nudged, index: i, square: sq, letter: nudged.word[i] };
+}
+
 /** Every square filled in correctly, for "Solve puzzle". */
 export function fullLetters(p: CrosswordPuzzle): Record<string, string> {
   const out: Record<string, string> = {};

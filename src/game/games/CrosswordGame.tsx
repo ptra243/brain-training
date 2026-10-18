@@ -1,21 +1,31 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   cellKey,
+  crosswordHint,
   crosswordWon,
+  entryLabel,
   entryCells,
   entrySolved,
   fullLetters,
   letterAt,
   type CrosswordEntry,
+  type CrosswordHint,
   type CrosswordPuzzle,
   type Direction,
 } from '../../games/crossword.ts';
+import { HintButton, HintNote } from './Hints.tsx';
 import { TypingInput, focusTyping, hasFinePointer } from './TypingInput.tsx';
 import type { GameProps } from './types.ts';
 
 export interface CrosswordData {
   /** Her letters, keyed "r,c". */
   letters: Record<string, string>;
+  /** Wrong letters a hint has crossed in red, keyed "r,c". Shown while the letter is unchanged. */
+  flagged?: Record<string, string>;
+  /** The word the last hint pointed at ("3 down"). */
+  nudged?: string;
+  /** How many hints she asked for. */
+  hints?: number;
 }
 
 export const crosswordInitial = (): CrosswordData => ({ letters: {} });
@@ -35,11 +45,32 @@ interface Square {
   shaded?: number;
 }
 
-const label = (e: CrosswordEntry) => `${e.number} ${e.dir}`;
+const label = entryLabel;
 
-export function CrosswordGame({ puzzle, data, finished, onChange, onFinish }: GameProps<CrosswordPuzzle, CrosswordData>) {
+const ORDINALS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'];
+const count = (n: number, one: string, many: string) => (n === 1 ? one : `${n} ${many}`);
+
+/** What the cat did, in a sentence. */
+function hintText(cat: string, h: CrosswordHint): string {
+  switch (h.kind) {
+    case 'wrong': {
+      const n = Object.keys(h.squares).length;
+      return `${cat} pads across the grid and sits on ${count(n, "a letter that isn't right", "letters that aren't right")}. ${n === 1 ? "It's" : "They're"} crossed in red pencil.`;
+    }
+    case 'nudge':
+      return h.shadedSquares
+        ? `${cat} curls up on ${label(h.entry)}. ${count(h.shadedSquares, 'One of its squares is', 'of its squares are')} shaded, so it's worth a go.`
+        : `${cat} curls up on ${label(h.entry)}. Try that one next.`;
+    case 'letter':
+      return `${cat} knocks a pencil off the table. It rolls to ${label(h.entry)}: the ${ORDINALS[h.index]} letter is ${h.letter}.`;
+  }
+}
+
+export function CrosswordGame({ puzzle, data, finished, helper = 'The cat', onChange, onFinish }: GameProps<CrosswordPuzzle, CrosswordData>) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [focused, setFocused] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const flagged = data?.flagged ?? {};
   // Saves from the old one-line crossword have no `letters`: start afresh.
   const letters = data?.letters ?? {};
   const { entries, shaded, answer } = puzzle;
@@ -84,9 +115,29 @@ export function CrosswordGame({ puzzle, data, finished, onChange, onFinish }: Ga
     if (!finished && hasFinePointer()) focusTyping(inputRef);
   }, []); // once, when the game opens
 
-  const commit = (next: Record<string, string>) => {
-    if (crosswordWon(puzzle, next)) onFinish('won', { letters: next });
-    else onChange({ letters: next });
+  const commit = (next: Record<string, string>, extra: Partial<CrosswordData> = {}) => {
+    const d = { ...data, ...extra, letters: next };
+    if (crosswordWon(puzzle, next)) onFinish('won', d);
+    else onChange(d);
+  };
+
+  const askHint = () => {
+    if (finished) return;
+    const h = crosswordHint(puzzle, letters, { flagged, nudged: data?.nudged });
+    if (!h) return;
+    const hints = (data?.hints ?? 0) + 1;
+    setNote(hintText(helper, h));
+    if (h.kind === 'wrong') commit(letters, { hints, flagged: { ...flagged, ...h.squares } });
+    else if (h.kind === 'nudge') {
+      setCursor(start(h.entry, letters));
+      commit(letters, { hints, nudged: label(h.entry) });
+    } else {
+      const key = cellKey(...h.square);
+      const rest = { ...flagged };
+      delete rest[key];
+      setCursor({ r: h.square[0], c: h.square[1], dir: h.entry.dir });
+      commit({ ...letters, [key]: h.letter }, { hints, flagged: rest });
+    }
   };
 
   /** The next word after `e` (across then down) that still has an empty square. */
@@ -184,12 +235,18 @@ export function CrosswordGame({ puzzle, data, finished, onChange, onFinish }: Ga
         need them all.
       </p>
       {!finished && (
-        <p className="crossword-clue" aria-live="polite">
-          <b>
-            {active.number} {active.dir}.
-          </b>{' '}
-          {active.clue} <span className="muted-on-card">({active.word.length})</span>
-        </p>
+        <div className="crossword-top">
+          <div className="crossword-clue">
+            <p aria-live="polite">
+              <b>
+                {active.number} {active.dir}.
+              </b>{' '}
+              {active.clue} <span className="muted-on-card">({active.word.length})</span>
+            </p>
+            <HintButton helper={helper} onAsk={askHint} />
+          </div>
+          {note && <HintNote text={note} onClose={() => setNote(null)} />}
+        </div>
       )}
       <div className="typing-host">
         <div
@@ -208,12 +265,13 @@ export function CrosswordGame({ puzzle, data, finished, onChange, onFinish }: Ga
               const isCursor = !finished && focused && cursor.r === r && cursor.c === c;
               const inWord = !finished && activeCells.some(([ar, ac]) => ar === r && ac === c);
               const solved = (here.across && entrySolved(here.across, letters)) || (here.down && entrySolved(here.down, letters));
+              const wrong = !finished && !!letter && flagged[cellKey(r, c)] === letter;
               const words = [here.across, here.down].filter(Boolean).map((e) => label(e!)).join(' and ');
               return (
                 <button
                   key={`${r}-${c}`}
-                  className={`crossword-cell ${here.shaded ? 'shaded' : ''} ${inWord ? 'in-row' : ''} ${isCursor ? 'cursor' : ''} ${solved ? 'solved' : ''}`}
-                  aria-label={`${words}${letter ? `, ${letter}` : ''}${here.shaded ? `, shaded square ${here.shaded}` : ''}`}
+                  className={`crossword-cell ${here.shaded ? 'shaded' : ''} ${inWord ? 'in-row' : ''} ${isCursor ? 'cursor' : ''} ${solved ? 'solved' : ''} ${wrong ? 'wrong' : ''}`}
+                  aria-label={`${words}${letter ? `, ${letter}` : ''}${wrong ? ', crossed out as wrong' : ''}${here.shaded ? `, shaded square ${here.shaded}` : ''}`}
                   // Keep the keyboard up while moving between squares.
                   onPointerDown={(e) => e.preventDefault()}
                   onClick={() => select(r, c)}

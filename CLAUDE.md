@@ -28,6 +28,15 @@ checked for how much look-ahead they need (easy ones are).
   that asks "Are you sure? This can't be undone" (an in-app dialog, not
   `window.confirm`), then reveals the answer and still unlocks the clue. Record
   the game as `revealed`, not `won`, so stats can tell them apart.
+- **Hints come from the house cat** helping on the case (`cats` in
+  `src/content/`, picked by case number; not part of `Content`, so they never
+  change puzzle words). Each ask gives the next step on a gentle-to-strong
+  ladder: point out wrong letters/moves (red pencil), then where to look,
+  then fill in one square. The logic is a pure `…Hint()` function in
+  `src/games/` with tests that following hints always reaches a win; the UI
+  is `HintButton` + `HintNote` (`Hints.tsx`), the copy says what the cat did.
+  Save the hint count in the game's data; a game won with hints is still
+  `won`. Done: crossword. To do: the other games.
 - **Each case has three scene word games plus two rotating games** drawn
   from cat puzzle, sudoku and interrogation; hard cases add a finale
   interrogation that opens once the others are done and uses her casebook
