@@ -37,8 +37,8 @@ checked for how much look-ahead they need (easy ones are).
   is `HintButton` + `HintNote` (`Hints.tsx`), the copy says what the cat did.
   Save the hint count in the game's data; a game won with hints is still
   `won`. Done: crossword. To do: the other games.
-- **Each case has three scene word games plus two rotating games** drawn
-  from cat puzzle, sudoku and interrogation; hard cases add a finale
+- **Each case has three scene word games plus one to three rotating games**
+  (two at the presets) drawn from cat puzzle, sudoku and interrogation; hard logic adds a finale
   interrogation that opens once the others are done and uses her casebook
   as evidence. The scene games (Wordle, mini crossword, word search) all have
   `unlocksScene`; she picks one from a chooser and any one reveals the scene
@@ -88,6 +88,12 @@ checked for how much look-ahead they need (easy ones are).
   object must be in it (tested).
 - **Every case must have exactly one solution** and a minimal clue set.
   Never ship a generator change without `npm run check-cases` passing.
+- **Case settings are levels** (`src/engine/settings.ts`): suspects (4–5),
+  logic, minigames and length, each a few fixed values. `caseSettings`
+  turns them into generator settings and clamps anything unsafe;
+  `clueShares` gives every rotating game 1 to 7 clues and hands the rest
+  out free. The easy, medium and hard presets must keep producing the same
+  cases. `npm run check-cases` checks every combination of levels.
 - **Map and grid share one source of truth**: a counter is in a room exactly
   when the suspect×room cell is ticked; a weapon tag is in a room when
   item×room is ticked, and held when suspect×item is ticked (a held weapon

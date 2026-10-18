@@ -1,0 +1,198 @@
+// What a case is made of, as a few fixed levels she (or a preset) picks, and
+// the generator settings each combination turns into. Every combination is
+// checked by `npm run check-cases`, so only levels listed here can ship.
+
+import type { ClueType, Difficulty } from './types.ts';
+
+export type Length = 'short' | 'normal' | 'long';
+
+export interface CaseLevels {
+  /** Suspects, and so rooms and weapons too. 5 is the most the grid fits at 360px. */
+  suspects: 4 | 5;
+  /** How hard the deduction is: which clue types are used, free clues, a finale. */
+  logic: Difficulty;
+  /** How hard each minigame is: cat and sudoku size, interrogation, word search. */
+  minigames: Difficulty;
+  /** How many rotating games share the clues: 1, 2 or 3. */
+  length: Length;
+}
+
+export const SUSPECT_COUNTS: readonly CaseLevels['suspects'][] = [4, 5];
+export const DIFFICULTIES: readonly Difficulty[] = ['easy', 'medium', 'hard'];
+export const LENGTHS: readonly Length[] = ['short', 'normal', 'long'];
+
+/** The three presets cases have always used. Their cases must never change. */
+export const PRESETS: Record<Difficulty, CaseLevels> = {
+  easy: { suspects: 4, logic: 'easy', minigames: 'easy', length: 'normal' },
+  medium: { suspects: 4, logic: 'medium', minigames: 'medium', length: 'normal' },
+  hard: { suspects: 5, logic: 'hard', minigames: 'hard', length: 'normal' },
+};
+
+/** Every combination of levels, for the case check. */
+export function allLevels(): CaseLevels[] {
+  return SUSPECT_COUNTS.flatMap((suspects) =>
+    DIFFICULTIES.flatMap((logic) =>
+      DIFFICULTIES.flatMap((minigames) => LENGTHS.map((length) => ({ suspects, logic, minigames, length }))),
+    ),
+  );
+}
+
+/** The preset these levels match, if any. */
+export function presetOf(levels: CaseLevels): Difficulty | undefined {
+  return DIFFICULTIES.find((d) => {
+    const p = PRESETS[d];
+    return p.suspects === levels.suspects && p.logic === levels.logic && p.minigames === levels.minigames && p.length === levels.length;
+  });
+}
+
+/** A short stable name for the levels, used in seeds: a preset keeps its old name so its cases don't change. */
+export function levelsKey(levels: CaseLevels): string {
+  return presetOf(levels) ?? `${levels.suspects}-${levels.logic}-${levels.minigames}-${levels.length}`;
+}
+
+export interface CaseSettings {
+  suspects: number;
+  /** Clues she gets for free at the start, at least. More are given when the games can't hold them all. */
+  freeClues: number;
+  /** Most sudoku statements that unlock early from coordinate squares. */
+  located: number;
+  /** End with a finale interrogation using her casebook. */
+  finale: boolean;
+  /** How many of the cat puzzle, sudoku and interrogation are played. */
+  games: number;
+  /** Most clues one rotating game may unlock; the rest are given free. */
+  maxPerGame: number;
+  catSize: number;
+  /** Cat puzzle starts from a one-square zone and needs no looking ahead. */
+  catEasy: boolean;
+  sudoku: { size: 6 | 9; givens: number };
+  /** Interrogations need two pieces of evidence, not one. */
+  hardInterrogation: boolean;
+  /** Word search: 1 (across and down) to 3 (any direction, backwards). */
+  wordSearchLevel: 1 | 2 | 3;
+  /** Relative chance of each clue type being tried. 0 = never used. */
+  weights: Partial<Record<ClueType, number>>;
+  /** Most clues of a type allowed in one case. */
+  caps: Partial<Record<ClueType, number>>;
+}
+
+const LOGIC: Record<Difficulty, Pick<CaseSettings, 'freeClues' | 'located' | 'finale' | 'weights' | 'caps'>> = {
+  easy: {
+    freeClues: 2,
+    located: 2,
+    finale: false,
+    weights: {
+      'suspect-room': 1,
+      'suspect-item': 1,
+      'suspect-not-room': 3,
+      'suspect-not-item': 3,
+      'item-room': 2,
+      'suspect-either-room': 2,
+      'suspect-next-to-room': 1,
+    },
+    caps: { 'suspect-room': 1, 'suspect-item': 1 },
+  },
+  medium: {
+    freeClues: 2,
+    located: 2,
+    finale: false,
+    weights: {
+      'suspect-not-room': 2,
+      'suspect-not-item': 2,
+      'item-room': 1,
+      'item-not-room': 2,
+      'suspect-either-room': 2,
+      'suspect-next-to-room': 2,
+      'suspects-adjacent': 1,
+      'suspects-not-adjacent': 1,
+    },
+    caps: { 'item-room': 1 },
+  },
+  hard: {
+    freeClues: 3,
+    located: 3,
+    finale: true,
+    weights: {
+      'suspect-not-room': 2,
+      'suspect-not-item': 2,
+      'item-not-room': 2,
+      'suspect-either-room': 2,
+      'suspect-next-to-room': 3,
+      'suspects-adjacent': 2,
+      'suspects-not-adjacent': 2,
+    },
+    caps: {},
+  },
+};
+
+const MINIGAMES: Record<Difficulty, Pick<CaseSettings, 'catSize' | 'catEasy' | 'sudoku' | 'hardInterrogation' | 'wordSearchLevel'>> = {
+  easy: { catSize: 6, catEasy: true, sudoku: { size: 6, givens: 16 }, hardInterrogation: false, wordSearchLevel: 1 },
+  medium: { catSize: 7, catEasy: false, sudoku: { size: 6, givens: 13 }, hardInterrogation: true, wordSearchLevel: 2 },
+  hard: { catSize: 8, catEasy: false, sudoku: { size: 9, givens: 32 }, hardInterrogation: true, wordSearchLevel: 3 },
+};
+
+const GAMES: Record<Length, number> = { short: 1, normal: 2, long: 3 };
+
+/** One rotating game unlocks at most this many clues; past it, clues are handed out free. */
+const MAX_PER_GAME = 7;
+
+/** Generator settings for these levels, with anything unsafe clamped. */
+export function caseSettings(levels: CaseLevels): CaseSettings {
+  return {
+    // Clamped to what the grid fits at 360px and what the content holds.
+    suspects: Math.min(5, Math.max(4, levels.suspects)),
+    ...LOGIC[levels.logic],
+    ...MINIGAMES[levels.minigames],
+    games: GAMES[levels.length],
+    maxPerGame: MAX_PER_GAME,
+  };
+}
+
+export interface ClueShares {
+  /** Clues given free at the start. */
+  free: number;
+  /** Clues for the finale interrogation. */
+  finale: number;
+  /** Clues for each rotating game, in play order. */
+  games: number[];
+}
+
+/**
+ * How a case's clues are shared out. Every rotating game unlocks at least one
+ * clue and at most `maxPerGame`; a sudoku gets two when it can (one located,
+ * one for finishing the grid). Free clues make up the rest, at least
+ * `freeClues` while every game still gets one.
+ */
+export function clueShares(total: number, s: CaseSettings, sudokuAt: number): ClueShares {
+  const k = s.games;
+  let free = Math.min(s.freeClues, total - 2);
+  const finale = s.finale ? Math.min(2, total - free - 2) : 0;
+  let rest = total - free - finale;
+  // Too few clues for every game to get one: give fewer away free.
+  if (rest < k) {
+    free = Math.max(0, free - (k - rest));
+    rest = total - free - finale;
+  }
+  // Too many for the games to hold: give the overflow away free.
+  if (rest > k * s.maxPerGame) {
+    free += rest - k * s.maxPerGame;
+    rest = k * s.maxPerGame;
+  }
+  let games: number[];
+  if (k === 2) {
+    // The split cases have always used.
+    const first = sudokuAt === 0 ? (rest >= 3 ? Math.max(2, Math.floor(rest / 2)) : 1) : Math.ceil(rest / 2);
+    games = [first, rest - first];
+  } else {
+    games = Array.from({ length: k }, (_, i) => Math.floor(rest / k) + (i < rest % k ? 1 : 0));
+    // A sudoku likes two: one located, one for finishing.
+    if (sudokuAt >= 0 && games[sudokuAt] < 2 && rest >= k + 1) {
+      const donor = games.findIndex((g, i) => i !== sudokuAt && g > 1);
+      if (donor >= 0) {
+        games[donor]--;
+        games[sudokuAt]++;
+      }
+    }
+  }
+  return { free, finale, games };
+}

@@ -1,3 +1,5 @@
+import type { CaseLevels } from './settings.ts';
+
 // ---------- Static content (written once, lives in src/content) ----------
 
 /** A cell on the house map grid: [row, col], both 0-based. */
@@ -180,7 +182,9 @@ export interface Clue {
 export interface Case {
   number: number;
   seed: number;
+  /** The logic level, shown as the case's difficulty. */
   difficulty: Difficulty;
+  levels: CaseLevels;
   houseId: string;
   /** Suspect ids in play, in solution order. */
   suspects: readonly string[];

@@ -5,85 +5,7 @@ import { Rng, hashSeed } from './rng.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
 import { SCENE_GAMES, type Case, type Clue, type ClueDelivery, type ClueFact, type ClueSource, type ClueType, type Content, type Difficulty, type GameKind, type GameSpec, type Interrogation } from './types.ts';
 import { buildInterrogation, type CaseFacts } from './interrogation.ts';
-
-interface DifficultySettings {
-  suspects: number;
-  /** Clues she gets for free at the start. */
-  freeClues: number;
-  /** Most sudoku statements that unlock early from coordinate squares. */
-  located: number;
-  /** End with a finale interrogation using her casebook. */
-  finale: boolean;
-  catSize: number;
-  /** Cat puzzle starts from a one-square zone and needs no looking ahead. */
-  catEasy: boolean;
-  sudoku: { size: 6 | 9; givens: number };
-  /** Relative chance of each clue type being tried. 0 = never used. */
-  weights: Partial<Record<ClueType, number>>;
-  /** Most clues of a type allowed in one case. */
-  caps: Partial<Record<ClueType, number>>;
-}
-
-export const DIFFICULTY: Record<Difficulty, DifficultySettings> = {
-  easy: {
-    suspects: 4,
-    freeClues: 2,
-    located: 2,
-    finale: false,
-    catSize: 6,
-    catEasy: true,
-    sudoku: { size: 6, givens: 16 },
-    weights: {
-      'suspect-room': 1,
-      'suspect-item': 1,
-      'suspect-not-room': 3,
-      'suspect-not-item': 3,
-      'item-room': 2,
-      'suspect-either-room': 2,
-      'suspect-next-to-room': 1,
-    },
-    caps: { 'suspect-room': 1, 'suspect-item': 1 },
-  },
-  medium: {
-    suspects: 4,
-    freeClues: 2,
-    located: 2,
-    finale: false,
-    catSize: 7,
-    catEasy: false,
-    sudoku: { size: 6, givens: 13 },
-    weights: {
-      'suspect-not-room': 2,
-      'suspect-not-item': 2,
-      'item-room': 1,
-      'item-not-room': 2,
-      'suspect-either-room': 2,
-      'suspect-next-to-room': 2,
-      'suspects-adjacent': 1,
-      'suspects-not-adjacent': 1,
-    },
-    caps: { 'item-room': 1 },
-  },
-  hard: {
-    suspects: 5,
-    freeClues: 3,
-    located: 3,
-    finale: true,
-    catSize: 8,
-    catEasy: false,
-    sudoku: { size: 9, givens: 32 },
-    weights: {
-      'suspect-not-room': 2,
-      'suspect-not-item': 2,
-      'item-not-room': 2,
-      'suspect-either-room': 2,
-      'suspect-next-to-room': 3,
-      'suspects-adjacent': 2,
-      'suspects-not-adjacent': 2,
-    },
-    caps: {},
-  },
-};
+import { PRESETS, caseSettings, clueShares, levelsKey, type CaseLevels } from './settings.ts';
 
 /** Difficulty curve for the campaign: a few easy cases, then mostly medium with every third hard. */
 export function campaignDifficulty(caseNumber: number): Difficulty {
@@ -92,14 +14,17 @@ export function campaignDifficulty(caseNumber: number): Difficulty {
 }
 
 
+/** A case from a preset ("easy") or any levels. Same number and levels, same case. */
 export function generateCase(
   content: Content,
   caseNumber: number,
-  difficulty: Difficulty = campaignDifficulty(caseNumber),
+  levelsOrPreset: Difficulty | CaseLevels = campaignDifficulty(caseNumber),
 ): Case {
-  const seed = hashSeed(`case-${caseNumber}-${difficulty}`);
+  const levels = typeof levelsOrPreset === 'string' ? PRESETS[levelsOrPreset] : levelsOrPreset;
+  const difficulty = levels.logic;
+  const seed = hashSeed(`case-${caseNumber}-${levelsKey(levels)}`);
   const rng = new Rng(seed);
-  const settings = DIFFICULTY[difficulty];
+  const settings = caseSettings(levels);
   const n = settings.suspects;
   const { house } = content;
 
@@ -150,26 +75,28 @@ export function generateCase(
     if (countSolutions(candidates, without, ctx, 1) === 1) minimal = without;
   }
 
-  // 5. Pick tonight's games: a word game of her choice gives the scene; two of the
-  //    cat puzzle, sudoku and interrogation share the clues. Hard cases end
-  //    with a finale interrogation that uses her casebook as evidence.
+  // 5. Pick tonight's games: a word game of her choice gives the scene; one to
+  //    three of the cat puzzle, sudoku and interrogation share the clues. Hard
+  //    logic ends with a finale interrogation that uses her casebook as evidence.
   const order = rng.shuffle(minimal);
   const ROTATION: GameKind[] = ['cats', 'sudoku', 'interrogation'];
-  const picked = rng.shuffle(ROTATION).slice(0, 2);
-  const kinds = ROTATION.filter((k) => picked.includes(k));
-  if (settings.finale) kinds.push('finale');
+  const picked = rng.shuffle(ROTATION).slice(0, settings.games);
+  const rotating = ROTATION.filter((k) => picked.includes(k));
+  const kinds = settings.finale ? [...rotating, 'finale' as const] : rotating;
 
-  // 6. Hand out the clues. A few are free testimony. The finale gets up to
-  //    two; the rest are split between the two rotating games. A sudoku's
-  //    "located" statements unlock early from two coordinate squares.
-  const free = Math.min(settings.freeClues, order.length - 2);
-  let rest = order.slice(free);
-  const finaleFacts = settings.finale ? rest.slice(-Math.min(2, rest.length - 2)) : [];
-  rest = rest.filter((f) => !finaleFacts.includes(f));
-  const [gameA, gameB] = kinds;
-  const shareA =
-    gameA === 'sudoku' ? (rest.length >= 3 ? Math.max(2, Math.floor(rest.length / 2)) : 1) : Math.ceil(rest.length / 2);
-  const shareOf = (k: GameKind) => (k === gameA ? rest.slice(0, shareA) : k === gameB ? rest.slice(shareA) : []);
+  // 6. Hand out the clues, in order: the free ones, each rotating game's
+  //    share, then up to two for the finale. A sudoku's "located" statements
+  //    unlock early from two coordinate squares.
+  const shares = clueShares(order.length, settings, rotating.indexOf('sudoku'));
+  const free = shares.free;
+  const gameFacts = new Map<GameKind, ClueFact[]>();
+  let at = free;
+  rotating.forEach((k, i) => {
+    gameFacts.set(k, order.slice(at, at + shares.games[i]));
+    at += shares.games[i];
+  });
+  const finaleFacts = order.slice(at, at + shares.finale);
+  const shareOf = (k: GameKind) => gameFacts.get(k) ?? [];
   const sudokuFacts = shareOf('sudoku');
   // Sudoku: room clues first so they can be located, and keep one back for finishing the grid.
   const locatedFacts: ClueFact[] = sudokuFacts.filter(canLocate).slice(0, Math.min(settings.located, sudokuFacts.length - 1));
@@ -209,7 +136,7 @@ export function generateCase(
   const interrogations: Partial<Record<GameKind, Interrogation>> = {};
   if (kinds.includes('interrogation')) {
     interrogations.interrogation = buildInterrogation({
-      cf, content, rng: new Rng(hashSeed(`${seed}-interrogation`)), idPrefix: 'iq-', delivery: 'interrogation', hard: difficulty !== 'easy', known,
+      cf, content, rng: new Rng(hashSeed(`${seed}-interrogation`)), idPrefix: 'iq-', delivery: 'interrogation', hard: settings.hardInterrogation, known,
     });
   }
   if (kinds.includes('finale')) {
@@ -268,6 +195,7 @@ export function generateCase(
     number: caseNumber,
     seed,
     difficulty,
+    levels,
     houseId: house.id,
     suspects,
     rooms,
