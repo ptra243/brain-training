@@ -1,11 +1,12 @@
 import { roomAdjacency } from './house.ts';
-import { WORDLE_BLANK, cluePool, type ClueContext } from './clues.ts';
+import { WORDLE_BLANK, cluePool, compileClue, type ClueContext } from './clues.ts';
 import { canLocate, plainText, wordClue } from './wording.ts';
 import { Rng, hashSeed } from './rng.ts';
+import { allHoldings, allRoomings, countMatching } from './search.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
-import { SCENE_GAMES, type Case, type Clue, type ClueDelivery, type ClueFact, type ClueSource, type ClueType, type Content, type Difficulty, type GameKind, type GameSpec, type Interrogation } from './types.ts';
+import { SCENE_GAMES, type Case, type Clue, type ClueDelivery, type ClueFact, type ClueSource, type ClueType, type Content, type Difficulty, type GameKind, type GameSpec, type Interrogation, type Solution } from './types.ts';
 import { buildInterrogation, type CaseFacts } from './interrogation.ts';
-import { PRESETS, caseSettings, clueShares, levelsKey, type CaseLevels } from './settings.ts';
+import { PRESETS, caseSettings, clueShares, levelsKey, type CaseLevels, type CaseSettings } from './settings.ts';
 
 /** Difficulty curve for the campaign: a few easy cases, then mostly medium with every third hard. */
 export function campaignDifficulty(caseNumber: number): Difficulty {
@@ -34,55 +35,12 @@ export function buildCase(content: Content, seedText: string, caseNumber: number
   const seed = hashSeed(seedText);
   const rng = new Rng(seed);
   const settings = caseSettings(levels);
-  const n = settings.suspects;
   const { house } = content;
 
-  // 1. Roll the truth.
-  const suspects = rng.shuffle(content.suspects.map((s) => s.id)).slice(0, n);
-  const rooms = rng.shuffle(house.rooms.map((r) => r.id)).slice(0, n);
-  const items = rng.shuffle(content.items.map((i) => i.id)).slice(0, n);
-  const solution = { room: rng.shuffle(rooms), item: rng.shuffle(items) };
-  const murdererIndex = rng.int(n);
-
-  // 2. Every true clue.
-  const ctx: ClueContext = { suspects, adjacency: roomAdjacency(house) };
-  const allRooms = house.rooms.map((r) => r.id);
-  const pool = cluePool(solution, ctx, rooms, items, allRooms, rng);
-
-  // 3. Add clues in a weighted-random order until only one solution is left.
-  //    A clue is kept only if it rules something out.
-  const ordered = pool
-    .map((fact) => ({ fact, w: settings.weights[fact.type] ?? 0 }))
-    .filter((x) => x.w > 0)
-    .map((x) => ({ fact: x.fact, key: -Math.log(1 - rng.next()) / x.w }))
-    .sort((a, b) => a.key - b.key)
-    .map((x) => x.fact);
-
-  const candidates = allCandidates(rooms, items);
-  let remaining = candidates;
-  const chosen: ClueFact[] = [];
-  const used: Partial<Record<ClueType, number>> = {};
-  for (const fact of ordered) {
-    if (remaining.length === 1) break;
-    const cap = settings.caps[fact.type];
-    if (cap !== undefined && (used[fact.type] ?? 0) >= cap) continue;
-    const next = filterCandidates(remaining, [fact], ctx);
-    if (next.length < remaining.length) {
-      remaining = next;
-      chosen.push(fact);
-      used[fact.type] = (used[fact.type] ?? 0) + 1;
-    }
-  }
-  if (remaining.length !== 1) {
-    throw new Error(`Case ${code}: clue pool could not pin down a single solution`);
-  }
-
-  // 4. Trim: drop any clue the others make redundant.
-  let minimal = chosen.slice();
-  for (const fact of rng.shuffle(chosen)) {
-    const without = minimal.filter((f) => f !== fact);
-    if (countSolutions(candidates, without, ctx, 1) === 1) minimal = without;
-  }
+  // 1–4. The truth, and a minimal set of clues that pins it down.
+  const { suspects, rooms, items, solution, murdererIndex, minimal, ctx } = settings.shared
+    ? sharedTruth(content, settings, rng, code)
+    : classicTruth(content, settings, rng, code);
 
   // 5. Pick tonight's games: a word game of her choice gives the scene; one to
   //    three of the cat puzzle, sudoku and interrogation share the clues. Hard
@@ -140,7 +98,7 @@ export function buildCase(content: Content, seedText: string, caseNumber: number
 
   // 7. Interrogations. Their clues are the suspect's confession, so they're
   //    reworded in that suspect's voice once we know who is in the chair.
-  const cf: CaseFacts = { suspects, rooms, items, solution, ctx };
+  const cf: CaseFacts = { suspects, rooms, items, solution, ctx, shared: settings.shared };
   const known = order;
   const interrogations: Partial<Record<GameKind, Interrogation>> = {};
   if (kinds.includes('interrogation')) {
@@ -213,9 +171,147 @@ export function buildCase(content: Content, seedText: string, caseNumber: number
     solution,
     sceneRoom,
     murderer: suspects[murdererIndex],
-    weapon: solution.item[murdererIndex],
+    weapon: solution.item[murdererIndex]!,
     sceneClue,
     clues,
     games,
   };
+}
+
+interface Truth {
+  suspects: string[];
+  rooms: string[];
+  items: string[];
+  solution: Solution;
+  murdererIndex: number;
+  /** A minimal set of true clues with exactly one answer. */
+  minimal: ClueFact[];
+  ctx: ClueContext;
+}
+
+/** Clues in a weighted-random order: more likely types tend to come first. */
+function weightedOrder(pool: readonly ClueFact[], settings: CaseSettings, rng: Rng): ClueFact[] {
+  return pool
+    .map((fact) => ({ fact, w: settings.weights[fact.type] ?? 0 }))
+    .filter((x) => x.w > 0)
+    .map((x) => ({ fact: x.fact, key: -Math.log(1 - rng.next()) / x.w }))
+    .sort((a, b) => a.key - b.key)
+    .map((x) => x.fact);
+}
+
+/** Everyone in their own room with their own weapon. */
+function classicTruth(content: Content, settings: CaseSettings, rng: Rng, code: string): Truth {
+  const n = settings.suspects;
+  const { house } = content;
+
+  // 1. Roll the truth.
+  const suspects = rng.shuffle(content.suspects.map((s) => s.id)).slice(0, n);
+  const rooms = rng.shuffle(house.rooms.map((r) => r.id)).slice(0, n);
+  const items = rng.shuffle(content.items.map((i) => i.id)).slice(0, n);
+  const solution = { room: rng.shuffle(rooms), item: rng.shuffle(items) };
+  const murdererIndex = rng.int(n);
+
+  // 2. Every true clue.
+  const ctx: ClueContext = { suspects, adjacency: roomAdjacency(house) };
+  const allRooms = house.rooms.map((r) => r.id);
+  const pool = cluePool(solution, ctx, rooms, items, allRooms, rng);
+
+  // 3. Add clues in a weighted-random order until only one solution is left.
+  //    A clue is kept only if it rules something out.
+  const ordered = weightedOrder(pool, settings, rng);
+  const candidates = allCandidates(rooms, items);
+  let remaining = candidates;
+  const chosen: ClueFact[] = [];
+  const used: Partial<Record<ClueType, number>> = {};
+  for (const fact of ordered) {
+    if (remaining.length === 1) break;
+    const cap = settings.caps[fact.type];
+    if (cap !== undefined && (used[fact.type] ?? 0) >= cap) continue;
+    const next = filterCandidates(remaining, [fact], ctx);
+    if (next.length < remaining.length) {
+      remaining = next;
+      chosen.push(fact);
+      used[fact.type] = (used[fact.type] ?? 0) + 1;
+    }
+  }
+  if (remaining.length !== 1) {
+    throw new Error(`Case ${code}: clue pool could not pin down a single solution`);
+  }
+
+  // 4. Trim: drop any clue the others make redundant.
+  let minimal = chosen.slice();
+  for (const fact of rng.shuffle(chosen)) {
+    const without = minimal.filter((f) => f !== fact);
+    if (countSolutions(candidates, without, ctx, 1) === 1) minimal = without;
+  }
+  return { suspects, rooms, items, solution, murdererIndex, minimal, ctx };
+}
+
+/** Clue types that say only where people were (the rest need who held what). */
+const ITEM_TYPES: ReadonlySet<ClueType> = new Set(['suspect-item', 'suspect-not-item', 'suspect-empty-handed', 'item-room', 'item-not-room']);
+
+/**
+ * 7 guests, 5 rooms, 5 weapons. The killer was alone in the scene room with
+ * a weapon; everyone else is spread over the other rooms, and two guests hold
+ * nothing. There are too many possible answers to list, so clues are chosen
+ * in two passes: room clues until everyone's room is certain (78,125
+ * roomings to start), then weapon clues until every holder is (2,520).
+ * Together they leave one answer, and trimming checks that with the search.
+ */
+function sharedTruth(content: Content, settings: CaseSettings, rng: Rng, code: string): Truth {
+  const n = settings.suspects;
+  const { house } = content;
+
+  // 1. Roll the truth.
+  const suspects = rng.shuffle(content.suspects.map((s) => s.id)).slice(0, n);
+  const rooms = rng.shuffle(house.rooms.map((r) => r.id)).slice(0, settings.rooms);
+  const items = rng.shuffle(content.items.map((i) => i.id)).slice(0, settings.rooms);
+  const murdererIndex = rng.int(n);
+  const scene = rng.pick(rooms);
+  const elsewhere = rooms.filter((r) => r !== scene);
+  const room = suspects.map((_, i) => (i === murdererIndex ? scene : rng.pick(elsewhere)));
+  const others = rng.shuffle(suspects.map((_, i) => i).filter((i) => i !== murdererIndex));
+  const holders = [murdererIndex, ...others.slice(0, items.length - 1)];
+  const dealt = rng.shuffle(items);
+  const item = new Array<string | null>(n).fill(null);
+  holders.forEach((s, j) => (item[s] = dealt[j]));
+  const solution: Solution = { room, item };
+
+  // 2. Every true clue.
+  const ctx: ClueContext = { suspects, adjacency: roomAdjacency(house) };
+  const pool = cluePool(solution, ctx, rooms, items, house.rooms.map((r) => r.id), rng, true);
+
+  // 3. Two passes over one weighted order: rooms, then weapon holders.
+  const ordered = weightedOrder(pool, settings, rng);
+  let roomings: Solution[] = allRoomings(rooms, n).map((r) => ({ room: r, item }));
+  let holdings: Solution[] = allHoldings(items, n).map((i) => ({ room, item: i }));
+  const chosen: ClueFact[] = [];
+  const used: Partial<Record<ClueType, number>> = {};
+  for (const fact of ordered) {
+    if (roomings.length === 1 && holdings.length === 1) break;
+    const cap = settings.caps[fact.type];
+    if (cap !== undefined && (used[fact.type] ?? 0) >= cap) continue;
+    const test = compileClue(fact, ctx);
+    const forItems = ITEM_TYPES.has(fact.type);
+    const before = forItems ? holdings : roomings;
+    const after = before.filter(test);
+    if (after.length < before.length) {
+      if (forItems) holdings = after;
+      else roomings = after;
+      chosen.push(fact);
+      used[fact.type] = (used[fact.type] ?? 0) + 1;
+    }
+  }
+  if (roomings.length !== 1 || holdings.length !== 1) {
+    throw new Error(`Case ${code}: clue pool could not pin down a single solution`);
+  }
+
+  // 4. Trim: drop any clue the others make redundant.
+  const space = { suspects, rooms, items, shared: true };
+  let minimal = chosen.slice();
+  for (const fact of rng.shuffle(chosen)) {
+    const without = minimal.filter((f) => f !== fact);
+    if (countMatching(space, without, ctx, 1) === 1) minimal = without;
+  }
+  return { suspects, rooms, items, solution, murdererIndex, minimal, ctx };
 }

@@ -6,7 +6,7 @@ import { PRESETS, allLevels, caseSettings, clueShares, levelsKey, presetOf } fro
 
 test('every combination of levels has its own key, and presets keep their old names', () => {
   const levels = allLevels();
-  assert.equal(levels.length, 2 * 3 * 3 * 3);
+  assert.equal(levels.length, 3 * 3 * 3 * 3);
   assert.equal(new Set(levels.map(levelsKey)).size, levels.length);
   for (const d of ['easy', 'medium', 'hard'] as const) {
     assert.equal(presetOf(PRESETS[d]), d);

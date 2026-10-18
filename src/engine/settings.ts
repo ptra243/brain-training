@@ -7,8 +7,12 @@ import type { ClueType, Difficulty } from './types.ts';
 export type Length = 'short' | 'normal' | 'long';
 
 export interface CaseLevels {
-  /** Suspects, and so rooms and weapons too. 5 is the most the grid fits at 360px. */
-  suspects: 4 | 5;
+  /**
+   * Suspects. With 4 or 5, each has their own room and weapon (5 is the most
+   * that fits one to one at 360px). With 7, there are 5 rooms and 5 weapons:
+   * rooms are shared and two guests hold nothing. The grid stays as wide.
+   */
+  suspects: 4 | 5 | 7;
   /** How hard the deduction is: which clue types are used, free clues, a finale. */
   logic: Difficulty;
   /** How hard each minigame is: cat and sudoku size, interrogation, word search. */
@@ -17,7 +21,7 @@ export interface CaseLevels {
   length: Length;
 }
 
-export const SUSPECT_COUNTS: readonly CaseLevels['suspects'][] = [4, 5];
+export const SUSPECT_COUNTS: readonly CaseLevels['suspects'][] = [4, 5, 7];
 export const DIFFICULTIES: readonly Difficulty[] = ['easy', 'medium', 'hard'];
 export const LENGTHS: readonly Length[] = ['short', 'normal', 'long'];
 
@@ -52,6 +56,10 @@ export function levelsKey(levels: CaseLevels): string {
 
 export interface CaseSettings {
   suspects: number;
+  /** Rooms and weapons in play: one each per suspect, or 5 with 7 guests. */
+  rooms: number;
+  /** Several suspects can share a room (7 guests). */
+  shared: boolean;
   /** Clues she gets for free at the start, at least. More are given when the games can't hold them all. */
   freeClues: number;
   /** Most sudoku statements that unlock early from coordinate squares. */
@@ -89,6 +97,10 @@ const LOGIC: Record<Difficulty, Pick<CaseSettings, 'freeClues' | 'located' | 'fi
       'item-room': 2,
       'suspect-either-room': 2,
       'suspect-next-to-room': 1,
+      'suspects-together': 2,
+      'suspect-alone': 2,
+      'suspect-empty-handed': 3,
+      'suspects-apart': 1,
     },
     caps: { 'suspect-room': 1, 'suspect-item': 1 },
   },
@@ -105,6 +117,10 @@ const LOGIC: Record<Difficulty, Pick<CaseSettings, 'freeClues' | 'located' | 'fi
       'suspect-next-to-room': 2,
       'suspects-adjacent': 1,
       'suspects-not-adjacent': 1,
+      'suspects-together': 2,
+      'suspects-apart': 2,
+      'suspect-alone': 1,
+      'suspect-empty-handed': 2,
     },
     caps: { 'item-room': 1 },
   },
@@ -120,6 +136,10 @@ const LOGIC: Record<Difficulty, Pick<CaseSettings, 'freeClues' | 'located' | 'fi
       'suspect-next-to-room': 3,
       'suspects-adjacent': 2,
       'suspects-not-adjacent': 2,
+      'suspects-together': 1,
+      'suspects-apart': 2,
+      'suspect-alone': 1,
+      'suspect-empty-handed': 2,
     },
     caps: {},
   },
@@ -140,7 +160,9 @@ const MAX_PER_GAME = 7;
 export function caseSettings(levels: CaseLevels): CaseSettings {
   return {
     // Clamped to what the grid fits at 360px and what the content holds.
-    suspects: Math.min(5, Math.max(4, levels.suspects)),
+    suspects: levels.suspects === 7 ? 7 : Math.min(5, Math.max(4, levels.suspects)),
+    rooms: Math.min(5, levels.suspects),
+    shared: levels.suspects > 5,
     ...LOGIC[levels.logic],
     ...MINIGAMES[levels.minigames],
     games: GAMES[levels.length],

@@ -21,6 +21,10 @@ const TESTIMONY: Record<ClueType, readonly string[]> = {
   'suspect-next-to-room': ['I heard {s} through the wall of the {r}, from a room next door.'],
   'suspects-adjacent': ['I could hear {b} through the wall all evening.', '{B} was in the room next to mine.'],
   'suspects-not-adjacent': ["{B} wasn't in a room next to mine. I didn't hear a sound from them."],
+  'suspects-together': ['{B} and I were in the same room all evening.', '{B} was with me the whole time.'],
+  'suspects-apart': ["{B} wasn't in my room. I'd have seen them."],
+  'suspect-alone': ['{S} was on their own all evening. Nobody went in to them.', 'Nobody else was in the room with {s}.'],
+  'suspect-empty-handed': ['{S} had nothing in their hands. No weapon at all.', "I saw {s} all evening. They weren't carrying anything."],
 };
 
 const EVIDENCE: Record<ClueType, readonly string[]> = {
@@ -34,6 +38,10 @@ const EVIDENCE: Record<ClueType, readonly string[]> = {
   'suspect-next-to-room': ["The cats found {s}'s glass pressed against a wall of the {r}, from the room next door."],
   'suspects-adjacent': ['The cats found a note from {a} to {b}, slipped under the connecting door between their rooms.'],
   'suspects-not-adjacent': ["The cats checked every connecting door. None joins {a}'s room to {b}'s."],
+  'suspects-together': ["The cats found {a}'s glove and {b}'s scarf on the same chair."],
+  'suspects-apart': ["The cats followed {a}'s and {b}'s footprints. They never met."],
+  'suspect-alone': ["The cats found only one set of footprints in {s}'s room: {s}'s own."],
+  'suspect-empty-handed': ["The cats checked every weapon. None has {s}'s fingerprints."],
 };
 
 /** A suspect talking about themselves (in an interrogation). */
@@ -44,6 +52,8 @@ const FIRST_PERSON: Partial<Record<ClueType, readonly string[]>> = {
   'suspect-not-item': ['I never touched the {i}.', 'The {i}? Not me.'],
   'suspect-either-room': ['I was in the {r} or the {r2}. I moved about a bit.'],
   'suspect-next-to-room': ["I was in a room next to the {r}. That's all I'll say."],
+  'suspect-alone': ['I was on my own all evening.'],
+  'suspect-empty-handed': ["I didn't have a weapon. Search me if you like."],
 };
 
 /** What she asks to get each kind of answer. Lowercase placeholders are mid-sentence. */
@@ -58,6 +68,10 @@ const QUESTIONS: Record<ClueType, { self: string; other: string }> = {
   'item-not-room': { self: 'Was the {i} in the {r}?', other: 'Was the {i} in the {r}?' },
   'suspects-adjacent': { self: 'Could you hear {b} from your room?', other: 'Were {a} and {b} next door to each other?' },
   'suspects-not-adjacent': { self: 'Could you hear {b} from your room?', other: 'Were {a} and {b} next door to each other?' },
+  'suspects-together': { self: 'Were you with {b}?', other: 'Were {a} and {b} together?' },
+  'suspects-apart': { self: 'Were you with {b}?', other: 'Were {a} and {b} together?' },
+  'suspect-alone': { self: 'Was anyone with you?', other: 'Was anyone with {s}?' },
+  'suspect-empty-handed': { self: 'Did you have a weapon?', other: 'Did {s} have a weapon?' },
 };
 
 /** Stand-in for a room in a sudoku statement until its two squares are filled. */

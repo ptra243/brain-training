@@ -1,7 +1,7 @@
 // Which case she's playing, by mode. Each mode seeds from its own text, so a
 // quick case never repeats a numbered one. A case code like "K7QF2-MN" (the
-// code, then difficulty and length) rebuilds the case exactly, so a case can
-// be replayed from #dev.
+// code, then difficulty and length, and a B for the big cast) rebuilds the
+// case exactly, so a case can be replayed from #dev.
 
 import { buildCase } from './generate.ts';
 import { PRESETS, levelsKey, type CaseLevels, type Length } from './settings.ts';
@@ -14,7 +14,11 @@ export interface QuickRef {
   code: string;
   difficulty: Difficulty;
   length: Length;
+  /** 'big': 7 guests sharing 5 rooms. Saves from before it read as classic. */
+  cast?: Cast;
 }
+
+export type Cast = 'classic' | 'big';
 
 /** Campaign refs join this in a later step. */
 export type CaseRef = QuickRef;
@@ -42,20 +46,24 @@ export function codeNumber(code: string): number {
   return [...code].reduce((n, ch) => n * ALPHABET.length + ALPHABET.indexOf(ch), 0);
 }
 
-export const quickLevels = (ref: QuickRef): CaseLevels => ({ ...PRESETS[ref.difficulty], length: ref.length });
+export const quickLevels = (ref: QuickRef): CaseLevels => ({
+  ...PRESETS[ref.difficulty],
+  length: ref.length,
+  ...(ref.cast === 'big' && { suspects: 7 as const }),
+});
 
-/** The code she'd read out to replay this case: "K7QF2-MN". */
+/** The code she'd read out to replay this case: "K7QF2-MN", or "K7QF2-MNB" with the big cast. */
 export function caseCode(ref: CaseRef): string {
-  return `${ref.code}-${DIFFICULTY_LETTER[ref.difficulty]}${LENGTH_LETTER[ref.length]}`;
+  return `${ref.code}-${DIFFICULTY_LETTER[ref.difficulty]}${LENGTH_LETTER[ref.length]}${ref.cast === 'big' ? 'B' : ''}`;
 }
 
 /** Reads a case code back, forgiving case, spaces and a missing dash. */
 export function parseCaseCode(text: string): QuickRef | null {
-  const m = /^([0-9A-Z]{5})-?([EMH])([SNL])$/.exec(text.toUpperCase().replace(/\s+/g, ''));
+  const m = /^([0-9A-Z]{5})-?([EMH])([SNL])(B?)$/.exec(text.toUpperCase().replace(/\s+/g, ''));
   if (!m || [...m[1]].some((ch) => !ALPHABET.includes(ch))) return null;
   const difficulty = (Object.keys(DIFFICULTY_LETTER) as Difficulty[]).find((d) => DIFFICULTY_LETTER[d] === m[2])!;
   const length = (Object.keys(LENGTH_LETTER) as Length[]).find((l) => LENGTH_LETTER[l] === m[3])!;
-  return { mode: 'quick', code: m[1], difficulty, length };
+  return { mode: 'quick', code: m[1], difficulty, length, ...(m[4] && { cast: 'big' as const }) };
 }
 
 /** The case a ref names. Same ref, same case. */
@@ -73,10 +81,11 @@ export function newQuickCase(
   content: Content,
   difficulty: Difficulty,
   length: Length,
+  cast: Cast,
   random: () => number,
 ): { ref: QuickRef; c: Case } {
   for (let tries = 0; tries < 20; tries++) {
-    const ref: QuickRef = { mode: 'quick', code: codeFor(random()), difficulty, length };
+    const ref: QuickRef = { mode: 'quick', code: codeFor(random()), difficulty, length, ...(cast === 'big' && { cast }) };
     try {
       return { ref, c: caseFor(content, ref) };
     } catch {

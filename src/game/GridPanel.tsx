@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { Case } from '../engine/types.ts';
 import { itemName, roomName, suspectColour, suspectInitials, suspectName } from './names.ts';
-import { cellState, type Action, type GridKind, type Progress, type Subject } from './state.ts';
+import { cellState, sharedRooms, type Action, type GridKind, type Progress, type Subject } from './state.ts';
 
 interface Props {
   c: Case;
@@ -56,7 +56,13 @@ export function GridPanel({ c, progress, dispatch, focus, onFocus }: Props) {
 
   return (
     <section className="panel">
-      <p className="hint">Tap once to cross out, twice to tick. A tick rules out the rest of its row and column. Tap a name to see its clues.</p>
+      <p className="hint">
+        Tap once to cross out, twice to tick.{' '}
+        {sharedRooms(c)
+          ? 'Rooms can hold several people, so a tick only rules out the rest of its row (and each weapon still has one holder).'
+          : 'A tick rules out the rest of its row and column.'}{' '}
+        Tap a name to see its clues.
+      </p>
       <article className="card grid-card">
         <table className="logic-grid">
           <thead>

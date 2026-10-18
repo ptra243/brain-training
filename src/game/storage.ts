@@ -5,8 +5,8 @@
 import type { QuickRef } from '../engine/caseRef.ts';
 import { emptyProgress, type Progress } from './state.ts';
 
-// v3: games now rotate per case and interrogations were added, so old saves no longer match.
-const PREFIX = 'brain-training:v3:';
+// v4: a 7th guest joined the cast, so every case draws its suspects differently.
+const PREFIX = 'brain-training:v4:';
 
 function read<T>(key: string): T | null {
   try {

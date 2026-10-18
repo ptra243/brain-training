@@ -17,7 +17,10 @@ test('case codes read back however she types them', () => {
   const ref: QuickRef = { mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'long' };
   assert.equal(caseCode(ref), 'K7QF2-ML');
   for (const typed of ['K7QF2-ML', 'k7qf2-ml', ' K7QF2 ML ', 'K7QF2ML']) assert.deepEqual(parseCaseCode(typed), ref, typed);
-  for (const bad of ['', 'K7QF2', 'K7QF2-XL', 'K7QF-ML', 'K7QO2-ML', 'K7QF22-ML']) assert.equal(parseCaseCode(bad), null, bad);
+  for (const bad of ['', 'K7QF2', 'K7QF2-XL', 'K7QF-ML', 'K7QO2-ML', 'K7QF22-ML', 'K7QF2-MLX']) assert.equal(parseCaseCode(bad), null, bad);
+  const big: QuickRef = { ...ref, cast: 'big' };
+  assert.equal(caseCode(big), 'K7QF2-MLB');
+  assert.deepEqual(parseCaseCode('k7qf2 mlb'), big);
 });
 
 test('same ref, same case; quick cases are their own', () => {
@@ -32,8 +35,16 @@ test('same ref, same case; quick cases are their own', () => {
 
 test('a new quick case comes from the random numbers it is given', () => {
   const numbers = [111, 222];
-  const { ref, c } = newQuickCase(content, 'hard', 'short', () => numbers.shift()!);
+  const { ref, c } = newQuickCase(content, 'hard', 'short', 'classic', () => numbers.shift()!);
   assert.equal(ref.code, codeFor(111));
   assert.equal(c.difficulty, 'hard');
   assert.deepEqual(c.levels.length, 'short');
+});
+
+test('a big-cast quick case has 7 guests, and its own seed', () => {
+  const ref: QuickRef = { mode: 'quick', code: codeFor(99), difficulty: 'medium', length: 'long', cast: 'big' };
+  const c = caseFor(content, ref);
+  assert.equal(c.suspects.length, 7);
+  assert.equal(c.levels.suspects, 7);
+  assert.notEqual(c.seed, caseFor(content, { ...ref, cast: undefined }).seed);
 });

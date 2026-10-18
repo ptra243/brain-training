@@ -60,7 +60,7 @@ export function AccusePanel({ c, progress, dispatch, onNextCase }: Props) {
                 <tr key={s} className={s === c.murderer ? 'murderer' : ''}>
                   <th scope="row">{suspectName(s)}</th>
                   <td>{roomName(c.solution.room[i])}</td>
-                  <td>{itemName(c.solution.item[i])}</td>
+                  <td>{c.solution.item[i] ? itemName(c.solution.item[i]!) : 'nothing'}</td>
                 </tr>
               ))}
             </tbody>

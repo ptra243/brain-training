@@ -57,10 +57,35 @@ export function compileClue(fact: ClueFact, ctx: ClueContext): (sol: Solution) =
       const b = idx(fact.suspects[1]);
       return (sol) => !adjacent(sol.room[a], sol.room[b]);
     }
+    case 'suspects-together': {
+      const a = idx(fact.suspects[0]);
+      const b = idx(fact.suspects[1]);
+      return (sol) => sol.room[a] === sol.room[b];
+    }
+    case 'suspects-apart': {
+      const a = idx(fact.suspects[0]);
+      const b = idx(fact.suspects[1]);
+      return (sol) => sol.room[a] !== sol.room[b];
+    }
+    case 'suspect-alone': {
+      const s = idx(fact.suspect);
+      return (sol) => sol.room.every((r, i) => i === s || r !== sol.room[s]);
+    }
+    case 'suspect-empty-handed': {
+      const s = idx(fact.suspect);
+      return (sol) => sol.item[s] === null;
+    }
   }
 }
 
-/** Every true statement of the supported types about this solution. */
+/** Clue types that only make sense when rooms are shared. */
+export const SHARED_ONLY: readonly ClueType[] = ['suspects-together', 'suspects-apart', 'suspect-alone', 'suspect-empty-handed'];
+
+/**
+ * Every true statement of the supported types about this solution. With
+ * `shared` rooms (7 guests) it adds who was together, apart, alone or
+ * empty-handed; a classic pool is exactly as it always was.
+ */
 export function cluePool(
   solution: Solution,
   ctx: ClueContext,
@@ -68,6 +93,7 @@ export function cluePool(
   caseItems: readonly string[],
   allRooms: readonly string[],
   rng: Rng,
+  shared = false,
 ): ClueFact[] {
   const pool: ClueFact[] = [];
   const { suspects, adjacency } = ctx;
@@ -76,7 +102,9 @@ export function cluePool(
     const room = solution.room[i];
     const item = solution.item[i];
     pool.push({ type: 'suspect-room', suspect, room });
-    pool.push({ type: 'suspect-item', suspect, item });
+    if (item === null) pool.push({ type: 'suspect-empty-handed', suspect });
+    else pool.push({ type: 'suspect-item', suspect, item });
+    if (shared && solution.room.every((r, j) => j === i || r !== room)) pool.push({ type: 'suspect-alone', suspect });
     for (const r of caseRooms) if (r !== room) pool.push({ type: 'suspect-not-room', suspect, room: r });
     for (const it of caseItems) if (it !== item) pool.push({ type: 'suspect-not-item', suspect, item: it });
 
@@ -103,8 +131,11 @@ export function cluePool(
   for (let a = 0; a < suspects.length; a++) {
     for (let b = a + 1; b < suspects.length; b++) {
       const pair: [string, string] = [suspects[a], suspects[b]];
+      const same = solution.room[a] === solution.room[b];
       const touching = adjacency.get(solution.room[a])?.has(solution.room[b]);
-      pool.push({ type: touching ? 'suspects-adjacent' : 'suspects-not-adjacent', suspects: pair });
+      if (shared) pool.push({ type: same ? 'suspects-together' : 'suspects-apart', suspects: pair });
+      // Together is not "not neighbouring": that would read as a trick.
+      if (!same) pool.push({ type: touching ? 'suspects-adjacent' : 'suspects-not-adjacent', suspects: pair });
     }
   }
   return pool;
@@ -121,6 +152,10 @@ const templates: Record<ClueType, readonly string[]> = {
   'suspect-next-to-room': ['{s} was in a room next to the {r}.', '{s} was just through the wall from the {r}.'],
   'suspects-adjacent': ['{a} and {b} were in neighbouring rooms.', '{a} could hear {b} through the wall.'],
   'suspects-not-adjacent': ['{a} and {b} were not in neighbouring rooms.'],
+  'suspects-together': ['{a} and {b} were in the same room.'],
+  'suspects-apart': ['{a} and {b} were in different rooms.'],
+  'suspect-alone': ['{s} was alone in their room.'],
+  'suspect-empty-handed': ['{s} had no weapon.'],
 };
 
 /**

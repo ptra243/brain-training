@@ -15,9 +15,10 @@ Wordle word list, the staircase grid with clue drawer, interrogations
 (rotating "Questioning" game and a "Final questioning" on hard cases), and
 a choice of three scene word games (Wordle, mini crossword, word search)
 that all type with the phone's own keyboard.
-Phase 5 under way: case settings as levels, and a home screen with Quick
-start (one case in progress, replayable case codes). Next: the campaign
-(see the build plan) and playtesting.
+Phase 5 under way: case settings as levels, a home screen with Quick start
+(one case in progress, replayable case codes), and 7-guest cases with shared
+rooms (a Quick start choice). Next: the campaign rounds (see the build
+plan) and playtesting.
 Known gaps: medium and hard cat puzzles are unique but not
 checked for how much look-ahead they need (easy ones are).
 
@@ -93,12 +94,24 @@ checked for how much look-ahead they need (easy ones are).
   object must be in it (tested).
 - **Every case must have exactly one solution** and a minimal clue set.
   Never ship a generator change without `npm run check-cases` passing.
-- **Case settings are levels** (`src/engine/settings.ts`): suspects (4–5),
+- **Case settings are levels** (`src/engine/settings.ts`): suspects (4, 5 or 7),
   logic, minigames and length, each a few fixed values. `caseSettings`
   turns them into generator settings and clamps anything unsafe;
   `clueShares` gives every rotating game 1 to 7 clues and hands the rest
-  out free. The easy, medium and hard presets must keep producing the same
-  cases. `npm run check-cases` checks every combination of levels.
+  out free. A refactor must keep the easy, medium and hard presets producing
+  the same cases (compare against the last commit); a content change may
+  change them, with a storage prefix bump. `npm run check-cases` checks
+  every combination of levels.
+- **7 guests share 5 rooms and 5 weapons.** The killer was alone in the
+  scene room holding the weapon; two guests hold nothing (`null` in
+  `Solution.item`). There are too many answers to list, so these cases use
+  the search in `src/engine/search.ts` (fill rooms, then holders, checking
+  each clue as soon as it can be), and the generator picks room clues, then
+  weapon clues, before trimming. Classic 4–5 suspect cases keep their own
+  code path untouched. Shared-only clue types (together, apart, alone,
+  empty-handed) never appear in classic pools. On the grid, a tick only
+  rules out its row in rooms (a room can hold several people or weapons);
+  who holds which weapon stays one per row and column (`oneTickPerColumn`).
 - **Map and grid share one source of truth**: a counter is in a room exactly
   when the suspect×room cell is ticked; a weapon tag is in a room when
   item×room is ticked, and held when suspect×item is ticked (a held weapon

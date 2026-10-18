@@ -99,11 +99,23 @@ function linkItem(marks: Record<string, Mark>, c: Case, suspect: string) {
   if (item && room) setTick(marks, c, 'item-room', item, room);
 }
 
-/** Set a tick, clearing any other tick in the same row and column (one per line). */
+/** 7 guests share 5 rooms (and rooms can hold several weapons). */
+export const sharedRooms = (c: Case) => c.suspects.length > c.rooms.length;
+
+/**
+ * Whether a tick rules out the rest of its column too. Always in a classic
+ * case; with shared rooms only for who holds which weapon (one holder each),
+ * since a room can hold several guests or weapons.
+ */
+export const oneTickPerColumn = (c: Case, kind: GridKind) => !sharedRooms(c) || kind === 'suspect-item';
+
+/** Set a tick, clearing any other tick in the same row (and column, where that's one per line). */
 function setTick(marks: Record<string, Mark>, c: Case, kind: GridKind, row: string, col: string) {
   const { rows, cols } = axes(c, kind);
   for (const other of cols) if (other !== col && marks[markKey(kind, row, other)] === 'o') delete marks[markKey(kind, row, other)];
-  for (const other of rows) if (other !== row && marks[markKey(kind, other, col)] === 'o') delete marks[markKey(kind, other, col)];
+  if (oneTickPerColumn(c, kind)) {
+    for (const other of rows) if (other !== row && marks[markKey(kind, other, col)] === 'o') delete marks[markKey(kind, other, col)];
+  }
   marks[markKey(kind, row, col)] = 'o';
 }
 
@@ -181,7 +193,7 @@ export function cellState(c: Case, p: Progress, kind: GridKind, row: string, col
   if (own) return own;
   const { rows, cols } = axes(c, kind);
   const tickedInRow = cols.some((other) => p.marks[markKey(kind, row, other)] === 'o');
-  const tickedInCol = rows.some((other) => p.marks[markKey(kind, other, col)] === 'o');
+  const tickedInCol = oneTickPerColumn(c, kind) && rows.some((other) => p.marks[markKey(kind, other, col)] === 'o');
   return tickedInRow || tickedInCol ? 'auto-x' : null;
 }
 

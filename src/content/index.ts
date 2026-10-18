@@ -78,6 +78,7 @@ export const suspects: readonly Suspect[] = [
   { id: 'maid', name: 'The Maid', bio: 'Placeholder bio.' },
   { id: 'doctor', name: 'The Doctor', bio: 'Placeholder bio.' },
   { id: 'painter', name: 'The Painter', bio: 'Placeholder bio.' },
+  { id: 'chauffeur', name: 'The Chauffeur', bio: 'Placeholder bio.' },
 ];
 
 export const items: readonly Item[] = [

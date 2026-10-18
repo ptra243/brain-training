@@ -3,10 +3,11 @@
 // npm run check-cases
 import { content } from '../src/content/index.ts';
 import { roomAdjacency } from '../src/engine/house.ts';
-import { caseCode, caseFor, codeFor, type QuickRef } from '../src/engine/caseRef.ts';
+import { caseCode, caseFor, codeFor, type Cast, type QuickRef } from '../src/engine/caseRef.ts';
 import { generateCase } from '../src/engine/generate.ts';
 import { disproves } from '../src/engine/interrogation.ts';
 import { DIFFICULTIES, LENGTHS, PRESETS, allLevels, caseSettings, levelsKey, presetOf, type CaseLevels } from '../src/engine/settings.ts';
+import { countMatching } from '../src/engine/search.ts';
 import { allCandidates, countSolutions } from '../src/engine/solver.ts';
 import { sceneCrossword, sceneWordSearch } from '../src/game/sceneGames.ts';
 import { Rng } from '../src/engine/rng.ts';
@@ -23,15 +24,24 @@ let failures = 0;
 /** Everything that makes a case unfair, as messages. */
 function problems(c: Case): string[] {
   const out: string[] = [];
-  const solutions = countSolutions(allCandidates(c.rooms, c.items), c.clues.map((cl) => cl.fact), { suspects: c.suspects, adjacency }, 2);
+  const shared = caseSettings(c.levels).shared;
+  const facts = c.clues.map((cl) => cl.fact);
+  const ctx = { suspects: c.suspects, adjacency };
+  const solutions = shared
+    ? countMatching({ suspects: c.suspects, rooms: c.rooms, items: c.items, shared }, facts, ctx, 2)
+    : countSolutions(allCandidates(c.rooms, c.items), facts, ctx, 2);
   if (solutions !== 1) out.push(`${solutions} solutions`);
+  // The killer was alone at the scene, holding the weapon.
+  const k = c.suspects.indexOf(c.murderer);
+  if (c.solution.room.filter((r) => r === c.sceneRoom).length !== 1 || c.solution.room[k] !== c.sceneRoom) out.push('killer not alone at the scene');
+  if (c.solution.item[k] !== c.weapon) out.push("killer doesn't hold the weapon");
   // Every interrogation: one lie, and its proof really disproves it.
   for (const g of c.games.filter((g) => g.interrogation)) {
     const it = g.interrogation!;
     const lies = it.questions.filter((q) => q.lie);
     const evidence = it.useCaseClues ? c.clues : it.cards;
     const proof = it.proof.map((id) => evidence.find((e) => e.id === id)?.fact).filter((f) => f !== undefined);
-    const cf = { suspects: c.suspects, rooms: c.rooms, items: c.items, solution: c.solution, ctx: { suspects: c.suspects, adjacency } };
+    const cf = { suspects: c.suspects, rooms: c.rooms, items: c.items, solution: c.solution, ctx, shared };
     if (lies.length !== 1 || proof.length !== it.proof.length || !disproves(cf, proof, lies[0].answer.fact)) {
       out.push(`${g.kind} interrogation can't be caught fairly`);
     }
@@ -109,12 +119,14 @@ for (const levels of others) {
 }
 console.log(`\n${others.length} other combinations × ${PER_COMBINATION} cases (slowest ${slowest.label}, ${slowest.ms.toFixed(1)} ms per case)`);
 
-// Quick start: every difficulty and length she can pick, from codes spread over the range.
+// Quick start: every difficulty, length and cast she can pick, from codes spread over the range.
 const PER_QUICK = 20;
+const CASTS: Cast[] = ['classic', 'big'];
 for (const difficulty of DIFFICULTIES) {
   for (const length of LENGTHS) {
+    for (const cast of CASTS) {
     for (let i = 1; i <= PER_QUICK; i++) {
-      const ref: QuickRef = { mode: 'quick', code: codeFor(i * 1_215_773), difficulty, length };
+      const ref: QuickRef = { mode: 'quick', code: codeFor(i * 1_215_773), difficulty, length, cast };
       try {
         for (const p of problems(caseFor(content, ref))) {
           failures++;
@@ -125,11 +137,13 @@ for (const difficulty of DIFFICULTIES) {
         console.log(`  FAIL quick ${caseCode(ref)}: ${(err as Error).message}`);
       }
     }
+    }
   }
 }
-console.log(`${DIFFICULTIES.length * LENGTHS.length} Quick start choices × ${PER_QUICK} codes`);
+const QUICK_CHOICES = DIFFICULTIES.length * LENGTHS.length * CASTS.length;
+console.log(`${QUICK_CHOICES} Quick start choices × ${PER_QUICK} codes`);
 
-const total = 3 * PER_PRESET + others.length * PER_COMBINATION + DIFFICULTIES.length * LENGTHS.length * PER_QUICK;
+const total = 3 * PER_PRESET + others.length * PER_COMBINATION + QUICK_CHOICES * PER_QUICK;
 console.log(
   failures
     ? `\n${failures} problems`

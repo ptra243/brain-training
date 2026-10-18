@@ -168,7 +168,7 @@ export function CaseInspector() {
                 <tr key={s} className={s === c.murderer ? 'murderer' : ''}>
                   <td>{nameOf(content.suspects, s)}</td>
                   <td>{nameOf(house.rooms, c.solution.room[i])}</td>
-                  <td>{nameOf(content.items, c.solution.item[i])}</td>
+                  <td>{c.solution.item[i] ? nameOf(content.items, c.solution.item[i]!) : 'nothing'}</td>
                 </tr>
               ))}
             </tbody>

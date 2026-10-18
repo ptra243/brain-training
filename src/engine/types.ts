@@ -51,9 +51,14 @@ export type Difficulty = 'easy' | 'medium' | 'hard';
  * The hidden answer. Index i of `room` / `item` belongs to `suspects[i]`.
  * Each suspect is in a different room and holds a different item.
  */
+/**
+ * Where each suspect was and what they held, by suspect position. In a
+ * classic case everyone has their own room and weapon; with 7 guests rooms
+ * are shared and two guests hold nothing (null).
+ */
 export interface Solution {
   room: readonly string[];
-  item: readonly string[];
+  item: readonly (string | null)[];
 }
 
 /** Clue data the solver can evaluate. `text` is added separately. */
@@ -67,7 +72,12 @@ export type ClueFact =
   | { type: 'suspect-either-room'; suspect: string; rooms: readonly [string, string] }
   | { type: 'suspect-next-to-room'; suspect: string; room: string }
   | { type: 'suspects-adjacent'; suspects: readonly [string, string] }
-  | { type: 'suspects-not-adjacent'; suspects: readonly [string, string] };
+  | { type: 'suspects-not-adjacent'; suspects: readonly [string, string] }
+  // Only with shared rooms (7 guests):
+  | { type: 'suspects-together'; suspects: readonly [string, string] }
+  | { type: 'suspects-apart'; suspects: readonly [string, string] }
+  | { type: 'suspect-alone'; suspect: string }
+  | { type: 'suspect-empty-handed'; suspect: string };
 
 export type ClueType = ClueFact['type'];
 

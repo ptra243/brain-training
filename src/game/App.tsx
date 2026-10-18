@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { content } from '../content/index.ts';
-import { caseCode, caseFor, newQuickCase, type QuickRef } from '../engine/caseRef.ts';
+import { caseCode, caseFor, newQuickCase, type Cast, type QuickRef } from '../engine/caseRef.ts';
 import type { Length } from '../engine/settings.ts';
 import type { Case, Difficulty } from '../engine/types.ts';
 import { Casebook } from './Casebook.tsx';
@@ -43,8 +43,8 @@ export function App() {
     window.scrollTo(0, 0);
   };
 
-  const start = (difficulty: Difficulty, length: Length) => {
-    const { ref, c } = newQuickCase(content, difficulty, length, randomNumber);
+  const start = (difficulty: Difficulty, length: Length, cast: Cast) => {
+    const { ref, c } = newQuickCase(content, difficulty, length, cast, randomNumber);
     setCurrent({ ref, c, progress: emptyProgress() });
     go('case');
   };
@@ -57,7 +57,7 @@ export function App() {
         progress={current.progress}
         onProgress={(update) => setCurrent((cur) => cur && { ...cur, progress: update(cur.progress) })}
         onHome={() => go('home')}
-        onNewCase={() => start(current.ref.difficulty, current.ref.length)}
+        onNewCase={() => start(current.ref.difficulty, current.ref.length, current.ref.cast ?? 'classic')}
       />
     );
   }

@@ -169,3 +169,20 @@ test('puzzles done count the scene word games as one', () => {
   assert.equal(puzzlesDone(c, both).done, 1);
   assert.equal(puzzlesDone(c, reduce(c, both, { type: 'game-finish', kind: rotating[0].kind, status: 'revealed', data: null })).done, 2);
 });
+
+test('with 7 guests, rooms take several people and weapons, but each weapon still has one holder', () => {
+  const big = generateCase(content, 2, { suspects: 7, logic: 'easy', minigames: 'easy', length: 'normal' });
+  const [a, b, x] = big.suspects;
+  const [room] = big.rooms;
+  const [w1, w2] = big.items;
+  const go = (...actions: Action[]) => actions.reduce<Progress>((p, act) => reduce(big, p, act), emptyProgress());
+  const p = go({ type: 'place', suspect: a, room }, { type: 'place', suspect: b, room }, { type: 'place-item', item: w1, room }, { type: 'place-item', item: w2, room });
+  assert.equal(placedRoom(big, p, a), room);
+  assert.equal(placedRoom(big, p, b), room);
+  assert.equal(itemRoom(big, p, w1), room);
+  assert.equal(itemRoom(big, p, w2), room);
+  assert.equal(cellState(big, p, 'suspect-room', x, room), null, 'no faint cross down a shared room');
+  const held = go({ type: 'give-item', item: w1, suspect: a }, { type: 'give-item', item: w1, suspect: b });
+  assert.equal(holderOf(big, held, w1), b, 'a weapon moves to its new holder');
+  assert.equal(cellState(big, held, 'suspect-item', a, w1), 'auto-x');
+});
