@@ -15,7 +15,7 @@
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "isolatedModules": true,
-    "types": ["node", "vite/client"]
+    "types": ["node", "vite/client", "vite-plugin-pwa/client"]
   },
   "include": ["src", "scripts", "vite.config.ts"]
 }
