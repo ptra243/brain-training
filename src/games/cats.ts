@@ -273,3 +273,143 @@ export function autoDots(p: CatPuzzle, cats: readonly [number, number][]): Set<s
 export function catsSolved(p: CatPuzzle, cats: readonly [number, number][]): boolean {
   return cats.length === p.size && cats.every(([r, c]) => p.solution[r] === c);
 }
+
+// ---------- Hints ----------
+// Each ask gives the next step, gentlest first: point out wrong marks, then
+// a row, column or colour to look at, then why, then make the move. The
+// moves are the simple steps of `solvableBySimpleSteps`, worked out from the
+// marks that are right.
+
+/** A row, column or colour zone, numbered from 0. */
+export interface CatUnit {
+  kind: 'row' | 'column' | 'zone';
+  index: number;
+}
+
+export type CatMove =
+  /** Every square but one in `unit` is ruled out: the cat goes in the last one. */
+  | { kind: 'cat'; unit: CatUnit; square: [number, number] }
+  /** A cat on any of `squares` would leave `unit` nowhere to go, so they're dots. */
+  | { kind: 'dots'; unit: CatUnit; squares: [number, number][] }
+  /** No simple step left: `unit` has the fewest squares open and the cat goes on `square`. */
+  | { kind: 'look-ahead'; unit: CatUnit; square: [number, number]; open: number };
+
+export type CatHint =
+  /** Her marks that are wrong, keyed "r,c". */
+  | { kind: 'wrong'; squares: Record<string, CatMark> }
+  /** Look here next. */
+  | { kind: 'nudge'; move: CatMove }
+  /** Why the move works. */
+  | { kind: 'why'; move: CatMove }
+  /** The move, made: the marks to set. Wrong marks the move rules out are cleared (null). */
+  | { kind: 'move'; move: CatMove; marks: Record<string, CatMark | null> }
+  /** Every cat is right; clear the wrong marks still on the board. */
+  | { kind: 'tidy'; marks: Record<string, null> };
+
+export interface CatHintState {
+  /** Wrong marks already pointed out, keyed "r,c". Not pointed out again while unchanged. */
+  flagged?: Readonly<Record<string, CatMark>>;
+  /** `catMoveId` of the move she was last nudged towards. */
+  nudged?: string;
+  /** `catMoveId` of the move whose reason she was last given. */
+  explained?: string;
+}
+
+export const catMoveId = (m: CatMove) => `${m.kind}:${m.unit.kind}:${m.unit.index}`;
+
+/** Her marks that are wrong (a cat where none goes, a dot on a cat's square) and haven't been pointed out yet. */
+export function catsWrong(p: CatPuzzle, marks: Readonly<Record<string, CatMark>>, flagged: Readonly<Record<string, CatMark>> = {}): Record<string, CatMark> {
+  const out: Record<string, CatMark> = {};
+  for (const [key, m] of Object.entries(marks)) {
+    const [r, c] = key.split(',').map(Number);
+    if ((m === 'cat') !== (p.solution[r] === c) && flagged[key] !== m) out[key] = m;
+  }
+  return out;
+}
+
+function unitCells(p: CatPuzzle, u: CatUnit): [number, number][] {
+  const n = p.size;
+  const out: [number, number][] = [];
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      if (u.kind === 'row' ? r === u.index : u.kind === 'column' ? c === u.index : p.zones[r][c] === u.index) out.push([r, c]);
+    }
+  }
+  return out;
+}
+
+/** The moves that can be made now, easiest first, from the marks that are right. */
+export function catMoves(p: CatPuzzle, marks: Readonly<Record<string, CatMark>>): CatMove[] {
+  const n = p.size;
+  const isCat = (r: number, c: number) => p.solution[r] === c;
+  const right = Object.entries(marks)
+    .map(([key, m]) => [key.split(',').map(Number) as [number, number], m] as const)
+    .filter(([[r, c], m]) => (m === 'cat') === isCat(r, c));
+  const placed = right.filter(([, m]) => m === 'cat').map(([sq]) => sq);
+  const ruledOut = autoDots(p, placed);
+  for (const [[r, c], m] of right) if (m === 'dot') ruledOut.add(`${r},${c}`);
+  const open = (r: number, c: number) => !ruledOut.has(`${r},${c}`) && !placed.some(([pr, pc]) => pr === r && pc === c);
+
+  const units: CatUnit[] = [];
+  for (const kind of ['zone', 'row', 'column'] as const) for (let index = 0; index < n; index++) units.push({ kind, index });
+  const todo = units
+    .map((unit) => ({ unit, cells: unitCells(p, unit) }))
+    .filter(({ cells }) => !cells.some(([r, c]) => placed.some(([pr, pc]) => pr === r && pc === c)))
+    .map(({ unit, cells }) => ({ unit, cells, left: cells.filter(([r, c]) => open(r, c)) }));
+  if (!todo.length) return [];
+
+  const moves: CatMove[] = [];
+  for (const { unit, left } of todo) if (left.length === 1) moves.push({ kind: 'cat', unit, square: left[0] });
+  const rules = (r: number, c: number, rr: number, cc: number) =>
+    rr === r || cc === c || (Math.abs(rr - r) <= 1 && Math.abs(cc - c) <= 1) || p.zones[rr][cc] === p.zones[r][c];
+  const dots: Extract<CatMove, { kind: 'dots' }>[] = [];
+  for (const { unit, cells, left } of todo) {
+    const squares: [number, number][] = [];
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (!open(r, c) || cells.some(([ur, uc]) => ur === r && uc === c)) continue;
+        if (left.every(([rr, cc]) => rules(r, c, rr, cc))) squares.push([r, c]);
+      }
+    }
+    if (squares.length) dots.push({ kind: 'dots', unit, squares });
+  }
+  // The unit that rules out the most squares at once first.
+  moves.push(...dots.sort((a, b) => b.squares.length - a.squares.length));
+  if (!moves.length) {
+    const { unit, left } = todo.reduce((a, b) => (b.left.length < a.left.length ? b : a));
+    const square = left.find(([r, c]) => isCat(r, c))!;
+    moves.push({ kind: 'look-ahead', unit, square, open: left.length });
+  }
+  return moves;
+}
+
+/** The next hint, or null once every cat is in place and nothing wrong is left. */
+export function catsHint(p: CatPuzzle, marks: Readonly<Record<string, CatMark>>, state: CatHintState = {}): CatHint | null {
+  const wrong = catsWrong(p, marks, state.flagged);
+  if (Object.keys(wrong).length) return { kind: 'wrong', squares: wrong };
+  const moves = catMoves(p, marks);
+  if (!moves.length) {
+    const stray = Object.keys(marks).filter((key) => {
+      const [r, c] = key.split(',').map(Number);
+      return (marks[key] === 'cat') !== (p.solution[r] === c);
+    });
+    return stray.length ? { kind: 'tidy', marks: Object.fromEntries(stray.map((k) => [k, null])) } : null;
+  }
+  const move = moves.find((m) => catMoveId(m) === state.nudged);
+  if (!move) return { kind: 'nudge', move: moves[0] };
+  if (state.explained !== catMoveId(move)) return { kind: 'why', move };
+
+  const set: Record<string, CatMark | null> = {};
+  if (move.kind === 'dots') for (const [r, c] of move.squares) set[`${r},${c}`] = 'dot';
+  else {
+    const [r, c] = move.square;
+    set[`${r},${c}`] = 'cat';
+    // A wrong cat the new one rules out goes; the new one dots its square anyway.
+    for (const [key, m] of Object.entries(marks)) {
+      const [rr, cc] = key.split(',').map(Number);
+      const near = Math.abs(rr - r) <= 1 && Math.abs(cc - c) <= 1;
+      if (m === 'cat' && !(rr === r && cc === c) && (rr === r || cc === c || near || p.zones[rr][cc] === p.zones[r][c])) set[key] = null;
+    }
+  }
+  return { kind: 'move', move, marks: set };
+}

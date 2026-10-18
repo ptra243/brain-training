@@ -302,6 +302,13 @@ body.dev { background: #f2f1ec; color: #222; }
 .hint-note .paw { margin-top: 0.15rem; color: var(--brass-deep); }
 .hint-note p { flex: 1; margin: 0; font-family: var(--serif); font-style: italic; font-size: 0.95rem; line-height: 1.4; }
 .hint-note-close { flex: none; width: 2.75rem; height: 2.75rem; margin: -0.45rem 0; border: 0; background: none; color: var(--ink-soft); font-size: 1.4rem; cursor: pointer; }
+.hint-bar { display: grid; justify-items: end; gap: 0.4rem; margin: 0 0 0.6rem; }
+.hint-bar .hint-note { justify-self: stretch; }
+/* A wrong mark a hint pointed out: struck through in red pencil. */
+.sudoku-cell.wrong::after, .cat-cell.wrong::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to top right, transparent calc(50% - 1.5px), var(--pencil) calc(50% - 1.5px), var(--pencil) calc(50% + 1.5px), transparent calc(50% + 1.5px));
+}
 @keyframes hint-in { from { opacity: 0; transform: translateY(-6px) rotate(-2deg); } }
 @media (prefers-reduced-motion: reduce) { .hint-note { animation: none; } }
 
@@ -444,6 +451,10 @@ body.dev { background: #f2f1ec; color: #222; }
 .cat-icon .eye { fill: var(--brass); }
 .cat-cell.clash .cat-icon path { fill: var(--pencil); }
 .cat-cell.clash { box-shadow: inset 0 0 0 3px var(--pencil); }
+.cat-cell.wrong .cat-icon path { fill: var(--pencil); }
+/* The row, column or colour a hint points at, and the squares it's about. */
+.cat-cell.hint-unit::before { content: ''; position: absolute; inset: 0; background: rgba(255, 252, 243, 0.5); box-shadow: inset 0 0 0 3px var(--brass); }
+.cat-cell .paw { position: absolute; inset: 20%; width: 60%; height: 60%; color: var(--brass-deep); opacity: 0.9; }
 
 /* ---------- Sudoku ---------- */
 .sudoku-grid { display: grid; width: 100%; max-width: 28rem; margin: 0 auto; aspect-ratio: 1; background: var(--card); }
@@ -455,6 +466,10 @@ body.dev { background: #f2f1ec; color: #222; }
 .sudoku-cell.given { color: var(--ink); font-family: var(--serif); font-weight: 700; }
 .sudoku-cell.peer { background: #ebe5d3; }
 .sudoku-cell.same { background: #e5d6a6; }
+/* The row, column or box a hint is about, and the square the cat sits on. */
+.sudoku-cell.hint-unit { background: #f2d785; }
+.sudoku-cell.nudged { box-shadow: inset 0 0 0 3px var(--brass-deep); }
+.sudoku-cell .paw { position: absolute; right: 2px; bottom: 2px; width: 38%; height: 38%; color: var(--wall); opacity: 0.75; }
 .sudoku-cell.selected { background: var(--brass); color: var(--ink); }
 .sudoku-cell.clash { color: var(--pencil); }
 .number-pad { display: grid; gap: 0.4rem; margin: 0.75rem auto 0; max-width: 28rem; }

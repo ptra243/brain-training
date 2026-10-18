@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { content } from '../content/index.ts';
 import { Rng } from '../engine/rng.ts';
-import { autoDots, catConflicts, catsSolved, countCatSolutions, generateCats, solvableBySimpleSteps } from './cats.ts';
-import { foundLocations, generateSudoku, locationSquares, solvableBySingles, sudokuConflicts, sudokuShape, sudokuSolved } from './sudoku.ts';
+import { autoDots, catConflicts, catMoveId, catsHint, catsSolved, countCatSolutions, generateCats, solvableBySimpleSteps, type CatHintState, type CatMark, type CatPuzzle } from './cats.ts';
+import { foundLocations, generateSudoku, locationSquares, solvableBySingles, sudokuConflicts, sudokuHint, sudokuShape, sudokuSolved, type SudokuHintState, type SudokuPuzzle } from './sudoku.ts';
 import { isAllowedGuess, parseWords } from './dictionary.ts';
 import { keyboardState, scoreGuess } from './wordle.ts';
 import { typedEdit } from './typing.ts';
@@ -156,4 +156,110 @@ test('typing: plain keys, backspace, and keyboards that resend or autocorrect th
   assert.deepEqual(typedEdit('CRAN', 'CRANE'), { deleted: 0, inserted: 'E' });
   assert.deepEqual(typedEdit('TEH', 'THE'), { deleted: 2, inserted: 'HE' });
   assert.deepEqual(typedEdit('', '1'), { deleted: 0, inserted: '' });
+});
+
+/** Ask for hints until the grid is solved, as the game does; check every step is a right one. */
+function followSudokuHints(p: SudokuPuzzle, start: number[]) {
+  let grid = start.slice();
+  let state: SudokuHintState = {};
+  const kinds = { wrong: 0, nudge: 0, why: 0, fill: 0 };
+  for (let asks = 0; !sudokuSolved(p, grid); asks++) {
+    assert.ok(asks < 4 * p.size * p.size, 'hints go round in circles');
+    const h = sudokuHint(p, grid, state);
+    assert.ok(h, 'no hint before the grid is solved');
+    kinds[h.kind]++;
+    if (h.kind === 'wrong') {
+      for (const [i, d] of Object.entries(h.squares)) assert.notEqual(p.solution[+i], d);
+      state = { ...state, flagged: { ...state.flagged, ...h.squares } };
+    } else if (h.kind === 'nudge') {
+      assert.notEqual(grid[h.cell], p.solution[h.cell], 'nudges an unsolved square');
+      state = { ...state, nudged: h.cell };
+    } else if (h.kind === 'why') {
+      assert.equal(h.cell, state.nudged);
+      state = { ...state, explained: h.cell };
+    } else {
+      assert.equal(h.cell, state.nudged);
+      assert.equal(h.digit, p.solution[h.cell]);
+      grid = grid.slice();
+      grid[h.cell] = h.digit;
+    }
+  }
+  assert.equal(sudokuHint(p, grid, state), null);
+  return kinds;
+}
+
+for (const [size, givens] of [[6, 16], [6, 13], [9, 32]] as const) {
+  test(`sudoku ${size}×${size} hints (${givens} givens): nudge, why, fill, always to a win`, () => {
+    for (let seed = 1; seed <= 12; seed++) {
+      const p = generateSudoku(size, givens, new Rng(seed * 31 + givens));
+      const kinds = followSudokuHints(p, p.givens);
+      const empty = p.givens.filter((d) => !d).length;
+      assert.deepEqual(kinds, { wrong: 0, nudge: empty, why: empty, fill: empty });
+    }
+  });
+}
+
+test('sudoku hints cross out wrong numbers once, then still lead to a win', () => {
+  const p = generateSudoku(6, 13, new Rng(5));
+  const grid = p.givens.slice();
+  const blanks = grid.map((d, i) => (d ? -1 : i)).filter((i) => i >= 0);
+  grid[blanks[0]] = (p.solution[blanks[0]] % 6) + 1;
+  grid[blanks[1]] = p.solution[blanks[1]];
+  const first = sudokuHint(p, grid);
+  assert.deepEqual(first, { kind: 'wrong', squares: { [blanks[0]]: grid[blanks[0]] } });
+  assert.equal(sudokuHint(p, grid, { flagged: { [blanks[0]]: grid[blanks[0]] } })?.kind, 'nudge');
+  followSudokuHints(p, grid);
+});
+
+/** Ask for hints until every cat is right, as the game does; check every step is a right one. */
+function followCatHints(p: CatPuzzle, start: Record<string, CatMark> = {}) {
+  let marks = { ...start };
+  let state: CatHintState = {};
+  const kinds = { wrong: 0, nudge: 0, why: 0, move: 0, tidy: 0, lookAhead: 0 };
+  const placed = () => Object.entries(marks).filter(([, m]) => m === 'cat').map(([k]) => k.split(',').map(Number) as [number, number]);
+  for (let asks = 0; !catsSolved(p, placed()); asks++) {
+    assert.ok(asks < 4 * p.size * p.size, 'hints go round in circles');
+    const h = catsHint(p, marks, state);
+    assert.ok(h, 'no hint before the puzzle is solved');
+    kinds[h.kind]++;
+    if (h.kind === 'wrong') state = { ...state, flagged: { ...state.flagged, ...h.squares } };
+    else if (h.kind === 'nudge') {
+      if (h.move.kind === 'look-ahead') kinds.lookAhead++;
+      state = { ...state, nudged: catMoveId(h.move) };
+    } else if (h.kind === 'why') state = { ...state, explained: catMoveId(h.move) };
+    else {
+      if (h.kind === 'move') assert.equal(catMoveId(h.move), state.nudged);
+      marks = { ...marks };
+      for (const [key, m] of Object.entries(h.marks)) {
+        const [r, c] = key.split(',').map(Number);
+        if (m) assert.equal(m === 'cat', p.solution[r] === c, `${m} on ${key}`);
+        if (m) marks[key] = m;
+        else delete marks[key];
+      }
+    }
+  }
+  assert.equal(catsHint(p, marks, state), null);
+  return kinds;
+}
+
+for (const size of [6, 7, 8]) {
+  for (const easy of [true, false]) {
+    test(`cat puzzle ${size}×${size} hints (${easy ? 'easy' : 'not easy'}): only right moves, always to a win`, () => {
+      for (let seed = 1; seed <= 10; seed++) {
+        const p = generateCats(size, new Rng(seed * 101 + size), easy);
+        const kinds = followCatHints(p);
+        assert.equal(kinds.wrong + kinds.tidy, 0);
+        if (easy) assert.equal(kinds.lookAhead, 0, 'easy puzzles never need looking ahead');
+      }
+    });
+  }
+}
+
+test('cat hints cross out a wrong cat and a dot on a cat square, then clear them on the way to a win', () => {
+  const p = generateCats(6, new Rng(7), true);
+  const wrongCol = (p.solution[0] + 3) % 6;
+  const start: Record<string, CatMark> = { [`0,${wrongCol}`]: 'cat', [`1,${p.solution[1]}`]: 'dot' };
+  assert.deepEqual(catsHint(p, start), { kind: 'wrong', squares: start });
+  assert.equal(catsHint(p, start, { flagged: start })?.kind, 'nudge');
+  followCatHints(p, start);
 });

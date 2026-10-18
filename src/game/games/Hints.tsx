@@ -1,7 +1,7 @@
 // Hints come from the house cat helping on this case. Every game uses these
 // two pieces: a button to ask, and a note card with what the cat did.
 
-function Paw() {
+export function Paw() {
   return (
     <svg className="paw" viewBox="0 0 24 24" aria-hidden="true">
       <ellipse cx="12" cy="16" rx="5.2" ry="4.4" />

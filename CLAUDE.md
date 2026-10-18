@@ -38,7 +38,10 @@ checked for how much look-ahead they need (easy ones are).
   `src/games/` with tests that following hints always reaches a win; the UI
   is `HintButton` + `HintNote` (`Hints.tsx`), the copy says what the cat did.
   Save the hint count in the game's data; a game won with hints is still
-  `won`. Done: crossword. To do: the other games.
+  `won`. Where the move has a reason (sudoku singles, the cat puzzle's
+  simple steps), a "why" step comes before the fill, and the board lights up
+  what the hint is about (paw on the square). Done: crossword, sudoku, cat
+  puzzle. To do: Wordle, word search, interrogation.
 - **Each case has three scene word games plus one to three rotating games**
   (two at the presets) drawn from cat puzzle, sudoku and interrogation; hard logic adds a finale
   interrogation that opens once the others are done and uses her casebook

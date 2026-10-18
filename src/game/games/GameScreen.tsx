@@ -144,6 +144,7 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
           data={data}
           statements={statements}
           finished={finished}
+          helper={props.helper}
           onChange={(d: SudokuData) => {
             check(d);
             save(d);

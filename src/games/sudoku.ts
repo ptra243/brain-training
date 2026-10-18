@@ -25,7 +25,11 @@ interface Shape {
   units: number[][];
 }
 
+const shapes = new Map<number, Shape>();
+
 function shape(size: number): Shape {
+  const known = shapes.get(size);
+  if (known) return known;
   const [boxRows, boxCols] = BOXES[size];
   const units: number[][] = [];
   for (let r = 0; r < size; r++) units.push(Array.from({ length: size }, (_, c) => r * size + c));
@@ -42,7 +46,9 @@ function shape(size: number): Shape {
     for (const u of units) if (u.includes(i)) for (const j of u) if (j !== i) set.add(j);
     return [...set];
   });
-  return { size, boxRows, boxCols, peers, units };
+  const out = { size, boxRows, boxCols, peers, units };
+  shapes.set(size, out);
+  return out;
 }
 
 function candidates(s: Shape, grid: number[], i: number): number[] {
@@ -183,4 +189,84 @@ export function foundLocations(p: SudokuPuzzle, squares: Record<string, Location
   return Object.entries(squares)
     .filter(([, s]) => grid[s.row] === p.solution[s.row] && grid[s.col] === p.solution[s.col])
     .map(([id]) => id);
+}
+
+// ---------- Hints ----------
+// Each ask gives the next step, gentlest first: point out wrong numbers, then
+// sit on a square that can be worked out, then say why, then fill it in.
+
+/** Why a square can be worked out: every other number is ruled out, or the number has nowhere else to go in a row, column or box. */
+export type SudokuReason = { kind: 'only-number' } | { kind: 'only-place'; unit: 'row' | 'column' | 'box'; cells: number[] };
+
+export type SudokuHint =
+  /** Her numbers that are wrong, keyed by square index. */
+  | { kind: 'wrong'; squares: Record<number, number> }
+  /** A square that can be worked out now. */
+  | { kind: 'nudge'; cell: number }
+  /** Why that square can be worked out. */
+  | { kind: 'why'; cell: number; digit: number; reason: SudokuReason }
+  /** Its number, filled in. */
+  | { kind: 'fill'; cell: number; digit: number };
+
+export interface SudokuHintState {
+  /** Wrong numbers already pointed out, by square. Not pointed out again while unchanged. */
+  flagged?: Readonly<Record<number, number>>;
+  /** The square she was last nudged towards. */
+  nudged?: number;
+  /** The square whose reason she was last given. */
+  explained?: number;
+}
+
+/** Her numbers that are wrong and haven't been pointed out yet (or have changed since). */
+export function sudokuWrong(p: SudokuPuzzle, grid: readonly number[], flagged: Readonly<Record<number, number>> = {}): Record<number, number> {
+  const out: Record<number, number> = {};
+  grid.forEach((d, i) => {
+    if (d && d !== p.solution[i] && flagged[i] !== d) out[i] = d;
+  });
+  return out;
+}
+
+const UNIT_KINDS = ['row', 'column', 'box'] as const;
+
+/** Why square `i` can be worked out from the right numbers in `grid`, or null if it can't yet. */
+function singleReason(s: Shape, grid: number[], i: number, digit: number): SudokuReason | null {
+  // A number with only one place in a box, row or column is the easiest to spot.
+  for (const k of [2, 0, 1]) {
+    const unit = s.units.filter((u) => u.includes(i))[k];
+    if (unit.some((j) => grid[j] === digit)) continue;
+    const spots = unit.filter((j) => !grid[j] && candidates(s, grid, j).includes(digit));
+    if (spots.length === 1) return { kind: 'only-place', unit: UNIT_KINDS[k], cells: unit };
+  }
+  const cands = candidates(s, grid, i);
+  return cands.length === 1 ? { kind: 'only-number' } : null;
+}
+
+/**
+ * Why square `i` can be worked out now, or null if it can't (or is already right).
+ * Reasons only from the numbers that are right; wrong ones have been crossed out.
+ */
+export function sudokuReason(p: SudokuPuzzle, grid: readonly number[], i: number, known = grid.map((d, j) => (d === p.solution[j] ? d : 0))): SudokuReason | null {
+  return known[i] ? null : singleReason(shape(p.size), known, i, p.solution[i]);
+}
+
+/** The next hint, or null once the grid is solved. */
+export function sudokuHint(p: SudokuPuzzle, grid: readonly number[], state: SudokuHintState = {}): SudokuHint | null {
+  const wrong = sudokuWrong(p, grid, state.flagged);
+  if (Object.keys(wrong).length) return { kind: 'wrong', squares: wrong };
+  if (sudokuSolved(p, grid)) return null;
+
+  const known = grid.map((d, i) => (d === p.solution[i] ? d : 0));
+  const reasonFor = (i: number) => sudokuReason(p, grid, i, known);
+
+  const nudged = state.nudged;
+  const reason = nudged !== undefined ? reasonFor(nudged) : null;
+  if (nudged === undefined || !reason) {
+    // Squares in reading order; one always qualifies, since singles alone solve the puzzle from its givens.
+    const cell = known.findIndex((_, i) => reasonFor(i)?.kind === 'only-place');
+    const next = cell >= 0 ? cell : known.findIndex((_, i) => reasonFor(i) !== null);
+    return { kind: 'nudge', cell: next };
+  }
+  const digit = p.solution[nudged];
+  if (state.explained !== nudged) return { kind: 'why', cell: nudged, digit, reason };
+  return { kind: 'fill', cell: nudged, digit };
 }

@@ -1,7 +1,16 @@
 import { useState } from 'react';
 import type { Clue } from '../../engine/types.ts';
-import { sudokuConflicts, sudokuSolved, type LocationSquares, type SudokuPuzzle } from '../../games/sudoku.ts';
+import {
+  sudokuConflicts,
+  sudokuHint,
+  sudokuReason,
+  sudokuSolved,
+  type LocationSquares,
+  type SudokuHint,
+  type SudokuPuzzle,
+} from '../../games/sudoku.ts';
 import { ClueCard } from '../ClueCard.tsx';
+import { HintButton, HintNote, Paw } from './Hints.tsx';
 import type { GameProps } from './types.ts';
 
 /** A statement unlocked by two marked squares: their digits are a row and column on the floor plan. */
@@ -15,15 +24,53 @@ export interface SudokuStatement {
 export interface SudokuData {
   /** Row-major digits, 0 = empty. Givens are included. */
   grid: number[];
+  /** Wrong numbers a hint has crossed in red, by square. Shown while the number is unchanged. */
+  flagged?: Record<number, number>;
+  /** The square the last hint sat on. */
+  nudged?: number;
+  /** The square whose reason a hint gave. */
+  explained?: number;
+  /** How many hints she asked for. */
+  hints?: number;
 }
 
 export const sudokuInitial = (p: SudokuPuzzle): SudokuData => ({ grid: p.givens.slice() });
 export const sudokuSolvedData = (p: SudokuPuzzle): SudokuData => ({ grid: p.solution.slice() });
 
+const count = (n: number, one: string, many: string) => (n === 1 ? one : `${n} ${many}`);
+
+/** What the cat did, in a sentence. */
+function hintText(cat: string, h: SudokuHint, size: number): string {
+  const row = (i: number) => Math.floor(i / size) + 1;
+  const col = (i: number) => (i % size) + 1;
+  switch (h.kind) {
+    case 'wrong': {
+      const n = Object.keys(h.squares).length;
+      return `${cat} walks across the grid and sits on ${count(n, "a number that isn't right", "numbers that aren't right")}. ${n === 1 ? "It's" : "They're"} crossed in red pencil.`;
+    }
+    case 'nudge':
+      return `${cat} curls up on the square in row ${row(h.cell)}, column ${col(h.cell)}. It can be worked out from the numbers already there.`;
+    case 'why': {
+      if (h.reason.kind === 'only-number')
+        return `${cat} looks along its row, its column and its box. Between them they already have every number but one.`;
+      const [unit, others] =
+        h.reason.unit === 'box'
+          ? ['its box', 'row or column']
+          : h.reason.unit === 'row'
+            ? [`row ${row(h.cell)}`, 'column or box']
+            : [`column ${col(h.cell)}`, 'row or box'];
+      return `${cat} paces up and down ${unit}. It needs a ${h.digit} somewhere, and every other empty square there already has a ${h.digit} in its ${others}.`;
+    }
+    case 'fill':
+      return `${cat} pats the square until you look. It's a ${h.digit}.`;
+  }
+}
+
 export function SudokuGame({
   puzzle,
   data,
   finished,
+  helper = 'The cat',
   onChange,
   onFinish,
   statements,
@@ -35,7 +82,13 @@ export function SudokuGame({
   }
   const { size, boxRows, boxCols, givens } = puzzle;
   const [selected, setSelected] = useState<number | null>(() => givens.findIndex((d) => d === 0));
+  const [note, setNote] = useState<string | null>(null);
+  const flagged = data.flagged ?? {};
   const bad = sudokuConflicts(puzzle, data.grid);
+  // The square the cat sat on, until it's right; once she's been told why, the row, column or box that shows it.
+  const nudged = !finished && data.nudged !== undefined && data.grid[data.nudged] !== puzzle.solution[data.nudged] ? data.nudged : -1;
+  const reason = nudged >= 0 && data.explained === nudged ? sudokuReason(puzzle, data.grid, nudged) : null;
+  const hintUnit = new Set(reason?.kind === 'only-place' ? reason.cells : []);
   const sel = selected ?? -1;
   const selDigit = sel >= 0 ? data.grid[sel] : 0;
   const sameUnit = (i: number) => {
@@ -44,13 +97,36 @@ export function SudokuGame({
     return r === sr || c === sc || (Math.floor(r / boxRows) === Math.floor(sr / boxRows) && Math.floor(c / boxCols) === Math.floor(sc / boxCols));
   };
 
+  const commit = (grid: number[], extra: Partial<SudokuData> = {}) => {
+    const next = { ...data, ...extra, grid };
+    if (sudokuSolved(puzzle, grid)) onFinish('won', next);
+    else onChange(next);
+  };
+
   const put = (digit: number) => {
     if (finished || sel < 0 || givens[sel]) return;
     const grid = data.grid.slice();
     grid[sel] = grid[sel] === digit ? 0 : digit;
-    const next = { grid };
-    if (sudokuSolved(puzzle, grid)) onFinish('won', next);
-    else onChange(next);
+    commit(grid);
+  };
+
+  const askHint = () => {
+    if (finished) return;
+    const h = sudokuHint(puzzle, data.grid, data);
+    if (!h) return;
+    const hints = (data.hints ?? 0) + 1;
+    setNote(hintText(helper, h, size));
+    if (h.kind === 'wrong') commit(data.grid, { hints, flagged: { ...flagged, ...h.squares } });
+    else {
+      setSelected(h.cell);
+      if (h.kind === 'nudge') commit(data.grid, { hints, nudged: h.cell });
+      else if (h.kind === 'why') commit(data.grid, { hints, explained: h.cell });
+      else {
+        const grid = data.grid.slice();
+        grid[h.cell] = h.digit;
+        commit(grid, { hints });
+      }
+    }
   };
 
   const remaining = (d: number) => size - data.grid.filter((x) => x === d).length;
@@ -62,6 +138,12 @@ export function SudokuGame({
         {statements.length > 0 &&
           ' Lettered squares point at the floor plan: ↓ is the row, → the column. Fill both to hear that statement.'}
       </p>
+      {!finished && (
+        <div className="hint-bar">
+          <HintButton helper={helper} onAsk={askHint} />
+          {note && <HintNote text={note} onClose={() => setNote(null)} />}
+        </div>
+      )}
       <div
         className={`sudoku-grid size-${size}`}
         style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${size}, minmax(0, 1fr))` }}
@@ -71,6 +153,7 @@ export function SudokuGame({
         {data.grid.map((d, i) => {
           const r = Math.floor(i / size);
           const c = i % size;
+          const wrong = !finished && !!d && flagged[i] === d;
           const classes = [
             'sudoku-cell',
             givens[i] ? 'given' : 'entry',
@@ -78,6 +161,9 @@ export function SudokuGame({
             d && d === selDigit && i !== sel ? 'same' : '',
             bad.has(i) && !givens[i] ? 'clash' : '',
             tags.has(i) ? 'tagged' : '',
+            wrong ? 'wrong' : '',
+            hintUnit.has(i) ? 'hint-unit' : '',
+            i === nudged ? 'nudged' : '',
           ].join(' ');
           return (
             <button
@@ -90,11 +176,12 @@ export function SudokuGame({
                 borderBottomWidth: r === size - 1 ? 2.5 : 0.5,
                 borderRightWidth: c === size - 1 ? 2.5 : 0.5,
               }}
-              aria-label={`Row ${r + 1}, column ${c + 1}: ${d || 'empty'}${givens[i] ? ', given' : ''}${tags.has(i) ? `, square ${tags.get(i)}` : ''}`}
+              aria-label={`Row ${r + 1}, column ${c + 1}: ${d || 'empty'}${givens[i] ? ', given' : ''}${wrong ? ', crossed out as wrong' : ''}${i === nudged ? `, ${helper} is sitting here` : ''}${tags.has(i) ? `, square ${tags.get(i)}` : ''}`}
               onClick={() => !finished && setSelected(i)}
             >
               {tags.has(i) && <span className="cell-tag">{tags.get(i)}</span>}
               {d || ''}
+              {i === nudged && <Paw />}
             </button>
           );
         })}
