@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { AccusePanel } from './AccusePanel.tsx';
 import { ClueDrawer } from './ClueDrawer.tsx';
-import { CluesPanel } from './CluesPanel.tsx';
+import { CluesPanel, type PuzzleGate } from './CluesPanel.tsx';
 import { GridPanel } from './GridPanel.tsx';
 import { MapPanel } from './MapPanel.tsx';
 import { GameScreen } from './games/GameScreen.tsx';
@@ -26,17 +26,27 @@ interface Props {
   onHome: () => void;
   /** A fresh case with the same difficulty and length. */
   onNewCase: () => void;
+  /** Campaign rounds: their own heading, round tabs, the puzzle budget and accuse screen. */
+  title?: string;
+  subtitle?: string;
+  banner?: ReactNode;
+  gate?: PuzzleGate;
+  accuse?: ReactNode;
+  /** An earlier round: look, don't touch. */
+  readOnly?: boolean;
 }
 
 /** One case: clues, map, grid and accusation. Remount it (key) for another case. */
-export function Casebook({ c, progress, onProgress, onHome, onNewCase }: Props) {
+export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, subtitle, banner, gate, accuse, readOnly }: Props) {
   const [tab, setTab] = useState<Tab>('clues');
   const [playing, setPlaying] = useState<GameKind | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   // A grid label she tapped: the drawer then shows only clues about it.
   const [focus, setFocus] = useState<Subject | null>(null);
 
-  const dispatch = (a: Action) => onProgress((p) => reduce(c, p, a));
+  const dispatch = (a: Action) => {
+    if (!readOnly) onProgress((p) => reduce(c, p, a));
+  };
 
   const select = (t: Tab) => {
     setTab(t);
@@ -72,13 +82,13 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase }: Props) 
           ‹
         </button>
         <div className="case-title">
-          <h1>Case {c.code}</h1>
-          <p>
-            {DIFFICULTY_LABEL[c.difficulty]}, {c.suspects.length} suspects{progress.solved ? ', solved' : ''}
-          </p>
+          <h1>{title ?? `Case ${c.code}`}</h1>
+          <p>{subtitle ?? `${DIFFICULTY_LABEL[c.difficulty]}, ${c.suspects.length} suspects${progress.solved ? ', solved' : ''}`}</p>
         </div>
         <span aria-hidden="true" />
       </header>
+
+      {banner}
 
       <main>
         {tab === 'clues' && (
@@ -86,6 +96,8 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase }: Props) 
             c={c}
             progress={progress}
             dispatch={dispatch}
+            gate={gate}
+            readOnly={readOnly}
             onPlay={(kind) => {
               setPlaying(kind);
               window.scrollTo(0, 0);
@@ -106,7 +118,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase }: Props) 
             }}
           />
         )}
-        {tab === 'accuse' && <AccusePanel c={c} progress={progress} dispatch={dispatch} onNextCase={onNewCase} />}
+        {tab === 'accuse' && (accuse ?? <AccusePanel c={c} progress={progress} dispatch={dispatch} onNextCase={onNewCase} />)}
       </main>
 
       <div className="dock">

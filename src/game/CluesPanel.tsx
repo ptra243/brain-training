@@ -12,14 +12,27 @@ const SCENE_BLURBS: Partial<Record<GameKind, string>> = {
   wordsearch: 'Find the words; the leftover letters spell it.',
 };
 
+/** A campaign round's limit on puzzles (the word game is always free). */
+export interface PuzzleGate {
+  budget: number;
+  left: number;
+  picked: readonly GameKind[];
+  onPick: (kind: GameKind) => void;
+}
+
 interface Props {
   c: Case;
   progress: Progress;
   dispatch: (a: Action) => void;
   onPlay: (kind: GameKind) => void;
+  gate?: PuzzleGate;
+  /** An earlier campaign round: puzzles can't be opened. */
+  readOnly?: boolean;
 }
 
-export function CluesPanel({ c, progress, dispatch, onPlay }: Props) {
+const NUMBER_WORDS = ['no', 'one', 'two', 'three'];
+
+export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly }: Props) {
   const unlocked = unlockedClueIds(c, progress);
   const visible = visibleClues(c, progress);
   // Sudoku statements she hasn't pinned to the map yet: shown with blanks.
@@ -30,16 +43,29 @@ export function CluesPanel({ c, progress, dispatch, onPlay }: Props) {
   const sceneKind = sceneGameInPlay(c, progress);
   const sceneGames = c.games.filter((g) => g.unlocksScene);
   const [choosing, setChoosing] = useState(false);
+  const [confirming, setConfirming] = useState<GameKind | null>(null);
+  const puzzles = c.games.filter((g) => !g.unlocksScene);
+  const open = (kind: GameKind) => {
+    if (gate && !gate.picked.includes(kind) && !c.games.find((g) => g.kind === kind)?.unlocksScene) setConfirming(kind);
+    else onPlay(kind);
+  };
   const statusOf = (kind: GameKind) => progress.games[kind]?.status;
 
   return (
     <section className="panel">
       <article className="card puzzles">
         <h2>Tonight's puzzles</h2>
+        {gate && gate.budget < puzzles.length && (
+          <p className="muted small budget-note">
+            You can play {NUMBER_WORDS[gate.budget]} of these {NUMBER_WORDS[puzzles.length]} puzzles, besides the word game.{' '}
+            {gate.left ? `${gate.left} left to choose.` : 'Those are your picks for tonight.'}
+          </p>
+        )}
         <ul>
           <li>
             <button
               className={`puzzle-row ${scene ? 'done' : ''}`}
+              disabled={readOnly}
               onClick={() => (scene && sceneKind ? onPlay(sceneKind) : setChoosing(true))}
             >
               <span className="puzzle-name">{scene && sceneKind ? GAME_NAMES[sceneKind] : 'Word game'}</span>
@@ -51,25 +77,28 @@ export function CluesPanel({ c, progress, dispatch, onPlay }: Props) {
               </span>
             </button>
           </li>
-          {c.games.filter((g) => !g.unlocksScene).map((g) => {
+          {puzzles.map((g) => {
             const status = progress.games[g.kind]?.status;
             const done = status === 'won' || status === 'revealed';
-            const locked = g.kind === 'finale' && !finaleOpen(c, progress);
+            const usedUp = gate !== undefined && !gate.picked.includes(g.kind) && gate.left === 0;
+            const locked = (g.kind === 'finale' && !finaleOpen(c, progress)) || usedUp;
             const who = g.interrogation ? ` ${suspectName(g.interrogation.suspect).replace(/^The /, 'the ')}` : '';
-            const reward = locked
-              ? 'Opens when the other puzzles are done'
-              : `${who ? `Question${who}. ` : ''}Unlocks ${g.clues.length} clue${g.clues.length === 1 ? '' : 's'}`;
+            const reward = usedUp
+              ? 'Not tonight: you have used your picks'
+              : locked
+                ? 'Opens when the other puzzles are done'
+                : `${who ? `Question${who}. ` : ''}Unlocks ${g.clues.length} clue${g.clues.length === 1 ? '' : 's'}`;
             return (
               <li key={g.kind}>
                 <button
                   className={`puzzle-row ${done ? 'done' : ''} ${locked ? 'locked' : ''}`}
-                  disabled={locked}
-                  onClick={() => onPlay(g.kind)}
+                  disabled={locked || readOnly}
+                  onClick={() => open(g.kind)}
                 >
                   <span className="puzzle-name">{GAME_NAMES[g.kind]}</span>
                   <span className="puzzle-reward">{done ? (status === 'won' ? 'Solved' : 'Solved for you') : reward}</span>
                   <span className="puzzle-action" aria-hidden="true">
-                    {done ? '✓' : locked ? 'Later' : status === 'playing' ? 'Continue' : 'Play'}
+                    {done ? '✓' : usedUp ? '–' : locked ? 'Later' : status === 'playing' ? 'Continue' : 'Play'}
                   </span>
                 </button>
               </li>
@@ -116,6 +145,30 @@ export function CluesPanel({ c, progress, dispatch, onPlay }: Props) {
               );
             })}
           </ul>
+        </Dialog>
+      )}
+
+      {confirming && gate && (
+        <Dialog placement="center" labelId="pick-title" onClose={() => setConfirming(null)}>
+          <h2 id="pick-title">Play the {GAME_NAMES[confirming].toLowerCase()}?</h2>
+          <p className="dialog-text">
+            It uses one of tonight's picks: {gate.left} left. Any one puzzle's clues are enough to narrow it down.
+          </p>
+          <div className="dialog-actions">
+            <button data-autofocus className="secondary" onClick={() => setConfirming(null)}>
+              Not yet
+            </button>
+            <button
+              className="primary"
+              onClick={() => {
+                gate.onPick(confirming);
+                setConfirming(null);
+                onPlay(confirming);
+              }}
+            >
+              Play it
+            </button>
+          </div>
         </Dialog>
       )}
 

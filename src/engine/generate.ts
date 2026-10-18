@@ -4,9 +4,9 @@ import { canLocate, plainText, wordClue } from './wording.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { allHoldings, allRoomings, countMatching } from './search.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
-import { SCENE_GAMES, type Case, type Clue, type ClueDelivery, type ClueFact, type ClueSource, type ClueType, type Content, type Difficulty, type GameKind, type GameSpec, type Interrogation, type Solution } from './types.ts';
+import { SCENE_GAMES, type Case, type Clue, type ClueDelivery, type ClueFact, type ClueSource, type ClueType, type Content, type Difficulty, type GameKind, type GameSpec, type Interrogation, type Solution, type CampaignRound } from './types.ts';
 import { buildInterrogation, type CaseFacts } from './interrogation.ts';
-import { PRESETS, caseSettings, clueShares, levelsKey, type CaseLevels, type CaseSettings } from './settings.ts';
+import { PRESETS, caseSettings, clueShares, levelsKey, type CaseLevels, type CaseSettings, type ClueShares } from './settings.ts';
 
 /** Difficulty curve for the campaign: a few easy cases, then mostly medium with every third hard. */
 export function campaignDifficulty(caseNumber: number): Difficulty {
@@ -31,16 +31,13 @@ export function generateCase(
  * only label it.
  */
 export function buildCase(content: Content, seedText: string, caseNumber: number, code: string, levels: CaseLevels): Case {
-  const difficulty = levels.logic;
   const seed = hashSeed(seedText);
   const rng = new Rng(seed);
   const settings = caseSettings(levels);
-  const { house } = content;
 
   // 1–4. The truth, and a minimal set of clues that pins it down.
-  const { suspects, rooms, items, solution, murdererIndex, minimal, ctx } = settings.shared
-    ? sharedTruth(content, settings, rng, code)
-    : classicTruth(content, settings, rng, code);
+  const truth = settings.shared ? sharedTruth(content, settings, rng, code) : classicTruth(content, settings, rng, code);
+  const { minimal } = truth;
 
   // 5. Pick tonight's games: a word game of her choice gives the scene; one to
   //    three of the cat puzzle, sudoku and interrogation share the clues. Hard
@@ -51,10 +48,38 @@ export function buildCase(content: Content, seedText: string, caseNumber: number
   const rotating = ROTATION.filter((k) => picked.includes(k));
   const kinds = settings.finale ? [...rotating, 'finale' as const] : rotating;
 
+  const shares = clueShares(order.length, settings, rotating.indexOf('sudoku'));
+  return assemble({ content, seed, rng, settings, levels, caseNumber, code, truth, order, rotating, kinds, shares });
+}
+
+/** Everything `assemble` needs: the truth, its clues in hand-out order, and how they're shared. */
+export interface Layout {
+  content: Content;
+  seed: number;
+  rng: Rng;
+  settings: CaseSettings;
+  levels: CaseLevels;
+  caseNumber: number;
+  code: string;
+  truth: Truth;
+  /** Clues in hand-out order: the free ones, each rotating game's share, then the finale's. */
+  order: ClueFact[];
+  rotating: GameKind[];
+  kinds: GameKind[];
+  shares: ClueShares;
+  campaign?: CampaignRound;
+}
+
+/** Words the clues, builds the interrogations, the scene and the game specs. */
+export function assemble(o: Layout): Case {
+  const { content, seed, rng, settings, levels, caseNumber, code, order, rotating, kinds, shares } = o;
+  const { suspects, rooms, items, solution, murdererIndex, ctx } = o.truth;
+  const difficulty = levels.logic;
+  const { house } = content;
+
   // 6. Hand out the clues, in order: the free ones, each rotating game's
   //    share, then up to two for the finale. A sudoku's "located" statements
   //    unlock early from two coordinate squares.
-  const shares = clueShares(order.length, settings, rotating.indexOf('sudoku'));
   const free = shares.free;
   const gameFacts = new Map<GameKind, ClueFact[]>();
   let at = free;
@@ -164,6 +189,8 @@ export function buildCase(content: Content, seedText: string, caseNumber: number
     seed,
     difficulty,
     levels,
+    shared: settings.shared,
+    ...(o.campaign && { campaign: o.campaign }),
     houseId: house.id,
     suspects,
     rooms,
@@ -178,7 +205,7 @@ export function buildCase(content: Content, seedText: string, caseNumber: number
   };
 }
 
-interface Truth {
+export interface Truth {
   suspects: string[];
   rooms: string[];
   items: string[];
@@ -190,7 +217,7 @@ interface Truth {
 }
 
 /** Clues in a weighted-random order: more likely types tend to come first. */
-function weightedOrder(pool: readonly ClueFact[], settings: CaseSettings, rng: Rng): ClueFact[] {
+export function weightedOrder(pool: readonly ClueFact[], settings: CaseSettings, rng: Rng): ClueFact[] {
   return pool
     .map((fact) => ({ fact, w: settings.weights[fact.type] ?? 0 }))
     .filter((x) => x.w > 0)

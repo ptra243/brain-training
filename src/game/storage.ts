@@ -3,6 +3,7 @@
 // still works without it, just without remembering.
 
 import type { QuickRef } from '../engine/caseRef.ts';
+import type { CampaignSave } from './campaign.ts';
 import { emptyProgress, type Progress } from './state.ts';
 
 // v4: a 7th guest joined the cast, so every case draws its suspects differently.
@@ -39,9 +40,27 @@ export function loadQuick(): QuickSave | null {
 
 export const saveQuick = (q: QuickSave) => write('quick', q);
 
-/** Where she was: the home screen or inside her case, so reopening the app goes back there. */
-export type Screen = 'home' | 'case';
+/** The campaign she's on (one at a time). */
+export function loadCampaign(): CampaignSave | null {
+  const saved = read<CampaignSave>('campaign');
+  if (!saved?.ref || typeof saved.ref.code !== 'string' || !Array.isArray(saved.rounds) || !saved.rounds.length) return null;
+  return {
+    ...saved,
+    victims: saved.victims ?? [],
+    rounds: saved.rounds.map((p) => ({ ...emptyProgress(), ...p })),
+    picked: saved.rounds.map((_, i) => saved.picked?.[i] ?? []),
+    outcome: saved.outcome ?? 'playing',
+  };
+}
 
-export const loadScreen = (): Screen => (read<Screen>('screen') === 'case' ? 'case' : 'home');
+export const saveCampaign = (c: CampaignSave) => write('campaign', c);
+
+/** Where she was: the home screen, her Quick start case or her campaign, so reopening the app goes back there. */
+export type Screen = 'home' | 'case' | 'campaign';
+
+export const loadScreen = (): Screen => {
+  const s = read<Screen>('screen');
+  return s === 'case' || s === 'campaign' ? s : 'home';
+};
 
 export const saveScreen = (s: Screen) => write('screen', s);

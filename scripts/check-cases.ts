@@ -3,6 +3,7 @@
 // npm run check-cases
 import { content } from '../src/content/index.ts';
 import { roomAdjacency } from '../src/engine/house.ts';
+import { campaignCast, campaignRound, roundProblems, type CampaignRef } from '../src/engine/campaign.ts';
 import { caseCode, caseFor, codeFor, type Cast, type QuickRef } from '../src/engine/caseRef.ts';
 import { generateCase } from '../src/engine/generate.ts';
 import { disproves } from '../src/engine/interrogation.ts';
@@ -35,13 +36,30 @@ function problems(c: Case): string[] {
   const k = c.suspects.indexOf(c.murderer);
   if (c.solution.room.filter((r) => r === c.sceneRoom).length !== 1 || c.solution.room[k] !== c.sceneRoom) out.push('killer not alone at the scene');
   if (c.solution.item[k] !== c.weapon) out.push("killer doesn't hold the weapon");
+  out.push(...puzzleProblems(c));
+  // Clue shares: every rotating game unlocks something, none too much.
+  const s = caseSettings(c.levels);
+  const rotating = c.games.filter((g) => !g.unlocksScene && g.kind !== 'finale');
+  if (rotating.length !== s.games) out.push(`${rotating.length} rotating games, not ${s.games}`);
+  for (const g of rotating) {
+    if (g.clues.length < 1 || g.clues.length > s.maxPerGame) out.push(`${g.kind} unlocks ${g.clues.length} clues`);
+  }
+  const finale = c.games.find((g) => g.kind === 'finale');
+  if (finale && finale.clues.length > 2) out.push(`finale unlocks ${finale.clues.length} clues`);
+  return out;
+}
+
+/** What's unfair about the minigames themselves: interrogations, word games, cat puzzles. */
+function puzzleProblems(c: Case): string[] {
+  const out: string[] = [];
+  const ctx = { suspects: c.suspects, adjacency };
   // Every interrogation: one lie, and its proof really disproves it.
   for (const g of c.games.filter((g) => g.interrogation)) {
     const it = g.interrogation!;
     const lies = it.questions.filter((q) => q.lie);
     const evidence = it.useCaseClues ? c.clues : it.cards;
     const proof = it.proof.map((id) => evidence.find((e) => e.id === id)?.fact).filter((f) => f !== undefined);
-    const cf = { suspects: c.suspects, rooms: c.rooms, items: c.items, solution: c.solution, ctx, shared };
+    const cf = { suspects: c.suspects, rooms: c.rooms, items: c.items, solution: c.solution, ctx, shared: c.shared };
     if (lies.length !== 1 || proof.length !== it.proof.length || !disproves(cf, proof, lies[0].answer.fact)) {
       out.push(`${g.kind} interrogation can't be caught fairly`);
     }
@@ -66,15 +84,6 @@ function problems(c: Case): string[] {
     const p = generateCats(g.size, new Rng(g.seed), g.easy);
     if (countCatSolutions(p.zones, 2) !== 1 || (g.easy && !solvableBySimpleSteps(p.zones))) out.push(`cat puzzle isn't fair`);
   }
-  // Clue shares: every rotating game unlocks something, none too much.
-  const s = caseSettings(c.levels);
-  const rotating = c.games.filter((g) => !g.unlocksScene && g.kind !== 'finale');
-  if (rotating.length !== s.games) out.push(`${rotating.length} rotating games, not ${s.games}`);
-  for (const g of rotating) {
-    if (g.clues.length < 1 || g.clues.length > s.maxPerGame) out.push(`${g.kind} unlocks ${g.clues.length} clues`);
-  }
-  const finale = c.games.find((g) => g.kind === 'finale');
-  if (finale && finale.clues.length > 2) out.push(`finale unlocks ${finale.clues.length} clues`);
   return out;
 }
 
@@ -143,10 +152,40 @@ for (const difficulty of DIFFICULTIES) {
 const QUICK_CHOICES = DIFFICULTIES.length * LENGTHS.length * CASTS.length;
 console.log(`${QUICK_CHOICES} Quick start choices × ${PER_QUICK} codes`);
 
-const total = 3 * PER_PRESET + others.length * PER_COMBINATION + QUICK_CHOICES * PER_QUICK;
+// Campaigns: every path of wrong accusations, each round fair for any puzzles she picks.
+const PER_DIFFICULTY = 3;
+let rounds = 0;
+const campaignStarted = performance.now();
+for (const difficulty of DIFFICULTIES) {
+  for (let i = 1; i <= PER_DIFFICULTY; i++) {
+    const ref: CampaignRef = { mode: 'campaign', code: codeFor(i * 2_654_435), difficulty };
+    const cast = campaignCast(content, ref);
+    const walk = (victims: string[]) => {
+      rounds++;
+      const where = `campaign ${ref.code}-${difficulty} after [${victims.join(', ')}]`;
+      try {
+        const c = campaignRound(content, ref, victims);
+        for (const p of [...roundProblems(content, c), ...puzzleProblems(c)]) {
+          failures++;
+          console.log(`  FAIL ${where}: ${p}`);
+        }
+        if (c.campaign!.last) return;
+        // She may accuse anyone alive; a wrong guess makes them the next body.
+        for (const s of c.suspects) if (s !== cast.killer) walk([...victims, s]);
+      } catch (err) {
+        failures++;
+        console.log(`  FAIL ${where}: ${(err as Error).message}`);
+      }
+    };
+    walk([]);
+  }
+}
+console.log(`${DIFFICULTIES.length * PER_DIFFICULTY} campaigns, every wrong-guess path: ${rounds} rounds (${((performance.now() - campaignStarted) / rounds).toFixed(0)} ms per round)`);
+
+const total = 3 * PER_PRESET + others.length * PER_COMBINATION + QUICK_CHOICES * PER_QUICK + rounds;
 console.log(
   failures
     ? `\n${failures} problems`
-    : `\nAll ${total} cases have exactly one solution, every interrogation can be caught fairly, every cat puzzle is fair, every word game spells its word, and every game unlocks a fair share of clues.`,
+    : `\nAll ${total} cases have exactly one solution, every interrogation can be caught fairly, every cat puzzle is fair, every word game spells its word, every game unlocks a fair share of clues, and every campaign round is fair whatever she picks.`,
 );
 process.exit(failures ? 1 : 0);

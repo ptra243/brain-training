@@ -94,3 +94,71 @@ export function newQuickCase(
   }
   throw new Error('Could not build a new case');
 }
+
+/** Word lists for case names, from `src/content/`. */
+export interface CaseNameWords {
+  adjectives: readonly string[];
+  nouns: readonly string[];
+  placeStarts: readonly string[];
+  placeEnds: readonly string[];
+  /** One per difficulty × length × cast (18). */
+  kinds: readonly string[];
+}
+
+const DIFFICULTY_ORDER = Object.keys(DIFFICULTY_LETTER) as Difficulty[];
+const LENGTH_ORDER = Object.keys(LENGTH_LETTER) as Length[];
+const capital = (w: string) => w[0].toUpperCase() + w.slice(1);
+
+/**
+ * The case's name, "The Velvet Jackdaw Affair at Ashcombe": the code's number
+ * written in words, and the kind of case for its levels. It says the same as
+ * the case code, so either one replays the case.
+ */
+export function caseName(ref: QuickRef, words: CaseNameWords): string {
+  const { adjectives, nouns, placeStarts, placeEnds, kinds } = words;
+  let n = codeNumber(ref.code);
+  const digit = (size: number) => {
+    const d = n % size;
+    n = Math.floor(n / size);
+    return d;
+  };
+  const adjective = adjectives[digit(adjectives.length)];
+  const noun = nouns[digit(nouns.length)];
+  const place = placeStarts[digit(placeStarts.length)] + placeEnds[digit(placeEnds.length)];
+  const kind =
+    kinds[(DIFFICULTY_ORDER.indexOf(ref.difficulty) * LENGTH_ORDER.length + LENGTH_ORDER.indexOf(ref.length)) * 2 + (ref.cast === 'big' ? 1 : 0)];
+  return `The ${capital(adjective)} ${capital(noun)} ${capital(kind)} at ${capital(place)}`;
+}
+
+/** Reads a case name back, forgiving case, punctuation, a missing "the" or "at" and a split place. */
+export function parseCaseName(text: string, words: CaseNameWords): QuickRef | null {
+  const { adjectives, nouns, placeStarts, placeEnds, kinds } = words;
+  const tokens = text
+    .toLowerCase()
+    .split(/[^a-z]+/)
+    .filter((t) => t && t !== 'the' && t !== 'at');
+  if (tokens.length === 5) tokens.splice(3, 2, tokens[3] + tokens[4]);
+  if (tokens.length !== 4) return null;
+  const [adjective, noun, kind, place] = tokens;
+  const a = adjectives.indexOf(adjective);
+  const b = nouns.indexOf(noun);
+  const k = kinds.indexOf(kind);
+  const start = placeStarts.findIndex((s) => place.startsWith(s) && placeEnds.includes(place.slice(s.length)));
+  if (a < 0 || b < 0 || k < 0 || start < 0) return null;
+  const end = placeEnds.indexOf(place.slice(placeStarts[start].length));
+  const n = a + adjectives.length * (b + nouns.length * (start + placeStarts.length * end));
+  if (n >= CODE_COUNT) return null;
+  const cast = k % 2 === 1;
+  const levels = Math.floor(k / 2);
+  return {
+    mode: 'quick',
+    code: codeFor(n),
+    difficulty: DIFFICULTY_ORDER[Math.floor(levels / LENGTH_ORDER.length)],
+    length: LENGTH_ORDER[levels % LENGTH_ORDER.length],
+    ...(cast && { cast: 'big' as const }),
+  };
+}
+
+/** A case code or a case name, whichever she typed. */
+export const parseCase = (text: string, words: CaseNameWords): QuickRef | null =>
+  parseCaseCode(text) ?? parseCaseName(text, words);

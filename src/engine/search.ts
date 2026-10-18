@@ -27,8 +27,15 @@ function named(fact: ClueFact): string[] {
 /**
  * How many answers fit every fact, stopping once the count passes `limit`.
  * Without `shared`, everyone has their own room and their own weapon.
+ * `extra` tests are checked on each complete answer.
  */
-export function countMatching(space: Space, facts: readonly ClueFact[], ctx: ClueContext, limit = Infinity): number {
+export function countMatching(
+  space: Space,
+  facts: readonly ClueFact[],
+  ctx: ClueContext,
+  limit = Infinity,
+  extra: readonly ((sol: Solution) => boolean)[] = [],
+): number {
   const { suspects, rooms, items, shared } = space;
   const n = suspects.length;
   const m = items.length;
@@ -76,6 +83,7 @@ export function countMatching(space: Space, facts: readonly ClueFact[], ctx: Clu
     }
     checks[step].push(compileClue(fact, ctx));
   }
+  checks[lastStep].push(...extra);
 
   const room: string[] = new Array(n).fill(undefined);
   const item: (string | null)[] = new Array(n).fill(null);
@@ -118,6 +126,35 @@ export function countMatching(space: Space, facts: readonly ClueFact[], ctx: Clu
 
 /** Whether any answer fits every fact. */
 export const anyMatching = (space: Space, facts: readonly ClueFact[], ctx: ClueContext) => countMatching(space, facts, ctx, 0) > 0;
+
+/** Facts that make `suspect` the killer: alone in the scene room. */
+const killerAt = (suspect: string, scene: string): ClueFact[] => [
+  { type: 'suspect-room', suspect, room: scene },
+  { type: 'suspect-alone', suspect },
+];
+
+/**
+ * Who could be the killer, given the facts: anyone who could have been alone
+ * in the scene room holding a weapon.
+ */
+export function possibleKillers(space: Space, facts: readonly ClueFact[], ctx: ClueContext, scene: string): string[] {
+  return space.suspects.filter((suspect) => couldBeKiller(space, facts, ctx, scene, suspect));
+}
+
+/**
+ * Whether this one guest could have been alone in the scene room holding a
+ * weapon. Tried one weapon at a time, so the search can rule a weapon out as
+ * soon as it's handed out rather than after everyone is placed.
+ */
+export function couldBeKiller(space: Space, facts: readonly ClueFact[], ctx: ClueContext, scene: string, suspect: string): boolean {
+  const there = [...facts, ...killerAt(suspect, scene)];
+  return space.items.some((item) => anyMatching(space, [...there, { type: 'suspect-item', suspect, item }], ctx));
+}
+
+/** Which weapons the killer could have used, if they were the killer. */
+export function possibleWeapons(space: Space, facts: readonly ClueFact[], ctx: ClueContext, scene: string, killer: string): string[] {
+  return space.items.filter((item) => anyMatching(space, [...facts, ...killerAt(killer, scene), { type: 'suspect-item', suspect: killer, item }], ctx));
+}
 
 /** Every way to put each suspect in one of the rooms, rooms shared freely: 5^7 = 78,125 for 7 guests. */
 export function allRoomings(rooms: readonly string[], n: number): string[][] {

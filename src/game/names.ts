@@ -1,4 +1,6 @@
 import { content } from '../content/index.ts';
+import { caseNameWords } from '../content/caseNames.ts';
+import { caseName, type QuickRef } from '../engine/caseRef.ts';
 
 const find = <T extends { id: string; name: string }>(list: readonly T[], id: string) =>
   list.find((x) => x.id === id)?.name ?? id;
@@ -22,3 +24,6 @@ export function suspectColour(id: string) {
 
 /** Floor-plan colour for a room, from the content file. */
 export const roomTint = (id: string) => content.house.rooms.find((r) => r.id === id)?.tint ?? '#ddd6c6';
+
+/** "The Veiled Jackdaw Scandal at Stonewick": the case's name, which also replays it. */
+export const caseTitle = (ref: QuickRef) => caseName(ref, caseNameWords);

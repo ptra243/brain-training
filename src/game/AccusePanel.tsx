@@ -8,6 +8,11 @@ interface Props {
   progress: Progress;
   dispatch: (a: Action) => void;
   onNextCase: () => void;
+  /** Campaign: a wrong person is the next body; the right person with the wrong weapon costs nothing. */
+  campaign?: boolean;
+  /** Who she may accuse (the campaign's "only possible killers" option). Default: everyone. */
+  suspects?: readonly string[];
+  nextLabel?: string;
 }
 
 export function Picker({
@@ -37,7 +42,7 @@ export function Picker({
   );
 }
 
-export function AccusePanel({ c, progress, dispatch, onNextCase }: Props) {
+export function AccusePanel({ c, progress, dispatch, onNextCase, campaign, suspects = c.suspects, nextLabel = 'Start a new case' }: Props) {
   const [suspect, setSuspect] = useState('');
   const [item, setItem] = useState('');
   const scene = sceneUnlocked(c, progress);
@@ -66,7 +71,7 @@ export function AccusePanel({ c, progress, dispatch, onNextCase }: Props) {
             </tbody>
           </table>
           <button className="primary" onClick={onNextCase}>
-            Start a new case
+            {nextLabel}
           </button>
         </article>
       </section>
@@ -85,8 +90,10 @@ export function AccusePanel({ c, progress, dispatch, onNextCase }: Props) {
   return (
     <section className="panel">
       <p className="hint">
-        Name the murderer and the weapon. You'll hear how many you got right, but not which. You can also accuse straight
-        from the map.
+        {campaign
+          ? "Name the murderer and the weapon. Name the wrong person and they'll be the next body. The right person with the wrong weapon costs nothing."
+          : "Name the murderer and the weapon. You'll hear how many you got right, but not which."}{' '}
+        You can also accuse straight from the map.
       </p>
       <article className="card">
         <p className="scene-note">
@@ -94,7 +101,7 @@ export function AccusePanel({ c, progress, dispatch, onNextCase }: Props) {
             ? `The murder happened in the ${roomName(c.sceneRoom)}, where the body was found.`
             : 'Solve a word game on the Clues tab to learn where the body was found.'}
         </p>
-        <Picker legend="Who" options={c.suspects} value={suspect} onChange={(v) => { setSuspect(v); setError(''); }} name={suspectName} />
+        <Picker legend="Who" options={suspects} value={suspect} onChange={(v) => { setSuspect(v); setError(''); }} name={suspectName} />
         <Picker legend="With what" options={c.items} value={item} onChange={(v) => { setItem(v); setError(''); }} name={itemName} />
         {error && <p className="error" role="alert">{error}</p>}
         <button className="primary" onClick={submit}>
@@ -105,9 +112,11 @@ export function AccusePanel({ c, progress, dispatch, onNextCase }: Props) {
       {last && (
         <article className="card result" aria-live="polite">
           <h2>
-            {last.correct === 0
-              ? 'Neither of those was right.'
-              : `${last.correct} of ${ACCUSATION_PARTS} right. Keep digging.`}
+            {campaign
+              ? 'Right person, wrong weapon. Try another weapon: it costs nothing.'
+              : last.correct === 0
+                ? 'Neither of those was right.'
+                : `${last.correct} of ${ACCUSATION_PARTS} right. Keep digging.`}
           </h2>
           <ul className="history">
             {progress.accusations.map((a, i) => (

@@ -189,6 +189,22 @@ export interface Clue {
   wordle?: WordleReveal;
 }
 
+/**
+ * One round of a campaign: a murder at one time of the night. Its clues leave
+ * 2 or 3 possible killers, except in the last round, which pins the killer
+ * and weapon down.
+ */
+export interface CampaignRound {
+  /** 0 for the first body (9pm), then 1, 2. */
+  round: number;
+  rounds: number;
+  /** How many of the round's puzzles (besides the word game) she may play. */
+  budget: number;
+  last: boolean;
+  /** Guests murdered so far: the ones she wrongly accused, in order. */
+  victims: readonly string[];
+}
+
 export interface Case {
   number: number;
   /** What she sees as the case's name: "6", or a quick case's "K7QF2". */
@@ -197,6 +213,10 @@ export interface Case {
   /** The logic level, shown as the case's difficulty. */
   difficulty: Difficulty;
   levels: CaseLevels;
+  /** Guests can share a room, and some hold no weapon. */
+  shared: boolean;
+  /** Set when this case is a round of a campaign. */
+  campaign?: CampaignRound;
   houseId: string;
   /** Suspect ids in play, in solution order. */
   suspects: readonly string[];

@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
 import { content } from '../content/index.ts';
-import { caseCode, caseFor, newQuickCase, type Cast, type QuickRef } from '../engine/caseRef.ts';
+import type { CampaignRef } from '../engine/campaign.ts';
+import { caseCode, caseFor, codeFor, newQuickCase, type Cast, type QuickRef } from '../engine/caseRef.ts';
 import type { Length } from '../engine/settings.ts';
 import type { Case, Difficulty } from '../engine/types.ts';
+import { CampaignCard } from './CampaignCard.tsx';
+import { CampaignView } from './CampaignView.tsx';
 import { Casebook } from './Casebook.tsx';
+import { newCampaign, roundCase, type CampaignSave } from './campaign.ts';
 import { Home } from './Home.tsx';
+import { caseTitle } from './names.ts';
 import { emptyProgress, type Progress } from './state.ts';
-import { loadQuick, loadScreen, saveQuick, saveScreen, type Screen } from './storage.ts';
+import { loadCampaign, loadQuick, loadScreen, saveCampaign, saveQuick, saveScreen, type Screen } from './storage.ts';
 
 interface Current {
   ref: QuickRef;
@@ -25,18 +30,34 @@ function restore(): Current | null {
   }
 }
 
+/** Her saved campaign, if its first round still builds. */
+function restoreCampaign(): CampaignSave | null {
+  const saved = loadCampaign();
+  if (!saved) return null;
+  try {
+    roundCase(content, saved, 0);
+    return saved;
+  } catch {
+    return null;
+  }
+}
+
 /** Codes come from the browser's random numbers; the engine itself stays seeded. */
 const randomNumber = () => crypto.getRandomValues(new Uint32Array(1))[0];
 
 /** The home screen, or the case she's in. Reopening the app goes back to where she was. */
 export function App() {
   const [current, setCurrent] = useState<Current | null>(restore);
-  const [screen, setScreen] = useState<Screen>(() => (current ? loadScreen() : 'home'));
+  const [campaign, setCampaign] = useState<CampaignSave | null>(restoreCampaign);
+  const [screen, setScreen] = useState<Screen>(() => (current || campaign ? loadScreen() : 'home'));
 
   useEffect(() => saveScreen(screen), [screen]);
   useEffect(() => {
     if (current) saveQuick({ ref: current.ref, progress: current.progress });
   }, [current]);
+  useEffect(() => {
+    if (campaign) saveCampaign(campaign);
+  }, [campaign]);
 
   const go = (s: Screen) => {
     setScreen(s);
@@ -49,11 +70,30 @@ export function App() {
     go('case');
   };
 
+  const startCampaign = (difficulty: Difficulty, possibleOnly: boolean) => {
+    for (let tries = 0; tries < 10; tries++) {
+      const ref: CampaignRef = { mode: 'campaign', code: codeFor(randomNumber()), difficulty, ...(possibleOnly && { possibleOnly }) };
+      const save = newCampaign(ref);
+      try {
+        roundCase(content, save, 0);
+      } catch {
+        continue; // try another code
+      }
+      setCampaign(save);
+      go('campaign');
+      return;
+    }
+  };
+
+  if (screen === 'campaign' && campaign) {
+    return <CampaignView save={campaign} onSave={setCampaign} onHome={() => go('home')} />;
+  }
   if (screen === 'case' && current) {
     return (
       <Casebook
         key={caseCode(current.ref)}
         c={current.c}
+        title={caseTitle(current.ref)}
         progress={current.progress}
         onProgress={(update) => setCurrent((cur) => cur && { ...cur, progress: update(cur.progress) })}
         onHome={() => go('home')}
@@ -61,5 +101,12 @@ export function App() {
       />
     );
   }
-  return <Home current={current} onContinue={() => go('case')} onStart={start} />;
+  return (
+    <Home
+      current={current}
+      onContinue={() => go('case')}
+      onStart={start}
+      campaign={<CampaignCard campaign={campaign} onContinue={() => go('campaign')} onStart={startCampaign} />}
+    />
+  );
 }

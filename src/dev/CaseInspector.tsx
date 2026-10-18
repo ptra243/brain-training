@@ -5,7 +5,8 @@
 import { useMemo, useState } from 'react';
 import { content } from '../content/index.ts';
 import { cellLabel, roomAdjacency } from '../engine/house.ts';
-import { caseCode, caseFor, parseCaseCode } from '../engine/caseRef.ts';
+import { caseNameWords } from '../content/caseNames.ts';
+import { caseCode, caseFor, caseName, parseCase } from '../engine/caseRef.ts';
 import { campaignDifficulty, generateCase } from '../engine/generate.ts';
 import { PRESETS, type Length } from '../engine/settings.ts';
 import { allCandidates, countSolutions } from '../engine/solver.ts';
@@ -22,9 +23,9 @@ export function CaseInspector() {
   const [difficulty, setDifficulty] = useState<Difficulty | 'campaign'>('campaign');
   const [length, setLength] = useState<Length>('normal');
   const [reveal, setReveal] = useState(false);
-  // A case code ("K7QF2-MN") overrides the number: the exact case she was playing.
+  // A case code ("K7QF2-MN") or name overrides the number: the exact case she was playing.
   const [codeText, setCodeText] = useState('');
-  const ref = parseCaseCode(codeText);
+  const ref = parseCase(codeText, caseNameWords);
 
   const c = useMemo(() => {
     if (ref) return caseFor(content, ref);
@@ -91,7 +92,7 @@ export function CaseInspector() {
       <div className="controls">
         <input
           className="code"
-          placeholder="Case code, e.g. K7QF2-MN"
+          placeholder="Case code or name, e.g. K7QF2-MN"
           value={codeText}
           onChange={(e) => setCodeText(e.target.value)}
           aria-label="Case code"
@@ -100,8 +101,8 @@ export function CaseInspector() {
           Play it
         </button>
       </div>
-      {codeText && !ref && <p className="bad">Not a case code.</p>}
-      {ref && <p className="muted">Quick start case {caseCode(ref)}. Playing it replaces the case in progress.</p>}
+      {codeText && !ref && <p className="bad">Not a case code or name.</p>}
+      {ref && <p className="muted">Quick start case {caseCode(ref)}, {caseName(ref, caseNameWords)}. Playing it replaces the case in progress.</p>}
 
       <section>
         <h2>{house.name}</h2>

@@ -17,8 +17,9 @@ a choice of three scene word games (Wordle, mini crossword, word search)
 that all type with the phone's own keyboard.
 Phase 5 under way: case settings as levels, a home screen with Quick start
 (one case in progress, replayable case codes), and 7-guest cases with shared
-rooms (a Quick start choice). Next: the campaign rounds (see the build
-plan) and playtesting.
+rooms (a Quick start choice), and the campaign: one long mystery over up to
+3 rounds. Next: rumours and the time grid (see the build plan), and
+playtesting.
 Known gaps: medium and hard cat puzzles are unique but not
 checked for how much look-ahead they need (easy ones are).
 
@@ -43,6 +44,58 @@ checked for how much look-ahead they need (easy ones are).
   simple steps), a "why" step comes before the fill, and the board lights up
   what the hint is about (paw on the square). Done: crossword, sudoku, cat
   puzzle. To do: Wordle, word search, interrogation.
+rain-training games for one player (the owner's wife) plus a murder-mystery
+campaign: each minigame she wins unlocks a clue, and she solves the case on a
+floor-plan map and logic grids. Played mostly on her phone.
+
+Plan and design decisions: the "Murder Mystery Mode — Build Plan" doc (owner
+has the link). README has setup, layout and how a case is generated.
+
+## Status
+
+Phases 1–4 done (content, generator/solver, casebook UI, minigames), plus
+testimony/evidence clues, sudoku map coordinates, weapons on the map, a
+Wordle word list, the staircase grid with clue drawer, interrogations
+(rotating "Questioning" game and a "Final questioning" on hard cases), and
+a choice of three scene word games (Wordle, mini crossword, word search)
+that all type with the phone's own keyboard.
+Phase 5 under way: case settings as levels, a home screen with Quick start
+(one case in progress, replayable case codes), and 7-guest cases with shared
+rooms (a Quick start choice), and the campaign: one long mystery over up to
+3 rounds. Next: rumours and the time grid (see the build plan), and
+playtesting.
+Known gaps: medium and hard cat puzzles are unique but not
+checked for how much look-ahead they need (easy ones are).
+
+## Rules that are easy to break
+
+- **Puzzle first, clue as reward.** Every minigame is a complete puzzle on its
+  own. Its answer is never a room, suspect or weapon name, because the case
+  has so few of those that she could guess. Winning reveals the clue.
+- **She can never get stuck.** Every minigame has a "Solve puzzle" button
+  that asks "Are you sure? This can't be undone" (an in-app dialog, not
+  `window.confirm`), then reveals the answer and still unlocks the clue. Record
+  the game as `revealed`, not `won`, so stats can tell them apart.
+- **Hints come from the house cat** helping on the case (`cats` in
+  `src/content/`, picked by case number; not part of `Content`, so they never
+  change puzzle words). Each ask gives the next step on a gentle-to-strong
+  ladder: point out wrong letters/moves (red pencil), then where to look,
+  then fill in one square. The logic is a pure `…Hint()` function in
+  `src/games/` with tests that following hints always reaches a win; the UI
+  is `HintButton` + `HintNote` (`Hints.tsx`), the copy says what the cat did.
+  Save the hint count in the game's data; a game won with hints is still
+  `won`. Where the move has a reason (sudoku singles, the cat puzzle's
+  simple steps), a "why" step comes before the fill, and the board lights up
+  what the hint is about (paw on the square). Done: crossword, sudoku, cat
+  puzzle. To do: Wordle, word search, interrogation.
+  **Map and grid hints** (`src/game/gridHints.ts`, Hint button in the case
+  header on those tabs) only use clues she has found, never ones still
+  locked in a puzzle. The cat points the way and doesn't fill: wrong marks
+  circled, then the next square her clues settle (paw on it, its room/piece
+  lit on the map), then why (paw on the clue in the drawer, or "your marks").
+  It fills a square only once she has every clue in the case; before that,
+  asking again repeats the pointer. When nothing more is settled, it sends
+  her to play another puzzle. Hint state is `Progress.gridHints`.
 - **Each case has three scene word games plus one to three rotating games**
   (two at the presets) drawn from cat puzzle, sudoku and interrogation; hard logic adds a finale
   interrogation that opens once the others are done and uses her casebook
@@ -112,6 +165,17 @@ checked for how much look-ahead they need (easy ones are).
   empty-handed) never appear in classic pools. On the grid, a tick only
   rules out its row in rooms (a room can hold several people or weapons);
   who holds which weapon stays one per row and column (`oneTickPerColumn`).
+- **The campaign** (`src/engine/campaign.ts`, saved play in
+  `src/game/campaign.ts`): 7 guests, one killer, up to 3 rounds, each a
+  body at a later time. A round is built from the campaign and the victims
+  before it. A wrong person becomes the next body, and after the third the
+  killer escapes; the right person with the wrong weapon costs nothing. She
+  plays any `budget` of a round's 3 puzzles (easy 3, medium 2, hard 1; the
+  word game is free). Before the last round, decoys keep every choice of
+  puzzles at 2 or 3 possible killers (never fewer); in the last round the
+  free clues settle the weapon and any one puzzle settles the killer.
+  Rounds don't need exactly one solution: `roundProblems` checks this
+  instead, and `npm run check-cases` walks every wrong-guess path.
 - **Map and grid share one source of truth**: a counter is in a room exactly
   when the suspect×room cell is ticked; a weapon tag is in a room when
   item×room is ticked, and held when suspect×item is ticked (a held weapon
@@ -140,6 +204,12 @@ checked for how much look-ahead they need (easy ones are).
   `#dev` can load and play one. Only one Quick start case is saved at a time.
   All randomness goes through the seeded `Rng`; never use `Math.random()` in
   the engine (the UI picks new codes with `crypto`).
+- **A case name is its code in words** ("The Yellow Gazebo Scandal at
+  Brockcote": the code's number in adjective, noun and place, the kind word
+  for its levels), so either one replays the case (`caseName`,
+  `parseCase`). Never change, reorder or add to the lists in
+  `src/content/caseNames.ts`; that would rename every case (a test pins one).
+  Names never use theme words (tested).
 
 ## Design
 

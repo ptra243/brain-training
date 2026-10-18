@@ -100,7 +100,7 @@ function linkItem(marks: Record<string, Mark>, c: Case, suspect: string) {
 }
 
 /** 7 guests share 5 rooms (and rooms can hold several weapons). */
-export const sharedRooms = (c: Case) => c.suspects.length > c.rooms.length;
+export const sharedRooms = (c: Case) => c.shared;
 
 /**
  * Whether a tick rules out the rest of its column too. Always in a classic
