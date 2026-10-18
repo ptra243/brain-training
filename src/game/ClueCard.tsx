@@ -36,6 +36,8 @@ interface Props {
   clue: Clue;
   /** Show the statement with coordinates instead of the room name (sudoku statements). */
   coords?: { row: number | null; col: number | null; found: boolean };
+  /** Show the statement with one blank where the room goes (sudoku statements not yet found). */
+  blank?: boolean;
   used?: boolean;
   onToggle?: () => void;
   /** Smaller, for lists inside games. */
@@ -43,13 +45,18 @@ interface Props {
 }
 
 /** One clue with where it came from: a witness's words or what the cats found. */
-export function ClueCard({ clue, coords, used, onToggle, compact }: Props) {
+export function ClueCard({ clue, coords, blank, used, onToggle, compact }: Props) {
   const label = clue.source === 'testimony' ? `${suspectName(clue.speaker ?? '')} says` : 'Found by the cats';
   const loc = clue.location;
   const room = 'room' in clue.fact ? clue.fact.room : null;
 
   const statement =
-    coords && loc ? (
+    blank && loc ? (
+      <>
+        {loc.before}the <span className="coord room-blank" aria-label="blank" />
+        {loc.after}
+      </>
+    ) : coords && loc ? (
       <>
         {loc.before}
         <LocationPhrase row={coords.row} col={coords.col} />

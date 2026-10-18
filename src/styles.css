@@ -483,6 +483,7 @@ body.dev { background: #f2f1ec; color: #222; }
   border: 1.5px dashed var(--ink-soft); border-radius: 0.2rem; font-family: var(--sans); font-weight: 700; font-size: 0.85rem;
   vertical-align: 0.05em; line-height: 1;
 }
+.coord.room-blank { min-width: 4rem; }
 .coord.filled { border-style: solid; border-color: #2f5d8a; color: #2f5d8a; background: #fffcf3; }
 .mini-map { display: inline-grid; width: 3.2rem; aspect-ratio: 1; gap: 1px; background: var(--wall); border: 1px solid var(--wall); flex: none; }
 .mini-map span { min-width: 0; }

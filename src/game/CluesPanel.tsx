@@ -133,11 +133,11 @@ export function CluesPanel({ c, progress, dispatch, onPlay }: Props) {
       </ul>
       {waiting.length > 0 && (
         <>
-          <p className="hint">Half-heard. Fill their lettered squares in the sudoku to find out which room they mean.</p>
+          <p className="hint">Half-heard. Play the sudoku to uncover the coordinates of each blank room.</p>
           <ul className="clue-list">
             {waiting.map((clue) => (
               <li key={clue.id}>
-                <ClueCard clue={clue} coords={{ row: null, col: null, found: false }} />
+                <ClueCard clue={clue} blank />
               </li>
             ))}
           </ul>
