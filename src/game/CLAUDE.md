@@ -1,5 +1,12 @@
 # Casebook UI
 
+- **Adding a minigame**: give it a kind and spec in `src/engine/types.ts`
+  and its role in `src/engine/gameKinds.ts`, then an entry in
+  `games/registry.tsx` (name, how its puzzle is built, its screen).
+  `GameScreen` and `CluesPanel` read everything from the registry; don't
+  switch on the kind of game anywhere else. Use `isSceneGame` /
+  `isInterrogation` to narrow a `GameSpec`, not optional fields.
+
 - **Map and grid share one source of truth** (`state.ts`): a counter is in a
   room exactly when its suspect×room cell is ticked; a weapon is in a room
   when item×room is ticked and held when suspect×item is ticked (a held

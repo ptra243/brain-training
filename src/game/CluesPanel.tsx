@@ -1,16 +1,12 @@
 import { useState } from 'react';
+import { isInterrogation } from '../engine/gameKinds.ts';
+import { midSentence } from '../engine/text.ts';
 import type { Case, GameKind } from '../engine/types.ts';
 import { ClueCard } from './ClueCard.tsx';
 import { Dialog } from './Dialog.tsx';
-import { GAME_NAMES } from './games/GameScreen.tsx';
+import { GAMES } from './games/registry.tsx';
 import { suspectName } from './names.ts';
 import { SCENE_TEASER, finaleOpen, gameDone, sceneGameInPlay, sceneText, unlockedClueIds, visibleClues, type Action, type Progress } from './state.ts';
-
-const SCENE_BLURBS: Partial<Record<GameKind, string>> = {
-  wordle: 'Guess a five-letter word in six tries.',
-  crossword: 'Answer clues until the shaded squares spell the word.',
-  wordsearch: 'Find the words; the leftover letters spell it.',
-};
 
 /** A campaign round's limit on puzzles (the word game is always free). */
 export interface PuzzleGate {
@@ -68,7 +64,7 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly }: Pr
               disabled={readOnly}
               onClick={() => (scene && sceneKind ? onPlay(sceneKind) : setChoosing(true))}
             >
-              <span className="puzzle-name">{scene && sceneKind ? GAME_NAMES[sceneKind] : 'Word game'}</span>
+              <span className="puzzle-name">{scene && sceneKind ? GAMES[sceneKind].name : 'Word game'}</span>
               <span className="puzzle-reward">
                 {scene ? (statusOf(sceneKind!) === 'won' ? 'Solved' : 'Solved for you') : 'Pick one: shows where the body was found'}
               </span>
@@ -82,7 +78,7 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly }: Pr
             const done = status === 'won' || status === 'revealed';
             const usedUp = gate !== undefined && !gate.picked.includes(g.kind) && gate.left === 0;
             const locked = (g.kind === 'finale' && !finaleOpen(c, progress)) || usedUp;
-            const who = g.interrogation ? ` ${suspectName(g.interrogation.suspect).replace(/^The /, 'the ')}` : '';
+            const who = isInterrogation(g) ? ` ${midSentence(suspectName(g.interrogation.suspect))}` : '';
             const reward = usedUp
               ? 'Not tonight: you have used your picks'
               : locked
@@ -95,7 +91,7 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly }: Pr
                   disabled={locked || readOnly}
                   onClick={() => open(g.kind)}
                 >
-                  <span className="puzzle-name">{GAME_NAMES[g.kind]}</span>
+                  <span className="puzzle-name">{GAMES[g.kind].name}</span>
                   <span className="puzzle-reward">{done ? (status === 'won' ? 'Solved' : 'Solved for you') : reward}</span>
                   <span className="puzzle-action" aria-hidden="true">
                     {done ? '✓' : usedUp ? '–' : locked ? 'Later' : status === 'playing' ? 'Continue' : 'Play'}
@@ -135,8 +131,8 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly }: Pr
                       onPlay(g.kind);
                     }}
                   >
-                    <span className="puzzle-name">{GAME_NAMES[g.kind]}</span>
-                    <span className="puzzle-reward">{SCENE_BLURBS[g.kind]}</span>
+                    <span className="puzzle-name">{GAMES[g.kind].name}</span>
+                    <span className="puzzle-reward">{GAMES[g.kind].blurb}</span>
                     <span className="puzzle-action" aria-hidden="true">
                       {status === 'playing' ? 'Continue' : 'Play'}
                     </span>
@@ -150,7 +146,7 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly }: Pr
 
       {confirming && gate && (
         <Dialog placement="center" labelId="pick-title" onClose={() => setConfirming(null)}>
-          <h2 id="pick-title">Play the {GAME_NAMES[confirming].toLowerCase()}?</h2>
+          <h2 id="pick-title">Play the {GAMES[confirming].name.toLowerCase()}?</h2>
           <p className="dialog-text">
             It uses one of tonight's picks: {gate.left} left. Any one puzzle's clues are enough to narrow it down.
           </p>

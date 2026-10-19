@@ -4,7 +4,8 @@ import { content } from '../content/index.ts';
 import { clueWords } from '../content/words.ts';
 import { generateCase } from '../engine/generate.ts';
 import { Rng } from '../engine/rng.ts';
-import { SCENE_GAMES, type Difficulty } from '../engine/types.ts';
+import { SCENE_GAMES, isSceneGame } from '../engine/gameKinds.ts';
+import type { Difficulty } from '../engine/types.ts';
 import {
   CROSSWORD_SIZE,
   cellKey,
@@ -175,7 +176,7 @@ test('word search: lines, either-way reading, and the leftovers spell the hidden
   assert.deepEqual(lineBetween([2, 0], [0, 0]), [[2, 0], [1, 0], [0, 0]]);
   assert.equal(lineBetween([0, 0], [1, 2]), null);
   const c = generateCase(content, 5, 'medium');
-  const p = sceneWordSearch(c, c.games.find((g) => g.kind === 'wordsearch')!);
+  const p = sceneWordSearch(c, c.games.filter(isSceneGame).find((g) => g.kind === 'wordsearch')!);
   const w = p.words[0];
   assert.equal(wordAt(p, w.cells)?.word, w.word);
   assert.equal(wordAt(p, w.cells.slice().reverse())?.word, w.word);
@@ -187,20 +188,20 @@ test('scene games build for 30 cases of each difficulty', () => {
     for (let n = 1; n <= 30; n++) {
       const c = generateCase(content, n, difficulty);
       const room = content.house.rooms.find((r) => r.id === c.sceneRoom)!;
-      const cwSpec = c.games.find((g) => g.kind === 'crossword')!;
-      const wsSpec = c.games.find((g) => g.kind === 'wordsearch')!;
-      assert.ok(room.things.includes(cwSpec.scene!.answer) && room.things.includes(wsSpec.scene!.answer));
-      assert.ok(cwSpec.scene!.text.includes(room.name) && cwSpec.scene!.text.includes(cwSpec.scene!.answer.toLowerCase()));
+      const cwSpec = c.games.filter(isSceneGame).find((g) => g.kind === 'crossword')!;
+      const wsSpec = c.games.filter(isSceneGame).find((g) => g.kind === 'wordsearch')!;
+      assert.ok(room.things.includes(cwSpec.scene.answer) && room.things.includes(wsSpec.scene.answer));
+      assert.ok(cwSpec.scene.text.includes(room.name) && cwSpec.scene.text.includes(cwSpec.scene.answer.toLowerCase()));
       const cw = sceneCrossword(cwSpec);
-      assert.equal(cw.shaded.map(([r, col]) => solutionAt(cw, r, col)).join(''), cwSpec.scene!.answer);
+      assert.equal(cw.shaded.map(([r, col]) => solutionAt(cw, r, col)).join(''), cwSpec.scene.answer);
       assert.deepEqual(sceneCrossword(cwSpec), cw, 'same case, same crossword');
-      const answer = wsSpec.scene!.answer;
+      const answer = wsSpec.scene.answer;
       const ws = sceneWordSearch(c, wsSpec);
       assert.ok(everyWordOnce(ws), `${difficulty} ${n}: a word appears twice`);
       assert.equal(leftovers(ws).map(([r, col]) => ws.grid[r][col]).join(''), answer, `${difficulty} ${n}`);
       assert.ok(ws.grid.join('').split('.').length - 1 <= 4, `${difficulty} ${n}: too many blanks`);
       // Same case, same puzzle.
-      assert.deepEqual(sceneWordSearch(c, c.games.find((g) => g.kind === 'wordsearch')!), ws);
+      assert.deepEqual(sceneWordSearch(c, c.games.filter(isSceneGame).find((g) => g.kind === 'wordsearch')!), ws);
     }
   }
 });
@@ -215,7 +216,7 @@ test('any one scene game reveals the scene; the finale waits for one of them', (
   assert.equal(sceneGameInPlay(c, p), 'wordsearch');
   p = reduce(c, p, { type: 'game-finish', kind: 'crossword', status: 'revealed', data: null });
   assert.equal(sceneUnlocked(c, p), true);
-  assert.equal(sceneText(c, p), c.games.find((g) => g.kind === 'crossword')!.scene!.text);
+  assert.equal(sceneText(c, p), c.games.filter(isSceneGame).find((g) => g.kind === 'crossword')!.scene.text);
   assert.equal(sceneGameInPlay(c, p), 'crossword');
   assert.equal(finaleOpen(c, p), true);
   assert.deepEqual(c.games.filter((g) => g.unlocksScene).map((g) => g.kind), [...SCENE_GAMES]);

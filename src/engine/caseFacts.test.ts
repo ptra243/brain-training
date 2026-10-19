@@ -5,6 +5,7 @@ import { campaignRound, type CampaignRef } from './campaign.ts';
 import { caseFacts, interrogationEvidence } from './caseFacts.ts';
 import { caseFor, codeFor } from './caseRef.ts';
 import { disproves } from './interrogation.ts';
+import { isInterrogation } from './gameKinds.ts';
 import { DIFFICULTIES } from './settings.ts';
 import type { Case, ClueFact } from './types.ts';
 
@@ -20,7 +21,7 @@ function buildBigCases(): Case[] {
       out.push(campaignRound(content, ref, []));
     }
   }
-  return out.filter((c) => c.games.some((g) => g.interrogation));
+  return out.filter((c) => c.games.some(isInterrogation));
 }
 
 /** Every way to pick `size` of these. */
@@ -43,8 +44,8 @@ test('7 guests: the cards the game accepts are exactly those that disprove the l
   for (const c of bigCases()) {
     const cf = caseFacts(content.house, c);
     const classic = { ...cf, shared: false };
-    for (const g of c.games.filter((g) => g.interrogation)) {
-      const it = g.interrogation!;
+    for (const g of c.games.filter(isInterrogation)) {
+      const it = g.interrogation;
       const lie = it.questions.find((q) => q.lie)!.answer.fact;
       const evidence = interrogationEvidence(c, it);
       // The designed proof is accepted.
@@ -66,8 +67,8 @@ test('7 guests: the cards the game accepts are exactly those that disprove the l
 
 test("the questioning game's evidence is the cards, or the casebook without the finale's own clues", () => {
   for (const c of bigCases()) {
-    for (const g of c.games.filter((g) => g.interrogation)) {
-      const it = g.interrogation!;
+    for (const g of c.games.filter(isInterrogation)) {
+      const it = g.interrogation;
       const evidence = interrogationEvidence(c, it);
       if (!it.useCaseClues) assert.deepEqual(evidence, it.cards);
       else {

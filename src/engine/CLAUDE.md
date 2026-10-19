@@ -11,7 +11,9 @@
   room) plus one to three rotating games from cat puzzle, sudoku and
   interrogation. Hard logic adds a finale interrogation that uses her
   casebook as evidence. The cat puzzle unlocks evidence ("found by the
-  cats"); the rest unlock testimony. 2–3 clues are free at the start.
+  cats"); the rest unlock testimony (`CLUE_SOURCE` in `gameKinds.ts`). 2–3
+  clues are free at the start. `GameSpec` is one type per kind of game;
+  cases are drawn from the order of `ROTATION`, so don't reorder it.
 - **7 guests share 5 rooms and 5 weapons.** The killer was alone in the scene
   room holding the weapon; two guests hold nothing (`null` in
   `Solution.item`). These cases are checked with the search in `search.ts`

@@ -14,7 +14,8 @@
 // she gets there: same campaign and same victims, same round.
 
 import { cluePool, type ClueContext } from './clues.ts';
-import { ROTATION, assemble, rollShared, weightedOrder, type Truth } from './generate.ts';
+import { assemble, rollShared, weightedOrder, type Truth } from './generate.ts';
+import { ROTATION } from './gameKinds.ts';
 import { caseContext, caseSpace } from './caseFacts.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { couldBeKiller, possibleKillers, possibleWeapons, type Space } from './search.ts';

@@ -4,19 +4,16 @@ import { canLocate, plainText, wordClue } from './wording.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { allHoldings, allRoomings, countMatching } from './search.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
-import { SCENE_GAMES, type Case, type Clue, type ClueDelivery, type ClueFact, type ClueSource, type ClueType, type Content, type Difficulty, type GameKind, type GameSpec, type Interrogation, type Solution, type CampaignRound } from './types.ts';
+import { CLUE_SOURCE, ROTATION, SCENE_GAMES } from './gameKinds.ts';
+import type { Case, Clue, ClueDelivery, ClueFact, ClueType, Content, Difficulty, GameKind, GameSpec, Interrogation, RotatingKind, Solution, CampaignRound } from './types.ts';
 import { buildInterrogation, type CaseFacts } from './interrogation.ts';
 import { PRESETS, caseSettings, clueShares, levelsKey, type CaseLevels, type CaseSettings, type ClueShares } from './settings.ts';
-
-/** The puzzles that share a case's clues (a campaign round has all three). */
-export const ROTATION: readonly GameKind[] = ['cats', 'sudoku', 'interrogation'];
 
 /** Difficulty curve for the campaign: a few easy cases, then mostly medium with every third hard. */
 export function campaignDifficulty(caseNumber: number): Difficulty {
   if (caseNumber <= 3) return 'easy';
   return caseNumber % 3 === 0 ? 'hard' : 'medium';
 }
-
 
 /** A numbered case from a preset ("easy") or any levels. Same number and levels, same case. */
 export function generateCase(
@@ -66,8 +63,8 @@ export interface Layout {
   truth: Truth;
   /** Clues in hand-out order: the free ones, each rotating game's share, then the finale's. */
   order: ClueFact[];
-  rotating: GameKind[];
-  kinds: GameKind[];
+  rotating: RotatingKind[];
+  kinds: (RotatingKind | 'finale')[];
   shares: ClueShares;
   campaign?: CampaignRound;
 }
@@ -99,22 +96,11 @@ export function assemble(o: Layout): Case {
     if (finaleFacts.includes(f)) return 'finale';
     return kinds.find((k) => shareOf(k).includes(f)) ?? 'given';
   };
-  const SOURCE: Record<ClueDelivery, ClueSource> = {
-    given: 'testimony',
-    sudoku: 'testimony',
-    interrogation: 'testimony',
-    finale: 'testimony',
-    cats: 'evidence',
-    wordle: 'testimony',
-    crossword: 'testimony',
-    wordsearch: 'testimony',
-  };
-
   const wordAs = (fact: ClueFact, i: number, speaker?: string): Clue => {
     const delivery = deliveryOf(fact, i);
     const isLocated = locatedFacts.includes(fact) && canLocate(fact);
-    const w = wordClue(fact, SOURCE[delivery], content, suspects, rng, isLocated, speaker);
-    const clue: Clue = { id: `c${i + 1}`, fact, delivery, source: SOURCE[delivery], speaker: w.speaker, body: w.body, text: plainText(w, content) };
+    const w = wordClue(fact, CLUE_SOURCE[delivery], content, suspects, rng, isLocated, speaker);
+    const clue: Clue = { id: `c${i + 1}`, fact, delivery, source: CLUE_SOURCE[delivery], speaker: w.speaker, body: w.body, text: plainText(w, content) };
     if (isLocated && w.located) {
       const room = house.rooms.find((r) => r.id === fact.room)!;
       clue.location = { ...w.located, target: rng.pick(room.cells) };
@@ -127,7 +113,7 @@ export function assemble(o: Layout): Case {
   //    reworded in that suspect's voice once we know who is in the chair.
   const cf: CaseFacts = { suspects, rooms, items, solution, ctx, shared: settings.shared };
   const known = order;
-  const interrogations: Partial<Record<GameKind, Interrogation>> = {};
+  const interrogations: Partial<Record<'interrogation' | 'finale', Interrogation>> = {};
   if (kinds.includes('interrogation')) {
     interrogations.interrogation = buildInterrogation({
       cf, content, rng: new Rng(hashSeed(`${seed}-interrogation`)), idPrefix: 'iq-', delivery: 'interrogation', hard: settings.hardInterrogation, known,
@@ -172,16 +158,17 @@ export function assemble(o: Layout): Case {
       };
     }),
     ...kinds.map((kind): GameSpec => {
-      const base = { kind, seed: hashSeed(`${seed}-${kind}`), clues: idsFor(kind), unlocksScene: false };
-      if (kind === 'cats') return { ...base, size: settings.catSize, ...(settings.catEasy && { easy: true }) };
+      const base = { seed: hashSeed(`${seed}-${kind}`), clues: idsFor(kind), unlocksScene: false as const };
+      if (kind === 'cats') return { kind, ...base, size: settings.catSize, ...(settings.catEasy && { easy: true }) };
       if (kind === 'sudoku')
         return {
+          kind,
           ...base,
           size: settings.sudoku.size,
           givens: settings.sudoku.givens,
           located: clues.filter((c) => c.location).map((c) => c.id),
         };
-      return { ...base, size: 0, interrogation: interrogations[kind] };
+      return { kind, ...base, interrogation: interrogations[kind]! };
     }),
   ];
 

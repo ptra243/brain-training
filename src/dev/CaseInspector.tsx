@@ -8,6 +8,7 @@ import { caseContext, caseSpace } from '../engine/caseFacts.ts';
 import { cellLabel } from '../engine/house.ts';
 import { caseNameWords } from '../content/caseNames.ts';
 import { caseCode, caseFor, caseName, parseCase } from '../engine/caseRef.ts';
+import { isSceneGame } from '../engine/gameKinds.ts';
 import { campaignDifficulty, generateCase } from '../engine/generate.ts';
 import { PRESETS, type Length } from '../engine/settings.ts';
 import { countMatching } from '../engine/search.ts';
@@ -145,8 +146,8 @@ export function CaseInspector() {
         <p className="teaser">
           Scene words:{' '}
           {c.games
-            .filter((g) => g.scene)
-            .map((g) => `${g.kind} ${g.scene!.answer}`)
+            .filter(isSceneGame)
+            .map((g) => `${g.kind} ${g.scene.answer}`)
             .join(' · ')}
         </p>
       </section>

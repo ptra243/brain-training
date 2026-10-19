@@ -4,6 +4,7 @@
 // The map and the grid share one source of truth: a suspect's token sits in
 // a room exactly when the suspect×room cell holds a tick ('o').
 
+import { isInterrogation, isSceneGame } from '../engine/gameKinds.ts';
 import type { Case, Clue, GameKind } from '../engine/types.ts';
 import type { GridHintState } from './gridHints.ts';
 
@@ -230,8 +231,8 @@ export function puzzlesDone(c: Case, p: Progress): { done: number; total: number
 /** Before: a blank. After: the sentence from whichever scene game she solved. */
 export const SCENE_TEASER = 'The body was found by the …';
 export function sceneText(c: Case, p: Progress): string | null {
-  const done = c.games.find((g) => g.unlocksScene && gameDone(p, g.kind));
-  return done ? (done.scene?.text ?? c.sceneClue.text) : null;
+  const done = c.games.filter(isSceneGame).find((g) => gameDone(p, g.kind));
+  return done ? done.scene.text : null;
 }
 
 /** Whether a clue names this suspect. */
@@ -322,7 +323,7 @@ export function visibleClues(c: Case, p: Progress): Clue[] {
   const unlocked = unlockedClueIds(c, p);
   const out = c.clues.filter((clue) => unlocked.has(clue.id));
   for (const g of c.games) {
-    if (!g.interrogation || !gameDone(p, g.kind)) continue;
+    if (!isInterrogation(g) || !gameDone(p, g.kind)) continue;
     const data = p.games[g.kind]?.data as InterrogationData | undefined;
     out.push(...g.interrogation.cards);
     for (const q of g.interrogation.questions) if (!q.lie && data?.asked.includes(q.id)) out.push(q.answer);

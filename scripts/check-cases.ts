@@ -7,6 +7,7 @@ import { campaignCast, campaignRound, roundProblems, type CampaignRef } from '..
 import { caseCode, caseFor, codeFor, type Cast, type QuickRef } from '../src/engine/caseRef.ts';
 import { generateCase } from '../src/engine/generate.ts';
 import { disproves } from '../src/engine/interrogation.ts';
+import { isInterrogation, isSceneGame } from '../src/engine/gameKinds.ts';
 import { DIFFICULTIES, LENGTHS, PRESETS, allLevels, caseSettings, levelsKey, presetOf, type CaseLevels } from '../src/engine/settings.ts';
 import { countMatching } from '../src/engine/search.ts';
 import { sceneCrossword, sceneWordSearch } from '../src/game/sceneGames.ts';
@@ -48,8 +49,8 @@ function puzzleProblems(c: Case): string[] {
   const out: string[] = [];
   const cf = caseFacts(content.house, c);
   // Every interrogation: one lie, and its proof really disproves it.
-  for (const g of c.games.filter((g) => g.interrogation)) {
-    const it = g.interrogation!;
+  for (const g of c.games.filter(isInterrogation)) {
+    const it = g.interrogation;
     const lies = it.questions.filter((q) => q.lie);
     const evidence = interrogationEvidence(c, it);
     const proof = it.proof.map((id) => evidence.find((e) => e.id === id)?.fact).filter((f) => f !== undefined);
@@ -58,8 +59,8 @@ function puzzleProblems(c: Case): string[] {
     }
   }
   // Scene word games: each builds, and spells its hidden word.
-  for (const g of c.games.filter((g) => g.unlocksScene && g.kind !== 'wordle')) {
-    const answer = g.scene!.answer;
+  for (const g of c.games.filter(isSceneGame).filter((g) => g.kind !== 'wordle')) {
+    const answer = g.scene.answer;
     const spelled =
       g.kind === 'crossword'
         ? (() => {

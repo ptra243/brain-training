@@ -5,6 +5,7 @@ import { compileClue } from './clues.ts';
 import { generateCase } from './generate.ts';
 import { caseFacts, interrogationEvidence } from './caseFacts.ts';
 import { disproves } from './interrogation.ts';
+import { isInterrogation } from './gameKinds.ts';
 import type { Case } from './types.ts';
 
 const factsOf = (c: Case) => caseFacts(content.house, c);
@@ -14,8 +15,8 @@ test('interrogations: exactly one lie, every other answer true, and the proof di
   for (let n = 1; n <= 40; n++) {
     const c = generateCase(content, n);
     const cf = factsOf(c);
-    for (const g of c.games.filter((g) => g.interrogation)) {
-      const it = g.interrogation!;
+    for (const g of c.games.filter(isInterrogation)) {
+      const it = g.interrogation;
       checked++;
       const lies = it.questions.filter((q) => q.lie);
       assert.equal(lies.length, 1, `case ${n} ${g.kind}`);
@@ -42,20 +43,20 @@ test('interrogations: exactly one lie, every other answer true, and the proof di
 test('hard self-contained interrogations need two cards: no single card catches the lie', () => {
   for (let n = 4; n <= 40; n++) {
     const c = generateCase(content, n);
-    const g = c.games.find((g) => g.kind === 'interrogation');
+    const g = c.games.filter(isInterrogation).find((g) => g.kind === 'interrogation');
     if (!g || c.difficulty === 'easy') continue;
     const cf = factsOf(c);
-    const lie = g.interrogation!.questions.find((q) => q.lie)!.answer.fact;
-    for (const card of g.interrogation!.cards) assert.ok(!disproves(cf, [card.fact], lie), `case ${n}: ${card.body} alone catches it`);
-    assert.equal(g.interrogation!.proof.length, 2);
+    const lie = g.interrogation.questions.find((q) => q.lie)!.answer.fact;
+    for (const card of g.interrogation.cards) assert.ok(!disproves(cf, [card.fact], lie), `case ${n}: ${card.body} alone catches it`);
+    assert.equal(g.interrogation.proof.length, 2);
   }
 });
 
 test('interrogation clues are confessions in the voice of the suspect in the chair', () => {
   for (let n = 1; n <= 30; n++) {
     const c = generateCase(content, n);
-    for (const g of c.games.filter((g) => g.interrogation)) {
-      for (const id of g.clues) assert.equal(c.clues.find((cl) => cl.id === id)?.speaker, g.interrogation!.suspect);
+    for (const g of c.games.filter(isInterrogation)) {
+      for (const id of g.clues) assert.equal(c.clues.find((cl) => cl.id === id)?.speaker, g.interrogation.suspect);
     }
   }
 });

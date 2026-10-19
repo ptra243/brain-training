@@ -80,36 +80,60 @@ export type ClueType = ClueFact['type'];
 
 /**
  * Minigames. The three word games each reveal the scene (she plays whichever
- * she likes); the rest unlock clues. `finale` is the closing interrogation on hard cases.
+ * she likes); the rotating games unlock clues. `finale` is the closing
+ * interrogation on hard cases. What each kind is for lives in `gameKinds.ts`.
  */
-export type GameKind = 'wordle' | 'crossword' | 'wordsearch' | 'cats' | 'sudoku' | 'interrogation' | 'finale';
-
-/** Word games that reveal the scene. Any one of them is enough. */
-export const SCENE_GAMES: readonly GameKind[] = ['wordle', 'crossword', 'wordsearch'];
+export type SceneKind = 'wordle' | 'crossword' | 'wordsearch';
+export type RotatingKind = 'cats' | 'sudoku' | 'interrogation';
+export type GameKind = SceneKind | RotatingKind | 'finale';
 
 /** How a clue reaches her: free at the start, or as a minigame's reward. */
 export type ClueDelivery = GameKind | 'given';
 
-/** One minigame in a case. The puzzle itself is built from `seed` when opened. */
-export interface GameSpec {
-  kind: GameKind;
+/** What every minigame in a case has. The puzzle itself is built from `seed` when opened. */
+interface GameBase {
   seed: number;
   /** Clue ids this game unlocks. */
   clues: readonly string[];
-  /** The word games unlock the scene (any one will do). */
-  unlocksScene: boolean;
-  /** Cat grid size, sudoku size, or word game grid width. Sudoku also has how many digits are given. */
-  size: number;
-  givens?: number;
-  /** Cat puzzle: has a one-square zone and comes out by simple steps alone. */
-  easy?: boolean;
-  /** Sudoku: clues that unlock early from their two coordinate squares. */
-  located?: readonly string[];
-  /** Interrogation and finale: the suspect, evidence and questions. */
-  interrogation?: Interrogation;
-  /** Scene word games: the hidden word and the scene text it reveals. */
-  scene?: SceneWord;
 }
+
+/** A word game that reveals the scene (any one will do). It unlocks no clues. */
+export interface SceneGameSpec extends GameBase {
+  kind: SceneKind;
+  unlocksScene: true;
+  /** Word length (Wordle) or grid width. */
+  size: number;
+  /** The hidden word and the scene text it reveals. */
+  scene: SceneWord;
+}
+
+export interface CatsSpec extends GameBase {
+  kind: 'cats';
+  unlocksScene: false;
+  size: number;
+  /** Has a one-square zone and comes out by simple steps alone. */
+  easy?: boolean;
+}
+
+export interface SudokuSpec extends GameBase {
+  kind: 'sudoku';
+  unlocksScene: false;
+  size: 6 | 9;
+  /** How many digits are given. */
+  givens: number;
+  /** Clues that unlock early from their two coordinate squares. */
+  located: readonly string[];
+}
+
+export interface InterrogationSpec extends GameBase {
+  kind: 'interrogation' | 'finale';
+  unlocksScene: false;
+  /** The suspect, evidence and questions. */
+  interrogation: Interrogation;
+}
+
+/** One minigame in a case. */
+export type GameSpec = SceneGameSpec | CatsSpec | SudokuSpec | InterrogationSpec;
 
 /** A word hidden by a scene game, and the scene sentence solving it reveals ("…by the bookcase in the Library."). */
 export interface SceneWord {
