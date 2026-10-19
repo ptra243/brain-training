@@ -1,9 +1,12 @@
 /* The case board. Every class starts with cb- so nothing here touches the rest
    of the app. Colour variables (--baize, --card, --ink ...) come from styles.css;
-   the few extra ones are set on .cb-root. */
-.cb-root {
+   the few extra ones are set on .cb-root, and again on the drag ghost and tip,
+   which are portalled to <body> outside it. */
+.cb-root, .cb-ghost, .cb-tip {
   --paper: #fffcf3;
   --locked: #3d6b4f;
+}
+.cb-root {
   --cell: 36px;
   --tcell: 22px;
   display: grid;
