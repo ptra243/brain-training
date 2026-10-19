@@ -17,7 +17,7 @@ export const caseNameWords: CaseNameWords = {
     'sapphire', 'scarlet', 'silver', 'tawny', 'teal', 'topaz', 'turquoise', 'vermilion', 'white', 'yellow',
     'crooked', 'curious', 'drowned', 'faded', 'fallen', 'forgotten', 'frosted', 'gilded', 'hidden', 'hollow',
     'hushed', 'lonely', 'lost', 'lucky', 'midnight', 'misty', 'moonlit', 'mournful', 'painted', 'quiet',
-    'restless', 'secret', 'shadowed', 'silent', 'silken', 'sleeping', 'smoky', 'stolen', 'stormy', 'strange',
+    'restless', 'ghostly', 'shadowed', 'silent', 'silken', 'sleeping', 'smoky', 'stolen', 'stormy', 'strange',
     'sunken', 'tangled', 'thirteenth', 'twilight', 'veiled', 'velvet', 'wandering', 'whispering', 'wicked', 'wild',
   ],
   // Cats, then flowers.

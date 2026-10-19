@@ -23,6 +23,8 @@ test('the word lists cover every code and every level', () => {
     assert.equal(new Set(list).size, list.length, 'no repeats');
     for (const w of list) assert.match(w, /^[a-z]+$/);
   }
+  // "The Secret Iris Secret" reads badly.
+  assert.deepEqual(adjectives.filter((a) => words.kinds.includes(a)), [], 'no descriptor is also a kind word');
 });
 
 test('every place splits back into its start and end one way only', () => {
