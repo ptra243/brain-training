@@ -4,12 +4,13 @@
 
 import { useMemo, useState } from 'react';
 import { content } from '../content/index.ts';
-import { cellLabel, roomAdjacency } from '../engine/house.ts';
+import { caseContext, caseSpace } from '../engine/caseFacts.ts';
+import { cellLabel } from '../engine/house.ts';
 import { caseNameWords } from '../content/caseNames.ts';
 import { caseCode, caseFor, caseName, parseCase } from '../engine/caseRef.ts';
 import { campaignDifficulty, generateCase } from '../engine/generate.ts';
 import { PRESETS, type Length } from '../engine/settings.ts';
-import { allCandidates, countSolutions } from '../engine/solver.ts';
+import { countMatching } from '../engine/search.ts';
 import type { Difficulty } from '../engine/types.ts';
 import { emptyProgress } from '../game/state.ts';
 import { saveQuick, saveScreen } from '../game/storage.ts';
@@ -42,12 +43,7 @@ export function CaseInspector() {
   };
   const solutions = useMemo(
     () =>
-      countSolutions(
-        allCandidates(c.rooms, c.items),
-        c.clues.map((cl) => cl.fact),
-        { suspects: c.suspects, adjacency: roomAdjacency(content.house) },
-        2,
-      ),
+      countMatching(caseSpace(c), c.clues.map((cl) => cl.fact), caseContext(content.house, c), 2),
     [c],
   );
 

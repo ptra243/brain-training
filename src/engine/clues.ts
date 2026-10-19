@@ -1,4 +1,4 @@
-import type { ClueFact, ClueType, Content, Solution } from './types.ts';
+import type { ClueFact, Solution } from './types.ts';
 import type { Rng } from './rng.ts';
 
 /** Everything a clue needs to be checked against a candidate solution. */
@@ -78,9 +78,6 @@ export function compileClue(fact: ClueFact, ctx: ClueContext): (sol: Solution) =
   }
 }
 
-/** Clue types that only make sense when rooms are shared. */
-export const SHARED_ONLY: readonly ClueType[] = ['suspects-together', 'suspects-apart', 'suspect-alone', 'suspect-empty-handed'];
-
 /**
  * Every true statement of the supported types about this solution. With
  * `shared` rooms (7 guests) it adds who was together, apart, alone or
@@ -141,87 +138,4 @@ export function cluePool(
   return pool;
 }
 
-const templates: Record<ClueType, readonly string[]> = {
-  'suspect-room': ['{s} was in the {r}.', '{s} spent the whole evening in the {r}.'],
-  'suspect-not-room': ['{s} was not in the {r}.', '{s} never set foot in the {r}.'],
-  'suspect-item': ['{s} was holding the {i}.', 'The {i} was in the hands of {s}.'],
-  'suspect-not-item': ['{s} did not have the {i}.', 'The {i} was not with {s}.'],
-  'item-room': ['The {i} was in the {r}.', 'Whoever had the {i} was in the {r}.'],
-  'item-not-room': ['The {i} was not in the {r}.', 'Nobody in the {r} had the {i}.'],
-  'suspect-either-room': ['{s} was in either the {r} or the {r2}.'],
-  'suspect-next-to-room': ['{s} was in a room next to the {r}.', '{s} was just through the wall from the {r}.'],
-  'suspects-adjacent': ['{a} and {b} were in neighbouring rooms.', '{a} could hear {b} through the wall.'],
-  'suspects-not-adjacent': ['{a} and {b} were not in neighbouring rooms.'],
-  'suspects-together': ['{a} and {b} were in the same room.'],
-  'suspects-apart': ['{a} and {b} were in different rooms.'],
-  'suspect-alone': ['{s} was alone in their room.'],
-  'suspect-empty-handed': ['{s} had no weapon.'],
-};
-
-/**
- * Wordle versions of room clues. `{o}` is the object word; the teaser shows a
- * blank in its place and leaves the room out, so the room is only revealed
- * once the Wordle is solved.
- */
-const wordleTemplates: Partial<Record<ClueType, { full: string; teaser: string }>> = {
-  'suspect-room': { full: '{s} was by the {o} in the {r}.', teaser: '{s} was by the {blank}.' },
-  'suspect-not-room': { full: '{s} never went near the {o} in the {r}.', teaser: '{s} never went near the {blank}.' },
-  'item-room': { full: 'The {i} was left beside the {o} in the {r}.', teaser: 'The {i} was left beside the {blank}.' },
-  'item-not-room': { full: 'The {i} was nowhere near the {o} in the {r}.', teaser: 'The {i} was nowhere near the {blank}.' },
-  'suspect-next-to-room': {
-    full: '{s} could hear someone by the {o} in the {r}, through the wall.',
-    teaser: '{s} could hear someone by the {blank}, through the wall.',
-  },
-};
-
 export const WORDLE_BLANK = '_ _ _ _ _';
-
-/** Whether a clue can be delivered by Wordle (it names exactly one room). */
-export function canDeliverByWordle(fact: ClueFact): fact is Extract<ClueFact, { room: string }> {
-  return fact.type in wordleTemplates;
-}
-
-function names(content: Content) {
-  return {
-    suspect: (id: string) => content.suspects.find((s) => s.id === id)?.name ?? id,
-    room: (id: string) => content.house.rooms.find((r) => r.id === id)?.name ?? id,
-    item: (id: string) => content.items.find((i) => i.id === id)?.name ?? id,
-  };
-}
-
-const fillIn = (template: string, fill: Record<string, string>) =>
-  template.replace(/\{(\w+)\}/g, (_, k: string) => fill[k] ?? k);
-
-/** Full text and teaser for a Wordle-delivered room clue. */
-export function wordleClue(
-  fact: Extract<ClueFact, { room: string }>,
-  content: Content,
-  rng: Rng,
-): { text: string; answer: string; teaser: string } {
-  const n = names(content);
-  const room = content.house.rooms.find((r) => r.id === fact.room)!;
-  const answer = rng.pick(room.objects);
-  const t = wordleTemplates[fact.type]!;
-  const fill: Record<string, string> = { r: room.name, o: answer.toLowerCase(), blank: WORDLE_BLANK };
-  if ('suspect' in fact) fill.s = n.suspect(fact.suspect);
-  if ('item' in fact) fill.i = n.item(fact.item);
-  return { text: fillIn(t.full, fill), answer, teaser: fillIn(t.teaser, fill) };
-}
-
-/** Human sentence for a clue, with names from the content files. */
-export function clueText(fact: ClueFact, content: Content, rng: Rng): string {
-  const { suspect, room, item } = names(content);
-  const fill: Record<string, string> = {};
-  if ('suspect' in fact) fill.s = suspect(fact.suspect);
-  if ('item' in fact) fill.i = item(fact.item);
-  if ('room' in fact) fill.r = room(fact.room);
-  if ('rooms' in fact) {
-    fill.r = room(fact.rooms[0]);
-    fill.r2 = room(fact.rooms[1]);
-  }
-  if ('suspects' in fact) {
-    fill.a = suspect(fact.suspects[0]);
-    fill.b = suspect(fact.suspects[1]);
-  }
-  return fillIn(rng.pick(templates[fact.type]), fill);
-}

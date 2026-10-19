@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { content } from '../content/index.ts';
 import { ROUNDS, campaignCast } from '../engine/campaign.ts';
+import { midSentence } from '../engine/text.ts';
 import { AccusePanel } from './AccusePanel.tsx';
 import { Casebook, DIFFICULTY_LABEL } from './Casebook.tsx';
 import { Dialog } from './Dialog.tsx';
@@ -10,8 +11,6 @@ import { reduce, type Action, type Progress } from './state.ts';
 
 /** When each round's body is found. */
 export const ROUND_TIMES = ['9pm', 'Midnight', '3am'];
-
-const lower = (name: string) => name.replace(/^The /, 'the ');
 
 interface Props {
   save: CampaignSave;
@@ -76,7 +75,7 @@ export function CampaignView({ save, onSave, onHome }: Props) {
       <article className="card verdict">
         <h2>{ROUND_TIMES[viewing]}: the wrong person</h2>
         <p className="verdict-line">
-          You accused {lower(suspectName(save.victims[viewing]))}. They weren't the killer, and they were the next body.
+          You accused {midSentence(suspectName(save.victims[viewing]))}. They weren't the killer, and they were the next body.
         </p>
       </article>
     </section>
@@ -85,7 +84,7 @@ export function CampaignView({ save, onSave, onHome }: Props) {
       <article className="card verdict">
         <h2>The killer got away</h2>
         <p className="verdict-line">
-          It was {lower(suspectName(killer))}, with the {itemName(c.weapon)}.
+          It was {midSentence(suspectName(killer))}, with the {itemName(c.weapon)}.
         </p>
         <p className="muted">Three wrong guesses, and by dawn they were gone.</p>
         <button className="primary" onClick={onHome}>
@@ -131,7 +130,7 @@ export function CampaignView({ save, onSave, onHome }: Props) {
         <Dialog placement="center" labelId="next-body-title" onClose={() => setNotice(null)}>
           <h2 id="next-body-title">{suspectName(victim)} wasn't the killer</h2>
           <p className="dialog-text">
-            Later that night, {lower(suspectName(victim))} is found dead. The killer is still among the guests, and
+            Later that night, {midSentence(suspectName(victim))} is found dead. The killer is still among the guests, and
             {ROUNDS - save.victims.length === 1 ? ' this is your last chance.' : ` you have ${ROUNDS - save.victims.length} accusations left.`}
           </p>
           <div className="dialog-actions single">
@@ -152,7 +151,7 @@ export function CampaignView({ save, onSave, onHome }: Props) {
         <Dialog placement="center" labelId="escaped-title" onClose={() => setNotice(null)}>
           <h2 id="escaped-title">The killer got away</h2>
           <p className="dialog-text">
-            {suspectName(victim)} wasn't the killer either. By dawn, {lower(suspectName(killer))} was gone, with the{' '}
+            {suspectName(victim)} wasn't the killer either. By dawn, {midSentence(suspectName(killer))} was gone, with the{' '}
             {itemName(c.weapon)}.
           </p>
           <div className="dialog-actions single">

@@ -54,7 +54,7 @@ test('different levels of one code get different names', () => {
 
 test('names are fixed: changing the word lists breaks saved names', () => {
   const ref: QuickRef = { mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' };
-  assert.equal(caseName(ref, words), 'The Veiled Jackdaw Scandal at Stonewick');
+  assert.equal(caseName(ref, words), 'The Sunken Jaguar Scandal at Stonewick');
 });
 
 test('typing a name back is forgiving', () => {

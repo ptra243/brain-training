@@ -4,11 +4,11 @@
 // Only clues she has found count, so a hint never jumps ahead of her casebook.
 
 import { content } from '../content/index.ts';
-import { compileClue, type ClueContext } from '../engine/clues.ts';
-import { roomAdjacency } from '../engine/house.ts';
-import { anyMatching, type Space } from '../engine/search.ts';
+import { caseContext, caseSpace } from '../engine/caseFacts.ts';
+import { compileClue } from '../engine/clues.ts';
+import { anyMatching } from '../engine/search.ts';
 import type { Case, Clue, ClueFact } from '../engine/types.ts';
-import { axes, cellState, markKey, sharedRooms, type Action, type GridKind, type Mark, type Progress } from './state.ts';
+import { axes, cellState, markKey, type Action, type GridKind, type Mark, type Progress } from './state.ts';
 
 export interface GridCell {
   kind: GridKind;
@@ -61,9 +61,6 @@ export function cellFact({ kind, row, col }: GridCell, value: Mark): ClueFact {
 
 const flip = (m: Mark): Mark => (m === 'o' ? 'x' : 'o');
 
-const caseContext = (c: Case): ClueContext => ({ suspects: c.suspects, adjacency: roomAdjacency(content.house) });
-const caseSpace = (c: Case): Space => ({ suspects: c.suspects, rooms: c.rooms, items: c.items, shared: sharedRooms(c) });
-
 export function allCells(c: Case): GridCell[] {
   return KINDS.flatMap((kind) => {
     const { rows, cols } = axes(c, kind);
@@ -72,13 +69,13 @@ export function allCells(c: Case): GridCell[] {
 }
 
 /** What a square really is. */
-export function truth(c: Case, cell: GridCell, ctx = caseContext(c)): Mark {
+export function truth(c: Case, cell: GridCell, ctx = caseContext(content.house, c)): Mark {
   return compileClue(cellFact(cell, 'o'), ctx)(c.solution) ? 'o' : 'x';
 }
 
 /** Her marks that are wrong and haven't been pointed out yet (or have changed since). */
 export function newlyWrong(c: Case, p: Progress, flagged: Record<string, Mark> = {}): Record<string, Mark> {
-  const ctx = caseContext(c);
+  const ctx = caseContext(content.house, c);
   const out: Record<string, Mark> = {};
   for (const cell of allCells(c)) {
     const key = markKey(cell.kind, cell.row, cell.col);
@@ -99,7 +96,7 @@ interface Settled {
 
 /** What she knows: her right marks as facts, and a test for whether facts can all be true. */
 function knowledge(c: Case, p: Progress) {
-  const ctx = caseContext(c);
+  const ctx = caseContext(content.house, c);
   const space = caseSpace(c);
   const markFacts = allCells(c).flatMap((cell) => {
     const m = p.marks[markKey(cell.kind, cell.row, cell.col)];

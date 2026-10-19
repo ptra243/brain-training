@@ -9,6 +9,7 @@
 
 import type { ClueFact, ClueSource, ClueType, Content } from './types.ts';
 import type { Rng } from './rng.ts';
+import { capital, fillIn, midSentence } from './text.ts';
 
 const TESTIMONY: Record<ClueType, readonly string[]> = {
   'suspect-room': ['I saw {s} in the {r} all evening.', '{S} was in the {r}. I took them a cup of tea there.'],
@@ -86,9 +87,6 @@ export interface Worded {
   located?: { before: string; after: string };
 }
 
-const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-const midSentence = (name: string) => name.replace(/^The /, 'the ');
-
 /** People in a pair clue speak for themselves; otherwise the witness is someone else in the case. */
 function pickSpeaker(fact: ClueFact, suspects: readonly string[], rng: Rng): string {
   if ('suspects' in fact) return fact.suspects[0];
@@ -129,7 +127,6 @@ function fillFor(fact: ClueFact, content: Content): Record<string, string> {
 }
 
 const subjectOf = (fact: ClueFact) => ('suspect' in fact ? fact.suspect : 'suspects' in fact ? fact.suspects[0] : null);
-const fillIn = (template: string, fill: Record<string, string>) => template.replace(/\{(\w+)\}/g, (_, k: string) => fill[k] ?? k);
 
 /** The question she asks that this fact answers, from the point of view of `speaker`. */
 export function questionFor(fact: ClueFact, speaker: string, content: Content): string {

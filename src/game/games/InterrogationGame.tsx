@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from 'react';
 import type { Clue, Interrogation, Question } from '../../engine/types.ts';
+import { midSentence } from '../../engine/text.ts';
 import { ClueCard } from '../ClueCard.tsx';
 import { Dialog } from '../Dialog.tsx';
 import { suspectColour, suspectInitials, suspectName } from '../names.ts';
@@ -15,7 +16,7 @@ interface Props extends GameProps<Interrogation, InterrogationData> {
   disproves: (evidence: readonly Clue[], answer: Question) => boolean;
 }
 
-const mid = (id: string) => suspectName(id).replace(/^The /, 'the ');
+const mid = (id: string) => midSentence(suspectName(id));
 
 export function InterrogationGame({ puzzle, data, finished, onChange, onFinish, evidence, disproves }: Props) {
   const [challenging, setChallenging] = useState<Question | null>(null);

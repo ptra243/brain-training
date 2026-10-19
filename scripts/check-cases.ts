@@ -2,14 +2,13 @@
 // and reports any that aren't fair, plus clue-count stats. Run with:
 // npm run check-cases
 import { content } from '../src/content/index.ts';
-import { roomAdjacency } from '../src/engine/house.ts';
+import { caseContext, caseFacts, caseSpace, interrogationEvidence } from '../src/engine/caseFacts.ts';
 import { campaignCast, campaignRound, roundProblems, type CampaignRef } from '../src/engine/campaign.ts';
 import { caseCode, caseFor, codeFor, type Cast, type QuickRef } from '../src/engine/caseRef.ts';
 import { generateCase } from '../src/engine/generate.ts';
 import { disproves } from '../src/engine/interrogation.ts';
 import { DIFFICULTIES, LENGTHS, PRESETS, allLevels, caseSettings, levelsKey, presetOf, type CaseLevels } from '../src/engine/settings.ts';
 import { countMatching } from '../src/engine/search.ts';
-import { allCandidates, countSolutions } from '../src/engine/solver.ts';
 import { sceneCrossword, sceneWordSearch } from '../src/game/sceneGames.ts';
 import { Rng } from '../src/engine/rng.ts';
 import { countCatSolutions, generateCats, solvableBySimpleSteps } from '../src/games/cats.ts';
@@ -17,7 +16,6 @@ import { solutionAt } from '../src/games/crossword.ts';
 import { everyWordOnce, leftovers } from '../src/games/wordsearch.ts';
 import type { Case, Difficulty } from '../src/engine/types.ts';
 
-const adjacency = roomAdjacency(content.house);
 const PER_PRESET = 100;
 const PER_COMBINATION = 10;
 let failures = 0;
@@ -25,12 +23,8 @@ let failures = 0;
 /** Everything that makes a case unfair, as messages. */
 function problems(c: Case): string[] {
   const out: string[] = [];
-  const shared = caseSettings(c.levels).shared;
   const facts = c.clues.map((cl) => cl.fact);
-  const ctx = { suspects: c.suspects, adjacency };
-  const solutions = shared
-    ? countMatching({ suspects: c.suspects, rooms: c.rooms, items: c.items, shared }, facts, ctx, 2)
-    : countSolutions(allCandidates(c.rooms, c.items), facts, ctx, 2);
+  const solutions = countMatching(caseSpace(c), facts, caseContext(content.house, c), 2);
   if (solutions !== 1) out.push(`${solutions} solutions`);
   // The killer was alone at the scene, holding the weapon.
   const k = c.suspects.indexOf(c.murderer);
@@ -52,14 +46,13 @@ function problems(c: Case): string[] {
 /** What's unfair about the minigames themselves: interrogations, word games, cat puzzles. */
 function puzzleProblems(c: Case): string[] {
   const out: string[] = [];
-  const ctx = { suspects: c.suspects, adjacency };
+  const cf = caseFacts(content.house, c);
   // Every interrogation: one lie, and its proof really disproves it.
   for (const g of c.games.filter((g) => g.interrogation)) {
     const it = g.interrogation!;
     const lies = it.questions.filter((q) => q.lie);
-    const evidence = it.useCaseClues ? c.clues : it.cards;
+    const evidence = interrogationEvidence(c, it);
     const proof = it.proof.map((id) => evidence.find((e) => e.id === id)?.fact).filter((f) => f !== undefined);
-    const cf = { suspects: c.suspects, rooms: c.rooms, items: c.items, solution: c.solution, ctx, shared: c.shared };
     if (lies.length !== 1 || proof.length !== it.proof.length || !disproves(cf, proof, lies[0].answer.fact)) {
       out.push(`${g.kind} interrogation can't be caught fairly`);
     }

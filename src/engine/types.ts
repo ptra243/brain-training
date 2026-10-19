@@ -48,13 +48,10 @@ export interface Content {
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
 /**
- * The hidden answer. Index i of `room` / `item` belongs to `suspects[i]`.
- * Each suspect is in a different room and holds a different item.
- */
-/**
- * Where each suspect was and what they held, by suspect position. In a
- * classic case everyone has their own room and weapon; with 7 guests rooms
- * are shared and two guests hold nothing (null).
+ * The hidden answer: where each suspect was and what they held. Index i of
+ * `room` / `item` belongs to `suspects[i]`. In a classic case everyone has
+ * their own room and weapon; with 7 guests rooms are shared and two guests
+ * hold nothing (null).
  */
 export interface Solution {
   room: readonly string[];
@@ -220,9 +217,9 @@ export interface Case {
   houseId: string;
   /** Suspect ids in play, in solution order. */
   suspects: readonly string[];
-  /** Room ids in play (one per suspect). Other rooms on the map are empty. */
+  /** Room ids in play (one per suspect in a classic case, 5 shared by 7 guests). Other rooms on the map are empty. */
   rooms: readonly string[];
-  /** Item ids in play (one per suspect). */
+  /** Weapon ids in play (one per suspect in a classic case, 5 for 7 guests). */
   items: readonly string[];
   solution: Solution;
   /** Where the body was found. The murderer is whoever was in this room. */
@@ -232,7 +229,9 @@ export interface Case {
   /**
    * Where the body was found. Not a placement clue: it tells the player which
    * room matters once the grid is solved. Always delivered, never trimmed.
-   * `wordle.answer` is the hidden word for all three scene games.
+   * It serves every scene word game (Wordle, crossword, word search): the
+   * `wordle` and `delivery` names are historical, and each game hides its
+   * own word in `GameSpec.scene`.
    */
   sceneClue: { text: string; delivery: 'wordle'; wordle: WordleReveal };
   /** Minimal clue set: removing any one allows a second solution. */

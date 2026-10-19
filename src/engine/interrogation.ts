@@ -13,7 +13,6 @@
 import { compileClue, type ClueContext } from './clues.ts';
 import type { Rng } from './rng.ts';
 import { anyMatching, type Space } from './search.ts';
-import { allCandidates } from './solver.ts';
 import type { Clue, ClueFact, ClueSource, Content, Interrogation, Question, Solution } from './types.ts';
 import { plainText, questionFor, wordClue } from './wording.ts';
 
@@ -23,17 +22,15 @@ export interface CaseFacts {
   items: readonly string[];
   solution: Solution;
   ctx: ClueContext;
-  /** 7 guests sharing rooms: too many answers to list, so checks use the search. */
+  /** 7 guests sharing rooms (otherwise everyone has their own room and weapon). */
   shared?: boolean;
 }
 
-const spaceOf = (cf: CaseFacts): Space => ({ suspects: cf.suspects, rooms: cf.rooms, items: cf.items, shared: true });
+const spaceOf = (cf: CaseFacts): Space => ({ suspects: cf.suspects, rooms: cf.rooms, items: cf.items, shared: cf.shared ?? false });
 
 /** Whether these facts and the lie can't all be true (no assignment satisfies them all). */
 export function disproves(cf: CaseFacts, evidence: readonly ClueFact[], lie: ClueFact): boolean {
-  if (cf.shared) return !anyMatching(spaceOf(cf), [...evidence, lie], cf.ctx);
-  const tests = [...evidence, lie].map((f) => compileClue(f, cf.ctx));
-  return !allCandidates(cf.rooms, cf.items).some((sol) => tests.every((t) => t(sol)));
+  return !anyMatching(spaceOf(cf), [...evidence, lie], cf.ctx);
 }
 
 const isTrue = (cf: CaseFacts, f: ClueFact) => compileClue(f, cf.ctx)(cf.solution);
@@ -128,36 +125,24 @@ function selfContained(cf: CaseFacts, hard: boolean, rng: Rng): Setup {
 
 /** Finale: find a lie that her clues disprove only in combination, preferring pairs. */
 function finaleSetup(cf: CaseFacts, evidence: readonly ClueFact[], rng: Rng): Setup | null {
-  // Classic cases test a list of every answer; with shared rooms the search
-  // answers "could these clues and the lie all be true?" instead.
-  const cands = cf.shared ? null : allCandidates(cf.rooms, cf.items);
-  const masks = cands && evidence.map((f) => {
-    const t = compileClue(f, cf.ctx);
-    return cands.map((s) => t(s));
-  });
   const space = spaceOf(cf);
   const lies = rng.shuffle(
     allStatements(cf).filter((f) => !f.type.startsWith('suspects-') && !isTrue(cf, f) && !evidence.some((e) => sameFact(e, f))),
   );
   let fallback: Setup | null = null;
   for (const lie of lies.slice(0, 60)) {
-    const t = compileClue(lie, cf.ctx);
-    const lieMask = cands && cands.map((s) => t(s));
-    const holds = (subset: number[], mask: boolean[] | null) =>
-      mask && masks
-        ? mask.some((ok, k) => ok && subset.every((e) => masks[e][k]))
-        : anyMatching(space, [...subset.map((k) => evidence[k]), lie], cf.ctx);
+    const holds = (subset: number[]) => anyMatching(space, [...subset.map((k) => evidence[k]), lie], cf.ctx);
     const all = evidence.map((_, k) => k);
-    if (holds(all, lieMask)) continue; // her clues don't rule it out
-    if (all.some((k) => !holds([k], lieMask))) {
+    if (holds(all)) continue; // her clues don't rule it out
+    if (all.some((k) => !holds([k]))) {
       // One clue alone catches it: fine as a fallback, but we'd rather need two.
-      const k = all.find((e) => !holds([e], lieMask))!;
+      const k = all.find((e) => !holds([e]))!;
       fallback ??= { cards: [], lie, proof: [k] };
       continue;
     }
     for (let a = 0; a < all.length; a++) {
       for (let b = a + 1; b < all.length; b++) {
-        if (!holds([a, b], lieMask)) return { cards: [], lie, proof: [a, b] };
+        if (!holds([a, b])) return { cards: [], lie, proof: [a, b] };
       }
     }
   }

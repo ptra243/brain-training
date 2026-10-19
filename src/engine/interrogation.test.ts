@@ -3,17 +3,11 @@ import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
 import { compileClue } from './clues.ts';
 import { generateCase } from './generate.ts';
-import { roomAdjacency } from './house.ts';
-import { disproves, type CaseFacts } from './interrogation.ts';
+import { caseFacts, interrogationEvidence } from './caseFacts.ts';
+import { disproves } from './interrogation.ts';
 import type { Case } from './types.ts';
 
-const factsOf = (c: Case): CaseFacts => ({
-  suspects: c.suspects,
-  rooms: c.rooms,
-  items: c.items,
-  solution: c.solution,
-  ctx: { suspects: c.suspects, adjacency: roomAdjacency(content.house) },
-});
+const factsOf = (c: Case) => caseFacts(content.house, c);
 
 test('interrogations: exactly one lie, every other answer true, and the proof disproves the lie', () => {
   let checked = 0;
@@ -33,7 +27,7 @@ test('interrogations: exactly one lie, every other answer true, and the proof di
         assert.equal(q.answer.speaker, it.suspect);
       }
       for (const card of it.cards) assert.ok(compileClue(card.fact, cf.ctx)(c.solution), `case ${n}: false card ${card.body}`);
-      const evidence = it.useCaseClues ? c.clues : it.cards;
+      const evidence = interrogationEvidence(c, it);
       const proof = it.proof.map((id) => evidence.find((e) => e.id === id)!);
       assert.ok(proof.every(Boolean), `case ${n}: proof refers to unknown evidence`);
       assert.ok(disproves(cf, proof.map((p) => p.fact), lies[0].answer.fact), `case ${n} ${g.kind}: proof doesn't disprove the lie`);

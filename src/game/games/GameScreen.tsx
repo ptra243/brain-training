@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Rng } from '../../engine/rng.ts';
 import { cats, content } from '../../content/index.ts';
-import { roomAdjacency } from '../../engine/house.ts';
+import { caseFacts, interrogationEvidence } from '../../engine/caseFacts.ts';
 import { disproves } from '../../engine/interrogation.ts';
 import type { Case, GameKind, GameSpec, Interrogation } from '../../engine/types.ts';
 import { generateCats, type CatPuzzle } from '../../games/cats.ts';
@@ -87,14 +87,8 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
     case 'interrogation': {
       const puzzle = built.puzzle;
       const data = (record?.data as InterrogationData) ?? interrogationInitial();
-      const evidence = puzzle.useCaseClues ? c.clues.filter((cl) => cl.delivery !== 'finale') : puzzle.cards;
-      const cf = {
-        suspects: c.suspects,
-        rooms: c.rooms,
-        items: c.items,
-        solution: c.solution,
-        ctx: { suspects: c.suspects, adjacency: roomAdjacency(content.house) },
-      };
+      const evidence = interrogationEvidence(c, puzzle);
+      const cf = caseFacts(content.house, c);
       solved = () => ({ ...data, caught: false });
       view = (
         <InterrogationGame

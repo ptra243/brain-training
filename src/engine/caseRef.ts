@@ -5,6 +5,7 @@
 
 import { buildCase } from './generate.ts';
 import { PRESETS, levelsKey, type CaseLevels, type Length } from './settings.ts';
+import { capital } from './text.ts';
 import type { Case, Content, Difficulty } from './types.ts';
 
 /** A Quick start case: a preset difficulty and a length, picked by her. */
@@ -20,7 +21,7 @@ export interface QuickRef {
 
 export type Cast = 'classic' | 'big';
 
-/** Campaign refs join this in a later step. */
+/** Refs to numbered and Quick start cases. Campaign rounds have their own ref in campaign.ts. */
 export type CaseRef = QuickRef;
 
 const ALPHABET = '23456789ABCDEFGHJKMNPQRSTVWXYZ';
@@ -107,10 +108,9 @@ export interface CaseNameWords {
 
 const DIFFICULTY_ORDER = Object.keys(DIFFICULTY_LETTER) as Difficulty[];
 const LENGTH_ORDER = Object.keys(LENGTH_LETTER) as Length[];
-const capital = (w: string) => w[0].toUpperCase() + w.slice(1);
 
 /**
- * The case's name, "The Velvet Jackdaw Affair at Ashcombe": the code's number
+ * The case's name, "The Black Dahlia Scandal at Ashcombe": the code's number
  * written in words, and the kind of case for its levels. It says the same as
  * the case code, so either one replays the case.
  */

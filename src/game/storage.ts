@@ -64,3 +64,12 @@ export const loadScreen = (): Screen => {
 };
 
 export const saveScreen = (s: Screen) => write('screen', s);
+
+/** Forget the Quick start case, the campaign and where she was (the error screen's way out of a bad save). */
+export function clearSaves() {
+  try {
+    for (const key of ['quick', 'campaign', 'screen']) localStorage.removeItem(PREFIX + key);
+  } catch {
+    // Nothing to clear.
+  }
+}

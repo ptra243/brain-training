@@ -3,13 +3,14 @@ import { createRoot } from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
 import { CaseInspector } from './dev/CaseInspector.tsx';
 import { App } from './game/App.tsx';
+import { ErrorBoundary } from './game/ErrorBoundary.tsx';
 import './styles.css';
 
 // The dev case inspector lives at #dev; everything else is the game.
 const isDev = window.location.hash === '#dev';
 if (isDev) document.body.classList.add('dev');
 
-createRoot(document.getElementById('root')!).render(<StrictMode>{isDev ? <CaseInspector /> : <App />}</StrictMode>);
+createRoot(document.getElementById('root')!).render(<StrictMode>{isDev ? <CaseInspector /> : <ErrorBoundary><App /></ErrorBoundary>}</StrictMode>);
 
 window.addEventListener('hashchange', () => window.location.reload());
 

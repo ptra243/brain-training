@@ -1,4 +1,4 @@
-import { roomAdjacency } from './house.ts';
+import { caseContext, caseSpace } from './caseFacts.ts';
 import { WORDLE_BLANK, cluePool, compileClue, type ClueContext } from './clues.ts';
 import { canLocate, plainText, wordClue } from './wording.ts';
 import { Rng, hashSeed } from './rng.ts';
@@ -7,6 +7,9 @@ import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
 import { SCENE_GAMES, type Case, type Clue, type ClueDelivery, type ClueFact, type ClueSource, type ClueType, type Content, type Difficulty, type GameKind, type GameSpec, type Interrogation, type Solution, type CampaignRound } from './types.ts';
 import { buildInterrogation, type CaseFacts } from './interrogation.ts';
 import { PRESETS, caseSettings, clueShares, levelsKey, type CaseLevels, type CaseSettings, type ClueShares } from './settings.ts';
+
+/** The puzzles that share a case's clues (a campaign round has all three). */
+export const ROTATION: readonly GameKind[] = ['cats', 'sudoku', 'interrogation'];
 
 /** Difficulty curve for the campaign: a few easy cases, then mostly medium with every third hard. */
 export function campaignDifficulty(caseNumber: number): Difficulty {
@@ -43,7 +46,6 @@ export function buildCase(content: Content, seedText: string, caseNumber: number
   //    three of the cat puzzle, sudoku and interrogation share the clues. Hard
   //    logic ends with a finale interrogation that uses her casebook as evidence.
   const order = rng.shuffle(minimal);
-  const ROTATION: GameKind[] = ['cats', 'sudoku', 'interrogation'];
   const picked = rng.shuffle(ROTATION).slice(0, settings.games);
   const rotating = ROTATION.filter((k) => picked.includes(k));
   const kinds = settings.finale ? [...rotating, 'finale' as const] : rotating;
@@ -239,7 +241,7 @@ function classicTruth(content: Content, settings: CaseSettings, rng: Rng, code: 
   const murdererIndex = rng.int(n);
 
   // 2. Every true clue.
-  const ctx: ClueContext = { suspects, adjacency: roomAdjacency(house) };
+  const ctx = caseContext(house, { suspects });
   const allRooms = house.rooms.map((r) => r.id);
   const pool = cluePool(solution, ctx, rooms, items, allRooms, rng);
 
@@ -274,6 +276,23 @@ function classicTruth(content: Content, settings: CaseSettings, rng: Rng, code: 
   return { suspects, rooms, items, solution, murdererIndex, minimal, ctx };
 }
 
+/**
+ * Where everyone was and who held what in a 7-guest case: the killer alone at
+ * a scene room with a weapon, everyone else spread over the other rooms, and
+ * all but `items.length` guests empty-handed.
+ */
+export function rollShared(rng: Rng, suspects: readonly string[], rooms: readonly string[], items: readonly string[], killer: number): { scene: string; solution: Solution } {
+  const scene = rng.pick(rooms);
+  const elsewhere = rooms.filter((r) => r !== scene);
+  const room = suspects.map((_, i) => (i === killer ? scene : rng.pick(elsewhere)));
+  const others = rng.shuffle(suspects.map((_, i) => i).filter((i) => i !== killer));
+  const holders = [killer, ...others.slice(0, items.length - 1)];
+  const dealt = rng.shuffle(items);
+  const item = new Array<string | null>(suspects.length).fill(null);
+  holders.forEach((s, j) => (item[s] = dealt[j]));
+  return { scene, solution: { room, item } };
+}
+
 /** Clue types that say only where people were (the rest need who held what). */
 const ITEM_TYPES: ReadonlySet<ClueType> = new Set(['suspect-item', 'suspect-not-item', 'suspect-empty-handed', 'item-room', 'item-not-room']);
 
@@ -294,18 +313,11 @@ function sharedTruth(content: Content, settings: CaseSettings, rng: Rng, code: s
   const rooms = rng.shuffle(house.rooms.map((r) => r.id)).slice(0, settings.rooms);
   const items = rng.shuffle(content.items.map((i) => i.id)).slice(0, settings.rooms);
   const murdererIndex = rng.int(n);
-  const scene = rng.pick(rooms);
-  const elsewhere = rooms.filter((r) => r !== scene);
-  const room = suspects.map((_, i) => (i === murdererIndex ? scene : rng.pick(elsewhere)));
-  const others = rng.shuffle(suspects.map((_, i) => i).filter((i) => i !== murdererIndex));
-  const holders = [murdererIndex, ...others.slice(0, items.length - 1)];
-  const dealt = rng.shuffle(items);
-  const item = new Array<string | null>(n).fill(null);
-  holders.forEach((s, j) => (item[s] = dealt[j]));
-  const solution: Solution = { room, item };
+  const { solution } = rollShared(rng, suspects, rooms, items, murdererIndex);
+  const { room, item } = solution;
 
   // 2. Every true clue.
-  const ctx: ClueContext = { suspects, adjacency: roomAdjacency(house) };
+  const ctx = caseContext(house, { suspects });
   const pool = cluePool(solution, ctx, rooms, items, house.rooms.map((r) => r.id), rng, true);
 
   // 3. Two passes over one weighted order: rooms, then weapon holders.
@@ -334,7 +346,7 @@ function sharedTruth(content: Content, settings: CaseSettings, rng: Rng, code: s
   }
 
   // 4. Trim: drop any clue the others make redundant.
-  const space = { suspects, rooms, items, shared: true };
+  const space = caseSpace({ suspects, rooms, items, shared: true });
   let minimal = chosen.slice();
   for (const fact of rng.shuffle(chosen)) {
     const without = minimal.filter((f) => f !== fact);

@@ -14,12 +14,12 @@
 // she gets there: same campaign and same victims, same round.
 
 import { cluePool, type ClueContext } from './clues.ts';
-import { assemble, weightedOrder, type Truth } from './generate.ts';
-import { roomAdjacency } from './house.ts';
+import { ROTATION, assemble, rollShared, weightedOrder, type Truth } from './generate.ts';
+import { caseContext, caseSpace } from './caseFacts.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { couldBeKiller, possibleKillers, possibleWeapons, type Space } from './search.ts';
 import { caseSettings, type CaseLevels, type CaseSettings } from './settings.ts';
-import type { Case, ClueFact, Content, Difficulty, GameKind, Solution } from './types.ts';
+import type { Case, ClueFact, Content, Difficulty } from './types.ts';
 
 export interface CampaignRef {
   mode: 'campaign';
@@ -35,8 +35,6 @@ export const CAST = 7;
 
 /** Puzzles she may play each round, of the three on offer (the word game is always free). */
 export const BUDGET: Record<Difficulty, number> = { easy: 3, medium: 2, hard: 1 };
-
-const PUZZLES: readonly GameKind[] = ['cats', 'sudoku', 'interrogation'];
 
 /** Fewest clues a puzzle unlocks: past the ones that narrow it down, the rest say where others were. */
 const MIN_PER_PUZZLE = 3;
@@ -87,7 +85,7 @@ export function campaignRound(content: Content, ref: CampaignRef, victims: reado
     const built = tryRound(content, cast, alive, settings, last, rng);
     if (!built) continue;
     const { truth, free, puzzles } = built;
-    const rotating = rng.shuffle(PUZZLES);
+    const rotating = rng.shuffle(ROTATION);
     const order = [free, ...puzzles].flat();
     return assemble({
       content,
@@ -129,18 +127,10 @@ function tryRound(
 
   // Where everyone was: the killer alone at the scene with a weapon, the rest
   // spread over the other rooms, everyone but two (or none, at 5) armed.
-  const scene = rng.pick(rooms);
-  const elsewhere = rooms.filter((r) => r !== scene);
-  const room = alive.map((_, i) => (i === k ? scene : rng.pick(elsewhere)));
-  const others = rng.shuffle(alive.map((_, i) => i).filter((i) => i !== k));
-  const holders = [k, ...others.slice(0, items.length - 1)];
-  const dealt = rng.shuffle(items);
-  const item = new Array<string | null>(alive.length).fill(null);
-  holders.forEach((s, j) => (item[s] = dealt[j]));
-  const solution: Solution = { room, item };
+  const { scene, solution } = rollShared(rng, alive, rooms, items, k);
 
-  const ctx: ClueContext = { suspects: alive, adjacency: roomAdjacency(content.house) };
-  const view: RoundView = { space: { suspects: alive, rooms, items, shared: true }, ctx, scene };
+  const ctx = caseContext(content.house, { suspects: alive });
+  const view: RoundView = { space: caseSpace({ suspects: alive, rooms, items, shared: true }), ctx, scene };
   const pool = cluePool(solution, ctx, rooms, items, content.house.rooms.map((r) => r.id), rng, true);
   const ordered = weightedOrder(pool, settings, rng);
 
@@ -188,7 +178,7 @@ function tryRound(
   // Each puzzle, with the free clues, reaches the target on its own.
   const most = settings.maxPerGame + (last ? LAST_ROUND_EXTRA : 0);
   const puzzles: ClueFact[][] = [];
-  for (let p = 0; p < PUZZLES.length; p++) {
+  for (let p = 0; p < ROTATION.length; p++) {
     const set: ClueFact[] = [];
     let suspects = suspectsLeft(free);
     let weapons = last ? weaponsLeft(free) : 0;
@@ -231,8 +221,7 @@ function choose<T>(list: readonly T[], size: number): T[][] {
 
 /** Who could be the killer from these clues of a round, once she knows the scene. */
 export function roundSuspects(content: Content, c: Case, facts: readonly ClueFact[]): string[] {
-  const space = { suspects: c.suspects, rooms: c.rooms, items: c.items, shared: true };
-  return possibleKillers(space, facts, { suspects: c.suspects, adjacency: roomAdjacency(content.house) }, c.sceneRoom);
+  return possibleKillers(caseSpace(c), facts, caseContext(content.house, c), c.sceneRoom);
 }
 
 /**
@@ -250,9 +239,9 @@ export function roundProblems(content: Content, c: Case): string[] {
   if (c.solution.item[k] !== c.weapon) out.push("killer doesn't hold the weapon");
   const free = c.clues.filter((cl) => cl.delivery === 'given').map((cl) => cl.fact);
   const puzzles = c.games.filter((g) => !g.unlocksScene);
-  if (puzzles.length !== PUZZLES.length) out.push(`${puzzles.length} puzzles, not ${PUZZLES.length}`);
-  const space = { suspects: c.suspects, rooms: c.rooms, items: c.items, shared: true };
-  const ctx = { suspects: c.suspects, adjacency: roomAdjacency(content.house) };
+  if (puzzles.length !== ROTATION.length) out.push(`${puzzles.length} puzzles, not ${ROTATION.length}`);
+  const space = caseSpace(c);
+  const ctx = caseContext(content.house, c);
   for (const picked of choose(puzzles, round.budget)) {
     const ids = new Set(picked.flatMap((g) => g.clues));
     const facts = [...free, ...c.clues.filter((cl) => ids.has(cl.id)).map((cl) => cl.fact)];
