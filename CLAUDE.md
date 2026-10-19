@@ -76,3 +76,15 @@ Long sessions re-read their whole context every turn, so keep them short.
 - Run browser and screenshot checks through the `browser-check` agent and ask
   for a short pass/fail report, so screenshots stay out of the main context.
 - After each commit, or when context is large, suggest starting a new session.
+  Also suggest it when the topic changes (say, from one minigame's rules to
+  theme content). Suggest only; don't write handoff files or split unasked.
+  The suggestion names the handoff documents worth writing (file name and
+  what goes in each; skip what's already in the repo) and the sessions to
+  start (what each does, which docs it reads first, a one-line starting
+  prompt). A `UserPromptSubmit` hook (`.claude/hooks/session-length.mjs`)
+  adds a reminder when the transcript passes 1.5 MB; it is a reminder, not
+  a rule that replaces judging topic drift.
+  Session ideas worth starting fresh live in `docs/next-sessions.md`, each
+  with a `Last touched` date and a starting prompt; a `SessionStart` hook
+  (`stale-sessions.mjs`) flags entries untouched for 14 days. When you
+  suggest a split, offer to add or refresh the entry.
