@@ -17,16 +17,17 @@ export function listAnd(xs: readonly string[], word = 'and') {
   return xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} ${word} ${xs[xs.length - 1]}`;
 }
 
-/** What a piece is called: "The Butler (piece 1 of 2)", "The knife", "A missing piece". */
+/** What a piece is called: "The Butler (piece 1 of 2)", "The knife", "A hunch", "A clock that runs five minutes slow". */
 export function pieceName(r: Rules, pid: string): string {
   const p = r.piece[pid];
+  if (p.kind === 'guest' && p.hidden && !r.finished) return `A hunch about ${lowerThe(suspectName(p.who as string))}`;
   if (p.kind === 'guest') {
     const n = pieceNumber(r, pid);
     return suspectName(p.who as string) + (n ? ` (piece ${n.n} of ${n.of})` : '');
   }
   if (p.kind === 'weapon') return `The ${itemName(p.who as string)}`;
-  if (p.kind === 'grey') return 'A missing piece';
-  if (p.kind === 'fog') return 'Filler';
+  if (p.kind === 'grey') return 'A hunch';
+  if (p.kind === 'fog') return r.labels?.noticed[pid] ?? 'Something you noticed';
   return 'The body';
 }
 
@@ -35,7 +36,7 @@ export function caption(r: Rules, pid: string): string {
   const p = r.piece[pid];
   if (p.kind === 'guest') return shortName(p.who as string);
   if (p.kind === 'weapon') return capital(itemName(p.who as string));
-  return p.kind === 'grey' ? 'Missing' : capital(p.kind);
+  return p.kind === 'grey' ? 'Hunch' : capital(p.kind);
 }
 
 /** Why a drop was refused, as one sentence (the clue itself is shown beside it). */
@@ -43,7 +44,7 @@ export function blockText(r: Rules, pid: string, section: string, b: Block): str
   const lead = `Won't go in ${theSection(section)}.`;
   switch (b.code) {
     case 'grey':
-      return `${lead} Missing pieces only fit in Unknown: they stand for a puzzle you didn't play.`;
+      return `${lead} A hunch only fits in Unknown: it's a clue you haven't found yet.`;
     case 'not':
     case 'only':
       return b.clue ? lead : `${lead} The clues rule it out.`;
@@ -83,9 +84,13 @@ function ruleBits(r: Rules, pid: string): string[] {
 /** The rules a piece carries, in sentences. A guest with several pieces also gets the others' rules. */
 export function rulesOf(r: Rules, pid: string, finished: boolean): string[] {
   const p = r.piece[pid];
-  if (p.kind === 'fog') return ['Space in Unknown that nothing is known about. It never moves.'];
+  if (p.kind === 'fog') return ['Something you noticed about the house. It has nothing to do with the case, so it stays in Unknown and never moves.'];
+  if (p.kind === 'grey') {
+    const game = r.labels?.hunchFor[pid];
+    return [`Something about this case you can't put your finger on yet. ${game ? `Play ${game} to find out what it is.` : 'Another puzzle will tell you what it is.'}`, 'A hunch only fits in Unknown.'];
+  }
   if (p.kind === 'body') return ['Where the body was found. It never moves.'];
-  if (p.hidden && !finished) return ["This piece comes from this puzzle's own clue. What it says stays hidden until the board is finished."];
+  if (p.hidden && !finished) return ["A hunch from this puzzle's own clue. Finish the board to find out what it is."];
   const own = ruleBits(r, pid);
   const out = own.length ? own.map(sentence) : ['Nothing limits where it goes. Its shape does the work.'];
   const mates = r.siblings[pid] ?? [];

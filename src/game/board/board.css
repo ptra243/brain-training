@@ -141,3 +141,6 @@
 
 .cb-done { background: var(--card); color: var(--ink); border: 2px solid var(--brass); border-radius: 0.35rem; padding: 14px; display: grid; gap: 8px; }
 .cb-done h2 { font-size: 1.3rem; text-align: center; }
+
+/* The button that opens the clues sheet, under the legend. */
+.cb-clues-open { width: 100%; min-height: 44px; }

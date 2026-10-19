@@ -18,7 +18,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'clues', label: 'Clues' },
   { id: 'map', label: 'Map' },
   { id: 'grid', label: 'Grid' },
-  { id: 'board', label: 'Board' },
+  { id: 'board', label: 'Jigsaw' },
   { id: 'accuse', label: 'Accuse' },
 ];
 

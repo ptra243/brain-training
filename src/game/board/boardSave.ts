@@ -93,6 +93,17 @@ export interface Rules {
   pinnedOcc: Record<string, Occ>;
   /** The other pieces of the same guest. */
   siblings: Record<string, string[]>;
+  /** Read-only: the board is done, hidden pieces show what they are. */
+  finished: boolean;
+  /** Names the case gives some pieces: a house detail for each filler piece, the puzzle behind each hunch. */
+  labels?: PieceLabels;
+}
+
+export interface PieceLabels {
+  /** Filler piece id → something she noticed about the house. */
+  noticed: Record<string, string>;
+  /** Grey piece id → the puzzle she hasn't played that it stands for ("the sudoku"). */
+  hunchFor: Record<string, string>;
 }
 
 export interface Occ {
@@ -160,7 +171,7 @@ export function makeRules(source: Board, level: Difficulty, finished = false): R
   for (const p of board.pieces) {
     siblings[p.id] = p.kind === 'guest' ? board.pieces.filter((q) => q.kind === 'guest' && q.who === p.who && q.id !== p.id).map((q) => q.id) : [];
   }
-  return { board, level, piece, touch: pairsOf(board.pieces, 'sym'), anti: pairsOf(board.pieces, 'anti'), pinned, pinnedPlace, pinnedOcc, siblings };
+  return { board, level, piece, touch: pairsOf(board.pieces, 'sym'), anti: pairsOf(board.pieces, 'anti'), pinned, pinnedPlace, pinnedOcc, siblings, finished };
 }
 
 /** The pieces a piece must touch. */

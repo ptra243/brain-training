@@ -6,7 +6,7 @@ import { Picker } from './AccusePanel.tsx';
 import { DIFFICULTY_LABEL } from './Casebook.tsx';
 import { ROUND_TIMES } from './CampaignView.tsx';
 import { Dialog } from './Dialog.tsx';
-import { END_BOARD_HINT } from './Home.tsx';
+import { FINISHES, FINISH_HINT, FINISH_LABEL, type Finish } from './Home.tsx';
 import { currentRound, type CampaignSave } from './campaign.ts';
 
 type Accusing = 'anyone' | 'possible';
@@ -22,10 +22,10 @@ interface Props {
 export function CampaignCard({ campaign, onContinue, onStart }: Props) {
   const [difficulty, setDifficulty] = useState<Difficulty>(campaign?.ref.difficulty ?? 'medium');
   const [accusing, setAccusing] = useState<Accusing>(campaign?.ref.possibleOnly ? 'possible' : 'anyone');
-  const [board, setBoard] = useState(campaign?.ref.endBoard ? 'on' : 'off');
+  const [finish, setFinish] = useState<Finish>(campaign?.ref.endBoard ? 'jigsaw' : 'grid');
   const [confirming, setConfirming] = useState(false);
   const unfinished = campaign?.outcome === 'playing';
-  const start = () => onStart(difficulty, accusing === 'possible', board === 'on');
+  const start = () => onStart(difficulty, accusing === 'possible', finish === 'jigsaw');
 
   const status = !campaign
     ? null
@@ -69,8 +69,8 @@ export function CampaignCard({ campaign, onContinue, onStart }: Props) {
         onChange={(v) => setAccusing(v as Accusing)}
         name={(v) => ACCUSING_LABEL[v as Accusing]}
       />
-      <Picker legend="Board tab" options={['off', 'on']} value={board} onChange={setBoard} name={(v) => (v === 'on' ? 'Yes' : 'No')} />
-      <p className="muted home-lead">{END_BOARD_HINT}</p>
+      <Picker legend="Final puzzle" options={FINISHES} value={finish} onChange={(v) => setFinish(v as Finish)} name={(v) => FINISH_LABEL[v as Finish]} />
+      <p className="muted home-lead">{FINISH_HINT[finish]}</p>
       <button className={unfinished ? 'secondary' : 'primary'} onClick={() => (unfinished ? setConfirming(true) : start())}>
         Start a new campaign
       </button>

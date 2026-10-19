@@ -6,6 +6,7 @@ import { caseContext, caseSpace } from '../engine/caseFacts.ts';
 import { possibleKillers } from '../engine/search.ts';
 import type { Case } from '../engine/types.ts';
 import { CaseBoard, boardInitial, type BoardSave } from './board/CaseBoard.tsx';
+import { GAMES } from './games/registry.tsx';
 import { roomName, suspectName } from './names.ts';
 import { gameDone, sceneUnlocked, unlockedClueIds, type Action, type Progress } from './state.ts';
 
@@ -29,7 +30,10 @@ const listAnd = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, 
 export function EndBoardPanel({ c, progress, dispatch, helper, readOnly, onAccuse }: Props) {
   const unlocked = unlockedClueIds(c, progress);
   const scene = sceneUnlocked(c, progress);
-  const left = c.games.filter((g) => !g.unlocksScene && !gameDone(progress, g.kind)).length;
+  const unplayed = c.games.filter((g) => !g.unlocksScene && !gameDone(progress, g.kind));
+  const left = unplayed.length;
+  // Grey piece n is a hunch from puzzle n.
+  const hunches = unplayed.slice(0, 3).map((g) => `the ${GAMES[g.kind].name.toLowerCase()}`);
   const key = `${[...unlocked].sort().join(',')}|${scene ? 'scene' : ''}|${left}`;
   // Built once per set of clues, not per move.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -81,10 +85,11 @@ export function EndBoardPanel({ c, progress, dispatch, helper, readOnly, onAccus
       onChange={(s) => dispatch({ type: 'end-board', key, save: s })}
       finished={!!readOnly}
       helper={helper}
+      hunches={hunches}
       intro={
         <p className="muted">
           Your clues so far, as pieces. Fit them all in: guests the clues place go in their room, everyone else in Unknown.
-          {left > 0 && ' Grey pieces are puzzles you haven’t played.'}
+          {left > 0 && ' Grey pieces are hunches: clues from puzzles you haven’t played yet.'}
         </p>
       }
       doneContent={summary}

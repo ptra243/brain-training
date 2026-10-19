@@ -7,7 +7,10 @@ import { createPortal } from 'react-dom';
 import type { Board, BoardCell } from '../../engine/boardTypes.ts';
 import { UNKNOWN, boardKey } from '../../engine/boardTypes.ts';
 import { boardSolvable } from '../../engine/board.ts';
+import { Rng, hashSeed } from '../../engine/rng.ts';
+import { houseDetails } from '../../content/index.ts';
 import type { Case, Difficulty } from '../../engine/types.ts';
+import { Dialog } from '../Dialog.tsx';
 import { Paw } from '../games/Hints.tsx';
 import { suspectColour, roomTint, itemName } from '../names.ts';
 import {
@@ -97,12 +100,26 @@ export interface CaseBoardProps {
   intro?: ReactNode;
   doneContent?: ReactNode;
   onComplete?(save: BoardSave): void;
+  /** The puzzles she hasn't played, in order: grey piece n is a hunch from puzzle n ("the sudoku"). */
+  hunches?: readonly string[];
 }
 
 export function CaseBoard(props: CaseBoardProps) {
-  const { board, level, c, onChange, finished, helper, intro, doneContent, onComplete } = props;
+  const { board, level, c, onChange, finished, helper, intro, doneContent, onComplete, hunches } = props;
   const uid = useId().replace(/[^a-z0-9]/gi, '');
-  const rules = useMemo(() => makeRules(board, level, finished), [board, level, finished]);
+  // The clues behind the pieces live in a sheet, so the board, tray and legend are all there is on screen.
+  const [cluesOpen, setCluesOpen] = useState(false);
+  const rules = useMemo(() => {
+    // Each filler piece is something she noticed about the house, picked on the case's own seed.
+    const fog = board.pieces.filter((p) => p.kind === 'fog').map((p) => p.id);
+    const details = new Rng(hashSeed(`${c.seed}-noticed-${fog.join(',')}`)).shuffle(houseDetails);
+    const grey = board.pieces.filter((p) => p.kind === 'grey').map((p) => p.id);
+    const labels = {
+      noticed: Object.fromEntries(fog.map((id, i) => [id, details[i % details.length]])),
+      hunchFor: Object.fromEntries(grey.flatMap((id, i) => (hunches?.[i] ? [[id, hunches[i]]] : []))),
+    };
+    return { ...makeRules(board, level, finished), labels };
+  }, [board, level, finished, c.seed, hunches]);
   const solved = useMemo(() => boardSolvedSave(board, level), [board, level]);
   const save = finished ? solved : props.save;
 
@@ -654,8 +671,8 @@ export function CaseBoard(props: CaseBoardProps) {
     ...c.suspects.filter((s) => board.pieces.some((p) => p.kind === 'guest' && p.who === s)).map((s) => ({ k: legendKey('guest', s), label: shortName(s), cls: `cb-gp-${guestIdx(s) % 7}`, style: { backgroundColor: suspectColour(s) } })),
     ...c.items.filter((w) => board.pieces.some((p) => p.kind === 'weapon' && p.who === w)).map((w) => ({ k: legendKey('weapon', w), label: itemName(w)[0].toUpperCase() + itemName(w).slice(1), cls: `cb-wp-${weaponIdx(w) % 6}`, style: { backgroundColor: WEAPON_COLOURS[weaponIdx(w) % WEAPON_COLOURS.length] } })),
     ...(pieceKinds.has('body') ? [{ k: 'body', label: 'Body', cls: '', style: { background: '#3b2b2b' } }] : []),
-    ...(pieceKinds.has('grey') ? [{ k: 'grey', label: 'Missing', cls: '', style: { background: '#8f918b' } }] : []),
-    ...(pieceKinds.has('fog') ? [{ k: 'fog', label: 'Filler', cls: 'fog', style: {} }] : []),
+    ...(pieceKinds.has('grey') ? [{ k: 'grey', label: 'Hunch', cls: '', style: { background: '#8f918b' } }] : []),
+    ...(pieceKinds.has('fog') ? [{ k: 'fog', label: 'Noticed', cls: 'fog', style: {} }] : []),
   ];
   const clueIds = [...new Set(rules.board.pieces.filter((p) => p.clue && (!p.hidden || finished) && clueText(p.clue)).map((p) => p.clue as string))];
 
@@ -673,8 +690,8 @@ export function CaseBoard(props: CaseBoardProps) {
         <ul>
           <li>Fit every piece into a room or into Unknown. Pieces can't cross the thick walls.</li>
           <li>Pieces with the same symbol must touch. A crossed-out symbol means those two were never in the same room.</li>
-          <li>Grey pieces stand for puzzles you didn't play. They only fit in Unknown.</li>
-          <li>Speckled filler is already in place and never moves.</li>
+          <li>Grey pieces are hunches: clues from puzzles you haven't played. They only fit in Unknown.</li>
+          <li>Speckled pieces are things you noticed about the house that have nothing to do with the case. They're already in place and never move.</li>
           <li>All of one person's pieces go in the same place.</li>
           <li>Pick up a piece and the rooms it can't go in go dark.</li>
           <li>Turn a piece: double-tap it, or press Turn. While dragging: right-click, press R, scroll, or tap with another finger.</li>
@@ -808,22 +825,44 @@ export function CaseBoard(props: CaseBoardProps) {
       )}
 
       {clueIds.length > 0 && (
-        <>
-          <h2 className="cb-h">Clues on the board</h2>
-          <p className="cb-muted">Tap a clue to light up its pieces.</p>
+        <button className="secondary cb-clues-open" onClick={() => setCluesOpen(true)}>
+          Clues on the board ({clueIds.length})
+        </button>
+      )}
+      {cluesOpen && (
+        <Dialog labelId={`${uid}-clues`} onClose={() => setCluesOpen(false)}>
+          <header className="sheet-head">
+            <span aria-hidden="true" />
+            <div>
+              <h2 id={`${uid}-clues`}>Clues on the board</h2>
+              <p className="muted">Tap one to light up its pieces.</p>
+            </div>
+            <button data-autofocus className="sheet-close" aria-label="Close" onClick={() => setCluesOpen(false)}>
+              ×
+            </button>
+          </header>
           <ul className="cb-clues">
             {clueIds.map((id) => {
               const first = rules.board.pieces.find((p) => p.clue === id);
               return (
                 <li key={id}>
-                  <button className={`cb-clue ${clueSel === id ? 'on' : ''}`} style={{ '--who': first ? colourOf(first.id) : 'var(--brass)' } as CSSProperties} onClick={() => { setClueSel((s) => (s === id ? null : id)); setLegend(null); }}>
+                  <button
+                    className={`cb-clue ${clueSel === id ? 'on' : ''}`}
+                    style={{ '--who': first ? colourOf(first.id) : 'var(--brass)' } as CSSProperties}
+                    onClick={() => {
+                      // Close so she sees the pieces light up.
+                      setClueSel((s) => (s === id ? null : id));
+                      setLegend(null);
+                      setCluesOpen(false);
+                    }}
+                  >
                     {clueText(id)}
                   </button>
                 </li>
               );
             })}
           </ul>
-        </>
+        </Dialog>
       )}
 
       {toast && (

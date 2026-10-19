@@ -97,3 +97,36 @@ export const content: Content = { house, suspects, items };
  * Kept out of `content` so they never change which words a puzzle may use.
  */
 export const cats: readonly string[] = ['Biscuit', 'Marmalade', 'Pepper', 'Sooty', 'Duchess'];
+
+/**
+ * Things she noticed about the house that turn out to have nothing to do with
+ * the case: the case board's filler pieces. Kept out of `content` like the
+ * cats, so they never change a case. Never name a guest, room or weapon here.
+ */
+export const houseDetails: readonly string[] = [
+  'A clock that runs five minutes slow',
+  'A dripping tap nobody has fixed',
+  'A cushion embroidered with ducks',
+  'A stack of newspapers, still folded',
+  'A piano with one key that sticks',
+  'A painting hung slightly crooked',
+  'A draught under every door',
+  'A jigsaw puzzle with one piece missing',
+  'Crumbs on the stair carpet',
+  'A barometer stuck on "Change"',
+  'Cat hair on every chair',
+  'A squeaky floorboard on the landing',
+  'Half a crossword done in pen',
+  'A record of brass band music on the gramophone',
+  'A cup of cocoa gone cold',
+  'A hat stand with no hats',
+  'A bowl of wax fruit',
+  'A calendar still on last month',
+  'A chessboard left mid-game',
+  'A single sock under the sofa',
+  'A bell pull that rings nowhere',
+  'A mirror cracked in one corner',
+  'A fern that needs watering',
+  'A teapot shaped like a cottage',
+  'Muddy paw prints, probably the cats',
+];
