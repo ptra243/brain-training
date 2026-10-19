@@ -64,15 +64,16 @@ export function App() {
     window.scrollTo(0, 0);
   };
 
-  const start = (difficulty: Difficulty, length: Length, cast: Cast) => {
-    const { ref, c } = newQuickCase(content, difficulty, length, cast, randomNumber);
-    setCurrent({ ref, c, progress: emptyProgress() });
+  const start = (difficulty: Difficulty, length: Length, cast: Cast, endBoard: boolean) => {
+    const made = newQuickCase(content, difficulty, length, cast, randomNumber);
+    const ref: QuickRef = { ...made.ref, ...(endBoard && { endBoard }) };
+    setCurrent({ ref, c: made.c, progress: emptyProgress() });
     go('case');
   };
 
-  const startCampaign = (difficulty: Difficulty, possibleOnly: boolean) => {
+  const startCampaign = (difficulty: Difficulty, possibleOnly: boolean, endBoard: boolean) => {
     for (let tries = 0; tries < 10; tries++) {
-      const ref: CampaignRef = { mode: 'campaign', code: codeFor(randomNumber()), difficulty, ...(possibleOnly && { possibleOnly }) };
+      const ref: CampaignRef = { mode: 'campaign', code: codeFor(randomNumber()), difficulty, ...(possibleOnly && { possibleOnly }), ...(endBoard && { endBoard }) };
       const save = newCampaign(ref);
       try {
         roundCase(content, save, 0);
@@ -95,9 +96,10 @@ export function App() {
         c={current.c}
         title={caseTitle(current.ref)}
         progress={current.progress}
+        endBoard={current.ref.endBoard}
         onProgress={(update) => setCurrent((cur) => cur && { ...cur, progress: update(cur.progress) })}
         onHome={() => go('home')}
-        onNewCase={() => start(current.ref.difficulty, current.ref.length, current.ref.cast ?? 'classic')}
+        onNewCase={() => start(current.ref.difficulty, current.ref.length, current.ref.cast ?? 'classic', !!current.ref.endBoard)}
       />
     );
   }

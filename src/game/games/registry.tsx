@@ -5,14 +5,17 @@
 
 import type { ReactNode } from 'react';
 import { content } from '../../content/index.ts';
+import type { Board } from '../../engine/boardTypes.ts';
+import { boardPuzzle } from '../../engine/caseBoard.ts';
 import { caseFacts, interrogationEvidence } from '../../engine/caseFacts.ts';
 import { disproves } from '../../engine/interrogation.ts';
 import { Rng } from '../../engine/rng.ts';
-import type { Case, CatsSpec, GameKind, GameSpec, Interrogation, InterrogationSpec, SceneGameSpec, SudokuSpec } from '../../engine/types.ts';
+import type { BoardSpec, Case, CatsSpec, GameKind, GameSpec, Interrogation, InterrogationSpec, SceneGameSpec, SudokuSpec } from '../../engine/types.ts';
 import { generateCats, type CatPuzzle } from '../../games/cats.ts';
 import type { CrosswordPuzzle } from '../../games/crossword.ts';
 import { foundLocations, generateSudoku, locationSquares, type LocationSquares, type SudokuPuzzle } from '../../games/sudoku.ts';
 import type { WordSearchPuzzle } from '../../games/wordsearch.ts';
+import { CaseBoard, boardInitial, boardSolvedSave, type BoardSave } from '../board/CaseBoard.tsx';
 import { sceneCrossword, sceneWordSearch } from '../sceneGames.ts';
 import type { Action, InterrogationData, Progress } from '../state.ts';
 import { CatsGame, catsInitial, catsSolvedData, type CatsData } from './CatsGame.tsx';
@@ -170,4 +173,35 @@ export const GAMES: Record<GameKind, GameEntry> = {
   }),
   interrogation: questioning('Questioning'),
   finale: questioning('Final questioning'),
+  board: game<BoardSpec, Board>({
+    name: 'Case board',
+    titles: { won: 'What the pieces proved', revealed: 'Solved for you. What the pieces proved' },
+    build(c, spec) {
+      const board = boardPuzzle(content, c, spec);
+      // The generator only hands a case this game when its board builds.
+      if (!board) throw new Error(`Case ${c.code}: no case board for these clues`);
+      return board;
+    },
+    play: (board, a) => ({
+      solved: () => boardSolvedSave(board, a.c.levels.minigames),
+      view: (
+        <CaseBoard
+          board={board}
+          level={a.c.levels.minigames}
+          c={a.c}
+          save={(a.saved as BoardSave | undefined) ?? boardInitial()}
+          onChange={a.onChange}
+          finished={a.finished !== null}
+          helper={a.helper}
+          intro={
+            <p className="muted">
+              Your free clues and this puzzle's own clues, as pieces. Its own pieces stay blank until you finish: the only way
+              everything fits proves what they say.
+            </p>
+          }
+          onComplete={(s) => a.onFinish('won', s)}
+        />
+      ),
+    }),
+  }),
 };

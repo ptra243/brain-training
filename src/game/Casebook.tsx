@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { AccusePanel } from './AccusePanel.tsx';
 import { ClueDrawer } from './ClueDrawer.tsx';
 import { CluesPanel, type PuzzleGate } from './CluesPanel.tsx';
+import { EndBoardPanel } from './EndBoardPanel.tsx';
 import { GridPanel } from './GridPanel.tsx';
 import { MapPanel } from './MapPanel.tsx';
 import { GameScreen } from './games/GameScreen.tsx';
@@ -12,11 +13,12 @@ import { reduce, sceneUnlocked, unlockedClueIds, visibleClues, type Action, type
 import { cats } from '../content/index.ts';
 import type { Case, GameKind } from '../engine/types.ts';
 
-type Tab = 'clues' | 'map' | 'grid' | 'accuse';
+type Tab = 'clues' | 'map' | 'grid' | 'board' | 'accuse';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'clues', label: 'Clues' },
   { id: 'map', label: 'Map' },
   { id: 'grid', label: 'Grid' },
+  { id: 'board', label: 'Board' },
   { id: 'accuse', label: 'Accuse' },
 ];
 
@@ -38,10 +40,12 @@ interface Props {
   accuse?: ReactNode;
   /** An earlier round: look, don't touch. */
   readOnly?: boolean;
+  /** Starting option: a Board tab that fits her clues together before she accuses. */
+  endBoard?: boolean;
 }
 
 /** One case: clues, map, grid and accusation. Remount it (key) for another case. */
-export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, subtitle, banner, gate, accuse, readOnly }: Props) {
+export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, subtitle, banner, gate, accuse, readOnly, endBoard }: Props) {
   const [tab, setTab] = useState<Tab>('clues');
   const [playing, setPlaying] = useState<GameKind | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -158,6 +162,9 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
             }}
           />
         )}
+        {tab === 'board' && (
+          <EndBoardPanel c={c} progress={progress} dispatch={dispatch} helper={helper} readOnly={readOnly} onAccuse={() => select('accuse')} />
+        )}
         {tab === 'accuse' && (accuse ?? <AccusePanel c={c} progress={progress} dispatch={dispatch} onNextCase={onNewCase} />)}
       </main>
 
@@ -175,7 +182,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
           />
         )}
         <nav className="tabbar" aria-label="Casebook">
-          {TABS.map((t) => (
+          {TABS.filter((t) => t.id !== 'board' || endBoard).map((t) => (
             <button key={t.id} aria-current={tab === t.id ? 'page' : undefined} onClick={() => select(t.id)}>
               {t.label}
             </button>

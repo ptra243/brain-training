@@ -56,7 +56,9 @@ test('length sets how many rotating games a case has', () => {
 });
 
 test('minigame level sets the cat puzzle and sudoku, separately from the logic', () => {
-  const c = generateCase(content, 2, { ...PRESETS.hard, minigames: 'easy', length: 'long' });
+  // A long case that kept both its cat puzzle and its sudoku (the case board sometimes stands in for one).
+  const levels = { ...PRESETS.hard, minigames: 'easy' as const, length: 'long' as const };
+  const c = [2, 3, 4, 5, 6, 7, 8].map((n) => generateCase(content, n, levels)).find((x) => x.games.some((g) => g.kind === 'cats') && x.games.some((g) => g.kind === 'sudoku'))!;
   assert.equal(c.difficulty, 'hard');
   const cats = c.games.find((g) => g.kind === 'cats')!;
   const sudoku = c.games.find((g) => g.kind === 'sudoku')!;

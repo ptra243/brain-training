@@ -15,6 +15,10 @@ const CAST_HINT: Record<Cast, string> = {
   classic: 'Everyone has their own room and weapon.',
   big: 'Rooms are shared and two guests have no weapon. The killer was alone with the body.',
 };
+type Finish = 'off' | 'on';
+const FINISH_LABEL: Record<Finish, string> = { off: 'No', on: 'Yes' };
+export const END_BOARD_HINT = 'A Board tab: fit your clues together as pieces to see who is still unaccounted for before you accuse.';
+
 const LENGTH_HINT: Record<Length, string> = {
   short: 'One puzzle besides the word game.',
   normal: 'Two puzzles besides the word game.',
@@ -24,7 +28,7 @@ const LENGTH_HINT: Record<Length, string> = {
 interface Props {
   current: { ref: QuickRef; c: Case; progress: Progress } | null;
   onContinue: () => void;
-  onStart: (difficulty: Difficulty, length: Length, cast: Cast) => void;
+  onStart: (difficulty: Difficulty, length: Length, cast: Cast, endBoard: boolean) => void;
   /** The campaign card, below Quick start. */
   campaign: ReactNode;
 }
@@ -34,8 +38,10 @@ export function Home({ current, onContinue, onStart, campaign }: Props) {
   const [difficulty, setDifficulty] = useState<Difficulty>(current?.ref.difficulty ?? 'medium');
   const [length, setLength] = useState<Length>(current?.ref.length ?? 'normal');
   const [cast, setCast] = useState<Cast>(current?.ref.cast ?? 'classic');
+  const [finish, setFinish] = useState<Finish>(current?.ref.endBoard ? 'on' : 'off');
   const [confirming, setConfirming] = useState(false);
   const unfinished = current !== null && !current.progress.solved;
+  const begin = () => onStart(difficulty, length, cast, finish === 'on');
   const done = current && puzzlesDone(current.c, current.progress);
 
   return (
@@ -73,7 +79,9 @@ export function Home({ current, onContinue, onStart, campaign }: Props) {
         <p className="muted home-lead">{LENGTH_HINT[length]}</p>
         <Picker legend="Guests" options={CASTS} value={cast} onChange={(v) => setCast(v as Cast)} name={(v) => CAST_LABEL[v as Cast]} />
         <p className="muted home-lead">{CAST_HINT[cast]}</p>
-        <button className={unfinished ? 'secondary' : 'primary'} onClick={() => (unfinished ? setConfirming(true) : onStart(difficulty, length, cast))}>
+        <Picker legend="Board tab" options={['off', 'on']} value={finish} onChange={(v) => setFinish(v as Finish)} name={(v) => FINISH_LABEL[v as Finish]} />
+        <p className="muted home-lead">{END_BOARD_HINT}</p>
+        <button className={unfinished ? 'secondary' : 'primary'} onClick={() => (unfinished ? setConfirming(true) : begin())}>
           Start a new case
         </button>
       </article>
@@ -92,7 +100,7 @@ export function Home({ current, onContinue, onStart, campaign }: Props) {
               className="primary"
               onClick={() => {
                 setConfirming(false);
-                onStart(difficulty, length, cast);
+                begin();
               }}
             >
               Start new

@@ -14,6 +14,20 @@
   cats"); the rest unlock testimony (`CLUE_SOURCE` in `gameKinds.ts`). 2–3
   clues are free at the start. `GameSpec` is one type per kind of game;
   cases are drawn from the order of `ROTATION`, so don't reorder it.
+- **The case board** (`boardTypes.ts`, `board.ts`, `caseBoard.ts`): a
+  packing puzzle where every clue is a piece (one per guest it names, at most
+  two per guest). A guest's pieces all go where the clues prove they were, or
+  in Unknown; weapons the same. Marks show what a clue says where the board
+  can (rooms ruled out or allowed, touching pairs, apart pairs); other clue
+  types give a piece with no mark and the shapes carry them. `board.ts` draws
+  the rectangle first and cuts it along a gilbert curve, then re-cuts (or
+  pins) until exactly one way of sorting the pieces fits. It never adds
+  clues. Two uses: the rotating **case board puzzle** (the free clues plus its
+  own clues as blank pieces, so solving it proves them) stands in for one of
+  a case's drawn games on a seed of its own (`BOARD_SHARE`, only when its
+  board builds), so cases that keep their games are unchanged; and the **end
+  board**, a starting option that doesn't change the case. `check-cases`
+  builds every puzzle board and two end boards per case.
 - **7 guests share 5 rooms and 5 weapons.** The killer was alone in the scene
   room holding the weapon; two guests hold nothing (`null` in
   `Solution.item`). These cases are checked with the search in `search.ts`

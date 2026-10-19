@@ -29,6 +29,8 @@ export interface CampaignRef {
   difficulty: Difficulty;
   /** Starting option: the accuse screen lists only guests her clues still allow. */
   possibleOnly?: boolean;
+  /** Starting option: a case board tab that fits her clues together before she accuses. Doesn't change the rounds. */
+  endBoard?: boolean;
 }
 
 export const ROUNDS = 3;

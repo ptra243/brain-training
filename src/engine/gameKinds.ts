@@ -10,6 +10,13 @@ export const SCENE_GAMES: readonly SceneKind[] = ['wordle', 'crossword', 'wordse
 /** Games that share a case's clues; a case plays one to three of them. Order matters: cases are drawn from it. */
 export const ROTATION: readonly RotatingKind[] = ['cats', 'sudoku', 'interrogation'];
 
+/**
+ * How often the case board puzzle stands in for one of a case's drawn games.
+ * It's decided on a seed of its own after the draw, so cases that keep their
+ * games are the same as before; it only stands in when a board can be built.
+ */
+export const BOARD_SHARE = 0.35;
+
 /** How clues read from each source: the cats find evidence, everyone else gives testimony. */
 export const CLUE_SOURCE: Record<ClueDelivery, ClueSource> = {
   given: 'testimony',
@@ -20,6 +27,7 @@ export const CLUE_SOURCE: Record<ClueDelivery, ClueSource> = {
   wordle: 'testimony',
   crossword: 'testimony',
   wordsearch: 'testimony',
+  board: 'testimony',
 };
 
 export const isSceneGame = (g: GameSpec): g is SceneGameSpec => g.unlocksScene;

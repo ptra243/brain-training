@@ -17,6 +17,8 @@ export interface QuickRef {
   length: Length;
   /** 'big': 7 guests sharing 5 rooms. Saves from before it read as classic. */
   cast?: Cast;
+  /** Starting option: a case board tab that fits her clues together before she accuses. Doesn't change the case. */
+  endBoard?: boolean;
 }
 
 export type Cast = 'classic' | 'big';

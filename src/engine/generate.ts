@@ -4,7 +4,8 @@ import { canLocate, plainText, wordClue } from './wording.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { allHoldings, allRoomings, countMatching } from './search.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
-import { CLUE_SOURCE, ROTATION, SCENE_GAMES } from './gameKinds.ts';
+import { BOARD_SHARE, CLUE_SOURCE, ROTATION, SCENE_GAMES } from './gameKinds.ts';
+import { boardPuzzle } from './caseBoard.ts';
 import type { Case, Clue, ClueDelivery, ClueFact, ClueType, Content, Difficulty, GameKind, GameSpec, Interrogation, RotatingKind, Solution, CampaignRound } from './types.ts';
 import { buildInterrogation, type CaseFacts } from './interrogation.ts';
 import { PRESETS, caseSettings, clueShares, levelsKey, type CaseLevels, type CaseSettings, type ClueShares } from './settings.ts';
@@ -71,7 +72,12 @@ export interface Layout {
 
 /** Words the clues, builds the interrogations, the scene and the game specs. */
 export function assemble(o: Layout): Case {
-  const { content, seed, rng, settings, levels, caseNumber, code, order, rotating, kinds, shares } = o;
+  const { content, seed, rng, settings, levels, caseNumber, code, order, shares } = o;
+  // The case board puzzle may stand in for one of the drawn games.
+  const slot = boardSlot(o);
+  const swap = <K extends string>(k: K, i: number) => (i === slot ? ('board' as const) : k);
+  const rotating = o.rotating.map(swap);
+  const kinds = o.kinds.map(swap);
   const { suspects, rooms, items, solution, murdererIndex, ctx } = o.truth;
   const difficulty = levels.logic;
   const { house } = content;
@@ -160,6 +166,7 @@ export function assemble(o: Layout): Case {
     ...kinds.map((kind): GameSpec => {
       const base = { seed: hashSeed(`${seed}-${kind}`), clues: idsFor(kind), unlocksScene: false as const };
       if (kind === 'cats') return { kind, ...base, size: settings.catSize, ...(settings.catEasy && { easy: true }) };
+      if (kind === 'board') return { kind, ...base };
       if (kind === 'sudoku')
         return {
           kind,
@@ -192,6 +199,24 @@ export function assemble(o: Layout): Case {
     clues,
     games,
   };
+}
+
+/**
+ * Which drawn game the case board puzzle stands in for, or -1. Decided on a
+ * seed of its own, so a case that keeps its games is the same as before, and
+ * only when a board can be built from the free clues and that game's share.
+ */
+function boardSlot(o: Layout): number {
+  const pick = new Rng(hashSeed(`${o.seed}-board-game`));
+  if (!o.rotating.length || pick.next() >= BOARD_SHARE) return -1;
+  const slot = pick.int(o.rotating.length);
+  const { suspects, rooms, items, solution, murdererIndex } = o.truth;
+  // Clue ids as `assemble` numbers them: c1, c2, … in hand-out order.
+  const clues = o.order.map((fact, i) => ({ id: `c${i + 1}`, fact, delivery: (i < o.shares.free ? 'given' : 'board') as ClueDelivery }));
+  const start = o.shares.free + o.shares.games.slice(0, slot).reduce((a, b) => a + b, 0);
+  const share = clues.slice(start, start + o.shares.games[slot]).map((cl) => cl.id);
+  const c = { suspects, rooms, items, shared: o.settings.shared, seed: o.seed, sceneRoom: solution.room[murdererIndex], clues };
+  return boardPuzzle(o.content, c, { seed: hashSeed(`${o.seed}-board`), clues: share }) ? slot : -1;
 }
 
 export interface Truth {

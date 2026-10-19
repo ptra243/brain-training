@@ -91,7 +91,8 @@ test('every clue is free or unlocked by exactly one game; three scene word games
     assert.ok(c.clues.some((cl) => cl.delivery === 'given'), `case ${n} has no free clue`);
     for (const g of c.games.slice(3)) assert.ok(g.clues.length > 0, `case ${n}: ${g.kind} unlocks nothing`);
   }
-  assert.deepEqual([...seen].sort(), ['cats', 'interrogation', 'sudoku'], 'all three games should come up');
+  // The case board stands in for one of the drawn games now and then.
+  assert.deepEqual([...seen].sort(), ['board', 'cats', 'interrogation', 'sudoku'], 'every rotating game should come up');
 });
 
 test('clue sources: free and sudoku clues are testimony, cat clues are evidence; witnesses never vouch for themselves', () => {

@@ -110,6 +110,7 @@ export function CampaignView({ save, onSave, onHome }: Props) {
       <Casebook
         key={`${save.ref.code}-${viewing}`}
         c={c}
+        endBoard={save.ref.endBoard}
         progress={progress}
         onProgress={onProgress}
         onHome={onHome}

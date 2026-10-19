@@ -6,6 +6,7 @@ import { Picker } from './AccusePanel.tsx';
 import { DIFFICULTY_LABEL } from './Casebook.tsx';
 import { ROUND_TIMES } from './CampaignView.tsx';
 import { Dialog } from './Dialog.tsx';
+import { END_BOARD_HINT } from './Home.tsx';
 import { currentRound, type CampaignSave } from './campaign.ts';
 
 type Accusing = 'anyone' | 'possible';
@@ -14,16 +15,17 @@ const ACCUSING_LABEL: Record<Accusing, string> = { anyone: 'Anyone alive', possi
 interface Props {
   campaign: CampaignSave | null;
   onContinue: () => void;
-  onStart: (difficulty: Difficulty, possibleOnly: boolean) => void;
+  onStart: (difficulty: Difficulty, possibleOnly: boolean, endBoard: boolean) => void;
 }
 
 /** The home screen's campaign card: the one in progress, and starting a fresh one. */
 export function CampaignCard({ campaign, onContinue, onStart }: Props) {
   const [difficulty, setDifficulty] = useState<Difficulty>(campaign?.ref.difficulty ?? 'medium');
   const [accusing, setAccusing] = useState<Accusing>(campaign?.ref.possibleOnly ? 'possible' : 'anyone');
+  const [board, setBoard] = useState(campaign?.ref.endBoard ? 'on' : 'off');
   const [confirming, setConfirming] = useState(false);
   const unfinished = campaign?.outcome === 'playing';
-  const start = () => onStart(difficulty, accusing === 'possible');
+  const start = () => onStart(difficulty, accusing === 'possible', board === 'on');
 
   const status = !campaign
     ? null
@@ -67,6 +69,8 @@ export function CampaignCard({ campaign, onContinue, onStart }: Props) {
         onChange={(v) => setAccusing(v as Accusing)}
         name={(v) => ACCUSING_LABEL[v as Accusing]}
       />
+      <Picker legend="Board tab" options={['off', 'on']} value={board} onChange={setBoard} name={(v) => (v === 'on' ? 'Yes' : 'No')} />
+      <p className="muted home-lead">{END_BOARD_HINT}</p>
       <button className={unfinished ? 'secondary' : 'primary'} onClick={() => (unfinished ? setConfirming(true) : start())}>
         Start a new campaign
       </button>

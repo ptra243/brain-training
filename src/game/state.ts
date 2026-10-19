@@ -42,6 +42,8 @@ export interface Progress {
   found: string[];
   /** The cat's hints on the map and grid (`gridHints.ts`). */
   gridHints?: GridHintState;
+  /** Her moves on the end board, for the clues it was built from (`key`); a new clue means a new board. */
+  endBoard?: { key: string; save: unknown };
 }
 
 export const emptyProgress = (): Progress => ({ marks: {}, used: [], accusations: [], solved: false, games: {}, found: [] });
@@ -75,6 +77,7 @@ export type Action =
   | { type: 'game-finish'; kind: GameKind; status: 'won' | 'revealed'; data: unknown }
   | { type: 'found'; clues: string[] }
   | { type: 'grid-hint'; hints: GridHintState }
+  | { type: 'end-board'; key: string; save: unknown }
   | { type: 'reset' };
 
 function clearTicks(marks: Record<string, Mark>, kind: GridKind, row: string | null, col: string | null, c: Case) {
@@ -189,6 +192,8 @@ export function reduce(c: Case, p: Progress, action: Action): Progress {
     }
     case 'grid-hint':
       return { ...p, gridHints: action.hints };
+    case 'end-board':
+      return { ...p, endBoard: { key: action.key, save: action.save } };
     case 'reset':
       return emptyProgress();
   }

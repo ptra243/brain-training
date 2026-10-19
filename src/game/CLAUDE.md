@@ -42,4 +42,5 @@
 - **Map**: a short tap on a counter or weapon opens its clues; dragging moves
   it. Keep the tray of unplaced pieces right under the map so every drag fits
   on one phone screen.
+- **Case board UI** lives in `board/` (`CaseBoard`, pure rules in `boardSave.ts`). Pair rules (touching, apart, a guest's pieces in one place) never refuse a drop: the pieces get a red outline and a note, so one wrong piece can't lock another out. A piece's own rules (rooms ruled out) and pinned partners do refuse. The end board (`EndBoardPanel`, a Board tab when `ref.endBoard` is set) is rebuilt whenever she finds a clue; her moves are kept per set of clues (`Progress.endBoard`).
 - **Saves**: only one Quick start case and one campaign are saved at a time.

@@ -84,7 +84,7 @@ export type ClueType = ClueFact['type'];
  * interrogation on hard cases. What each kind is for lives in `gameKinds.ts`.
  */
 export type SceneKind = 'wordle' | 'crossword' | 'wordsearch';
-export type RotatingKind = 'cats' | 'sudoku' | 'interrogation';
+export type RotatingKind = 'cats' | 'sudoku' | 'interrogation' | 'board';
 export type GameKind = SceneKind | RotatingKind | 'finale';
 
 /** How a clue reaches her: free at the start, or as a minigame's reward. */
@@ -132,8 +132,17 @@ export interface InterrogationSpec extends GameBase {
   interrogation: Interrogation;
 }
 
+/**
+ * The case board puzzle: the free clues and its own clues as pieces, packed so
+ * the only way they fit proves its clues (`caseBoard.ts`). Built from `seed`.
+ */
+export interface BoardSpec extends GameBase {
+  kind: 'board';
+  unlocksScene: false;
+}
+
 /** One minigame in a case. */
-export type GameSpec = SceneGameSpec | CatsSpec | SudokuSpec | InterrogationSpec;
+export type GameSpec = SceneGameSpec | CatsSpec | SudokuSpec | InterrogationSpec | BoardSpec;
 
 /** A word hidden by a scene game, and the scene sentence solving it reveals ("…by the bookcase in the Library."). */
 export interface SceneWord {

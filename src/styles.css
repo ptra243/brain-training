@@ -68,7 +68,8 @@ h1, h2 { font-family: var(--serif); font-weight: 600; margin: 0; }
 .clue-drawer .clue.used { background: #e6e0cf; }
 
 .tabbar {
-  display: grid; grid-template-columns: repeat(4, 1fr);
+  /* One row, however many tabs (the Board tab is a starting option). */
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
   padding: 0.35rem 0.5rem calc(0.35rem + env(safe-area-inset-bottom));
   background: var(--baize-deep); border-top: 1px solid var(--baize-line);
 }

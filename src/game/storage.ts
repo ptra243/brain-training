@@ -6,8 +6,8 @@ import type { QuickRef } from '../engine/caseRef.ts';
 import type { CampaignSave } from './campaign.ts';
 import { emptyProgress, type Progress } from './state.ts';
 
-// v4: a 7th guest joined the cast, so every case draws its suspects differently.
-const PREFIX = 'brain-training:v4:';
+// v5: the case board puzzle stands in for a game in some cases, which changes those cases.
+const PREFIX = 'brain-training:v5:';
 
 function read<T>(key: string): T | null {
   try {

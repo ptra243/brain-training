@@ -6,6 +6,9 @@ import { caseContext, caseFacts, caseSpace, interrogationEvidence } from '../src
 import { campaignCast, campaignRound, roundProblems, type CampaignRef } from '../src/engine/campaign.ts';
 import { caseCode, caseFor, codeFor, type Cast, type QuickRef } from '../src/engine/caseRef.ts';
 import { generateCase } from '../src/engine/generate.ts';
+import { boardPuzzle, endBoard } from '../src/engine/caseBoard.ts';
+import { boardSolvable } from '../src/engine/board.ts';
+import type { Board } from '../src/engine/boardTypes.ts';
 import { disproves } from '../src/engine/interrogation.ts';
 import { isInterrogation, isSceneGame } from '../src/engine/gameKinds.ts';
 import { DIFFICULTIES, LENGTHS, PRESETS, allLevels, caseSettings, levelsKey, presetOf, type CaseLevels } from '../src/engine/settings.ts';
@@ -20,6 +23,19 @@ import type { Case, Difficulty } from '../src/engine/types.ts';
 const PER_PRESET = 100;
 const PER_COMBINATION = 10;
 let failures = 0;
+// Case boards: how many were built, and the slowest.
+const boards = { puzzles: 0, ends: 0, slowest: 0 };
+
+/** A board, timed. */
+function timed(make: () => Board | null): Board | null {
+  const t = performance.now();
+  const b = make();
+  boards.slowest = Math.max(boards.slowest, performance.now() - t);
+  return b;
+}
+
+/** Every piece's truth is a packing the board's own rules accept. */
+const packs = (b: Board) => boardSolvable(b, Object.fromEntries(Object.entries(b.truth).map(([id, t]) => [id, t.cells])));
 
 /** Everything that makes a case unfair, as messages. */
 function problems(c: Case): string[] {
@@ -72,6 +88,22 @@ function puzzleProblems(c: Case): string[] {
             return everyWordOnce(ws) ? leftovers(ws).map(([r, col]) => ws.grid[r][col]).join('') : '';
           })();
     if (spelled !== answer) out.push(`${g.kind} spells ${spelled}, not ${answer}`);
+  }
+  // Case board puzzle: builds for its clues, and its answer packs.
+  for (const g of c.games.filter((g) => g.kind === 'board')) {
+    const b = timed(() => boardPuzzle(content, c, g));
+    boards.puzzles++;
+    if (!b) out.push('case board puzzle has no board');
+    else if (!packs(b)) out.push("case board puzzle's answer doesn't pack");
+  }
+  // End board (a starting option): builds from the free clues alone, and from every clue once the scene is known.
+  const free = new Set(c.clues.filter((cl) => cl.delivery === 'given').map((cl) => cl.id));
+  const puzzles = c.games.filter((g) => !g.unlocksScene).length;
+  for (const [found, scene, left] of [[free, false, puzzles], [new Set(c.clues.map((cl) => cl.id)), true, 0]] as const) {
+    const b = timed(() => endBoard(content, c, found, scene, left));
+    boards.ends++;
+    if (!b) out.push(`no end board for ${found.size} clues`);
+    else if (!packs(b)) out.push("end board's answer doesn't pack");
   }
   // Cat puzzle: one answer; easy ones also come out by simple steps.
   for (const g of c.games.filter((g) => g.kind === 'cats')) {
@@ -176,10 +208,12 @@ for (const difficulty of DIFFICULTIES) {
 }
 console.log(`${DIFFICULTIES.length * PER_DIFFICULTY} campaigns, every wrong-guess path: ${rounds} rounds (${((performance.now() - campaignStarted) / rounds).toFixed(0)} ms per round)`);
 
+console.log(`Case boards: ${boards.puzzles} puzzles and ${boards.ends} end boards built (slowest ${boards.slowest.toFixed(0)} ms)`);
+
 const total = 3 * PER_PRESET + others.length * PER_COMBINATION + QUICK_CHOICES * PER_QUICK + rounds;
 console.log(
   failures
     ? `\n${failures} problems`
-    : `\nAll ${total} cases have exactly one solution, every interrogation can be caught fairly, every cat puzzle is fair, every word game spells its word, every game unlocks a fair share of clues, and every campaign round is fair whatever she picks.`,
+    : `\nAll ${total} cases have exactly one solution, every interrogation can be caught fairly, every cat puzzle is fair, every word game spells its word, every case board builds, every game unlocks a fair share of clues, and every campaign round is fair whatever she picks.`,
 );
 process.exit(failures ? 1 : 0);
