@@ -63,3 +63,16 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
   which can also load and play a case code.
 - Add a rule here (or in the folder's CLAUDE.md) whenever a decision changes
   how code should be written. Keep status in the README, not here.
+
+## Token budget
+
+Long sessions re-read their whole context every turn, so keep them short.
+
+- Delegate to the `implementer` agent (Sonnet) when a change is well defined:
+  you can name the files, the behaviour and how to test it. Give it a full
+  brief; it starts with no context.
+- Keep design decisions, ambiguous bugs and cross-cutting refactors in the
+  main session.
+- Run browser and screenshot checks through the `browser-check` agent and ask
+  for a short pass/fail report, so screenshots stay out of the main context.
+- After each commit, or when context is large, suggest starting a new session.
