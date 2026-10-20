@@ -7,18 +7,6 @@ mention any entry untouched for 14 days or more and ask whether to keep, update 
 Keeping an entry current: when you work on one, or when its handoff docs change, update its
 `Last touched` line (`YYYY-MM-DD`). Delete an entry once its session is done.
 
-## Session: Tarot match, free-peek card is inconsistent
-Last touched: 2026-10-21
-Reads first: `docs/tarot-peek-bug.md`, then the Joker section of `docs/tarot-match.md`.
-Goal: playtesting found the peek card sometimes lets her flip only one card, and its partner
-sometimes won't match. Reproduce it, settle one visible rule with the owner (the handover
-recommends option A), then hand an implementer brief to the `implementer` agent and check at
-360px with `browser-check`. `golden.json` must not change.
-Starting prompt:
-```
-Read docs/tarot-peek-bug.md, reproduce the free-peek problem, then help me settle the rule and write an implementer brief.
-```
-
 ## Session: Theme content, tarot cast and line pools
 Last touched: 2026-10-20
 Reads first: `docs/theme-draft.md`. Best after "The cast", which fixes the roles.

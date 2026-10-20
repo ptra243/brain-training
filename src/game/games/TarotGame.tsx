@@ -21,7 +21,7 @@ export interface TarotPuzzle {
   seed: number;
 }
 
-const JOKER_TEXT = 'The joker turns one card face up for free. That card counts as your first pick; match it to get another.';
+const JOKER_TEXT = 'The joker turns one card face up for free. Find its partner to match it, and another card turns up.';
 
 function JokerIcon() {
   return (
@@ -75,7 +75,7 @@ export function TarotGame({ puzzle, data, finished, helper = 'The cat', onChange
   };
 
   // Two cards are up: pause so she sees both, then judge them.
-  const ready = !finished && turnReady(data);
+  const ready = !finished && turnReady(board, data);
   useEffect(() => {
     if (!ready) return;
     const t = setTimeout(() => commit(resolveTurn(board, data, seed)), LOOK_MS);
@@ -107,9 +107,7 @@ export function TarotGame({ puzzle, data, finished, helper = 'The cat', onChange
   return (
     <div className="tarot">
       <p className="hint dark">
-        Turn two cards over to find a pair. A match stays face up; a miss turns back, and it costs you nothing. Find
-        the joker for a free peek: it leaves the table, and the card it turns up stays up and counts as your first
-        pick.
+        Turn two cards over to find a pair. A match stays face up; a miss turns back, and it costs you nothing. Find the joker for a free card: it leaves the table and turns one card face up. Find that card's partner to match it.
       </p>
       {!finished && (
         <div className="hint-bar">
@@ -151,13 +149,14 @@ export function TarotGame({ puzzle, data, finished, helper = 'The cat', onChange
           const peeking = data.peek === i && !matched;
           const showGhost = !up && ghost === i;
           const label = up
-            ? `Card ${i + 1}, ${id === JOKER ? 'the joker' : tarotArt(id).label}${matched ? ', matched' : peeking ? ', your free pick' : ''}`
+            ? `Card ${i + 1}, ${id === JOKER ? 'the joker' : tarotArt(id).label}${matched ? ', matched' : peeking ? ', your free card' : ''}`
             : `Card ${i + 1}, face down${showGhost ? `, ${helper} is showing a faint ${tarotArt(id).label}` : ''}`;
           return (
             <button
               key={i}
               className={`tarot-card ${up ? 'up' : ''} ${matched ? 'matched' : ''} ${peeking ? 'peek' : ''}`}
               aria-label={label}
+              aria-disabled={peeking ? 'true' : undefined}
               onClick={() => tap(i)}
             >
               <span className="tarot-inner">

@@ -51,7 +51,7 @@ test('miss turns both back down, match stays up', () => {
   const other = nonJoker(b).find((i) => i !== a && i !== p)!;
   let s = flip(b, tarotInitial(), 2, a);
   s = flip(b, s, 2, other);
-  assert.ok(turnReady(s));
+  assert.ok(turnReady(b, s));
   assert.deepEqual(flip(b, s, 2, p), s); // third pick ignored
   s = resolveTurn(b, s, 2);
   assert.deepEqual([s.picked, s.matched], [[], []]);
@@ -68,58 +68,119 @@ test('joker: removed on flip, turns one unmatched card up, which stays up until 
   assert.ok(s.peek !== null && b[s.peek] !== JOKER);
   assert.equal(s.picked.length, 0);
   const first = s.peek!;
-  // A miss using the peeked card leaves it up.
-  const wrong = nonJoker(b).find((i) => i !== first && i !== pairOf(b, first))!;
-  s = resolveTurn(b, flip(b, s, 3, wrong), 3);
+  // A miss leaves the free card up.
+  const wrong = nonJoker(b).filter((i) => i !== first && i !== pairOf(b, first));
+  s = resolveTurn(b, flip(b, flip(b, s, 3, wrong[0]), 3, wrong[1]), 3);
   assert.equal(s.peek, first);
-  // Matching it turns a new one up for free.
-  s = resolveTurn(b, flip(b, flip(b, s, 3, first), 3, pairOf(b, first)), 3);
-  assert.ok(s.peek !== null && s.peek !== first && !s.matched.includes(s.peek));
-  assert.equal(s.matched.length, 2);
   // Joker flipped again does nothing.
   assert.deepEqual(flip(b, s, 3, jokerAt(b)), s);
 });
 
-test('peek counts as the first pick: one tap pairs, match stays, miss keeps the peek up and lets her retry', () => {
+test('tapping the free card does nothing, before any flip and with one flip made', () => {
   const b = deal(3, 6);
   let s = flip(b, tarotInitial(), 3, jokerAt(b));
   const p = s.peek!;
-  assert.deepEqual(flip(b, s, 3, p), s); // tapping the peek itself does nothing
-  const wrong = nonJoker(b).filter((i) => i !== p && i !== pairOf(b, p));
-  const t = flip(b, s, 3, wrong[0]);
-  assert.deepEqual(t.picked, [p, wrong[0]]);
-  assert.ok(turnReady(t));
-  assert.deepEqual(flip(b, t, 3, wrong[1]), t); // nothing more while judging
-  s = resolveTurn(b, t, 3);
-  assert.deepEqual([s.picked, s.matched, s.peek, s.peekFresh], [[], [], p, false]); // miss: peek stays up, no longer automatic
-  // Free choice again: B then C are an ordinary pair of picks (the third-card bug).
-  s = flip(b, s, 3, wrong[1]);
-  assert.deepEqual(s.picked, [wrong[1]]);
-  s = flip(b, s, 3, wrong[2]);
-  assert.deepEqual(s.picked, [wrong[1], wrong[2]]);
-  s = resolveTurn(b, s, 3);
-  assert.deepEqual([s.picked, s.peek], [[], p]);
-  s = resolveTurn(b, flip(b, flip(b, s, 3, p), 3, pairOf(b, p)), 3); // tap the peek to pair it on purpose
-  assert.deepEqual([...s.matched].sort(), [p, pairOf(b, p)].sort());
-  assert.ok(s.peek !== null && s.peek !== p && !s.matched.includes(s.peek) && s.peekFresh);
+  assert.equal(flip(b, s, 3, p), s);
+  assert.deepEqual(s.picked, []);
+  const x = nonJoker(b).find((i) => i !== p && i !== pairOf(b, p))!;
+  s = flip(b, s, 3, x);
+  assert.equal(flip(b, s, 3, p), s);
+  assert.deepEqual(s.picked, [x]);
 });
 
-test('peek up with one ordinary pick made: two ordinary picks resolve as before, peek untouched', () => {
+test('partner as first flip: ready at once, taps ignored, resolve matches it with the free card and turns up a new one', () => {
+  const b = deal(3, 6);
+  let s = flip(b, tarotInitial(), 3, jokerAt(b));
+  const p = s.peek!;
+  const partner = pairOf(b, p);
+  const other = nonJoker(b).find((i) => i !== p && i !== partner)!;
+  s = flip(b, s, 3, partner);
+  assert.deepEqual(s.picked, [partner]);
+  assert.ok(turnReady(b, s));
+  assert.equal(flip(b, s, 3, other), s);
+  s = resolveTurn(b, s, 3);
+  assert.deepEqual([...s.matched].sort(), [p, partner].sort());
+  assert.deepEqual(s.picked, []);
+  assert.ok(s.peek !== null && s.peek !== p && !s.matched.includes(s.peek));
+  assert.ok(!turnReady(b, s));
+});
+
+test('partner as second flip: only the free card and partner match, the other flip turns back', () => {
+  const b = deal(3, 6);
+  let s = flip(b, tarotInitial(), 3, jokerAt(b));
+  const p = s.peek!;
+  const partner = pairOf(b, p);
+  const x = nonJoker(b).find((i) => i !== p && i !== partner)!;
+  s = flip(b, s, 3, x);
+  assert.ok(!turnReady(b, s));
+  s = flip(b, s, 3, partner);
+  assert.ok(turnReady(b, s));
+  s = resolveTurn(b, s, 3);
+  assert.deepEqual([...s.matched].sort(), [p, partner].sort());
+  assert.ok(!s.matched.includes(x));
+  assert.deepEqual(s.picked, []);
+  assert.ok(s.peek !== null && s.peek !== p);
+});
+
+test('two ordinary flips with a free card up: a match keeps the free card, a miss keeps it too', () => {
+  const b = deal(3, 6);
+  let s = flip(b, tarotInitial(), 3, jokerAt(b));
+  const p = s.peek!;
+  const ord = nonJoker(b).filter((i) => i !== p && i !== pairOf(b, p));
+  const x = ord[0];
+  const y = ord.find((i) => i !== x && i !== pairOf(b, x))!;
+  const miss = resolveTurn(b, flip(b, flip(b, s, 3, x), 3, y), 3);
+  assert.deepEqual([miss.picked, miss.matched, miss.peek], [[], [], p]);
+  const hit = resolveTurn(b, flip(b, flip(b, s, 3, x), 3, pairOf(b, x)), 3);
+  assert.deepEqual([...hit.matched].sort(), [x, pairOf(b, x)].sort());
+  assert.deepEqual([hit.picked, hit.peek], [[], p]);
+});
+
+test('joker flipped with one card picked: if the new free card is its partner the turn is ready and matches', () => {
   const b = deal(3, 6);
   const x = nonJoker(b)[0];
-  let s = flip(b, flip(b, tarotInitial(), 3, x), 3, jokerAt(b));
+  const partner = pairOf(b, x);
+  let found = false;
+  for (let seed = 0; seed < 300 && !found; seed++) {
+    let s = flip(b, flip(b, tarotInitial(), seed, x), seed, jokerAt(b));
+    assert.notEqual(s.peek, x);
+    if (s.peek !== partner) {
+      assert.ok(!turnReady(b, s));
+      continue;
+    }
+    found = true;
+    assert.ok(turnReady(b, s));
+    s = resolveTurn(b, s, seed);
+    assert.deepEqual([...s.matched].sort(), [x, partner].sort());
+    assert.deepEqual(s.picked, []);
+    assert.notEqual(s.peek, partner);
+  }
+  assert.ok(found, 'no seed made the joker turn up the partner');
+});
+
+test('hint points at the free card partner once she has seen it', () => {
+  const b = deal(3, 6);
+  const [x, y] = nonJoker(b).filter((i, _, all) => i === all[0] || b[i] !== b[all[0]]).slice(0, 2);
+  let found = false;
+  for (let seed = 0; seed < 300 && !found; seed++) {
+    // A missed turn shows x and y; then the joker may turn up x's partner while x is face down again.
+    const missed = resolveTurn(b, flip(b, flip(b, tarotInitial(), seed, x), seed, y), seed);
+    const s = flip(b, missed, seed, jokerAt(b));
+    if (s.peek !== pairOf(b, x)) continue;
+    assert.equal(tarotHint(b, s, seed).ghost, x);
+    found = true;
+  }
+  assert.ok(found, 'no seed made the joker turn up the partner');
+});
+
+test('an old save with the free card in picked never matches it with itself', () => {
+  const b = deal(3, 6);
+  const s = flip(b, tarotInitial(), 3, jokerAt(b));
   const p = s.peek!;
-  const y = nonJoker(b).find((i) => i !== x && i !== p && i !== pairOf(b, x))!;
-  s = flip(b, s, 3, y);
-  assert.deepEqual(s.picked, [x, y]);
-  s = resolveTurn(b, s, 3);
-  assert.deepEqual([s.picked, s.matched, s.peek, s.peekFresh], [[], [], p, true]);
-  // The fresh peek is still her next first pick; after that miss she can go on freely.
-  const z = nonJoker(b).find((i) => i !== p && i !== pairOf(b, p))!;
-  s = resolveTurn(b, flip(b, s, 3, z), 3);
-  assert.equal(s.peekFresh, false);
-  s = flip(b, flip(b, s, 3, x), 3, y);
-  assert.deepEqual(s.picked, [x, y]);
+  const x = nonJoker(b).find((i) => i !== p && i !== pairOf(b, p))!;
+  assert.deepEqual(resolveTurn(b, { ...s, picked: [p, x] }, 3), { ...s, picked: [] }); // a miss
+  const hit = resolveTurn(b, { ...s, picked: [p, pairOf(b, p)] }, 3);
+  assert.deepEqual([...hit.matched].sort(), [p, pairOf(b, p)].sort());
 });
 
 test('joker with no unmatched cards left turns nothing up', () => {
@@ -165,16 +226,15 @@ test('following hints always reaches a win', () => {
       // Turn the hinted card, then its partner if she has seen it, else a new face-down card.
       const { state, ghost } = tarotHint(b, s, seed);
       s = state;
-      const down = () => b.map((_, i) => i).filter((i) => !s.matched.includes(i) && !s.picked.includes(i) && b[i] !== JOKER && s.jokerGone !== i);
+      const down = () => b.map((_, i) => i).filter((i) => !s.matched.includes(i) && !s.picked.includes(i) && b[i] !== JOKER && s.jokerGone !== i && s.peek !== i);
       const fresh = () => down().filter((i) => !s.seen.includes(i));
-      // With a peek up her tap pairs with it, so she only follows a hint that points at its partner.
-      const peekUp = s.peek !== null && s.peekFresh && s.picked.length === 0;
-      const useGhost = ghost !== null && (!peekUp || b[ghost] === b[s.peek!]);
-      const first = useGhost ? ghost! : rng.pick(fresh().length ? fresh() : down());
+      const first = ghost !== null ? ghost : rng.pick(fresh().length ? fresh() : down());
       s = flip(b, s, seed, first);
-      const partner = pairOf(b, first);
-      const second = s.seen.includes(partner) && !s.picked.includes(partner) ? partner : rng.pick(fresh().length ? fresh() : down().filter((i) => !s.picked.includes(i)));
-      s = flip(b, s, seed, second);
+      if (!turnReady(b, s)) {
+        const partner = pairOf(b, first);
+        const second = s.seen.includes(partner) && !s.picked.includes(partner) ? partner : rng.pick(fresh().length ? fresh() : down());
+        s = flip(b, s, seed, second);
+      }
       s = resolveTurn(b, s, seed);
       // Now and then she flips the joker too.
       if (turns === 2 && s.jokerGone === null) s = flip(b, s, seed, jokerAt(b));
@@ -189,12 +249,13 @@ test('no deadlock: random taps (joker included) always reach a win, a move alway
     const rng = new Rng(seed + 5000);
     for (let n = 0; !tarotSolved(b, s); n++) {
       assert.ok(n < 3000, 'did not finish');
-      if (turnReady(s)) {
+      if (turnReady(b, s)) {
         s = resolveTurn(b, s, seed);
         continue;
       }
       const moves = b.map((_, i) => i).filter((i) => flip(b, s, seed, i) !== s);
       assert.ok(moves.length > 0, 'no move available');
+      assert.ok(!tarotSolved(b, s));
       s = flip(b, s, seed, rng.pick(moves));
     }
   }

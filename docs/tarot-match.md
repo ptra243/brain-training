@@ -30,19 +30,22 @@ She doesn't enjoy memory games much, so the game is built to be easy and forgivi
 - A small glowing joker icon then appears next to the Hint button (same row, pill style, 44px). It
   glows softly while a peek card is up and dims when none is; the glow is static under reduced
   motion. Hover or focus shows a tooltip and tapping it opens a short note: "The joker turns one
-  card face up for free. That card counts as your first pick; match it to get another." Nothing
+  card face up for free. Find its partner to match it, and another card turns up." Nothing
   shows beside Hint before the joker is flipped.
 - The peeked card has a strong gold glow ring (gentle pulse, none under reduced motion) and a small
-  "Free" tag, so it is obvious it is her free first pick.
-- That card stays face up until she matches it, and while it is fresh it counts as her first pick
-  of a turn: with it up and nothing else picked, tapping any other face-down card is her second
-  pick and the turn resolves after the usual pause. A match stays up. A miss turns the tapped card
-  back down and the peek stays face up, but it is no longer automatic: she is free to pick any two
-  cards again (tapping the peek pairs it on purpose). Tapping a fresh peek itself does nothing.
-- If she has already picked one ordinary card when the joker is flipped, her next pick pairs with
-  that card as normal and the peek stays fresh for the turn after.
-- When it is matched, a new random unmatched card turns face up for free (fresh again).
+  "Free" tag.
+- **One rule (settled 2026-10-21, replaces the old "counts as your first pick" with its hidden
+  fresh / not-fresh modes):** the free card is face up on the table but is never one of her flips.
+  She always gets two flips per turn, as without the joker. Tapping the free card does nothing and
+  does not count as a flip.
+- For judging, the free card counts as face up. Flipping its partner matches the two right away
+  (after the usual pause), whether it was her first or her second flip: as a first flip the turn
+  ends there, because her second flip could never match too (each card has one partner); as a
+  second flip her other card turns back. Otherwise her two flips match or miss as usual.
+- If she has one card flipped when the joker turns up that card's partner, they match right away.
+- When the free card is matched, a new random unmatched card turns face up for free.
 - With no unmatched cards left, nothing flips.
+- Cat hint with a free card up: if she has seen its partner, the cat points at the partner.
 
 ## Hints and Solve
 
