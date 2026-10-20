@@ -9,8 +9,8 @@ interface Props {
   /** Whole numbers for new codes (the browser's crypto; the engine stays seeded). */
   random: () => number;
   onHome: () => void;
-  /** Build and open the case. Throws if the mix won't build. */
-  onStart: (code: string, games: PickedGame[]) => void;
+  /** Build and open the case. Rejects if the mix won't build. */
+  onStart: (code: string, games: PickedGame[]) => Promise<void>;
 }
 
 /** Choose which games are in a Quick play case, seeing the difficulty each one rolled first. */
@@ -29,11 +29,11 @@ export function PickGames({ random, onHome, onStart }: Props) {
     setFailed(false);
     setCode(codeFor(random()));
   };
-  const start = () => {
+  const start = async () => {
     const games = pickedInOrder(ticked);
     savePicks(games);
     try {
-      onStart(code, games);
+      await onStart(code, games);
     } catch {
       setFailed(true);
     }

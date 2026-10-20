@@ -726,3 +726,28 @@ body.dev { background: #f2f1ec; color: #222; }
 .pick-start { margin-top: 0.8rem; }
 .pick-start:disabled { opacity: 0.45; cursor: default; }
 .home-choose { margin-top: 0.5rem; }
+
+/* ---------- Loading overlay ---------- */
+.shuffling {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(26, 53, 45, 0.7);
+  opacity: 0;
+  animation: shuffling-in 0.25s ease-out 0.15s forwards;
+}
+.shuffling-card {
+  max-width: 100%;
+  padding: 1.25rem 1.5rem;
+  border-radius: 0.75rem;
+  background: var(--card);
+  border: 1px solid var(--card-edge);
+  color: var(--ink);
+  text-align: center;
+}
+.shuffling-card h2 { font-size: 1.15rem; }
+@keyframes shuffling-in { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .shuffling { animation-duration: 0.01s; } }
