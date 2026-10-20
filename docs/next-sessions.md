@@ -7,16 +7,15 @@ mention any entry untouched for 14 days or more and ask whether to keep, update 
 Keeping an entry current: when you work on one, or when its handoff docs change, update its
 `Last touched` line (`YYYY-MM-DD`). Delete an entry once its session is done.
 
-## Session: Tell me again, engine brief
+## Session: Tarot match, implementer brief
 Last touched: 2026-10-20
-Reads first: `docs/tell-me-again.md`, and the Questioning variants doc (link in `CLAUDE.md`).
-Goal: turn the settled design into an implementer brief for the engine part: the retell generator,
-the solver fact checks, rewording templates, and the tests (exactly one fact changed, or two on
-hard; tangents never change meaning). Keep design decisions in the main session; hand the built
-brief to the `implementer` agent.
+Reads first: `docs/tarot-match.md`, `docs/theme-draft.md` (tarot cast), `src/games/CLAUDE.md`.
+Goal: settle the open points, then write an implementer brief for the tarot match minigame: the
+seeded deal, the joker free peek, the cat hint, Solve, and the tests. "Tell me again" was dropped
+after playtesting (not a puzzle, tedious, hard to spot); `docs/tell-me-again.md` is history.
 Starting prompt:
 ```
-Read docs/tell-me-again.md and the Questioning variants doc (linked in CLAUDE.md), then write an implementer brief for the engine part: the retell generator, the fact checks and the tests.
+Read docs/tarot-match.md and write an implementer brief for the tarot match minigame.
 ```
 
 ## Session: Theme content, tarot cast and line pools
