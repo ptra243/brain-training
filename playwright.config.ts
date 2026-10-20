@@ -6,8 +6,10 @@ export default defineConfig({
   outputDir: 'test-results',
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['line']] : 'line',
+  // CI tests the build it deploys (deploy.yml runs `npm run build` first);
+  // locally the dev server skips the build so repeated runs start sooner.
   webServer: {
-    command: 'npm run build && npx vite preview --port 4173 --strictPort',
+    command: process.env.CI ? 'npx vite preview --port 4173 --strictPort' : 'npx vite --port 4173 --strictPort',
     url: 'http://localhost:4173/',
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
