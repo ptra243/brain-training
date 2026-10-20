@@ -13,25 +13,8 @@ import {
   type CatUnit,
 } from '../../games/cats.ts';
 import { HintButton, HintNote, Paw } from './Hints.tsx';
+import type { CatsData } from './saveData.ts';
 import type { GameProps } from './types.ts';
-
-export interface CatsData {
-  /** Key "r,c". Tap cycles blank -> dot -> cat -> blank. */
-  marks: Record<string, CatMark>;
-  /** Wrong marks a hint has crossed in red, keyed "r,c". Shown while the mark is unchanged. */
-  flagged?: Record<string, CatMark>;
-  /** `catMoveId` of the move the last hint pointed at. */
-  nudged?: string;
-  /** `catMoveId` of the move whose reason a hint gave. */
-  explained?: string;
-  /** How many hints she asked for. */
-  hints?: number;
-}
-
-export const catsInitial = (): CatsData => ({ marks: {} });
-export const catsSolvedData = (p: CatPuzzle): CatsData => ({
-  marks: Object.fromEntries(p.solution.map((c, r) => [`${r},${c}`, 'cat' as const])),
-});
 
 const ZONE_TINTS = ['#e9c99a', '#b9d29a', '#b7b6e3', '#eab2a8', '#a9d4d9', '#f0e08e', '#dcb0d6', '#c4c7b8'];
 const ZONE_NAMES = ['tan', 'green', 'lilac', 'pink', 'blue', 'yellow', 'mauve', 'grey'];

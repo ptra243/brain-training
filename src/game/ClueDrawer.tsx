@@ -17,7 +17,7 @@ interface Props {
   pawed?: readonly string[];
 }
 
-export const subjectName = (s: Subject) =>
+const subjectName = (s: Subject) =>
   s.kind === 'suspect' ? suspectName(s.id) : s.kind === 'room' ? `the ${roomName(s.id)}` : `the ${itemName(s.id)}`;
 
 /** The clues she has found, in a drawer above the tab bar so she can read them while working the map or grid. */

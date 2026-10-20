@@ -27,14 +27,14 @@ export function CaseInspector() {
   const [reveal, setReveal] = useState(false);
   // A case code ("K7QF2-MN") or name overrides the number: the exact case she was playing.
   const [codeText, setCodeText] = useState('');
-  const ref = parseCase(codeText, caseNameWords);
+  const ref = useMemo(() => parseCase(codeText, caseNameWords), [codeText]);
 
   const c = useMemo(() => {
     if (ref) return caseFor(content, ref);
     const preset = difficulty === 'campaign' ? undefined : difficulty;
     if (length === 'normal') return generateCase(content, number, preset);
     return generateCase(content, number, { ...PRESETS[preset ?? campaignDifficulty(number)], length });
-  }, [ref && caseCode(ref), number, difficulty, length]);
+  }, [ref, number, difficulty, length]);
 
   const play = () => {
     if (!ref) return;

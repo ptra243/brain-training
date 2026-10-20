@@ -1,15 +1,9 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { leftovers, lineBetween, wordAt, type Pos, type WordSearchPuzzle } from '../../games/wordsearch.ts';
-import { TypingInput, focusTyping } from './TypingInput.tsx';
+import { TypingInput } from './TypingInput.tsx';
+import { focusTyping } from './typing.ts';
+import type { WordSearchData } from './saveData.ts';
 import type { GameProps } from './types.ts';
-
-export interface WordSearchData {
-  /** Listed words she has found. */
-  found: string[];
-}
-
-export const wordSearchInitial = (): WordSearchData => ({ found: [] });
-export const wordSearchSolved = (p: WordSearchPuzzle): WordSearchData => ({ found: p.words.map((w) => w.word) });
 
 const same = (a: Pos | null, b: Pos | null) => !!a && !!b && a[0] === b[0] && a[1] === b[1];
 
@@ -51,8 +45,10 @@ export function WordSearchGame({ puzzle, data, finished, onChange, onFinish }: G
   };
 
   // Tap the first letter then the last, or drag from one to the other.
-  const down = (e: ReactPointerEvent, at: Pos) => {
+  // One handler for every square, reading its position from data-r / data-c.
+  const down = (e: ReactPointerEvent<HTMLButtonElement>) => {
     if (finished) return;
+    const at: Pos = [Number(e.currentTarget.dataset.r), Number(e.currentTarget.dataset.c)];
     e.preventDefault();
     setMessage('');
     press.current = { at, fresh: !start };
@@ -125,7 +121,7 @@ export function WordSearchGame({ puzzle, data, finished, onChange, onFinish }: G
                 data-c={c}
                 className={`ws-cell ${foundCells.has(k) ? 'found' : ''} ${previewCells.has(k) ? 'picking' : ''} ${reveal ? 'secret' : ''}`}
                 aria-label={`${letter}, row ${r + 1}, column ${c + 1}${same(start, [r, c]) ? ', selected' : ''}`}
-                onPointerDown={(e) => down(e, [r, c])}
+                onPointerDown={down}
                 disabled={!!finished}
               >
                 {letter}

@@ -1,12 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { isAllowedGuess, loadDictionary, type Dictionary } from '../../games/dictionary.ts';
 import { MAX_GUESSES, WORD_LENGTH, keyboardState, scoreGuess } from '../../games/wordle.ts';
-import { TypingInput, focusTyping, hasFinePointer } from './TypingInput.tsx';
+import { TypingInput } from './TypingInput.tsx';
+import { focusTyping, hasFinePointer } from './typing.ts';
+import type { WordleData } from './saveData.ts';
 import type { GameProps } from './types.ts';
-
-export interface WordleData {
-  guesses: string[];
-}
 
 export interface WordlePuzzle {
   answer: string;
@@ -16,9 +14,6 @@ export interface WordlePuzzle {
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-export const wordleInitial = (): WordleData => ({ guesses: [] });
-export const wordleSolved = (p: WordlePuzzle): WordleData => ({ guesses: [p.answer] });
-
 export function WordleGame({ puzzle, data, finished, onChange, onFinish }: GameProps<WordlePuzzle, WordleData>) {
   const [typing, setTyping] = useState('');
   const [message, setMessage] = useState('');
@@ -27,10 +22,13 @@ export function WordleGame({ puzzle, data, finished, onChange, onFinish }: GameP
   const inputRef = useRef<HTMLInputElement>(null);
   const { guesses } = data;
 
+  const focusOnOpen = useEffectEvent(() => {
+    if (!finished && hasFinePointer()) focusTyping(inputRef);
+  });
   useEffect(() => {
     let live = true;
     loadDictionary().then((d) => live && setDictionary(d));
-    if (!finished && hasFinePointer()) focusTyping(inputRef);
+    focusOnOpen();
     return () => {
       live = false;
     };

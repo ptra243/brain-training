@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import {
   CROSSWORD_SIZE,
   cellKey,
@@ -8,7 +8,6 @@ import {
   entryLabel,
   entryCells,
   entrySolved,
-  fullLetters,
   letterAt,
   shadedRight,
   type CrosswordEntry,
@@ -17,24 +16,10 @@ import {
   type Direction,
 } from '../../games/crossword.ts';
 import { HintButton, HintNote } from './Hints.tsx';
-import { TypingInput, focusTyping, hasFinePointer } from './TypingInput.tsx';
+import { TypingInput } from './TypingInput.tsx';
+import { focusTyping, hasFinePointer } from './typing.ts';
+import { crosswordInitial, type CrosswordData } from './saveData.ts';
 import type { GameProps } from './types.ts';
-
-export interface CrosswordData {
-  /** Her letters, keyed "r,c". */
-  letters: Record<string, string>;
-  /** Wrong letters a hint has crossed in red, keyed "r,c". Shown while the letter is unchanged. */
-  flagged?: Record<string, string>;
-  /** The word the last hint pointed at ("3 down"). */
-  nudged?: string;
-  /** How many hints she asked for. */
-  hints?: number;
-  /** Grid size the letters were typed on. Saves from before grids grew have none (7). */
-  size?: number;
-}
-
-export const crosswordInitial = (): CrosswordData => ({ letters: {} });
-export const crosswordSolved = (p: CrosswordPuzzle): CrosswordData => ({ letters: fullLetters(p), size: p.width });
 
 interface Cursor {
   r: number;
@@ -119,9 +104,10 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
   const activeCells = entryCells(active);
   const at = activeCells.findIndex(([r, c]) => r === cursor.r && c === cursor.c);
 
-  useEffect(() => {
+  const focusOnOpen = useEffectEvent(() => {
     if (!finished && hasFinePointer()) focusTyping(inputRef);
-  }, []); // once, when the game opens
+  });
+  useEffect(() => focusOnOpen(), []); // once, when the game opens
 
   // Keep the square she's on in sight: big grids scroll sideways, and the clue list sits below the grid.
   const jump = useRef<ScrollBehavior | null>(null);

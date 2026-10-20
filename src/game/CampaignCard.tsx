@@ -1,6 +1,6 @@
 import { ROUNDS } from '../engine/campaign.ts';
-import { DIFFICULTY_LABEL } from './Casebook.tsx';
-import { ROUND_TIMES } from './CampaignView.tsx';
+import { DIFFICULTY_LABEL } from './labels.ts';
+import { ROUND_TIMES } from './labels.ts';
 import { currentRound, type CampaignSave } from './campaign.ts';
 
 interface Props {

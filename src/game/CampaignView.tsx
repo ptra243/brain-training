@@ -1,16 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { content } from '../content/index.ts';
 import { ROUNDS, campaignCast } from '../engine/campaign.ts';
 import { midSentence } from '../engine/text.ts';
 import { AccusePanel } from './AccusePanel.tsx';
-import { Casebook, DIFFICULTY_LABEL } from './Casebook.tsx';
+import { Casebook } from './Casebook.tsx';
+import { DIFFICULTY_LABEL, ROUND_TIMES } from './labels.ts';
 import { Dialog } from './Dialog.tsx';
 import { itemName, suspectName } from './names.ts';
 import { currentRound, pick, puzzlesLeft, roundCase, stillPossible, updateRound, type CampaignSave, type Verdict } from './campaign.ts';
 import { reduce, type Action, type Progress } from './state.ts';
-
-/** When each round's body is found. */
-export const ROUND_TIMES = ['9pm', 'Midnight', '3am'];
 
 interface Props {
   save: CampaignSave;
@@ -23,12 +21,19 @@ export function CampaignView({ save, onSave, onHome }: Props) {
   const now = currentRound(save);
   const [viewing, setViewing] = useState(now);
   const [notice, setNotice] = useState<Verdict | null>(null);
-  useEffect(() => setViewing(now), [now]);
+  // A new round opens on that round (adjusted during render, not in an effect).
+  const [shownNow, setShownNow] = useState(now);
+  if (shownNow !== now) {
+    setShownNow(now);
+    setViewing(now);
+  }
 
   // Each round is rebuilt from the campaign and the victims before it; only rebuild when they change.
+  // `save` itself changes on every move, so the deps list just the fields roundCase reads.
   const victimsKey = save.victims.join('|');
   const cases = useMemo(
     () => save.rounds.map((_, i) => roundCase(content, save, i)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [save.ref.code, save.ref.difficulty, victimsKey, save.rounds.length],
   );
   const c = cases[viewing];

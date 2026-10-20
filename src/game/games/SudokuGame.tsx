@@ -11,6 +11,7 @@ import {
 } from '../../games/sudoku.ts';
 import { ClueCard } from '../ClueCard.tsx';
 import { HintButton, HintNote, Paw } from './Hints.tsx';
+import type { SudokuData } from './saveData.ts';
 import type { GameProps } from './types.ts';
 
 /** A statement unlocked by two marked squares: their digits are a row and column on the floor plan. */
@@ -20,22 +21,6 @@ export interface SudokuStatement {
   squares: LocationSquares;
   found: boolean;
 }
-
-export interface SudokuData {
-  /** Row-major digits, 0 = empty. Givens are included. */
-  grid: number[];
-  /** Wrong numbers a hint has crossed in red, by square. Shown while the number is unchanged. */
-  flagged?: Record<number, number>;
-  /** The square the last hint sat on. */
-  nudged?: number;
-  /** The square whose reason a hint gave. */
-  explained?: number;
-  /** How many hints she asked for. */
-  hints?: number;
-}
-
-export const sudokuInitial = (p: SudokuPuzzle): SudokuData => ({ grid: p.givens.slice() });
-export const sudokuSolvedData = (p: SudokuPuzzle): SudokuData => ({ grid: p.solution.slice() });
 
 const count = (n: number, one: string, many: string) => (n === 1 ? one : `${n} ${many}`);
 

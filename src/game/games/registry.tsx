@@ -17,16 +17,36 @@ import { buildTarot, tarotInitial, tarotRevealAll, type TarotState } from '../..
 import type { CrosswordPuzzle } from '../../games/crossword.ts';
 import { foundLocations, generateSudoku, locationSquares, type LocationSquares, type SudokuPuzzle } from '../../games/sudoku.ts';
 import type { WordSearchPuzzle } from '../../games/wordsearch.ts';
-import { CaseBoard, boardInitial, boardSolvedSave, type BoardSave } from '../board/CaseBoard.tsx';
+import { CaseBoard, type BoardSave } from '../board/CaseBoard.tsx';
+import { boardInitial, boardSolvedSave } from '../board/boardSave.ts';
 import { sceneCrossword, sceneWordSearch } from '../sceneGames.ts';
 import type { Action, InterrogationData, Progress } from '../state.ts';
-import { CatsGame, catsInitial, catsSolvedData, type CatsData } from './CatsGame.tsx';
-import { CrosswordGame, crosswordInitial, crosswordSolved, type CrosswordData } from './CrosswordGame.tsx';
-import { InterrogationGame, interrogationInitial } from './InterrogationGame.tsx';
-import { SudokuGame, sudokuInitial, sudokuSolvedData, type SudokuData } from './SudokuGame.tsx';
+import { CatsGame } from './CatsGame.tsx';
+import { CrosswordGame } from './CrosswordGame.tsx';
+import { InterrogationGame } from './InterrogationGame.tsx';
+import { SudokuGame } from './SudokuGame.tsx';
 import { TarotGame, type TarotPuzzle } from './TarotGame.tsx';
-import { WordleGame,wordleInitial, wordleSolved, type WordleData, type WordlePuzzle } from './WordleGame.tsx';
-import { WordSearchGame, wordSearchInitial, wordSearchSolved, type WordSearchData } from './WordSearchGame.tsx';
+import { WordleGame } from './WordleGame.tsx';
+import { WordSearchGame } from './WordSearchGame.tsx';
+import {
+  catsInitial,
+  catsSolvedData,
+  crosswordInitial,
+  crosswordSolved,
+  interrogationInitial,
+  sudokuInitial,
+  sudokuSolvedData,
+  wordSearchInitial,
+  wordSearchSolved,
+  wordleInitial,
+  wordleSolved,
+  type CatsData,
+  type CrosswordData,
+  type SudokuData,
+  type WordSearchData,
+  type WordleData,
+} from './saveData.ts';
+import type { WordlePuzzle } from './WordleGame.tsx';
 
 /** What the game screen hands a game. */
 export interface PlayArgs {

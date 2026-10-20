@@ -7,8 +7,6 @@ import { suspectColour, suspectInitials, suspectName } from '../names.ts';
 import type { InterrogationData } from '../state.ts';
 import type { GameProps } from './types.ts';
 
-export const interrogationInitial = (): InterrogationData => ({ asked: [], strikes: 0, caught: false });
-
 interface Props extends GameProps<Interrogation, InterrogationData> {
   /** What she can present: the cards on the table, or her casebook in the finale. */
   evidence: readonly Clue[];

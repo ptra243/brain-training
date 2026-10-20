@@ -124,7 +124,7 @@ test('partner as second flip: only the free card and partner match, the other fl
 
 test('two ordinary flips with a free card up: a match keeps the free card, a miss keeps it too', () => {
   const b = deal(3, 6);
-  let s = flip(b, tarotInitial(), 3, jokerAt(b));
+  const s = flip(b, tarotInitial(), 3, jokerAt(b));
   const p = s.peek!;
   const ord = nonJoker(b).filter((i) => i !== p && i !== pairOf(b, p));
   const x = ord[0];

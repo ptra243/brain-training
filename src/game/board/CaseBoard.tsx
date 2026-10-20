@@ -2,7 +2,7 @@
 // rules live in boardSave.ts and the words in boardText.ts; this file is the
 // drawing and the dragging.
 
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { Board, BoardCell } from '../../engine/boardTypes.ts';
 import { UNKNOWN, boardKey } from '../../engine/boardTypes.ts';
@@ -15,8 +15,6 @@ import { Paw } from '../games/Hints.tsx';
 import { suspectColour, roomTint, itemName } from '../names.ts';
 import {
   blocker,
-  boardComplete,
-  boardInitial,
   boardSolvedSave,
   checkBoard,
   clashes,
@@ -29,7 +27,6 @@ import {
   occupancy,
   orient,
   partnersOf,
-  placementOf,
   sectionAt,
   touching,
   trayIds,
@@ -41,12 +38,10 @@ import {
   withoutPlaced,
   tokensOf,
   type BoardSave,
-  type Rules,
 } from './boardSave.ts';
 import { blockText, caption, clashText, lowerThe, pieceName, rulesOf, sectionName, shortName, theSection } from './boardText.ts';
 import './board.css';
 
-export { boardInitial, boardSolvedSave, boardComplete };
 export type { BoardSave };
 
 const WEAPON_COLOURS = ['#a9bcc6', '#d1bb8f', '#d8bd6a', '#c3b3d3', '#a9cdb4', '#a8bde0'];
@@ -441,29 +436,30 @@ export function CaseBoard(props: CaseBoardProps) {
     positionGhost();
   }
 
-  // Window listeners are added once and call the latest handlers.
-  const latest = useRef({ onMove, endDrag, turnHeld, turnSelected });
-  latest.current = { onMove, endDrag, turnHeld, turnSelected };
-  const selectedRef = useRef(selected);
-  selectedRef.current = selected;
+  // Window listeners are added once; effect events call the latest handlers.
+  const heldTurn = useEffectEvent(() => turnHeld());
+  const dragMove = useEffectEvent((e: PointerEvent) => onMove(e));
+  const dragEnd = useEffectEvent((drop: boolean) => endDrag(drop));
+  const turnKey = useEffectEvent(() => {
+    if (dragRef.current?.moved) turnHeld();
+    else if (selected) turnSelected();
+  });
   useEffect(() => {
-    const L = latest.current;
-    void L;
     const down = (e: PointerEvent) => {
       const d = dragRef.current;
       if (d?.moved && e.pointerId !== d.pointerId) {
         e.preventDefault();
-        latest.current.turnHeld();
+        heldTurn();
       }
     };
-    const move = (e: PointerEvent) => latest.current.onMove(e);
+    const move = (e: PointerEvent) => dragMove(e);
     const up = (e: PointerEvent) => {
-      if (dragRef.current && e.pointerId === dragRef.current.pointerId) latest.current.endDrag(true);
+      if (dragRef.current && e.pointerId === dragRef.current.pointerId) dragEnd(true);
     };
     const cancel = (e: PointerEvent) => {
-      if (dragRef.current && e.pointerId === dragRef.current.pointerId) latest.current.endDrag(false);
+      if (dragRef.current && e.pointerId === dragRef.current.pointerId) dragEnd(false);
     };
-    const blur = () => latest.current.endDrag(false);
+    const blur = () => dragEnd(false);
     const menu = (e: Event) => {
       if (dragRef.current?.moved || Date.now() - lastDragEnd.current < 400) e.preventDefault();
     };
@@ -472,15 +468,14 @@ export function CaseBoard(props: CaseBoardProps) {
       e.preventDefault();
       if (Date.now() - lastWheel.current > 180) {
         lastWheel.current = Date.now();
-        latest.current.turnHeld();
+        heldTurn();
       }
     };
     const key = (e: KeyboardEvent) => {
       if (e.key !== 'r' && e.key !== 'R') return;
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-      if (dragRef.current?.moved) latest.current.turnHeld();
-      else if (selectedRef.current) latest.current.turnSelected();
+      turnKey();
     };
     window.addEventListener('pointerdown', down, { capture: true });
     window.addEventListener('pointermove', move);
@@ -511,13 +506,13 @@ export function CaseBoard(props: CaseBoardProps) {
 
   // Tell the parent once when the board becomes complete.
   const completeNow = !finished && isComplete(rules, props.save);
-  useEffect(() => {
-    if (completeNow && !fired.current) {
+  const reportComplete = useEffectEvent((complete: boolean) => {
+    if (complete && !fired.current) {
       fired.current = true;
       onComplete?.(props.save);
-    } else if (!completeNow) fired.current = false;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [completeNow]);
+    } else if (!complete) fired.current = false;
+  });
+  useEffect(() => reportComplete(completeNow), [completeNow]);
 
   // ---------- Pieces ----------
   const metSyms = new Set(rules.touch.filter((t) => touching(rules, viewSave, t.a, t.b, occ)).map((t) => t.sym));
@@ -913,6 +908,3 @@ function legendKey(kind: string, who: string | null) {
   return kind === 'guest' ? `g:${who}` : kind === 'weapon' ? `w:${who}` : kind;
 }
 
-// Re-exported for callers that want to reason about a piece's place.
-export { placementOf as boardPlacementOf };
-export type { Rules as BoardRules };

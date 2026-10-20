@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { PICK_MIN, PICK_ORDER, codeFor, pickedInOrder, playLevels, type PickedGame } from '../engine/caseRef.ts';
 import { gameLevel } from '../engine/settings.ts';
-import { DIFFICULTY_LABEL } from './Casebook.tsx';
+import { DIFFICULTY_LABEL } from './labels.ts';
 import { GAMES } from './games/registry.tsx';
 import { loadPicks, savePicks } from './storage.ts';
 

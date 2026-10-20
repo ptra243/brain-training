@@ -5,7 +5,8 @@ import { endBoard } from '../engine/caseBoard.ts';
 import { caseContext, caseSpace } from '../engine/caseFacts.ts';
 import { possibleKillers } from '../engine/search.ts';
 import type { Case } from '../engine/types.ts';
-import { CaseBoard, boardInitial, type BoardSave } from './board/CaseBoard.tsx';
+import { CaseBoard, type BoardSave } from './board/CaseBoard.tsx';
+import { boardInitial } from './board/boardSave.ts';
 import { GAMES } from './games/registry.tsx';
 import { roomName, suspectName } from './names.ts';
 import { gameDone, sceneUnlocked, unlockedClueIds, type Action, type Progress } from './state.ts';
@@ -36,7 +37,8 @@ export function EndBoardPanel({ c, progress, dispatch, helper, readOnly, onAccus
   // Grey piece n is a hunch from puzzle n.
   const hunches = unplayed.slice(0, 3).map((g) => `the ${GAMES[g.kind].name.toLowerCase()}`);
   const key = `${[...unlocked].sort().join(',')}|${scene ? 'scene' : ''}|${left}`;
-  // Built once per set of clues, not per move.
+  // Built once per set of clues, not per move. `unlocked` is a new Set every render;
+  // `key` holds its contents plus `scene` and `left`, so it stands in for all three.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const board = useMemo(() => endBoard(content, c, unlocked, scene, left), [c, key]);
   if (!board) return <p className="muted">There's no board for these clues. The map and grid still work.</p>;

@@ -1,21 +1,13 @@
 import { useState, type ReactNode } from 'react';
 import { caseCode, type CaseRef } from '../engine/caseRef.ts';
 import type { Case } from '../engine/types.ts';
-import { DIFFICULTY_LABEL } from './Casebook.tsx';
+import { DIFFICULTY_LABEL } from './labels.ts';
 import { Dialog } from './Dialog.tsx';
 import { caseTitle } from './names.ts';
 import { puzzlesDone, type Progress } from './state.ts';
 
 const LENGTH_LABEL = { short: 'Short', normal: 'Normal', long: 'Long' } as const;
 
-/** The final puzzle before she accuses: the grid alone, or the jigsaw (the end board) as well. Campaigns pick one. */
-export type Finish = 'grid' | 'jigsaw';
-export const FINISHES: readonly Finish[] = ['grid', 'jigsaw'];
-export const FINISH_LABEL: Record<Finish, string> = { grid: 'Grid', jigsaw: 'Jigsaw' };
-export const FINISH_HINT: Record<Finish, string> = {
-  grid: 'Work out who was where on the map and grid, then accuse.',
-  jigsaw: 'A Jigsaw tab instead of the grid: fit your clues together as pieces to see who is still unaccounted for before you accuse.',
-};
 
 interface Props {
   current: { ref: CaseRef; c: Case; progress: Progress } | null;

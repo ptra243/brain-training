@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, useRef, type ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -18,13 +18,12 @@ export function Dialog({ children, onClose, placement = 'sheet', labelId }: Prop
   const downOnBackdrop = useRef(false);
   const boxRef = useRef<HTMLDivElement>(null);
 
-  const closeRef = useRef(onClose);
-  closeRef.current = onClose;
+  const close = useEffectEvent(() => onClose());
 
   // Focus once on open (not on every re-render, or taps inside would jump focus).
   useEffect(() => {
     boxRef.current?.querySelector<HTMLElement>('[data-autofocus], button')?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && closeRef.current();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);

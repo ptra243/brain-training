@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { DIFFICULTIES } from '../engine/settings.ts';
 import type { Difficulty } from '../engine/types.ts';
 import { Picker } from './AccusePanel.tsx';
-import { DIFFICULTY_LABEL } from './Casebook.tsx';
+import { DIFFICULTY_LABEL } from './labels.ts';
 import { Dialog } from './Dialog.tsx';
-import { FINISHES, FINISH_HINT, FINISH_LABEL, type Finish } from './Home.tsx';
+import { FINISHES, FINISH_HINT, FINISH_LABEL, type Finish } from './labels.ts';
 import type { CampaignSave } from './campaign.ts';
 
 type Accusing = 'anyone' | 'possible';

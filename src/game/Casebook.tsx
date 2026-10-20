@@ -11,6 +11,7 @@ import { afterHint, gridHint, markActions } from './gridHints.ts';
 import { gridHintText } from './gridHintText.ts';
 import { gameDone, reduce, sceneUnlocked, unlockedClueIds, visibleClues, type Action, type Progress, type Subject } from './state.ts';
 import { cats } from '../content/index.ts';
+import { DIFFICULTY_LABEL } from './labels.ts';
 import type { Case, GameKind } from '../engine/types.ts';
 
 type Tab = 'clues' | 'map' | 'grid' | 'board' | 'accuse';
@@ -21,8 +22,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'board', label: 'Jigsaw' },
   { id: 'accuse', label: 'Accuse' },
 ];
-
-export const DIFFICULTY_LABEL = { easy: 'Easy', medium: 'Medium', hard: 'Hard' } as const;
 
 interface Props {
   c: Case;

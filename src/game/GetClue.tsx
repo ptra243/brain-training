@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { caseOpenings } from '../content/index.ts';
 import { Rng, hashSeed } from '../engine/rng.ts';
 import type { Case, GameKind, GameSpec } from '../engine/types.ts';
-import { DIFFICULTY_LABEL } from './Casebook.tsx';
+import { DIFFICULTY_LABEL } from './labels.ts';
 import { Dialog } from './Dialog.tsx';
 import { GAMES } from './games/registry.tsx';
 import { allGamesDone, cluesToFind, finaleOpen, gameDone, puzzlesDone, unfinishedGames, type Progress } from './state.ts';
@@ -17,7 +17,7 @@ interface Props {
 const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
 
 /** Fills `{count}` with the guests in words, capitalised where it starts a sentence. */
-export function fillOpening(text: string, guests: number): string {
+function fillOpening(text: string, guests: number): string {
   const word = COUNT_WORDS[guests] ?? String(guests);
   return text.replace(/\{count\}/g, (_m, at: number) => {
     const starts = at === 0 || text.slice(at - 2, at) === '. ';
@@ -40,7 +40,7 @@ export function GetClue({ c, progress, readOnly, onPlay }: Props) {
   const played = c.games.filter((g) => gameDone(progress, g.kind));
   const opening = useMemo(
     () => fillOpening(new Rng(hashSeed(`${c.seed}-opening`)).pick(caseOpenings), c.suspects.length),
-    [c.seed],
+    [c.seed, c.suspects.length],
   );
 
   return (

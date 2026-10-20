@@ -23,7 +23,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
       - run: npm test
       - run: npm run check-cases:full
       - run: npm run build
