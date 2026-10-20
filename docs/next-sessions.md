@@ -186,3 +186,19 @@ Starting prompt:
 ```
 Read docs/code-review-followups.md section 5 and scripts/check-cases.ts, then try one fast-check property test for "every clue is true" and tell me if it's worth keeping.
 ```
+
+## Session: Nosing around (maths board game), build
+Last touched: 2026-10-21
+Reads first: `docs/nosing-around.md` (the full design), `src/games/CLAUDE.md`, `src/engine/CLAUDE.md`
+(how a new game joins on its own seed stream), `src/engine/house.ts`, and `src/games/tarot.ts` with
+`TAROT_SHARE` in `gameKinds.ts` as the most recent example of adding a game.
+Goal: build the snakes-and-ladders maths game on the floor plan. Keep in the main session: settling
+the open questions at the end of the design doc, and tuning board size, ladders and snakes per level
+by experiment until the turn ranges hold. Then delegate to `implementer`: the pure board/question/lock
+logic with hints and tests (`src/games/`), the content lists (question templates, ladders, snakes,
+bonuses, locks), the `check-cases` checks, and the screen with its number pad. Existing cases must
+not change (golden snapshot).
+Starting prompt:
+```
+Read docs/nosing-around.md, settle its open questions with me, then tune the board generator per level until the check-cases turn ranges hold before delegating the rest.
+```
