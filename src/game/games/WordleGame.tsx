@@ -10,7 +10,8 @@ export interface WordleData {
 
 export interface WordlePuzzle {
   answer: string;
-  teaser: string;
+  /** The "body was found by" line; Play cases show a half-heard clue instead. */
+  teaser?: string;
 }
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -61,7 +62,7 @@ export function WordleGame({ puzzle, data, finished, onChange, onFinish }: GameP
 
   return (
     <div className="wordle">
-      <p className="teaser-line">{puzzle.teaser}</p>
+      {puzzle.teaser && <p className="teaser-line">{puzzle.teaser}</p>}
       <div className="typing-host">
         <div className="wordle-board" role="grid" aria-label="Guesses">
           {rows.map((row, r) => (

@@ -30,7 +30,8 @@ const listAnd = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, 
 export function EndBoardPanel({ c, progress, dispatch, helper, readOnly, onAccuse }: Props) {
   const unlocked = unlockedClueIds(c, progress);
   const scene = sceneUnlocked(c, progress);
-  const unplayed = c.games.filter((g) => !g.unlocksScene && !gameDone(progress, g.kind));
+  // Play cases: the word games are clue games too, so every unfinished game is a grey piece.
+  const unplayed = c.games.filter((g) => (c.sceneGiven || !g.unlocksScene) && !gameDone(progress, g.kind));
   const left = unplayed.length;
   // Grey piece n is a hunch from puzzle n.
   const hunches = unplayed.slice(0, 3).map((g) => `the ${GAMES[g.kind].name.toLowerCase()}`);

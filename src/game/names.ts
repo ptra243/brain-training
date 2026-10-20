@@ -1,6 +1,6 @@
 import { content } from '../content/index.ts';
 import { caseNameWords } from '../content/caseNames.ts';
-import { caseName, type QuickRef } from '../engine/caseRef.ts';
+import { caseName, type CaseRef } from '../engine/caseRef.ts';
 
 const find = <T extends { id: string; name: string }>(list: readonly T[], id: string) =>
   list.find((x) => x.id === id)?.name ?? id;
@@ -26,4 +26,4 @@ export function suspectColour(id: string) {
 export const roomTint = (id: string) => content.house.rooms.find((r) => r.id === id)?.tint ?? '#ddd6c6';
 
 /** "The Sunken Jaguar Scandal at Stonewick": the case's name, which also replays it. */
-export const caseTitle = (ref: QuickRef) => caseName(ref, caseNameWords);
+export const caseTitle = (ref: CaseRef) => caseName(ref, caseNameWords);

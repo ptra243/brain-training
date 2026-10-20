@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { content } from '../content/index.ts';
 import type { CampaignRef } from '../engine/campaign.ts';
-import { caseCode, caseFor, codeFor, newQuickCase, type Cast, type QuickRef } from '../engine/caseRef.ts';
+import { caseCode, caseFor, codeFor, newPlayCase, newQuickCase, type CaseRef, type Cast } from '../engine/caseRef.ts';
 import type { Length } from '../engine/settings.ts';
 import type { Case, Difficulty } from '../engine/types.ts';
 import { CampaignCard } from './CampaignCard.tsx';
@@ -15,7 +15,7 @@ import { emptyProgress, type Progress } from './state.ts';
 import { loadCampaign, loadQuick, loadScreen, saveCampaign, saveQuick, saveScreen, type Screen } from './storage.ts';
 
 interface Current {
-  ref: QuickRef;
+  ref: CaseRef;
   c: Case;
   progress: Progress;
 }
@@ -65,9 +65,16 @@ export function App() {
     window.scrollTo(0, 0);
   };
 
+  const startPlay = () => {
+    const made = newPlayCase(content, randomNumber);
+    setCurrent({ ref: made.ref, c: made.c, progress: emptyProgress() });
+    go('case');
+  };
+
+  /** Another old-style Quick start case (only reachable from a saved one). */
   const start = (difficulty: Difficulty, length: Length, cast: Cast, endBoard: boolean) => {
     const made = newQuickCase(content, difficulty, length, cast, randomNumber);
-    const ref: QuickRef = { ...made.ref, ...(endBoard && { endBoard }) };
+    const ref: CaseRef = { ...made.ref, ...(endBoard && { endBoard }) };
     setCurrent({ ref, c: made.c, progress: emptyProgress() });
     go('case');
   };
@@ -100,10 +107,12 @@ export function App() {
         c={current.c}
         title={caseTitle(current.ref)}
         progress={current.progress}
-        endBoard={current.ref.endBoard}
+        endBoard={current.ref.mode === 'quick' ? current.ref.endBoard : undefined}
         onProgress={(update) => setCurrent((cur) => cur && { ...cur, progress: update(cur.progress) })}
         onHome={() => go('home')}
-        onNewCase={() => start(current.ref.difficulty, current.ref.length, current.ref.cast ?? 'classic', !!current.ref.endBoard)}
+        onNewCase={() =>
+          current.ref.mode === 'play' ? startPlay() : start(current.ref.difficulty, current.ref.length, current.ref.cast ?? 'classic', !!current.ref.endBoard)
+        }
       />
     );
   }
@@ -111,7 +120,7 @@ export function App() {
     <Home
       current={current}
       onContinue={() => go('case')}
-      onStart={start}
+      onStart={startPlay}
       campaign={<CampaignCard campaign={campaign} onContinue={() => go('campaign')} onNew={() => go('campaign-setup')} />}
     />
   );

@@ -5,7 +5,7 @@
 // a room exactly when the suspect×room cell holds a tick ('o').
 
 import { isInterrogation, isSceneGame } from '../engine/gameKinds.ts';
-import type { Case, Clue, GameKind } from '../engine/types.ts';
+import type { Case, Clue, GameKind, GameSpec } from '../engine/types.ts';
 import type { GridHintState } from './gridHints.ts';
 
 export type Mark = 'x' | 'o';
@@ -222,10 +222,12 @@ export function unlockedClueIds(c: Case, p: Progress): Set<string> {
   return ids;
 }
 
-export const sceneUnlocked = (c: Case, p: Progress) => c.games.some((g) => g.unlocksScene && gameDone(p, g.kind));
+export const sceneUnlocked = (c: Case, p: Progress) => c.sceneGiven === true || c.games.some((g) => g.unlocksScene && gameDone(p, g.kind));
 
 /** Puzzles done out of the case's total, counting the scene word games as one. */
 export function puzzlesDone(c: Case, p: Progress): { done: number; total: number } {
+  // Play cases: every game counts on its own.
+  if (c.sceneGiven) return { done: c.games.filter((g) => gameDone(p, g.kind)).length, total: c.games.length };
   const others = c.games.filter((g) => !g.unlocksScene);
   return {
     done: (sceneUnlocked(c, p) ? 1 : 0) + others.filter((g) => gameDone(p, g.kind)).length,
@@ -236,6 +238,7 @@ export function puzzlesDone(c: Case, p: Progress): { done: number; total: number
 /** Before: a blank. After: the sentence from whichever scene game she solved. */
 export const SCENE_TEASER = 'The body was found by the …';
 export function sceneText(c: Case, p: Progress): string | null {
+  if (c.sceneGiven) return c.sceneClue.text;
   const done = c.games.filter(isSceneGame).find((g) => gameDone(p, g.kind));
   return done ? done.scene.text : null;
 }
@@ -311,7 +314,18 @@ export interface InterrogationData {
  * her casebook.
  */
 export const finaleOpen = (c: Case, p: Progress) =>
-  sceneUnlocked(c, p) && c.games.filter((g) => g.kind !== 'finale' && !g.unlocksScene).every((g) => gameDone(p, g.kind));
+  c.sceneGiven
+    ? c.games.filter((g) => g.kind !== 'finale').every((g) => gameDone(p, g.kind))
+    : sceneUnlocked(c, p) && c.games.filter((g) => g.kind !== 'finale' && !g.unlocksScene).every((g) => gameDone(p, g.kind));
+
+/** Games she hasn't finished yet, in the case's order (the Get a clue list in Play cases). */
+export const unfinishedGames = (c: Case, p: Progress): GameSpec[] => c.games.filter((g) => !gameDone(p, g.kind));
+
+/** Clues still waiting in games she hasn't finished. */
+export const cluesToFind = (c: Case, p: Progress) => unfinishedGames(c, p).reduce((n, g) => n + g.clues.length, 0);
+
+/** Whether she has finished every game in the case. */
+export const allGamesDone = (c: Case, p: Progress) => unfinishedGames(c, p).length === 0;
 
 /** The scene game she has finished, or else the one she's partway through. */
 export function sceneGameInPlay(c: Case, p: Progress): GameKind | null {

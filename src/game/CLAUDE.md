@@ -30,7 +30,11 @@
 - **Accusations are who + weapon.** The room is always the scene. She can
   accuse from the map: the one person in the scene room and their weapon.
 - **Scene word games** show as one row in the casebook; she picks one from a
-  chooser, and the finale counts them as done once one is.
+  chooser, and the finale counts them as done once one is. In Play cases
+  (`c.sceneGiven`) they are separate clue games like the rest, picked from
+  Get a clue (`GetClue.tsx`); the scene is given from the start, each word
+  game shows its half-heard clue (`Clue.blank.teaser`) and the finale opens
+  when every other game is done.
 - **Word games type with the phone's keyboard** through `TypingInput` (one
   hidden input; tapping the board focuses it). No on-screen keyboards.
   Buttons beside a focused board use `onPointerDown={(e) =>
@@ -42,5 +46,6 @@
 - **Map**: a short tap on a counter or weapon opens its clues; dragging moves
   it. Keep the tray of unplaced pieces right under the map so every drag fits
   on one phone screen.
-- **Case board UI** lives in `board/` (`CaseBoard`, pure rules in `boardSave.ts`). Pair rules (touching, apart, a guest's pieces in one place) never refuse a drop: the pieces get a red outline and a note, so one wrong piece can't lock another out. A piece's own rules (rooms ruled out) and pinned partners do refuse. The end board (`EndBoardPanel`, a Jigsaw tab that replaces the Grid tab when she picks "Final puzzle: Jigsaw", `ref.endBoard`) is rebuilt whenever she finds a clue; her moves are kept per set of clues (`Progress.endBoard`).
-- **Saves**: only one Quick start case and one campaign are saved at a time.
+- **Case board UI** lives in `board/` (`CaseBoard`, pure rules in `boardSave.ts`). Pair rules (touching, apart, a guest's pieces in one place) never refuse a drop: the pieces get a red outline and a note, so one wrong piece can't lock another out. A piece's own rules (rooms ruled out) and pinned partners do refuse. The end board (`EndBoardPanel`, a Jigsaw tab that replaces the Grid tab when she picks "Final puzzle: Jigsaw", `ref.endBoard`; Play cases always show Map, Grid and Jigsaw) is rebuilt whenever she finds a clue; her moves are kept per set of clues (`Progress.endBoard`).
+- **Saves**: only one Quick case (a Play case, or an old Quick start one) and
+  one campaign are saved at a time; a new Play case replaces the saved one.

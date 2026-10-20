@@ -2,7 +2,7 @@
 // (private mode, blocked site data), so every access is guarded and the game
 // still works without it, just without remembering.
 
-import type { QuickRef } from '../engine/caseRef.ts';
+import type { CaseRef } from '../engine/caseRef.ts';
 import type { CampaignSave } from './campaign.ts';
 import { emptyProgress, type Progress } from './state.ts';
 
@@ -26,15 +26,17 @@ function write(key: string, value: unknown) {
   }
 }
 
-/** The Quick start case in progress (there is only ever one) and her moves in it. */
+/** The Quick case in progress, Play or an old Quick start (there is only ever one) and her moves in it. */
 export interface QuickSave {
-  ref: QuickRef;
+  ref: CaseRef;
   progress: Progress;
 }
 
 export function loadQuick(): QuickSave | null {
   const saved = read<QuickSave>('quick');
-  if (!saved?.ref || typeof saved.ref.code !== 'string' || !saved.ref.difficulty || !saved.ref.length) return null;
+  if (!saved?.ref || typeof saved.ref.code !== 'string') return null;
+  // A Play case is just its code; an old Quick start also needs its levels.
+  if (saved.ref.mode !== 'play' && (!saved.ref.difficulty || !saved.ref.length)) return null;
   return { ref: saved.ref, progress: { ...emptyProgress(), ...saved.progress } };
 }
 

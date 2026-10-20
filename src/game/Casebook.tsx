@@ -9,7 +9,7 @@ import { GameScreen } from './games/GameScreen.tsx';
 import { HintButton, HintNote } from './games/Hints.tsx';
 import { afterHint, gridHint, markActions } from './gridHints.ts';
 import { gridHintText } from './gridHintText.ts';
-import { reduce, sceneUnlocked, unlockedClueIds, visibleClues, type Action, type Progress, type Subject } from './state.ts';
+import { gameDone, reduce, sceneUnlocked, unlockedClueIds, visibleClues, type Action, type Progress, type Subject } from './state.ts';
 import { cats } from '../content/index.ts';
 import type { Case, GameKind } from '../engine/types.ts';
 
@@ -40,7 +40,7 @@ interface Props {
   accuse?: ReactNode;
   /** An earlier round: look, don't touch. */
   readOnly?: boolean;
-  /** Final puzzle "Jigsaw": a Jigsaw tab that fits her clues together before she accuses. It replaces the Grid tab. */
+  /** Final puzzle "Jigsaw" (Play cases always have the Jigsaw tab beside the Grid): a Jigsaw tab that fits her clues together before she accuses. It replaces the Grid tab. */
   endBoard?: boolean;
 }
 
@@ -48,6 +48,8 @@ interface Props {
 export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, subtitle, banner, gate, accuse, readOnly, endBoard }: Props) {
   const [tab, setTab] = useState<Tab>('clues');
   const [playing, setPlaying] = useState<GameKind | null>(null);
+  // Clues from the game she just finished, marked on the Clues tab.
+  const [fresh, setFresh] = useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   // A grid label she tapped: the drawer then shows only clues about it.
   const [focus, setFocus] = useState<Subject | null>(null);
@@ -80,6 +82,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
 
   const select = (t: Tab) => {
     setTab(t);
+    if (t !== 'clues') setFresh([]);
     window.scrollTo(0, 0);
   };
 
@@ -94,6 +97,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
           progress={progress}
           dispatch={dispatch}
           onBack={() => {
+            setFresh(gameDone(progress, game.kind) ? [...game.clues] : []);
             setPlaying(null);
             setTab('clues');
             window.scrollTo(0, 0);
@@ -133,6 +137,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
             dispatch={dispatch}
             gate={gate}
             readOnly={readOnly}
+            fresh={fresh}
             onPlay={(kind) => {
               setPlaying(kind);
               window.scrollTo(0, 0);
@@ -182,7 +187,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
           />
         )}
         <nav className="tabbar" aria-label="Casebook">
-          {TABS.filter((t) => (endBoard ? t.id !== 'grid' : t.id !== 'board')).map((t) => (
+          {TABS.filter((t) => (c.sceneGiven ? true : endBoard ? t.id !== 'grid' : t.id !== 'board')).map((t) => (
             <button key={t.id} aria-current={tab === t.id ? 'page' : undefined} onClick={() => select(t.id)}>
               {t.label}
             </button>

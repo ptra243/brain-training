@@ -628,3 +628,15 @@ body.dev { background: #f2f1ec; color: #222; }
 .budget-note { margin: -0.2rem 0 0.6rem; }
 .home-campaign { margin: 0 0 0.9rem; padding-bottom: 0.9rem; border-bottom: 1px solid var(--card-edge); }
 .dialog-actions.single { grid-template-columns: 1fr; }
+
+/* ---------- Quick play: Get a clue ---------- */
+.half-heard { margin: 0 1rem 0.9rem; display: grid; gap: 0.3rem; }
+.half-heard p { margin: 0; }
+.card.clue.fresh { border-left: 5px solid var(--brass); }
+.game-list { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; gap: 0.2rem; }
+.game-list li { display: flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; }
+.game-list .game-open { flex: 1; min-height: 2.75rem; background: none; border: 0; padding: 0; text-align: left; font: inherit; color: inherit; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
+.game-list .game-open:disabled { cursor: default; }
+.game-list .tick { color: #3d6b4f; font-weight: 700; margin-left: auto; }
+.level-chip { font-size: 0.75rem; padding: 0.05rem 0.5rem; border: 1px solid var(--card-edge); border-radius: 999px; color: var(--ink-soft); white-space: nowrap; }
+.get-clue-note { margin: 0.5rem 0 0; }

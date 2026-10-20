@@ -37,7 +37,7 @@ export function CaseInspector() {
   }, [ref && caseCode(ref), number, difficulty, length]);
 
   const play = () => {
-    if (!ref || ref.mode !== 'quick') return;
+    if (!ref) return;
     saveQuick({ ref, progress: emptyProgress() });
     saveScreen('case');
     window.location.hash = '';
@@ -94,13 +94,13 @@ export function CaseInspector() {
           onChange={(e) => setCodeText(e.target.value)}
           aria-label="Case code"
         />
-        <button onClick={play} disabled={!ref || ref.mode !== 'quick'}>
+        <button onClick={play} disabled={!ref}>
           Play it
         </button>
       </div>
       {codeText && !ref && <p className="bad">Not a case code or name.</p>}
       {ref && ref.mode === 'quick' && <p className="muted">Quick start case {caseCode(ref)}, {caseName(ref, caseNameWords)}. Playing it replaces the case in progress.</p>}
-      {ref && ref.mode === 'play' && <p className="muted">Play case {caseCode(ref)}, {caseName(ref, caseNameWords)}. It can't be played from here yet.</p>}
+      {ref && ref.mode === 'play' && <p className="muted">Play case {caseCode(ref)}, {caseName(ref, caseNameWords)}. Playing it replaces the case in progress.</p>}
 
       <section>
         <h2>{house.name}</h2>

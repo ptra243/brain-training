@@ -48,8 +48,8 @@ export interface Played {
 /** A game with its own spec and puzzle types. */
 interface Game<S extends GameSpec, P> {
   name: string;
-  /** One line under its name in the word game chooser. */
-  blurb?: string;
+  /** One line under its name in the game pickers. */
+  blurb: string;
   /** Heading over the unlocked clues once it's won or solved for her. */
   titles?: { won: string; revealed: string };
   /** Builds the puzzle from the spec's seed. Called once per game screen. */
@@ -67,9 +67,10 @@ const common = ({ finished, helper, onChange, onFinish }: PlayArgs) => ({ finish
 const DEFAULT_TITLES = { won: 'Clues unlocked', revealed: 'Puzzle solved for you. Clues unlocked' };
 export const titlesOf = (entry: GameEntry) => entry.titles ?? DEFAULT_TITLES;
 
-const questioning = (name: string) =>
+const questioning = (name: string, blurb: string) =>
   game<InterrogationSpec, Interrogation>({
     name,
+    blurb,
     titles: { won: 'The confession', revealed: 'They told you anyway' },
     build: (_c, spec) => spec.interrogation,
     play(puzzle, a) {
@@ -97,7 +98,9 @@ export const GAMES: Record<GameKind, GameEntry> = {
   wordle: game<SceneGameSpec, WordlePuzzle>({
     name: 'Wordle',
     blurb: 'Guess a five-letter word in six tries.',
-    build: (c) => ({ answer: c.sceneClue.wordle.answer, teaser: c.sceneClue.wordle.teaser }),
+    // Play cases hide the game's own word and show its half-heard clue above the board instead of a teaser.
+    build: (c, spec) =>
+      c.sceneGiven ? { answer: spec.scene.answer } : { answer: c.sceneClue.wordle.answer, teaser: c.sceneClue.wordle.teaser },
     play: (puzzle, a) => ({
       solved: () => wordleSolved(puzzle),
       view: <WordleGame puzzle={puzzle} data={(a.saved as WordleData | undefined) ?? wordleInitial()} {...common(a)} />,
@@ -123,6 +126,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
   }),
   cats: game<CatsSpec, CatPuzzle>({
     name: 'Cat puzzle',
+    blurb: 'Place the cats where the clues allow.',
     build: (_c, spec) => generateCats(spec.size, new Rng(spec.seed), spec.easy),
     play: (puzzle, a) => ({
       solved: () => catsSolvedData(puzzle),
@@ -131,6 +135,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
   }),
   sudoku: game<SudokuSpec, { puzzle: SudokuPuzzle; squares: Record<string, LocationSquares> }>({
     name: 'Sudoku',
+    blurb: 'Fill the grid; some squares point to rooms.',
     build(c, spec) {
       const puzzle = generateSudoku(spec.size, spec.givens, new Rng(spec.seed));
       const targets = c.clues.filter((cl) => cl.location && spec.located.includes(cl.id)).map((cl) => ({ id: cl.id, target: cl.location!.target }));
@@ -171,10 +176,11 @@ export const GAMES: Record<GameKind, GameEntry> = {
       };
     },
   }),
-  interrogation: questioning('Questioning'),
-  finale: questioning('Final questioning'),
+  interrogation: questioning('Questioning', 'Question a guest and catch the lie.'),
+  finale: questioning('Final questioning', 'One last round of questions.'),
   board: game<BoardSpec, Board>({
     name: 'Case board',
+    blurb: 'Fit the clues together as a jigsaw.',
     titles: { won: 'What the pieces proved', revealed: 'Solved for you. What the pieces proved' },
     build(c, spec) {
       const board = boardPuzzle(content, c, spec);

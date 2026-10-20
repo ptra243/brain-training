@@ -40,6 +40,8 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
     onFinish: finish,
   });
 
+  // Play word games: the clue this game hides, half heard until she wins.
+  const halfHeard = isSceneGame(spec) ? c.clues.find((cl) => cl.blank?.game === spec.kind) : undefined;
   const unlocked = c.clues.filter((cl) => spec.clues.includes(cl.id));
   const titles = titlesOf(entry);
 
@@ -63,7 +65,7 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
         <section className="unlocked card" aria-live="polite">
           <h2>{titles[finished]}</h2>
           <ul>
-            {isSceneGame(spec) && (
+            {isSceneGame(spec) && !c.sceneGiven && (
               <li className="scene-line" style={{ animationDelay: '120ms' }}>
                 {spec.scene.text}
               </li>
@@ -78,6 +80,13 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
             Back to the casebook
           </button>
         </section>
+      )}
+
+      {halfHeard?.blank && !finished && (
+        <div className="half-heard">
+          <ClueCard clue={{ ...halfHeard, body: halfHeard.blank.teaser }} compact />
+          <p className="muted small">Half-heard. Solve the puzzle to hear the room.</p>
+        </div>
       )}
 
       <div className="game-body">{view}</div>

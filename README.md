@@ -62,5 +62,5 @@ Settings > Pages > Source: GitHub Actions.
 - [x] Phase 2: generator and solver
 - [x] Phase 3: casebook UI (map, cross-out grid, accusation)
 - [x] Phase 4: minigames that deliver clues (cat puzzle, sudoku, questioning, final questioning), and a choice of Wordle, mini crossword or word search for the scene
-- [ ] Phase 5 (under way): case settings as levels, home screen with Quick start (replayable case codes and names), 7-guest cases, campaign over up to 3 rounds. Next: rumours and the time grid
+- [ ] Phase 5 (under way): case settings as levels, home screen with Quick play (a new case with a mix of puzzles, each its own clue game picked from Get a clue; replayable case codes and names, with the older Quick start cases still loading), 7-guest cases, campaign over up to 3 rounds. Next: rumours and the time grid
 - [ ] Phase 6: playtest and tuning

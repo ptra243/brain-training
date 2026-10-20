@@ -42,10 +42,12 @@ interface Props {
   onToggle?: () => void;
   /** Smaller, for lists inside games. */
   compact?: boolean;
+  /** Just found: marked until she leaves the Clues tab. */
+  fresh?: boolean;
 }
 
 /** One clue with where it came from: a witness's words or what the cats found. */
-export function ClueCard({ clue, coords, blank, used, onToggle, compact }: Props) {
+export function ClueCard({ clue, coords, blank, used, onToggle, compact, fresh }: Props) {
   const label = clue.source === 'testimony' ? `${suspectName(clue.speaker ?? '')} says` : 'Found by the cats';
   const loc = clue.location;
   const room = 'room' in clue.fact ? clue.fact.room : null;
@@ -80,9 +82,10 @@ export function ClueCard({ clue, coords, blank, used, onToggle, compact }: Props
     </>
   );
 
-  if (!onToggle) return <div className={`card clue ${compact ? 'compact' : ''}`}>{inner}</div>;
+  const extra = `${compact ? 'compact' : ''} ${fresh ? 'fresh' : ''}`;
+  if (!onToggle) return <div className={`card clue ${extra}`}>{inner}</div>;
   return (
-    <button className={`card clue ${used ? 'used' : ''} ${compact ? 'compact' : ''}`} aria-pressed={used} onClick={onToggle}>
+    <button className={`card clue ${used ? 'used' : ''} ${extra}`} aria-pressed={used} onClick={onToggle}>
       {inner}
     </button>
   );

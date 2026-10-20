@@ -1,9 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
+import { caseFor } from '../engine/caseRef.ts';
 import { generateCase } from '../engine/generate.ts';
 import type { GameKind } from '../engine/types.ts';
-import { cellState, cluesAbout, emptyProgress, mentions, heldItem, holderOf, itemRoom, mapAccusation, markKey, placedRoom, puzzlesDone, reduce, sceneUnlocked, unlockedClueIds, type Action, type Progress } from './state.ts';
+import { cellState, cluesAbout, emptyProgress, mentions, heldItem, holderOf, itemRoom, mapAccusation, markKey, placedRoom, puzzlesDone, reduce, sceneText, sceneUnlocked, allGamesDone, cluesToFind, finaleOpen, unfinishedGames, unlockedClueIds, type Action, type Progress } from './state.ts';
 
 const c = generateCase(content, 5);
 const [s1, s2] = c.suspects;
@@ -185,4 +186,34 @@ test('with 7 guests, rooms take several people and weapons, but each weapon stil
   const held = go({ type: 'give-item', item: w1, suspect: a }, { type: 'give-item', item: w1, suspect: b });
   assert.equal(holderOf(big, held, w1), b, 'a weapon moves to its new holder');
   assert.equal(cellState(big, held, 'suspect-item', a, w1), 'auto-x');
+});
+
+test('a Play case gives the scene, counts every game and opens the finale after the others', () => {
+  const play = caseFor(content, { mode: 'play', code: 'K7QF2' });
+  const p0 = emptyProgress();
+  assert.equal(sceneUnlocked(play, p0), true);
+  assert.equal(sceneText(play, p0), play.sceneClue.text);
+  assert.equal(puzzlesDone(play, p0).total, play.games.length);
+  assert.equal(allGamesDone(play, p0), false);
+  assert.equal(cluesToFind(play, p0), play.games.reduce((n, g) => n + g.clues.length, 0));
+  assert.equal(finaleOpen(play, p0), !play.games.some((g) => g.kind !== 'finale'));
+  let p = p0;
+  for (const g of play.games.filter((x) => x.kind !== 'finale')) {
+    assert.equal(finaleOpen(play, p), false);
+    p = reduce(play, p, { type: 'game-finish', kind: g.kind, status: 'revealed', data: null });
+  }
+  assert.equal(finaleOpen(play, p), true);
+  assert.equal(puzzlesDone(play, p).done, play.games.filter((x) => x.kind !== 'finale').length);
+  const fin = play.games.find((g) => g.kind === 'finale');
+  if (fin) {
+    p = reduce(play, p, { type: 'game-finish', kind: 'finale', status: 'won', data: null });
+    assert.equal(allGamesDone(play, p), true);
+    assert.equal(cluesToFind(play, p), 0);
+    assert.deepEqual(unfinishedGames(play, p), []);
+  }
+});
+
+test('old cases keep the scene locked until a word game is done', () => {
+  assert.equal(sceneUnlocked(c, emptyProgress()), false);
+  assert.equal(sceneText(c, emptyProgress()), null);
 });

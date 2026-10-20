@@ -4,6 +4,7 @@ import { midSentence } from '../engine/text.ts';
 import type { Case, GameKind } from '../engine/types.ts';
 import { ClueCard } from './ClueCard.tsx';
 import { Dialog } from './Dialog.tsx';
+import { GetClue } from './GetClue.tsx';
 import { GAMES } from './games/registry.tsx';
 import { suspectName } from './names.ts';
 import { SCENE_TEASER, finaleOpen, gameDone, sceneGameInPlay, sceneText, unlockedClueIds, visibleClues, type Action, type Progress } from './state.ts';
@@ -24,11 +25,13 @@ interface Props {
   gate?: PuzzleGate;
   /** An earlier campaign round: puzzles can't be opened. */
   readOnly?: boolean;
+  /** Clues from the game she just finished, marked until she leaves the tab. */
+  fresh?: readonly string[];
 }
 
 const NUMBER_WORDS = ['no', 'one', 'two', 'three'];
 
-export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly }: Props) {
+export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly, fresh = [] }: Props) {
   const unlocked = unlockedClueIds(c, progress);
   const visible = visibleClues(c, progress);
   // Sudoku statements she hasn't pinned to the map yet: shown with blanks.
@@ -47,8 +50,12 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly }: Pr
   };
   const statusOf = (kind: GameKind) => progress.games[kind]?.status;
 
+  const play = c.sceneGiven === true;
+
   return (
     <section className="panel">
+      {play && <GetClue c={c} progress={progress} readOnly={readOnly} onPlay={onPlay} />}
+      {!play && (
       <article className="card puzzles">
         <h2>Tonight's puzzles</h2>
         {gate && gate.budget < puzzles.length && (
@@ -102,6 +109,7 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly }: Pr
           })}
         </ul>
       </article>
+      )}
 
       <article className="card scene-card">
         <h2>The scene</h2>
@@ -175,6 +183,7 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly }: Pr
             <ClueCard
               clue={clue}
               used={progress.used.includes(clue.id)}
+              fresh={fresh.includes(clue.id)}
               onToggle={() => dispatch({ type: 'toggle-used', clue: clue.id })}
             />
           </li>
@@ -192,7 +201,7 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly }: Pr
           </ul>
         </>
       )}
-      {hidden > 0 && (
+      {hidden > 0 && !play && (
         <p className="locked-note">
           {hidden} more clue{hidden === 1 ? ' is' : 's are'} hidden in the puzzles.
         </p>
