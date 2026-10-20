@@ -74,11 +74,17 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
 
 Long sessions re-read their whole context every turn, so keep them short.
 
-- **Delegating is authorised and expected.** Once the design decisions for a
-  task are settled, and before writing the code, stop and list the pieces.
-  Hand each well-defined piece to the `implementer` agent (Sonnet) with a
-  full brief (files, behaviour, how to test); it starts with no context.
-  Always delegate:
+- **Delegating is authorised and expected, even mid-iteration.** Once the
+  design decisions for a task are settled, and before writing the code, stop
+  and list the pieces. Hand each well-defined piece to the `implementer`
+  agent (Sonnet, never `general`) with a full brief (files, behaviour, how to
+  test); it starts with no context. Any change to more than two code files
+  (`.ts`, `.tsx`, `.css`, tests; not `.md`), anything you can describe in a few
+  sentences, and any bug fix with a known cause goes to it. Edit directly only
+  for one-line tweaks, for docs, or while you're still working out the design.
+  A `PostToolUse` hook (`.claude/hooks/delegate-reminder.mjs`) reminds you
+  after the 3rd distinct code file you edit yourself; it is a reminder, not a
+  rule that replaces judgement. Always delegate:
   - content lists (word lists, clues, theme text) of more than ~20 entries
   - test updates after a rule change, once the new rule is decided
   - CSS and copy changes you can describe exactly
@@ -87,6 +93,10 @@ Long sessions re-read their whole context every turn, so keep them short.
   Say in one line which pieces you're delegating and which you're keeping.
 - Keep design decisions, ambiguous bugs and cross-cutting refactors in the
   main session.
+- Keep command output small: run tests, builds and `check-cases` quietly
+  (`2>&1 | tail -20`, or a pass/fail count) and only re-run with full output
+  when something fails. Never dump a whole file or log into context to look
+  at one part; use Grep or Read with offset and limit.
 - Run browser and screenshot checks through the `browser-check` agent and ask
   for a short pass/fail report, so screenshots stay out of the main context.
 - After each commit, or when context is large, suggest starting a new session.
