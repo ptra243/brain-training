@@ -10,8 +10,10 @@ import { boardPuzzle } from '../../engine/caseBoard.ts';
 import { caseFacts, interrogationEvidence } from '../../engine/caseFacts.ts';
 import { disproves } from '../../engine/interrogation.ts';
 import { Rng } from '../../engine/rng.ts';
-import type { BoardSpec, Case, CatsSpec, GameKind, GameSpec, Interrogation, InterrogationSpec, SceneGameSpec, SudokuSpec } from '../../engine/types.ts';
+import type { BoardSpec, Case, CatsSpec, GameKind, GameSpec, Interrogation, InterrogationSpec, SceneGameSpec, SudokuSpec, TarotSpec } from '../../engine/types.ts';
+import { tarotClueCards } from '../../engine/tarotCards.ts';
 import { generateCats, type CatPuzzle } from '../../games/cats.ts';
+import { buildTarot, tarotInitial, tarotRevealAll, type TarotState } from '../../games/tarot.ts';
 import type { CrosswordPuzzle } from '../../games/crossword.ts';
 import { foundLocations, generateSudoku, locationSquares, type LocationSquares, type SudokuPuzzle } from '../../games/sudoku.ts';
 import type { WordSearchPuzzle } from '../../games/wordsearch.ts';
@@ -22,7 +24,8 @@ import { CatsGame, catsInitial, catsSolvedData, type CatsData } from './CatsGame
 import { CrosswordGame, crosswordInitial, crosswordSolved, type CrosswordData } from './CrosswordGame.tsx';
 import { InterrogationGame, interrogationInitial } from './InterrogationGame.tsx';
 import { SudokuGame, sudokuInitial, sudokuSolvedData, type SudokuData } from './SudokuGame.tsx';
-import { WordleGame, wordleInitial, wordleSolved, type WordleData, type WordlePuzzle } from './WordleGame.tsx';
+import { TarotGame, type TarotPuzzle } from './TarotGame.tsx';
+import { WordleGame,wordleInitial, wordleSolved, type WordleData, type WordlePuzzle } from './WordleGame.tsx';
 import { WordSearchGame, wordSearchInitial, wordSearchSolved, type WordSearchData } from './WordSearchGame.tsx';
 
 /** What the game screen hands a game. */
@@ -211,6 +214,24 @@ export const GAMES: Record<GameKind, GameEntry> = {
             onComplete={(s) => a.onFinish('won', s)}
           />
         ),
+      };
+    },
+  }),
+  // The board is dealt once from the spec's seed; the screen is built in the next piece.
+  tarot: game<TarotSpec, TarotPuzzle>({
+    name: 'Tarot match',
+    blurb: 'Turn the cards over and find the pairs.',
+    build(c, spec) {
+      const mine = c.clues.filter((cl) => spec.clues.includes(cl.id)).map((cl) => cl.fact);
+      const others = c.clues.filter((cl) => !spec.clues.includes(cl.id)).map((cl) => cl.fact);
+      const { deck, reward, other } = tarotClueCards(c, mine, others);
+      return { board: buildTarot(deck, { reward, other }, spec.pairs, new Rng(spec.seed)), seed: spec.seed };
+    },
+    play: (puzzle, a) => {
+      const data = (a.saved as TarotState | undefined) ?? tarotInitial();
+      return {
+        solved: () => tarotRevealAll(puzzle.board, data),
+        view: <TarotGame puzzle={puzzle} data={data} {...common(a)} />,
       };
     },
   }),

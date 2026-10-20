@@ -84,7 +84,7 @@ export type ClueType = ClueFact['type'];
  * interrogation on hard cases. What each kind is for lives in `gameKinds.ts`.
  */
 export type SceneKind = 'wordle' | 'crossword' | 'wordsearch';
-export type RotatingKind = 'cats' | 'sudoku' | 'interrogation' | 'board';
+export type RotatingKind = 'cats' | 'sudoku' | 'interrogation' | 'board' | 'tarot';
 export type GameKind = SceneKind | RotatingKind | 'finale';
 
 /** How a clue reaches her: free at the start, or as a minigame's reward. */
@@ -149,8 +149,15 @@ export interface BoardSpec extends GameBase {
   unlocksScene: false;
 }
 
+/** Tarot match: a memory game on the case's cards (suspects, weapons, rooms). `pairs` is the number of card pairs, not counting the joker. */
+export interface TarotSpec extends GameBase {
+  kind: 'tarot';
+  unlocksScene: false;
+  pairs: number;
+}
+
 /** One minigame in a case. */
-export type GameSpec = SceneGameSpec | CatsSpec | SudokuSpec | InterrogationSpec | BoardSpec;
+export type GameSpec = SceneGameSpec | CatsSpec | SudokuSpec | InterrogationSpec | BoardSpec | TarotSpec;
 
 /** A word hidden by a scene game, and the scene sentence solving it reveals ("…by the bookcase in the Library."). */
 export interface SceneWord {

@@ -14,6 +14,10 @@
   --brass-deep: #8e6f27;
   --pencil: #a8322d;
   --wall: #2a2620;
+  --tarot-back: #5a1426;
+  --tarot-back-deep: #3e0d1a;
+  --tarot-back-pattern: #8a2a45;
+  --tarot-back-brass: #c8a24c;
   --serif: 'Palatino Linotype', Palatino, 'Book Antiqua', 'Noto Serif', Georgia, serif;
   --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-family: var(--sans);
@@ -649,3 +653,33 @@ body.dev { background: #f2f1ec; color: #222; }
 .get-clue-help { margin: 0 0 0.7rem; }
 .pick-game-list { max-height: min(60vh, 32rem); overflow-y: auto; overscroll-behavior: contain; }
 .link-button { display: block; min-height: 2.75rem; margin: 0.2rem 0 0; padding: 0; background: none; border: 0; color: var(--ink); text-decoration: underline; font: inherit; font-size: 0.9rem; cursor: pointer; }
+
+/* ---------- Tarot match ---------- */
+.tarot-board { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0 auto; max-width: 28rem; }
+.tarot-card {
+  position: relative; flex: 0 0 auto; width: calc((100% - 24px) / 4); max-width: 80px; min-width: 44px; aspect-ratio: 3 / 4;
+  padding: 0; border: 0; background: none; cursor: pointer; perspective: 600px;
+}
+.tarot-card.gone { border: 2px dashed var(--baize-line); border-radius: 6px; cursor: default; }
+.tarot-inner { position: absolute; inset: 0; display: block; transform-style: preserve-3d; }
+.tarot-card.up .tarot-inner { transform: rotateY(180deg); }
+@media (prefers-reduced-motion: no-preference) { .tarot-inner { transition: transform 0.28s ease; } }
+.tarot-side {
+  position: absolute; inset: 0; display: block; overflow: hidden; border-radius: 6px;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+}
+.tarot-down { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45); }
+.tarot-front {
+  transform: rotateY(180deg); background: var(--card); border: 2px solid var(--card-edge);
+  display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+.tarot-card.matched .tarot-front { border-color: var(--brass); }
+.tarot-card.peek .tarot-front { border-color: var(--brass); box-shadow: 0 0 0 2px var(--brass); }
+.tarot-back, .tarot-symbol { display: block; width: 100%; height: 100%; }
+.tarot-symbol { padding: 12%; box-sizing: border-box; }
+.tarot-back-field { fill: var(--tarot-back); }
+.tarot-back-frame { fill: var(--tarot-back-deep); stroke: var(--tarot-back-brass); stroke-width: 1.2; }
+.tarot-back-diamond { fill: var(--tarot-back-pattern); }
+.tarot-back-dot { fill: var(--tarot-back-brass); }
+.tarot-back-inner { fill: none; stroke: var(--tarot-back-brass); stroke-width: 0.5; }
+.tarot-ghost { position: absolute; inset: 0; opacity: 0.4; display: block; background: rgba(244, 240, 228, 0.55); }

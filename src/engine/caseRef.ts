@@ -66,13 +66,13 @@ export const quickLevels = (ref: QuickRef): CaseLevels => ({
 });
 
 /** Games that roll a difficulty in a Play case, in rolling order. */
-const PLAY_ROLLED: readonly GameKind[] = ['cats', 'sudoku', 'interrogation', 'board', 'wordsearch', 'crossword'];
+const PLAY_ROLLED: readonly GameKind[] = ['cats', 'sudoku', 'interrogation', 'board', 'wordsearch', 'crossword', 'tarot'];
 
 /**
  * The levels a Play code rolls, from a seed of its own, in this fixed order
  * (plain independent rolls): logic difficulty (easy 1 : medium 2 : hard 1),
  * guests (7 one time in 4, else 4 or 5 evenly), then one difficulty per game.
- * The crossword's roll was appended last (appending keeps earlier rolls the
+ * The crossword's and then tarot's rolls were appended last (appending keeps earlier rolls the
  * same); the wordle has none. Games without a roll
  * fall back to `minigames`.
  */

@@ -99,6 +99,19 @@ export const content: Content = { house, suspects, items };
 export const cats: readonly string[] = ['Biscuit', 'Marmalade', 'Pepper', 'Sooty', 'Duchess'];
 
 /**
+ * What the house cat does when asked for a hint in Tarot match. `{cat}` is the
+ * cat's name. Kept out of `content` like the cats. Never name a card.
+ */
+export const tarotCatLines = {
+  nothingSeen: "{cat} blinks at the table. It hasn't seen any cards turned over yet.",
+  pawed: [
+    '{cat} pats a card with one paw, and for a moment you can see through it.',
+    '{cat} pats at a card and a faint picture shows on it.',
+    '{cat} reaches out a paw to a card and leaves a ghost of its face behind.',
+  ] as readonly string[],
+};
+
+/**
  * Things she noticed about the house that turn out to have nothing to do with
  * the case: the case board's filler pieces. Kept out of `content` like the
  * cats, so they never change a case. Never name a guest, room or weapon here.

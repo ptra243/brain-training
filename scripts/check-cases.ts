@@ -15,6 +15,8 @@ import { DIFFICULTIES, LENGTHS, PRESETS, allLevels, caseSettings, levelsKey, pre
 import { countMatching } from '../src/engine/search.ts';
 import { sceneCrossword, sceneWordSearch } from '../src/game/sceneGames.ts';
 import { Rng } from '../src/engine/rng.ts';
+import { TAROT_MAX_PAIRS, tarotClueCards } from '../src/engine/tarotCards.ts';
+import { JOKER, buildTarot, flip, resolveTurn, tarotHint, tarotInitial, tarotSolved } from '../src/games/tarot.ts';
 import { countCatSolutions, generateCats, solvableBySimpleSteps } from '../src/games/cats.ts';
 import { solutionAt } from '../src/games/crossword.ts';
 import { everyWordOnce, leftovers } from '../src/games/wordsearch.ts';
@@ -36,6 +38,28 @@ function timed(make: () => Board | null): Board | null {
 
 /** Every piece's truth is a packing the board's own rules accept. */
 const packs = (b: Board) => boardSolvable(b, Object.fromEntries(Object.entries(b.truth).map(([id, t]) => [id, t.cells])));
+
+const tarotChecked: Record<string, number> = { easy: 0, medium: 0, hard: 0, none: 0 };
+
+/** Turn the hinted card (or a fresh one), then its partner if seen: the board must finish. */
+function tarotHintsWin(board: readonly string[], seed: number): boolean {
+  let s = tarotInitial();
+  const rng = new Rng(seed + 1);
+  for (let turns = 0; turns < 300; turns++) {
+    if (tarotSolved(board, s)) return true;
+    const h = tarotHint(board, s, seed);
+    s = h.state;
+    const down = () => board.map((_, i) => i).filter((i) => !s.matched.includes(i) && !s.picked.includes(i) && board[i] !== JOKER && s.jokerGone !== i);
+    const fresh = () => down().filter((i) => !s.seen.includes(i));
+    const first = h.ghost ?? rng.pick(fresh().length ? fresh() : down());
+    s = flip(board, s, seed, first);
+    const partner = board.findIndex((id, i) => i !== first && id === board[first]);
+    const second = s.seen.includes(partner) && !s.picked.includes(partner) ? partner : rng.pick(fresh().length ? fresh() : down().filter((i) => !s.picked.includes(i)));
+    s = flip(board, s, seed, second);
+    s = resolveTurn(board, s, seed);
+  }
+  return tarotSolved(board, s);
+}
 
 /** Everything that makes a case unfair, as messages. */
 function problems(c: Case): string[] {
@@ -123,6 +147,18 @@ function puzzleProblems(c: Case): string[] {
             return everyWordOnce(ws) ? leftovers(ws).map(([r, col]) => ws.grid[r][col]).join('') : '';
           })();
     if (spelled !== answer) out.push(`${g.kind} spells ${spelled}, not ${answer}`);
+  }
+  // Tarot match: the board holds the reward cards, stays within the pair cap, and following the cat's hints wins.
+  for (const g of c.games.filter((g) => g.kind === 'tarot')) {
+    const mine = c.clues.filter((cl) => g.clues.includes(cl.id)).map((cl) => cl.fact);
+    const others = c.clues.filter((cl) => !g.clues.includes(cl.id)).map((cl) => cl.fact);
+    const { deck, reward, other } = tarotClueCards(c, mine, others);
+    const board = buildTarot(deck, { reward, other }, g.pairs, new Rng(g.seed));
+    tarotChecked[g.level ?? 'none']++;
+    if (g.pairs > TAROT_MAX_PAIRS || g.pairs < caseSettings(c.levels).tarotPairs) out.push(`tarot has ${g.pairs} pairs`);
+    if (board.length !== g.pairs * 2 + 1 || board.filter((id) => id === JOKER).length !== 1) out.push('tarot board has the wrong size');
+    for (const id of reward) if (board.filter((b) => b === id).length !== 2) out.push('tarot board is missing a reward card');
+    if (!tarotHintsWin(board, g.seed)) out.push("following the cat's hints does not win tarot");
   }
   // Case board puzzle: builds for its clues, and its answer packs.
   for (const g of c.games.filter((g) => g.kind === 'board')) {
@@ -232,6 +268,32 @@ console.log(
   `${PER_PLAY} Quick play codes (${((performance.now() - playStarted) / PER_PLAY).toFixed(0)} ms per case): ` +
     `${play.sceneBlanks} of ${play.blanks} word games blank a scene-room clue; games drawn ${[...play.games].sort((a, b) => a[0] - b[0]).map(([n, k]) => `${n}: ${k}`).join(', ')}`,
 );
+
+// Tarot match: keep drawing Play codes until every level has a few cases (each checked above like any case).
+const TAROT_WANT = 5;
+let tarotCodes = 0;
+for (let i = 1000; i < 3000 && DIFFICULTIES.some((d) => tarotChecked[d] < TAROT_WANT); i++) {
+  const ref: PlayRef = { mode: 'play', code: codeFor(i * 1_215_773) };
+  tarotCodes++;
+  try {
+    const c = caseFor(content, ref);
+    if (!c.games.some((g) => g.kind === 'tarot')) continue;
+    for (const p of problems(c)) {
+      failures++;
+      console.log(`  FAIL play ${caseCode(ref)}: ${p}`);
+    }
+  } catch (err) {
+    failures++;
+    console.log(`  FAIL play ${caseCode(ref)}: ${(err as Error).message}`);
+  }
+}
+for (const d of DIFFICULTIES) {
+  if (tarotChecked[d] < TAROT_WANT) {
+    failures++;
+    console.log(`  FAIL tarot: only ${tarotChecked[d]} ${d} cases in ${tarotCodes} Play codes`);
+  }
+}
+console.log(`Tarot match: easy ${tarotChecked.easy}, medium ${tarotChecked.medium}, hard ${tarotChecked.hard} cases checked (${tarotCodes} extra Play codes scanned)`);
 
 // Campaigns: every path of wrong accusations, each round fair for any puzzles she picks.
 const PER_DIFFICULTY = 3;

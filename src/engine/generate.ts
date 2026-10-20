@@ -4,7 +4,8 @@ import { canLocate, plainText, wordClue } from './wording.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { allHoldings, allRoomings, countMatching } from './search.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
-import { BOARD_SHARE, CLUE_SOURCE, PLAY_GAMES_MAX, PLAY_GAMES_MIN, ROTATION, SCENE_GAMES } from './gameKinds.ts';
+import { BOARD_SHARE, CLUE_SOURCE, PLAY_GAMES_MAX, PLAY_GAMES_MIN, ROTATION, SCENE_GAMES, TAROT_SHARE } from './gameKinds.ts';
+import { tarotClueCards, tarotPairsFor } from './tarotCards.ts';
 import { boardPuzzle } from './caseBoard.ts';
 import type { Case, Clue, ClueDelivery, ClueFact, ClueType, Content, Difficulty, GameKind, GameSpec, Interrogation, RotatingKind, SceneKind, Solution, CampaignRound } from './types.ts';
 import { buildInterrogation, type CaseFacts } from './interrogation.ts';
@@ -186,8 +187,10 @@ export function assemble(o: Layout): Case {
   const { content, seed, rng, settings, levels, caseNumber, code, order, shares } = o;
   // The case board puzzle may stand in for one of the drawn games.
   const slot = o.words ? -1 : boardSlot(o);
+  // Play only: tarot match may stand in for one of the drawn games, on its own seed, after the board.
+  const tarot = o.words ? tarotSlot(o) : null;
   const wordKinds: SceneKind[] = o.words?.map((w) => w.kind) ?? [];
-  const swap = <K extends string>(k: K, i: number) => (i === slot ? ('board' as const) : k);
+  const swap = <K extends string>(k: K, i: number) => (i === slot ? ('board' as const) : tarot && i === tarot.slot ? ('tarot' as const) : k);
   const rotating = o.rotating.map(swap);
   const kinds = o.kinds.map(swap);
   const { suspects, rooms, items, solution, murdererIndex, ctx } = o.truth;
@@ -298,6 +301,7 @@ export function assemble(o: Layout): Case {
       const base = { seed: hashSeed(`${seed}-${kind}`), clues: idsFor(kind), unlocksScene: false as const, ...(kind !== 'finale' && levelOf(kind)) };
       if (kind === 'cats') return { kind, ...base, size: settings.catSize, ...(settings.catEasy && { easy: true }) };
       if (kind === 'board') return { kind, ...base };
+      if (kind === 'tarot') return { kind, ...base, pairs: tarot!.pairs };
       if (kind === 'sudoku')
         return {
           kind,
@@ -349,6 +353,27 @@ function boardSlot(o: Layout): number {
   const share = clues.slice(start, start + o.shares.games[slot]).map((cl) => cl.id);
   const c = { suspects, rooms, items, shared: o.settings.shared, seed: o.seed, sceneRoom: solution.room[murdererIndex], clues };
   return boardPuzzle(o.content, c, { seed: hashSeed(`${o.seed}-board`), clues: share }) ? slot : -1;
+}
+
+/**
+ * Which drawn Play game tarot match stands in for (and its pairs), or slot -1.
+ * Decided on a seed of its own, after the board stand-in and the draw, so a
+ * case that keeps its games is the same as before; only when that game's
+ * clues name no more cards than a board of 12 pairs holds.
+ */
+function tarotSlot(o: Layout): { slot: number; pairs: number } {
+  const none = { slot: -1, pairs: 0 };
+  const pick = new Rng(hashSeed(`${o.seed}-tarot-game`));
+  if (!o.rotating.length || pick.next() >= TAROT_SHARE) return none;
+  const slot = pick.int(o.rotating.length);
+  // Play's shares list the word games first, then the rotating ones.
+  const at = o.shares.games.slice(0, (o.words?.length ?? 0) + slot).reduce((a, b) => a + b, o.shares.free);
+  const mine = o.order.slice(at, at + o.shares.games[(o.words?.length ?? 0) + slot]);
+  const others = o.order.filter((f) => !mine.includes(f));
+  const { suspects, items, rooms } = o.truth;
+  const cards = tarotClueCards({ suspects, items, rooms }, mine, others);
+  const pairs = tarotPairsFor(o.settings.tarotPairs, cards.reward.length);
+  return pairs === null ? none : { slot, pairs };
 }
 
 export interface Truth {

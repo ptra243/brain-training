@@ -25,7 +25,13 @@ She doesn't enjoy memory games much, so the game is built to be easy and forgivi
 ## Joker (free peek)
 
 - Flipping the joker removes it from the table and turns one random unmatched card face up.
-- That card stays face up until she matches it. She still picks two cards each turn.
+- That card stays face up until she matches it, and it counts as her first pick of a turn: with it
+  up and nothing else picked, tapping any other face-down card is her second pick and the turn
+  resolves after the usual pause. A match stays up; a miss turns the tapped card back down and the
+  peeked card stays face up, so she can try another card against it. Tapping the peeked card itself
+  does nothing.
+- If she has already picked one ordinary card when the joker is flipped, her next pick pairs with
+  that card as normal and the peek is unaffected unless it is matched.
 - When it is matched, a new random unmatched card turns face up for free.
 - With no unmatched cards left, nothing flips.
 

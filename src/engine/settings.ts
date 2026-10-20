@@ -89,6 +89,8 @@ export interface CaseSettings {
   wordSearchLevel: 1 | 2 | 3;
   /** Crossword grid width and height; past 7 it scrolls on her phone, and harder words come in. */
   crosswordSize: 7 | 9 | 11;
+  /** Tarot match: card pairs on the table (the board grows past this when the clues need more, up to 12). */
+  tarotPairs: 6 | 8 | 10;
   /** Relative chance of each clue type being tried. 0 = never used. */
   weights: Partial<Record<ClueType, number>>;
   /** Most clues of a type allowed in one case. */
@@ -156,10 +158,10 @@ const LOGIC: Record<Difficulty, Pick<CaseSettings, 'freeClues' | 'located' | 'fi
   },
 };
 
-const MINIGAMES: Record<Difficulty, Pick<CaseSettings, 'catSize' | 'catEasy' | 'sudoku' | 'hardInterrogation' | 'wordSearchLevel' | 'crosswordSize'>> = {
-  easy: { catSize: 6, catEasy: true, sudoku: { size: 6, givens: 16 }, hardInterrogation: false, wordSearchLevel: 1, crosswordSize: 7 },
-  medium: { catSize: 7, catEasy: false, sudoku: { size: 6, givens: 13 }, hardInterrogation: true, wordSearchLevel: 2, crosswordSize: 9 },
-  hard: { catSize: 8, catEasy: false, sudoku: { size: 9, givens: 32 }, hardInterrogation: true, wordSearchLevel: 3, crosswordSize: 11 },
+const MINIGAMES: Record<Difficulty, Pick<CaseSettings, 'catSize' | 'catEasy' | 'sudoku' | 'hardInterrogation' | 'wordSearchLevel' | 'crosswordSize' | 'tarotPairs'>> = {
+  easy: { catSize: 6, catEasy: true, sudoku: { size: 6, givens: 16 }, hardInterrogation: false, wordSearchLevel: 1, crosswordSize: 7, tarotPairs: 6 },
+  medium: { catSize: 7, catEasy: false, sudoku: { size: 6, givens: 13 }, hardInterrogation: true, wordSearchLevel: 2, crosswordSize: 9, tarotPairs: 8 },
+  hard: { catSize: 8, catEasy: false, sudoku: { size: 9, givens: 32 }, hardInterrogation: true, wordSearchLevel: 3, crosswordSize: 11, tarotPairs: 10 },
 };
 
 const GAMES: Record<Length, number> = { short: 1, normal: 2, long: 3 };
@@ -183,6 +185,7 @@ export function caseSettings(levels: CaseLevels): CaseSettings {
       hardInterrogation: MINIGAMES[levels.perGame.interrogation ?? levels.minigames].hardInterrogation,
       wordSearchLevel: MINIGAMES[levels.perGame.wordsearch ?? levels.minigames].wordSearchLevel,
       crosswordSize: MINIGAMES[levels.perGame.crossword ?? levels.minigames].crosswordSize,
+      tarotPairs: MINIGAMES[levels.perGame.tarot ?? levels.minigames].tarotPairs,
     }),
     games: GAMES[levels.length],
     maxPerGame: MAX_PER_GAME,

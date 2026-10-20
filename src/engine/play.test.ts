@@ -109,7 +109,8 @@ test('Play cases draw 3 to 5 games (more only when the clues need them), and har
     const sum = games.reduce((n, g) => n + weight(g), 0);
     for (const g of games) {
       assert.ok(g.clues.length <= 7, `${code} ${g.kind}`);
-      if (g.kind !== 'sudoku' && !games.some((x) => x.kind === 'sudoku' && x.clues.length === 2)) {
+      // Tarot stands in for a drawn game and keeps that game's clue share, so its own rolled level says nothing about it.
+      if (!games.some((x) => x.kind === 'tarot') && g.kind !== 'sudoku' && !games.some((x) => x.kind === 'sudoku' && x.clues.length === 2)) {
         assert.ok(g.clues.length >= Math.min(7, Math.floor((held * weight(g)) / sum)) - 1, `${code} ${g.kind}`);
       }
     }

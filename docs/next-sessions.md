@@ -7,39 +7,6 @@ mention any entry untouched for 14 days or more and ask whether to keep, update 
 Keeping an entry current: when you work on one, or when its handoff docs change, update its
 `Last touched` line (`YYYY-MM-DD`). Delete an entry once its session is done.
 
-## Session: Tarot match, build
-Last touched: 2026-10-20
-Reads first: `docs/tarot-match.md` (Decisions and Implementer brief).
-Goal: the open points are settled and the brief is written, and the golden case snapshots are in (`npm test` checks them; run
-`npm run update-golden` only for an intended change). Hand its three pieces (engine and tests,
-wiring, UI and content) to the `implementer` agent, then dump and diff existing cases and run
-`browser-check`. "Tell me again" was dropped after playtesting; `docs/tell-me-again.md` is history.
-Starting prompt:
-```
-Read docs/tarot-match.md and hand the three brief pieces to the implementer agent.
-```
-
-## Session: The cast (who's in the house)
-Last touched: 2026-10-20
-Reads first: `docs/theme-draft.md` (Premise, Hidden tarot layer, Draft cast), `src/content/index.ts`
-(today's placeholder suspects), `src/engine/generate.ts` around line 381 (each case already shuffles
-the suspect list and takes 4, 5 or 7) and `src/engine/campaign.ts` around line 59.
-Goal: decide who's in the house, before any more lines are written. Mostly content; no engine code.
-- Tone first (warm with a little bite, funnier or darker): it decides how silly the names get.
-- About 10 suspect roles, so cases vary but she still gets to know a regular cast. Each one needs a
-  name and surname (short enough for a counter at 360px), a reason for being at the dinner, a short
-  background, a unique home card and 2 or 3 secondary cards chosen as sides of that person (not at random).
-- 2 or 3 side characters who are never suspects (staff, a stranded neighbour), each with a story reason
-  they can't have done it ("together below stairs") and no suspect counter.
-- The victim: today a one-off case's victim is nobody in particular. Should it be one of the leftover
-  roles? If motives name `{victim}`, every suspect needs one, not just the killer (rule 5).
-- A who-knows-whom map: the people with a history before tonight.
-Changing the suspect list changes every case: bump the storage prefix, together with the theme swap.
-Starting prompt:
-```
-Read the "The cast" entry in docs/next-sessions.md and docs/theme-draft.md, help me pick the tone, then draft about 10 roles with names, backgrounds and cards.
-```
-
 ## Session: Theme content, tarot cast and line pools
 Last touched: 2026-10-20
 Reads first: `docs/theme-draft.md`. Best after "The cast", which fixes the roles.
