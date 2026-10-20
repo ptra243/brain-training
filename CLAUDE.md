@@ -57,7 +57,7 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
 - Keep logic in plain TS (`src/engine/`, `src/games/`, `src/game/*.ts`) with
   node tests next to it; React components stay thin. Tests run with Node's
   type stripping, so that TS must be erasable syntax only.
-- Checks before committing: `npm test`, `npm run check-cases`, `npm run build`.
+- Checks before committing: `npm test` (includes the golden case snapshot), `npm run check-cases`, `npm run build`.
   The owner's machine (Windows) has Node 20: run scripts as
   `npx -y node@22 <script>`.
 - Cloud sessions can't reach the npm registry: add new dependencies on the

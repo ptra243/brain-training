@@ -76,3 +76,8 @@
   (`caseName`, `parseCase`). Never change, reorder or add to the lists in
   `src/content/caseNames.ts`: that renames every case (a test pins one).
   Names never use theme words (tested).
+- **Golden snapshot** (`golden.ts`, `golden.json`): hashes of 77 fixed cases
+  across presets, campaign rounds, Play and Quick. If `golden.test.ts` fails on
+  an unintended change, fix the code. If the change is intended (say, a
+  content change), run `npm run update-golden`, and bump the storage prefix in
+  `src/game/storage.ts` when saved progress would break.

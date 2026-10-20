@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test": "node --test \"src/**/*.test.ts\"",
     "check-cases": "node scripts/check-cases.ts",
+    "update-golden": "node scripts/update-golden.ts",
     "build-words": "node scripts/build-words.ts"
   },
   "dependencies": {

@@ -15,6 +15,7 @@ npm install
 npm run dev          # open the URL it prints; on your phone use the Network URL
 npm test             # engine unit tests
 npm run check-cases  # build cases at every level and confirm each is fair and has one solution
+npm run update-golden # rewrite the golden case snapshot (only after an intended change to generated cases)
 ```
 
 ## Layout
@@ -27,6 +28,7 @@ npm run check-cases  # build cases at every level and confirm each is fair and h
 | `src/games/` | Puzzle logic: Wordle scoring, crossword, word search, cat puzzle and sudoku generators. No React. |
 | `src/dev/CaseInspector.tsx` | Dev page (add `#dev` to the URL): step through cases, see clues and the answer. |
 | `scripts/check-cases.ts` | The fairness check: 100 cases per preset, 10 per combination of levels, 20 Quick start cases per kind, and every wrong-guess path of 9 campaigns. |
+| `scripts/update-golden.ts` | Rewrites `src/engine/golden.json`, the hashes of 77 fixed cases that `golden.test.ts` compares against. |
 | `scripts/build-words.ts` | Builds `public/words.txt`, the list of accepted guesses. |
 
 ## How a case is made
