@@ -60,6 +60,8 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
 - Checks before committing: `npm test` (includes the golden case snapshot), `npm run check-cases`, `npm run build`.
   Needs Node 22.18 or newer (the owner's machine has Node 24): run scripts
   directly, e.g. `node scripts/check-cases.ts`.
+- Python isn't installed. Edit files with the Edit tool; for scripted bulk
+  edits, use a Node script in the scratchpad.
 - Cloud sessions can't reach the npm registry: add new dependencies on the
   owner's machine or via CI. Without `node_modules`, at least run the global
   `tsc` over the non-React files with `--strict --noUnusedLocals
