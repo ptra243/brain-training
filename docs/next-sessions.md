@@ -140,3 +140,49 @@ Starting prompt:
 ```
 Read the "Hunting the weapon" item in the What's Left doc and docs/next-sessions.md, help me design the shortlist puzzle and the either-or clues, then write an implementer brief.
 ```
+
+## Session: Sudoku touch targets and small performance wins
+Last touched: 2026-10-21
+Reads first: `docs/code-review-followups.md` sections 1 and 3, `e2e/CLAUDE.md`.
+Goal: the sudoku pad buttons reach 44 px (then remove its `test.fail` in `e2e/games.spec.ts`);
+`stillPossible` stops rerunning on every move; the `#dev` inspector is lazy-loaded; `words.txt` is
+trimmed to the lengths the games use. All well defined: brief the implementer, check with
+`npm run e2e`. Cases must not change.
+Starting prompt:
+```
+Read docs/code-review-followups.md sections 1 and 3, then hand each item to the implementer and check the results with npm run e2e.
+```
+
+## Session: Board UI refactor (CaseBoard and map dragging)
+Last touched: 2026-10-21
+Reads first: `docs/code-review-followups.md` section 2, `src/game/CLAUDE.md` (Touch, Map, Case board UI),
+`e2e/CLAUDE.md`.
+Goal: split `CaseBoard.tsx` (drag hook, one reducer for undo, toast and flags), share one pointer-drag
+hook with `MapPanel.tsx`, and decide on the React Compiler by profiling a drag before and after. First
+add an e2e touch-drag test for the case board so behaviour is pinned. Cross-cutting: design here,
+then delegate the pieces.
+Starting prompt:
+```
+Read docs/code-review-followups.md section 2, add an e2e drag test for the case board, then design the drag hook and reducer split with me before delegating.
+```
+
+## Session: Validate saved data
+Last touched: 2026-10-21
+Reads first: `docs/code-review-followups.md` section 4, `src/game/storage.ts`, `src/game/games/saveData.ts`.
+Goal: saves are checked, not cast. A bad game record resets that game only; a bad field falls back to
+its empty value. Decide Valibot or hand-written guards (Valibot needs installing on the owner's
+machine), then delegate. Add node tests with malformed saves.
+Starting prompt:
+```
+Read docs/code-review-followups.md section 4, help me pick Valibot or hand-written guards, then write an implementer brief with tests for malformed saves.
+```
+
+## Session: Property tests for the engine (exploratory)
+Last touched: 2026-10-21
+Reads first: `docs/code-review-followups.md` section 5, `src/engine/CLAUDE.md`, `scripts/check-cases.ts`.
+Goal: decide whether fast-check adds anything beyond `check-cases`. If yes, add a capped property test
+for one invariant (every clue is true) and see whether it finds anything.
+Starting prompt:
+```
+Read docs/code-review-followups.md section 5 and scripts/check-cases.ts, then try one fast-check property test for "every clue is true" and tell me if it's worth keeping.
+```
