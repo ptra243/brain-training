@@ -13,7 +13,8 @@ how a case is made). The original "Murder Mystery Mode — Build Plan"
 (https://claude.ai/code/artifact/d0571578-5078-425b-8c62-56b3b55a1326) is
 history and about 16k tokens: read one section with a search, never whole.
 Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
-`src/games/CLAUDE.md` (minigame puzzles), `src/game/CLAUDE.md` (casebook UI).
+`src/games/CLAUDE.md` (minigame puzzles), `src/game/CLAUDE.md` (casebook UI),
+`e2e/CLAUDE.md` (Playwright tests).
 
 ## Rules that apply everywhere
 
@@ -58,6 +59,7 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
   node tests next to it; React components stay thin. Tests run with Node's
   type stripping, so that TS must be erasable syntax only.
 - Checks before committing: `npm test` (includes the golden case snapshot), `npm run check-cases`, `npm run build`.
+  For UI changes also run `npm run e2e` (Playwright: layout rules and main flows at phone size).
   The owner's machine (Windows) has Node 20: run scripts as
   `npx -y node@22 <script>`.
 - Cloud sessions can't reach the npm registry: add new dependencies on the
@@ -97,7 +99,7 @@ Long sessions re-read their whole context every turn, so keep them short.
   (`2>&1 | tail -20`, or a pass/fail count) and only re-run with full output
   when something fails. Never dump a whole file or log into context to look
   at one part; use Grep or Read with offset and limit.
-- Run browser and screenshot checks through the `browser-check` agent and ask
+- Run layout rules and flows with `npm run e2e`. Run look checks through the `browser-check` agent and ask
   for a short pass/fail report, so screenshots stay out of the main context.
 - After each commit, or when context is large, suggest starting a new session.
   Also suggest it when the topic changes (say, from one minigame's rules to
