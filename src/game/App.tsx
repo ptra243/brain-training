@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { content } from '../content/index.ts';
 import type { CampaignRef } from '../engine/campaign.ts';
-import { caseCode, caseFor, codeFor, newPlayCase, newQuickCase, type CaseRef, type Cast } from '../engine/caseRef.ts';
+import { caseCode, caseFor, codeFor, newPickCase, newPlayCase, newQuickCase, type CaseRef, type Cast, type PickedGame } from '../engine/caseRef.ts';
 import type { Length } from '../engine/settings.ts';
 import type { Case, Difficulty } from '../engine/types.ts';
 import { CampaignCard } from './CampaignCard.tsx';
@@ -10,6 +10,7 @@ import { CampaignView } from './CampaignView.tsx';
 import { Casebook } from './Casebook.tsx';
 import { newCampaign, roundCase, type CampaignSave } from './campaign.ts';
 import { Home } from './Home.tsx';
+import { PickGames } from './PickGames.tsx';
 import { caseTitle } from './names.ts';
 import { emptyProgress, type Progress } from './state.ts';
 import { loadCampaign, loadQuick, loadScreen, saveCampaign, saveQuick, saveScreen, type Screen } from './storage.ts';
@@ -71,6 +72,13 @@ export function App() {
     go('case');
   };
 
+  /** The case she picked games for, from the code she saw. Throws if it won't build. */
+  const startPick = (code: string, games: PickedGame[]) => {
+    const made = newPickCase(content, code, games);
+    setCurrent({ ref: made.ref, c: made.c, progress: emptyProgress() });
+    go('case');
+  };
+
   /** Another old-style Quick start case (only reachable from a saved one). */
   const start = (difficulty: Difficulty, length: Length, cast: Cast, endBoard: boolean) => {
     const made = newQuickCase(content, difficulty, length, cast, randomNumber);
@@ -97,6 +105,9 @@ export function App() {
   if (screen === 'campaign' && campaign) {
     return <CampaignView save={campaign} onSave={setCampaign} onHome={() => go('home')} />;
   }
+  if (screen === 'pick') {
+    return <PickGames random={randomNumber} onHome={() => go('home')} onStart={startPick} />;
+  }
   if (screen === 'campaign-setup') {
     return <CampaignSetup campaign={campaign} onHome={() => go('home')} onStart={startCampaign} />;
   }
@@ -121,6 +132,7 @@ export function App() {
       current={current}
       onContinue={() => go('case')}
       onStart={startPlay}
+      onChoose={() => go('pick')}
       campaign={<CampaignCard campaign={campaign} onContinue={() => go('campaign')} onNew={() => go('campaign-setup')} />}
     />
   );

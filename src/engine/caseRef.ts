@@ -31,7 +31,22 @@ export type Cast = 'classic' | 'big';
 export interface PlayRef {
   mode: 'play';
   code: string;
+  /**
+   * A picked case ("Choose games"): the games she chose, in `PICK_ORDER`
+   * (at least `PICK_MIN`). Absent: the code draws the games itself.
+   */
+  games?: PickedGame[];
 }
+
+/** Games she can pick: the scene word games and the rotating ones, board and tarot included. */
+export type PickedGame = 'wordle' | 'crossword' | 'wordsearch' | 'cats' | 'sudoku' | 'interrogation' | 'board' | 'tarot';
+
+/** The fixed order a picked case stores and writes its games in. */
+export const PICK_ORDER: readonly PickedGame[] = ['wordle', 'crossword', 'wordsearch', 'cats', 'sudoku', 'interrogation', 'board', 'tarot'];
+const PICK_LETTER: Record<PickedGame, string> = { wordle: 'W', crossword: 'C', wordsearch: 'F', cats: 'K', sudoku: 'S', interrogation: 'I', board: 'B', tarot: 'T' };
+export const PICK_MIN = 3;
+/** Picked games in canonical order, without repeats. */
+export const pickedInOrder = (games: readonly PickedGame[]): PickedGame[] => PICK_ORDER.filter((g) => games.includes(g));
 
 /** Refs to Quick start and Play cases. Campaign rounds have their own ref in campaign.ts. */
 export type CaseRef = QuickRef | PlayRef;
@@ -87,15 +102,26 @@ export function playLevels(code: string): CaseLevels {
   return { suspects: big ? 7 : classic, logic, minigames: 'easy', length: 'long', perGame };
 }
 
-/** The code she'd read out to replay this case: "K7QF2" for Play, "K7QF2-MN" (or "K7QF2-MNB" with the big cast) for Quick start. */
+/** The code she'd read out to replay this case: "K7QF2" for Play, "K7QF2+WCK" for a picked case (the games' letters), "K7QF2-MN" (or "K7QF2-MNB" with the big cast) for Quick start. */
 export function caseCode(ref: CaseRef): string {
-  if (ref.mode === 'play') return ref.code;
+  if (ref.mode === 'play') return ref.games ? `${ref.code}+${pickedInOrder(ref.games).map((g) => PICK_LETTER[g]).join('')}` : ref.code;
   return `${ref.code}-${DIFFICULTY_LETTER[ref.difficulty]}${LENGTH_LETTER[ref.length]}${ref.cast === 'big' ? 'B' : ''}`;
 }
 
 /** Reads a case code back, forgiving case, spaces and a missing dash. */
 export function parseCaseCode(text: string): CaseRef | null {
   const t = text.toUpperCase().replace(/\s+/g, '');
+  const pick = /^([0-9A-Z]{5})\+([A-Z]+)$/.exec(t);
+  if (pick) {
+    if ([...pick[1]].some((ch) => !ALPHABET.includes(ch))) return null;
+    const games: PickedGame[] = [];
+    for (const ch of pick[2]) {
+      const g = PICK_ORDER.find((k) => PICK_LETTER[k] === ch);
+      if (!g || games.includes(g)) return null;
+      games.push(g);
+    }
+    return games.length < PICK_MIN ? null : { mode: 'play', code: pick[1], games: pickedInOrder(games) };
+  }
   if (/^[0-9A-Z]{5}$/.test(t)) return [...t].every((ch) => ALPHABET.includes(ch)) ? { mode: 'play', code: t } : null;
   const m = /^([0-9A-Z]{5})-?([EMH])([SNL])(B?)$/.exec(t);
   if (!m || [...m[1]].some((ch) => !ALPHABET.includes(ch))) return null;
@@ -106,9 +132,37 @@ export function parseCaseCode(text: string): CaseRef | null {
 
 /** The case a ref names. Same ref, same case. */
 export function caseFor(content: Content, ref: CaseRef): Case {
+  if (ref.mode === 'play' && ref.games) return pickedCase(content, ref.code, ref.games);
   if (ref.mode === 'play') return buildPlayCase(content, `play-${ref.code}`, codeNumber(ref.code), ref.code, playLevels(ref.code));
   const levels = quickLevels(ref);
   return buildCase(content, `quick-${ref.code}-${levelsKey(levels)}`, codeNumber(ref.code), ref.code, levels);
+}
+
+/** How many seed suffixes a picked case tries (`pick-<code>-<letters>`, then `-1`, `-2`, ...). */
+const PICK_TRIES = 30;
+
+/**
+ * A picked case: the same code and so the same levels she saw, with the first
+ * seed text that builds. Deterministic, so the same ref is always the same case.
+ */
+function pickedCase(content: Content, code: string, games: readonly PickedGame[]): Case {
+  const letters = pickedInOrder(games).map((g) => PICK_LETTER[g]).join('');
+  const levels = playLevels(code);
+  let last: unknown;
+  for (let i = 0; i < PICK_TRIES; i++) {
+    try {
+      return buildPlayCase(content, `pick-${code}-${letters}${i ? `-${i}` : ''}`, codeNumber(code), code, levels, pickedInOrder(games));
+    } catch (e) {
+      last = e;
+    }
+  }
+  throw new Error(`Could not build a case with those games: ${last instanceof Error ? last.message : last}`);
+}
+
+/** A new picked case for a code she's seen (the picker rolls the code). */
+export function newPickCase(content: Content, code: string, games: readonly PickedGame[]): { ref: PlayRef; c: Case } {
+  const ref: PlayRef = { mode: 'play', code, games: pickedInOrder(games) };
+  return { ref, c: caseFor(content, ref) };
 }
 
 /**

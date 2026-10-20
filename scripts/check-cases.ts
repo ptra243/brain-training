@@ -1,10 +1,12 @@
-// Generates 100 cases per preset, plus 10 for every combination of levels,
-// and reports any that aren't fair, plus clue-count stats. Run with:
-// npm run check-cases
+// Generates cases and reports any that aren't fair, plus clue-count stats.
+// Quick (default, `npm run check-cases`): 20 per preset, 2 per combination of
+// levels, 5 per Quick start choice, 15 Quick play codes, 1 campaign per
+// difficulty. Full (`npm run check-cases:full`, used by CI): 100, 10, 20, 50
+// and 3. Quick uses the same seeds as the start of a full run.
 import { content } from '../src/content/index.ts';
 import { caseContext, caseFacts, caseSpace, interrogationEvidence } from '../src/engine/caseFacts.ts';
 import { campaignCast, campaignRound, roundProblems, type CampaignRef } from '../src/engine/campaign.ts';
-import { caseCode, caseFor, codeFor, type Cast, type PlayRef, type QuickRef } from '../src/engine/caseRef.ts';
+import { PICK_ORDER, caseCode, caseFor, codeFor, pickedInOrder, type Cast, type PlayRef, type QuickRef } from '../src/engine/caseRef.ts';
 import { generateCase } from '../src/engine/generate.ts';
 import { boardPuzzle, endBoard } from '../src/engine/caseBoard.ts';
 import { boardSolvable } from '../src/engine/board.ts';
@@ -14,7 +16,7 @@ import { isInterrogation, isSceneGame } from '../src/engine/gameKinds.ts';
 import { DIFFICULTIES, LENGTHS, PRESETS, allLevels, caseSettings, levelsKey, presetOf, type CaseLevels } from '../src/engine/settings.ts';
 import { countMatching } from '../src/engine/search.ts';
 import { sceneCrossword, sceneWordSearch } from '../src/game/sceneGames.ts';
-import { Rng } from '../src/engine/rng.ts';
+import { Rng, hashSeed } from '../src/engine/rng.ts';
 import { TAROT_MAX_PAIRS, tarotClueCards } from '../src/engine/tarotCards.ts';
 import { JOKER, buildTarot, flip, resolveTurn, tarotHint, tarotInitial, tarotSolved } from '../src/games/tarot.ts';
 import { countCatSolutions, generateCats, solvableBySimpleSteps } from '../src/games/cats.ts';
@@ -22,8 +24,10 @@ import { solutionAt } from '../src/games/crossword.ts';
 import { everyWordOnce, leftovers } from '../src/games/wordsearch.ts';
 import type { Case, Difficulty } from '../src/engine/types.ts';
 
-const PER_PRESET = 100;
-const PER_COMBINATION = 10;
+const FULL = process.argv.includes('--full');
+console.log(FULL ? 'Full check' : 'Quick check (pass --full for every sample)');
+const PER_PRESET = FULL ? 100 : 20;
+const PER_COMBINATION = FULL ? 10 : 2;
 let failures = 0;
 // Case boards: how many were built, and the slowest.
 const boards = { puzzles: 0, ends: 0, slowest: 0 };
@@ -226,7 +230,7 @@ for (const levels of others) {
 console.log(`\n${others.length} other combinations × ${PER_COMBINATION} cases (slowest ${slowest.label}, ${slowest.ms.toFixed(1)} ms per case)`);
 
 // Quick start: every difficulty, length and cast she can pick, from codes spread over the range.
-const PER_QUICK = 20;
+const PER_QUICK = FULL ? 20 : 5;
 const CASTS: Cast[] = ['classic', 'big'];
 for (const difficulty of DIFFICULTIES) {
   for (const length of LENGTHS) {
@@ -250,7 +254,7 @@ const QUICK_CHOICES = DIFFICULTIES.length * LENGTHS.length * CASTS.length;
 console.log(`${QUICK_CHOICES} Quick start choices × ${PER_QUICK} codes`);
 
 // Quick play: the code alone rolls the levels.
-const PER_PLAY = 50;
+const PER_PLAY = FULL ? 50 : 15;
 const playStarted = performance.now();
 for (let i = 1; i <= PER_PLAY; i++) {
   const ref: PlayRef = { mode: 'play', code: codeFor(i * 1_215_773) };
@@ -268,6 +272,31 @@ console.log(
   `${PER_PLAY} Quick play codes (${((performance.now() - playStarted) / PER_PLAY).toFixed(0)} ms per case): ` +
     `${play.sceneBlanks} of ${play.blanks} word games blank a scene-room clue; games drawn ${[...play.games].sort((a, b) => a[0] - b[0]).map(([n, k]) => `${n}: ${k}`).join(', ')}`,
 );
+
+// Picked cases ("Choose games"): her games plus any top-ups, checked like any Play case.
+const PER_PICK = FULL ? 40 : 10;
+for (let i = 1; i <= PER_PICK; i++) {
+  const rng = new Rng(hashSeed(`check-pick-${i}`));
+  const games = rng.shuffle([...PICK_ORDER]).slice(0, 3 + rng.int(PICK_ORDER.length - 2));
+  const ref: PlayRef = { mode: 'play', code: codeFor(i * 2_654_435), games: pickedInOrder(games) };
+  try {
+    const c = caseFor(content, ref);
+    for (const p of problems(c)) {
+      failures++;
+      console.log(`  FAIL picked ${caseCode(ref)}: ${p}`);
+    }
+    for (const g of ref.games!) {
+      if (!c.games.some((x) => x.kind === g)) {
+        failures++;
+        console.log(`  FAIL picked ${caseCode(ref)}: missing ${g}`);
+      }
+    }
+  } catch (err) {
+    failures++;
+    console.log(`  FAIL picked ${caseCode(ref)}: ${(err as Error).message}`);
+  }
+}
+console.log(`${PER_PICK} picked cases`);
 
 // Tarot match: keep drawing Play codes until every level has a few cases (each checked above like any case).
 const TAROT_WANT = 5;
@@ -296,7 +325,7 @@ for (const d of DIFFICULTIES) {
 console.log(`Tarot match: easy ${tarotChecked.easy}, medium ${tarotChecked.medium}, hard ${tarotChecked.hard} cases checked (${tarotCodes} extra Play codes scanned)`);
 
 // Campaigns: every path of wrong accusations, each round fair for any puzzles she picks.
-const PER_DIFFICULTY = 3;
+const PER_DIFFICULTY = FULL ? 3 : 1;
 let rounds = 0;
 const campaignStarted = performance.now();
 for (const difficulty of DIFFICULTIES) {

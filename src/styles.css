@@ -705,3 +705,24 @@ body.dev { background: #f2f1ec; color: #222; }
 .tarot-back-dot { fill: var(--tarot-back-brass); }
 .tarot-back-inner { fill: none; stroke: var(--tarot-back-brass); stroke-width: 0.5; }
 .tarot-ghost { position: absolute; inset: 0; opacity: 0.4; display: block; background: rgba(244, 240, 228, 0.55); }
+
+/* ---------- Choose games ---------- */
+.pick-lead { margin-bottom: 0.7rem; font-size: 0.9rem; }
+.pick-list { list-style: none; margin: 0 0 0.7rem; padding: 0; display: grid; gap: 0.4rem; }
+.pick-row {
+  display: flex; align-items: center; gap: 0.7rem; width: 100%; min-height: 2.9rem; padding: 0 0.7rem;
+  border: 1px solid #b9b09a; border-radius: 0.35rem; background: #fffcf3; color: var(--ink); font: inherit; text-align: left; cursor: pointer;
+}
+.pick-row[aria-pressed='true'] { border-color: var(--ink); background: #f0ead6; }
+.pick-box {
+  flex: none; display: grid; place-items: center; width: 1.4rem; height: 1.4rem; border: 1.5px solid var(--ink-soft); border-radius: 0.2rem;
+  color: var(--pencil); font-weight: 700; line-height: 1;
+}
+.pick-name { flex: 1; font-family: var(--serif); font-size: 1.02rem; }
+.pick-level { font-size: 0.78rem; padding: 0.1rem 0.5rem; border-radius: 999px; border: 1px solid var(--card-edge); color: var(--ink-soft); }
+.pick-level.hard { border-color: var(--pencil); color: var(--pencil); }
+.pick-case { margin: 0 0 0.6rem; font-size: 0.88rem; }
+.pick-error { margin: 0.6rem 0 0; color: var(--pencil); font-size: 0.9rem; }
+.pick-start { margin-top: 0.8rem; }
+.pick-start:disabled { opacity: 0.45; cursor: default; }
+.home-choose { margin-top: 0.5rem; }

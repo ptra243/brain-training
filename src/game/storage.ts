@@ -2,7 +2,7 @@
 // (private mode, blocked site data), so every access is guarded and the game
 // still works without it, just without remembering.
 
-import type { CaseRef } from '../engine/caseRef.ts';
+import { PICK_ORDER, pickedInOrder, type CaseRef, type PickedGame } from '../engine/caseRef.ts';
 import type { CampaignSave } from './campaign.ts';
 import { emptyProgress, type Progress } from './state.ts';
 
@@ -41,6 +41,7 @@ export function loadQuick(): QuickSave | null {
   if (!saved?.ref || typeof saved.ref.code !== 'string') return null;
   // A Play case is just its code; an old Quick start also needs its levels.
   if (saved.ref.mode !== 'play' && (!saved.ref.difficulty || !saved.ref.length)) return null;
+  if (saved.ref.mode === 'play' && saved.ref.games !== undefined && !Array.isArray(saved.ref.games)) return null;
   if (saved.ref.mode === 'play' && (saved as { playVersion?: number }).playVersion !== PLAY_VERSION) return null;
   return { ref: saved.ref, progress: { ...emptyProgress(), ...saved.progress } };
 }
@@ -63,15 +64,24 @@ export function loadCampaign(): CampaignSave | null {
 export const saveCampaign = (c: CampaignSave) => write('campaign', c);
 
 /** Where she was: the home screen, her Quick start case or her campaign, so reopening the app goes back there. */
-export type Screen = 'home' | 'case' | 'campaign' | 'campaign-setup';
+export type Screen = 'home' | 'case' | 'campaign' | 'campaign-setup' | 'pick';
 
 export const loadScreen = (): Screen => {
   const s = read<Screen>('screen');
-  // 'campaign-setup' is never restored: reopening the app lands on home.
+  // 'campaign-setup' and 'pick' are never restored: reopening the app lands on home.
   return s === 'case' || s === 'campaign' ? s : 'home';
 };
 
 export const saveScreen = (s: Screen) => write('screen', s);
+
+/** The games she last ticked in "Choose games", so the picker starts there. */
+export function loadPicks(): PickedGame[] {
+  const saved = read<unknown>('picks');
+  if (!Array.isArray(saved)) return [];
+  return pickedInOrder(saved.filter((g): g is PickedGame => PICK_ORDER.includes(g)));
+}
+
+export const savePicks = (games: readonly PickedGame[]) => write('picks', games);
 
 /** Forget the Quick start case, the campaign and where she was (the error screen's way out of a bad save). */
 export function clearSaves() {

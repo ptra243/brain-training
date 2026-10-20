@@ -22,6 +22,8 @@ interface Props {
   onContinue: () => void;
   /** Start a new Play case. */
   onStart: () => void;
+  /** Open the game picker. */
+  onChoose: () => void;
   /** The campaign card, below Quick play. */
   campaign: ReactNode;
 }
@@ -39,8 +41,8 @@ function caseLine(ref: CaseRef, c: Case, progress: Progress) {
 }
 
 /** Where she starts: her case in progress, a new Quick play case, and the campaign. */
-export function Home({ current, onContinue, onStart, campaign }: Props) {
-  const [confirming, setConfirming] = useState(false);
+export function Home({ current, onContinue, onStart, onChoose, campaign }: Props) {
+  const [confirming, setConfirming] = useState<'new' | 'choose' | null>(null);
   const unfinished = current !== null && !current.progress.solved;
 
   return (
@@ -64,26 +66,30 @@ export function Home({ current, onContinue, onStart, campaign }: Props) {
       <article className="card">
         <h2>Quick play</h2>
         <p className="muted home-lead">A new case, with a mix of puzzles.</p>
-        <button className={unfinished ? 'secondary' : 'primary'} onClick={() => (unfinished ? setConfirming(true) : onStart())}>
+        <button className={unfinished ? 'secondary' : 'primary'} onClick={() => (unfinished ? setConfirming('new') : onStart())}>
           New case
+        </button>
+        <button className="secondary home-choose" onClick={() => (unfinished ? setConfirming('choose') : onChoose())}>
+          Choose games
         </button>
       </article>
 
       {campaign}
 
-      {confirming && current && (
-        <Dialog placement="center" labelId="new-case-title" onClose={() => setConfirming(false)}>
+      {confirming !== null && current && (
+        <Dialog placement="center" labelId="new-case-title" onClose={() => setConfirming(null)}>
           <h2 id="new-case-title">Start a new case?</h2>
           <p className="dialog-text">{caseTitle(current.ref)} isn't solved yet. A new case replaces it.</p>
           <div className="dialog-actions">
-            <button data-autofocus className="secondary" onClick={() => setConfirming(false)}>
+            <button data-autofocus className="secondary" onClick={() => setConfirming(null)}>
               Keep playing
             </button>
             <button
               className="primary"
               onClick={() => {
-                setConfirming(false);
-                onStart();
+                setConfirming(null);
+                if (confirming === 'choose') onChoose();
+                else onStart();
               }}
             >
               Start new

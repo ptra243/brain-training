@@ -70,6 +70,16 @@
   for the next one drawn. Changing how Play cases are built changes saved
   ones: bump `PLAY_VERSION` in `src/game/storage.ts`. Other modes never set `perGame`, `level`,
   `blank` or `sceneGiven`, so their cases are unchanged.
+  **Picked cases** ("Choose games"; `PlayRef.games`, code `K7QF2+WCK`: the
+  Play code, then one fixed letter per game in `PICK_ORDER`, at least 3): the
+  code rolls the levels exactly like a Play case, so what she saw is what she
+  plays. `caseFor` tries seed texts `pick-<code>-<letters>`, then `-1`, `-2`,
+  ... (30) and returns the first that builds; never retry with another code.
+  Her games are kept (any failure of one throws, so the next suffix is tried);
+  only when the clues need more games (`atLeast`) are extras added from the
+  seeded draw, and extras may be swapped or dropped. Tarot is a real chosen
+  game here (`tarotPairsAt` for its own slot, `Layout.picked`), never the
+  random stand-in, which only plain Play cases use.
 - **A case name is its code in words** ("The Black Dahlia Scandal at
   Ashcombe": the code's number as a descriptor, a cat or flower word and a
   place, then the kind word for its levels), so either replays the case

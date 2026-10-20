@@ -59,7 +59,15 @@ export function buildCase(content: Content, seedText: string, caseNumber: number
  * no free clues, and the three word games are clue games. Each hides an
  * object word that fills the blank in one of its clues.
  */
-export function buildPlayCase(content: Content, seedText: string, caseNumber: number, code: string, levels: CaseLevels): Case {
+export function buildPlayCase(
+  content: Content,
+  seedText: string,
+  caseNumber: number,
+  code: string,
+  levels: CaseLevels,
+  /** Picked cases: the games she chose. Any failure of one of them throws; extras (to leave each game a clue room) may be swapped or dropped. */
+  picks?: readonly GameKind[],
+): Case {
   const seed = hashSeed(seedText);
   const rng = new Rng(seed);
   const settings = caseSettings(levels);
@@ -75,13 +83,23 @@ export function buildPlayCase(content: Content, seedText: string, caseNumber: nu
   // 3 to 5 games (more if the clues need them), drawn on a seed of their own;
   // a game that can't take its share is swapped for the next one drawn.
   type Name = SceneKind | RotatingKind;
-  const all: Name[] = [...SCENE_GAMES, ...ROTATION, 'board'];
+  const all: Name[] = picks ? [...SCENE_GAMES, ...ROTATION, 'board', 'tarot'] : [...SCENE_GAMES, ...ROTATION, 'board'];
+  const mine = new Set<Name>(picks as Name[] | undefined);
+  const fail = (what: string): never => {
+    throw new Error(`Case ${code}: ${what}`);
+  };
   const pickRng = new Rng(hashSeed(`${seed}-play-games`));
   const drawn = pickRng.shuffle(all);
   const atLeast = Math.ceil((shuffled.length - (settings.finale ? 2 : 0)) / settings.maxPerGame);
   const count = Math.min(all.length, Math.max(atLeast, PLAY_GAMES_MIN + pickRng.int(PLAY_GAMES_MAX - PLAY_GAMES_MIN + 1)));
   let chosen = new Set(drawn.slice(0, count));
-  const spare = drawn.slice(count);
+  let spare = drawn.slice(count);
+  if (picks) {
+    // Her games, topped up from the draw when the clues need more games.
+    chosen = new Set(mine);
+    for (const d of drawn) if (chosen.size < atLeast && !chosen.has(d)) chosen.add(d);
+    spare = drawn.filter((d) => !chosen.has(d));
+  }
   const without = (n: Name) => {
     chosen.delete(n);
     if (spare.length) chosen.add(spare.shift()!);
@@ -92,6 +110,13 @@ export function buildPlayCase(content: Content, seedText: string, caseNumber: nu
     const shares = playShares(shuffled.length, settings, names, levels, new Rng(hashSeed(`${seed}-play-shares`)));
     // Every game left must get a clue: otherwise drop one, seeded.
     if (shares.games.some((g) => g < 1)) {
+      if (picks) {
+        const extras = names.filter((n) => !mine.has(n));
+        if (!extras.length) fail('her games cannot all get a clue');
+        const gone = extras[dropRng.int(extras.length)];
+        chosen = new Set(names.filter((n) => n !== gone));
+        continue;
+      }
       chosen = new Set(names.filter((_, i) => i !== dropRng.int(names.length)));
       continue;
     }
@@ -112,6 +137,7 @@ export function buildPlayCase(content: Content, seedText: string, caseNumber: nu
       blanks.set(w, fact as Extract<ClueFact, { room: string }>);
     }
     if (failed) {
+      if (mine.has(failed)) fail(`${failed} has no clue to blank`);
       without(failed);
       continue;
     }
@@ -129,6 +155,7 @@ export function buildPlayCase(content: Content, seedText: string, caseNumber: nu
       const share = clues.slice(start, start + shares.games[at]).map((cl) => cl.id);
       const c = { suspects, rooms, items, shared: settings.shared, seed, sceneRoom, clues };
       if (!boardPuzzle(content, c, { seed: hashSeed(`${seed}-board`), clues: share })) {
+        if (mine.has('board')) fail('the board puzzle will not build');
         without('board');
         continue;
       }
@@ -147,7 +174,19 @@ export function buildPlayCase(content: Content, seedText: string, caseNumber: nu
     });
     const rotating = names.filter((n): n is RotatingKind => !SCENE_GAMES.includes(n as SceneKind));
     const kinds = settings.finale ? [...rotating, 'finale' as const] : rotating;
-    return assemble({ content, seed, rng, settings, levels, caseNumber, code, truth, order, rotating, kinds, shares, words: wordList });
+    const layout: Layout = { content, seed, rng, settings, levels, caseNumber, code, truth, order, rotating, kinds, shares, words: wordList };
+    if (picks) {
+      // Tarot is a real chosen game here: its pairs are for its own slot, and no random stand-in happens.
+      const slot = rotating.indexOf('tarot');
+      const pairs = slot >= 0 ? tarotPairsAt(layout, slot) : 0;
+      if (pairs === null) {
+        if (mine.has('tarot')) fail('the tarot pairs do not fit');
+        without('tarot');
+        continue;
+      }
+      layout.picked = { tarotPairs: pairs };
+    }
+    return assemble(layout);
   }
 }
 
@@ -180,6 +219,8 @@ export interface Layout {
    * one clue. Absent for every other mode, which `assemble` handles as before.
    */
   words?: PlayWord[];
+  /** Picked Play cases: tarot is a chosen game (this many pairs, 0 if absent), never a random stand-in. */
+  picked?: { tarotPairs: number };
 }
 
 /** Words the clues, builds the interrogations, the scene and the game specs. */
@@ -188,7 +229,7 @@ export function assemble(o: Layout): Case {
   // The case board puzzle may stand in for one of the drawn games.
   const slot = o.words ? -1 : boardSlot(o);
   // Play only: tarot match may stand in for one of the drawn games, on its own seed, after the board.
-  const tarot = o.words ? tarotSlot(o) : null;
+  const tarot = o.picked ? { slot: -1, pairs: o.picked.tarotPairs } : o.words ? tarotSlot(o) : null;
   const wordKinds: SceneKind[] = o.words?.map((w) => w.kind) ?? [];
   const swap = <K extends string>(k: K, i: number) => (i === slot ? ('board' as const) : tarot && i === tarot.slot ? ('tarot' as const) : k);
   const rotating = o.rotating.map(swap);
@@ -366,14 +407,19 @@ function tarotSlot(o: Layout): { slot: number; pairs: number } {
   const pick = new Rng(hashSeed(`${o.seed}-tarot-game`));
   if (!o.rotating.length || pick.next() >= TAROT_SHARE) return none;
   const slot = pick.int(o.rotating.length);
+  const pairs = tarotPairsAt(o, slot);
+  return pairs === null ? none : { slot, pairs };
+}
+
+/** How many pairs tarot match gets for the rotating game at `slot`, or null when its clues name too many cards. */
+function tarotPairsAt(o: Layout, slot: number): number | null {
   // Play's shares list the word games first, then the rotating ones.
   const at = o.shares.games.slice(0, (o.words?.length ?? 0) + slot).reduce((a, b) => a + b, o.shares.free);
   const mine = o.order.slice(at, at + o.shares.games[(o.words?.length ?? 0) + slot]);
   const others = o.order.filter((f) => !mine.includes(f));
   const { suspects, items, rooms } = o.truth;
   const cards = tarotClueCards({ suspects, items, rooms }, mine, others);
-  const pairs = tarotPairsFor(o.settings.tarotPairs, cards.reward.length);
-  return pairs === null ? none : { slot, pairs };
+  return tarotPairsFor(o.settings.tarotPairs, cards.reward.length);
 }
 
 export interface Truth {
