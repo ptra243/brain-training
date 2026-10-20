@@ -32,3 +32,7 @@ export const CLUE_SOURCE: Record<ClueDelivery, ClueSource> = {
 
 export const isSceneGame = (g: GameSpec): g is SceneGameSpec => g.unlocksScene;
 export const isInterrogation = (g: GameSpec): g is InterrogationSpec => 'interrogation' in g;
+
+/** How many games a Play case draws (more when its clues need the room: each game holds at most 7). */
+export const PLAY_GAMES_MIN = 3;
+export const PLAY_GAMES_MAX = 5;

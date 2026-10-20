@@ -31,6 +31,11 @@ test('rolled levels reach the game specs', () => {
       if (g.kind === 'finale') assert.equal(g.level, undefined, code);
       else if (g.kind === 'wordle' || g.kind === 'crossword') assert.equal(g.level, undefined, code);
       else assert.equal(g.level, levels.perGame![g.kind], `${code} ${g.kind}`);
+      if (g.kind === 'crossword') {
+        const size = { easy: 7, medium: 9, hard: 11 }[levels.perGame!.crossword!];
+        assert.equal(g.size, size, code);
+        assert.equal(s.crosswordSize, size, code);
+      }
       if (g.kind === 'cats') {
         assert.equal(g.size, s.catSize, code);
         assert.equal(g.easy, s.catEasy ? true : undefined, code);
@@ -78,4 +83,36 @@ test('numbered cases are untouched by Play fields', () => {
   assert.ok(!('sceneGiven' in c));
   for (const g of c.games) assert.ok(!('level' in g), g.kind);
   assert.ok(c.clues.every((cl) => !('blank' in cl)));
+});
+
+test('the crossword rolls its own level, appended so earlier rolls are unchanged', () => {
+  const sizes = new Set<number>();
+  for (const code of codes(40)) {
+    const levels = playLevels(code);
+    assert.ok(['easy', 'medium', 'hard'].includes(levels.perGame!.crossword!), code);
+    sizes.add(caseSettings(levels).crosswordSize);
+  }
+  assert.deepEqual([...sizes].sort((a, b) => a - b), [7, 9, 11]);
+});
+
+test('Play cases draw 3 to 5 games (more only when the clues need them), and harder games get at least their share', () => {
+  const counts = new Set<number>();
+  for (const code of codes(40)) {
+    const c = play(code);
+    const levels = playLevels(code);
+    const games = c.games.filter((g) => g.kind !== 'finale');
+    const held = games.reduce((n, g) => n + g.clues.length, 0);
+    counts.add(games.length);
+    assert.ok(games.length >= 1 && games.length <= 7, code);
+    if (games.length > 5) assert.ok(held > 5 * 7 - 7, `${code}: ${games.length} games for ${held} clues`);
+    const weight = (g: (typeof games)[number]) => ({ easy: 1, medium: 2, hard: 3 })[levels.perGame?.[g.kind] ?? 'easy'];
+    const sum = games.reduce((n, g) => n + weight(g), 0);
+    for (const g of games) {
+      assert.ok(g.clues.length <= 7, `${code} ${g.kind}`);
+      if (g.kind !== 'sudoku' && !games.some((x) => x.kind === 'sudoku' && x.clues.length === 2)) {
+        assert.ok(g.clues.length >= Math.min(7, Math.floor((held * weight(g)) / sum)) - 1, `${code} ${g.kind}`);
+      }
+    }
+  }
+  assert.ok([3, 4, 5].every((n) => counts.has(n)), [...counts].join());
 });

@@ -4,11 +4,11 @@ import { canLocate, plainText, wordClue } from './wording.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { allHoldings, allRoomings, countMatching } from './search.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
-import { BOARD_SHARE, CLUE_SOURCE, ROTATION, SCENE_GAMES } from './gameKinds.ts';
+import { BOARD_SHARE, CLUE_SOURCE, PLAY_GAMES_MAX, PLAY_GAMES_MIN, ROTATION, SCENE_GAMES } from './gameKinds.ts';
 import { boardPuzzle } from './caseBoard.ts';
 import type { Case, Clue, ClueDelivery, ClueFact, ClueType, Content, Difficulty, GameKind, GameSpec, Interrogation, RotatingKind, SceneKind, Solution, CampaignRound } from './types.ts';
 import { buildInterrogation, type CaseFacts } from './interrogation.ts';
-import { PRESETS, caseSettings, clueShares, gameLevel, levelsKey, type CaseLevels, type CaseSettings, type ClueShares } from './settings.ts';
+import { PRESETS, caseSettings, clueShares, gameLevel, levelsKey, playShares, type CaseLevels, type CaseSettings, type ClueShares } from './settings.ts';
 
 /** Difficulty curve for the campaign: a few easy cases, then mostly medium with every third hard. */
 export function campaignDifficulty(caseNumber: number): Difficulty {
@@ -71,16 +71,27 @@ export function buildPlayCase(content: Content, seedText: string, caseNumber: nu
   const blankRng = new Rng(hashSeed(`${seed}-play-blank`));
   const atScene = (f: ClueFact) => canLocate(f) && f.room === sceneRoom;
 
+  // 3 to 5 games (more if the clues need them), drawn on a seed of their own;
+  // a game that can't take its share is swapped for the next one drawn.
   type Name = SceneKind | RotatingKind;
-  let names: Name[] = [...SCENE_GAMES, ...ROTATION, 'board'];
+  const all: Name[] = [...SCENE_GAMES, ...ROTATION, 'board'];
+  const pickRng = new Rng(hashSeed(`${seed}-play-games`));
+  const drawn = pickRng.shuffle(all);
+  const atLeast = Math.ceil((shuffled.length - (settings.finale ? 2 : 0)) / settings.maxPerGame);
+  const count = Math.min(all.length, Math.max(atLeast, PLAY_GAMES_MIN + pickRng.int(PLAY_GAMES_MAX - PLAY_GAMES_MIN + 1)));
+  let chosen = new Set(drawn.slice(0, count));
+  const spare = drawn.slice(count);
+  const without = (n: Name) => {
+    chosen.delete(n);
+    if (spare.length) chosen.add(spare.shift()!);
+  };
   for (;;) {
+    const names = all.filter((n) => chosen.has(n));
     if (!names.length) throw new Error(`Case ${code}: no game could be given a clue`);
-    const shares = clueShares(shuffled.length, { ...settings, games: names.length, freeClues: 0 }, names.indexOf('sudoku'));
-    if (shares.free > 0) throw new Error(`Case ${code}: too many clues for its games`);
+    const shares = playShares(shuffled.length, settings, names, levels, new Rng(hashSeed(`${seed}-play-shares`)));
     // Every game left must get a clue: otherwise drop one, seeded.
     if (shares.games.some((g) => g < 1)) {
-      const out = dropRng.int(names.length);
-      names = names.filter((_, i) => i !== out);
+      chosen = new Set(names.filter((_, i) => i !== dropRng.int(names.length)));
       continue;
     }
     // Word games: each blanks a clue that names one room, the scene room's first.
@@ -100,7 +111,7 @@ export function buildPlayCase(content: Content, seedText: string, caseNumber: nu
       blanks.set(w, fact as Extract<ClueFact, { room: string }>);
     }
     if (failed) {
-      names = names.filter((n) => n !== failed);
+      without(failed);
       continue;
     }
     // Their other clues come from the scene room's first.
@@ -117,7 +128,7 @@ export function buildPlayCase(content: Content, seedText: string, caseNumber: nu
       const share = clues.slice(start, start + shares.games[at]).map((cl) => cl.id);
       const c = { suspects, rooms, items, shared: settings.shared, seed, sceneRoom, clues };
       if (!boardPuzzle(content, c, { seed: hashSeed(`${seed}-board`), clues: share })) {
-        names = names.filter((n) => n !== 'board');
+        without('board');
         continue;
       }
     }
@@ -266,8 +277,7 @@ export function assemble(o: Layout): Case {
       seed: hashSeed(`${seed}-${w.kind}`),
       clues: idsFor(w.kind),
       unlocksScene: true,
-      // The crossword has no Play level yet, so it keeps its smallest grid.
-      size: w.kind === 'wordle' ? 5 : 7,
+      size: w.kind === 'wordle' ? 5 : w.kind === 'crossword' ? settings.crosswordSize : 7,
       scene: { answer: w.answer, text: clues.find((c) => c.blank?.game === w.kind)!.text },
       ...(w.kind === 'wordsearch' && levelOf(w.kind)),
     })),

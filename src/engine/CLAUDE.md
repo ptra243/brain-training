@@ -53,11 +53,15 @@
   every wrong-guess path.
 - **Play cases** (Quick play, `buildPlayCase`, seed `play-<code>`): the bare
   code rolls everything (`playLevels`, its own seed; a new game's roll goes
-  last so earlier rolls stay the same). Every game is in the case, each with
-  its own `level`; no free clues, the scene is given (`sceneGiven`), and the
+  last so earlier rolls stay the same; the crossword's roll sets its grid size,
+  the wordle has none). A case draws 3 to 5 games (more only when its clues
+  need the room; `PLAY_GAMES_MIN/MAX`), each with its own `level`, and
+  `playShares` splits the clues by level (easy 1 : medium 2 : hard 3, the
+  leftovers to random games); no free clues, the scene is given (`sceneGiven`), and the
   word games are clue games: each blanks one room-naming clue (`Clue.blank`),
-  scene-room clues first, and hides an object of that room. Games that would
-  get no clue are dropped. Other modes never set `perGame`, `level`,
+  scene-room clues first, and hides an object of that room. A game that can't take its share is swapped
+  for the next one drawn. Changing how Play cases are built changes saved
+  ones: bump `PLAY_VERSION` in `src/game/storage.ts`. Other modes never set `perGame`, `level`,
   `blank` or `sceneGiven`, so their cases are unchanged.
 - **A case name is its code in words** ("The Black Dahlia Scandal at
   Ashcombe": the code's number as a descriptor, a cat or flower word and a

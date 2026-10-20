@@ -2,6 +2,7 @@
 // the generator settings each combination turns into. Every combination is
 // checked by `npm run check-cases`, so only levels listed here can ship.
 
+import type { Rng } from './rng.ts';
 import type { ClueType, Difficulty, GameKind } from './types.ts';
 
 export type Length = 'short' | 'normal' | 'long';
@@ -21,7 +22,7 @@ export interface CaseLevels {
   length: Length;
   /**
    * Play mode only: a difficulty per game, falling back to `minigames` for any
-   * game without one (the word games wordle and crossword have no roll yet).
+   * game without one (the wordle has no roll).
    */
   perGame?: Partial<Record<GameKind, Difficulty>>;
 }
@@ -181,6 +182,7 @@ export function caseSettings(levels: CaseLevels): CaseSettings {
       sudoku: MINIGAMES[levels.perGame.sudoku ?? levels.minigames].sudoku,
       hardInterrogation: MINIGAMES[levels.perGame.interrogation ?? levels.minigames].hardInterrogation,
       wordSearchLevel: MINIGAMES[levels.perGame.wordsearch ?? levels.minigames].wordSearchLevel,
+      crosswordSize: MINIGAMES[levels.perGame.crossword ?? levels.minigames].crosswordSize,
     }),
     games: GAMES[levels.length],
     maxPerGame: MAX_PER_GAME,
@@ -194,6 +196,41 @@ export interface ClueShares {
   finale: number;
   /** Clues for each rotating game, in play order. */
   games: number[];
+}
+
+const LEVEL_WEIGHT: Record<Difficulty, number> = { easy: 1, medium: 2, hard: 3 };
+
+/**
+ * Play cases: no free clues, the finale's two as usual, and the rest split by
+ * each game's level (easy 1 : medium 2 : hard 3; a game without a level
+ * counts as easy). Every game gets at least one and at most `maxPerGame`; the
+ * clues left over after the split go one each to random games. A sudoku gets
+ * two when it can. Throws when the games can't hold every clue.
+ */
+export function playShares(total: number, s: CaseSettings, kinds: readonly GameKind[], levels: CaseLevels, rng: Rng): ClueShares {
+  const k = kinds.length;
+  const finale = s.finale ? Math.max(0, Math.min(2, total - k)) : 0;
+  const rest = total - finale;
+  if (rest > k * s.maxPerGame) throw new Error('too many clues for the games');
+  if (rest < k) return { free: 0, finale, games: kinds.map((_, i) => (i < rest ? 1 : 0)) };
+  const weights = kinds.map((kind) => LEVEL_WEIGHT[levels.perGame?.[kind] ?? 'easy']);
+  const sum = weights.reduce((a, b) => a + b, 0);
+  const games = weights.map((w) => Math.min(s.maxPerGame, Math.max(1, Math.floor((rest * w) / sum))));
+  // Rounding up to one can overshoot: take back from the biggest shares.
+  while (games.reduce((a, b) => a + b, 0) > rest) games[games.indexOf(Math.max(...games))]--;
+  for (let left = rest - games.reduce((a, b) => a + b, 0); left > 0; left--) {
+    const open = games.flatMap((g, i) => (g < s.maxPerGame ? [i] : []));
+    games[rng.pick(open)]++;
+  }
+  const sudokuAt = kinds.indexOf('sudoku');
+  if (sudokuAt >= 0 && games[sudokuAt] < 2) {
+    const most = Math.max(...games.filter((_, i) => i !== sudokuAt));
+    if (most > 1) {
+      games[games.findIndex((g, i) => i !== sudokuAt && g === most)]--;
+      games[sudokuAt]++;
+    }
+  }
+  return { free: 0, finale, games };
 }
 
 /**

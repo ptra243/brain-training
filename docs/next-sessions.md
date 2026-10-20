@@ -90,15 +90,3 @@ Starting prompt:
 ```
 Review the medium and hard crossword clues in src/content/crosswordWords.ts for fairness and fix weak ones.
 ```
-
-## Session: Crossword difficulty roll in Quick play
-Last touched: 2026-10-20
-Reads first: `src/engine/CLAUDE.md` (Play cases), `src/engine/settings.ts` (`perGame`, `crosswordSize`).
-Goal: Quick play rolls a level per game, but not for the crossword (or Wordle), so its grid size
-still follows `levels.minigames`. Decide whether it gets its own roll (it would go last in
-`playLevels` so earlier rolls stay the same) and wire `crosswordSize` to it. Design first, in the
-main session; the wiring and tests can go to `implementer`. Dump and diff Play cases before and after.
-Starting prompt:
-```
-Give the crossword its own difficulty roll in Quick play.
-```

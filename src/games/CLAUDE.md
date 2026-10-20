@@ -7,6 +7,11 @@ Pure puzzle logic, no React. Components live in `src/game/games/`.
   as a forced first move and pass `solvableBySimpleSteps`, others have none.
   Sudoku: one answer, solvable by singles alone. Known gap: medium and hard
   cat puzzles aren't checked for how much look-ahead they need.
+- **Levels.** Give every new minigame easy, medium and hard where the puzzle
+  can scale (size, givens, harder words, fewer hints in the clues). Wire it
+  through `MINIGAMES` in `settings.ts` and add its Play roll last in
+  `PLAY_ROLLED`. If it can't scale, say why in its entry here. Each level must
+  stay fair and solvable, and `check-cases` must cover all three.
 - **Generate a puzzle once per game screen**, never per render or per move.
 - **Hints** are a pure `…Hint()` function here, with a test that following
   hints always reaches a win. Ladder, gentle to strong: red-pencil wrong
