@@ -62,6 +62,20 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
   directly, e.g. `node scripts/check-cases.ts`.
 - Python isn't installed. Edit files with the Edit tool; for scripted bulk
   edits, use a Node script in the scratchpad.
+- Write any script longer than a line to a file in the scratchpad and run
+  it; never inline it with `node -e "…"` or a heredoc (`$`, backticks and
+  apostrophes break the shell quoting).
+- `git add -p` and other interactive commands don't work here. To commit only
+  some of a file's changes, ask the owner or commit the whole file.
+- The repo is in OneDrive, which can touch files mid-session: if Edit says the
+  file changed since it was read, re-read it once; if the dev server misses an
+  edit, reload it.
+- After pushing, check the deploy with `gh run list --limit 1` (then
+  `gh run watch <id> --exit-status` in the background).
+- Claude Docs edits (the plan docs): target a block by its id rather than
+  quoting text; if a quote must be used, quote a long distinctive phrase or add
+  `nth`. One paragraph per block, no newlines inside one. On a `deny`, read
+  `detail` and change the call; never resend the same payload.
 - Cloud sessions can't reach the npm registry: add new dependencies on the
   owner's machine or via CI. Without `node_modules`, at least run the global
   `tsc` over the non-React files with `--strict --noUnusedLocals
