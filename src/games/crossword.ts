@@ -1,7 +1,7 @@
 // Mini crossword: clued across and down words that cross each other in a
 // small grid. Some squares are shaded and numbered 1, 2, 3...; in that
-// order their letters spell the hidden word. She wins the moment every shaded
-// square is right, so she can stop early once she's guessed the word.
+// order their letters spell the hidden word. She wins when every square is
+// right; once the shaded ones are, she can also stop early and take the clue.
 
 import type { Rng } from '../engine/rng.ts';
 
@@ -33,10 +33,10 @@ export interface CrosswordPuzzle {
   shaded: readonly (readonly [number, number])[];
 }
 
-/** Fits 7 squares across a 360px phone at 44px each, and leaves room for the keyboard below. */
+/** Fits 7 squares across a 360px phone at 44px each, and leaves room for the keyboard below. Bigger grids scroll. */
 export const CROSSWORD_SIZE = 7;
-const MIN_WORDS = 6;
-const MAX_WORDS = 10;
+/** How many words a grid of this size holds, fewest to most. */
+const wordRange = (size: number): [number, number] => (size <= 7 ? [6, 10] : size <= 9 ? [8, 13] : [11, 17]);
 const ATTEMPTS = 400;
 
 export const cellKey = (r: number, c: number) => `${r},${c}`;
@@ -127,7 +127,9 @@ function buildBoard(pool: readonly ClueWordLike[], byLetter: LetterIndex, size: 
   const across = rng.int(size);
   board.place(first, dir, dir === 'across' ? across : along, dir === 'across' ? along : across);
 
-  const target = MIN_WORDS + rng.int(MAX_WORDS - MIN_WORDS + 1);
+  const [min, max] = wordRange(size);
+  const probes = size <= 7 ? 800 : 2000;
+  const target = min + rng.int(max - min + 1);
   while (board.words.length < target) {
     const used = new Set(board.words.map((w) => w.word));
     // Letters the hidden word still needs: favour words that bring them.
@@ -138,8 +140,8 @@ function buildBoard(pool: readonly ClueWordLike[], byLetter: LetterIndex, size: 
     }
     const filled = [...board.letters];
     const options: { w: ClueWordLike; dir: Direction; row: number; col: number; score: number }[] = [];
-    // Random probes are much cheaper than trying every word at every square, and plenty for a 7×7 grid.
-    for (let probe = 0; probe < 800 && options.length < 12; probe++) {
+    // Random probes are much cheaper than trying every word at every square, and plenty for these grids.
+    for (let probe = 0; probe < probes && options.length < 12; probe++) {
       const [key, letter] = filled[rng.int(filled.length)];
       const fits = byLetter.get(letter);
       if (!fits) continue;
@@ -214,16 +216,24 @@ export function generateCrossword(
 ): CrosswordPuzzle {
   const pool = words.filter((w) => w.word.length >= 3 && w.word.length <= size && !exclude.has(w.word) && w.word !== answer);
   const byLetter = indexLetters(pool);
+  const enough = Math.min(4, answer.length);
+  // Bigger grids rarely fill up in one go: keep the fullest of a few good boards.
+  const keep = size <= 7 ? 1 : 4;
+  let good = 0;
   let best: { board: Board; shaded: [number, number][]; spread: number } | null = null;
   for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
     const board = buildBoard(pool, byLetter, size, answer, rng);
-    if (board.words.length < MIN_WORDS) continue;
+    if (board.words.length < wordRange(size)[0]) continue;
     const shaded = pickShaded(board, answer, rng);
     if (!shaded) continue;
     // Prefer shading spread over several words, so one answer doesn't give it all away.
     const spread = new Set(shaded.map(([r, c]) => board.words.findIndex((w) => entryCells(w).some(([wr, wc]) => wr === r && wc === c)))).size;
-    if (!best || spread > best.spread) best = { board, shaded, spread };
-    if (spread >= Math.min(4, answer.length)) break;
+    const better =
+      !best ||
+      (spread >= enough) > (best.spread >= enough) ||
+      ((spread >= enough) === (best.spread >= enough) && (best.spread < enough ? spread > best.spread : board.letters.size > best.board.letters.size));
+    if (better) best = { board, shaded, spread };
+    if (spread >= enough && ++good >= keep) break;
   }
   if (!best) throw new Error(`No crossword can spell ${answer}`);
   return { answer, width: size, height: size, entries: numbered(best.board), shaded: best.shaded };
@@ -246,9 +256,16 @@ export function solutionAt(p: CrosswordPuzzle, r: number, c: number): string | u
 export const entrySolved = (e: CrosswordEntry, letters: CrosswordLetters) =>
   entryCells(e).every(([r, c], i) => letterAt(letters, r, c) === e.word[i]);
 
-/** Won when every shaded square holds the right letter. */
-export const crosswordWon = (p: CrosswordPuzzle, letters: CrosswordLetters) =>
+/** Every shaded square holds the right letter: she can read the word and stop here if she likes. */
+export const shadedRight = (p: CrosswordPuzzle, letters: CrosswordLetters) =>
   p.shaded.every(([r, c], k) => letterAt(letters, r, c) === p.answer[k]);
+
+/** Won when every square holds the right letter. */
+export const crosswordWon = (p: CrosswordPuzzle, letters: CrosswordLetters) => p.entries.every((e) => entrySolved(e, letters));
+
+/** Every square has a letter, right or not. */
+export const crosswordFull = (p: CrosswordPuzzle, letters: CrosswordLetters) =>
+  p.entries.every((e) => entryCells(e).every(([r, c]) => letterAt(letters, r, c)));
 
 // ---------- Hints ----------
 // Each ask gives the next most useful thing, gentlest first: point out wrong

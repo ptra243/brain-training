@@ -86,6 +86,8 @@ export interface CaseSettings {
   hardInterrogation: boolean;
   /** Word search: 1 (across and down) to 3 (any direction, backwards). */
   wordSearchLevel: 1 | 2 | 3;
+  /** Crossword grid width and height; past 7 it scrolls on her phone, and harder words come in. */
+  crosswordSize: 7 | 9 | 11;
   /** Relative chance of each clue type being tried. 0 = never used. */
   weights: Partial<Record<ClueType, number>>;
   /** Most clues of a type allowed in one case. */
@@ -153,10 +155,10 @@ const LOGIC: Record<Difficulty, Pick<CaseSettings, 'freeClues' | 'located' | 'fi
   },
 };
 
-const MINIGAMES: Record<Difficulty, Pick<CaseSettings, 'catSize' | 'catEasy' | 'sudoku' | 'hardInterrogation' | 'wordSearchLevel'>> = {
-  easy: { catSize: 6, catEasy: true, sudoku: { size: 6, givens: 16 }, hardInterrogation: false, wordSearchLevel: 1 },
-  medium: { catSize: 7, catEasy: false, sudoku: { size: 6, givens: 13 }, hardInterrogation: true, wordSearchLevel: 2 },
-  hard: { catSize: 8, catEasy: false, sudoku: { size: 9, givens: 32 }, hardInterrogation: true, wordSearchLevel: 3 },
+const MINIGAMES: Record<Difficulty, Pick<CaseSettings, 'catSize' | 'catEasy' | 'sudoku' | 'hardInterrogation' | 'wordSearchLevel' | 'crosswordSize'>> = {
+  easy: { catSize: 6, catEasy: true, sudoku: { size: 6, givens: 16 }, hardInterrogation: false, wordSearchLevel: 1, crosswordSize: 7 },
+  medium: { catSize: 7, catEasy: false, sudoku: { size: 6, givens: 13 }, hardInterrogation: true, wordSearchLevel: 2, crosswordSize: 9 },
+  hard: { catSize: 8, catEasy: false, sudoku: { size: 9, givens: 32 }, hardInterrogation: true, wordSearchLevel: 3, crosswordSize: 11 },
 };
 
 const GAMES: Record<Length, number> = { short: 1, normal: 2, long: 3 };

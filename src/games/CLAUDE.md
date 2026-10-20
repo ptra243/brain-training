@@ -24,12 +24,18 @@ Pure puzzle logic, no React. Components live in `src/game/games/`.
   Words may repeat across rooms, since the revealed sentence names the room. Each
   reveals its own sentence naming the scene room. Teasers never show the room
   or the word (tested).
-- **Crossword**: a real interlocking grid (up to 7×7, no stray runs); shaded
-  squares numbered 1, 2, 3… spell the word across different entries.
+- **Crossword**: a real interlocking grid (no stray runs); shaded squares
+  numbered 1, 2, 3… spell the word across different entries. Easy 7×7 with
+  everyday words, medium 9×9 adding `mediumClueWords`, hard 11×11 with
+  medium + `hardClueWords` (`src/content/crosswordWords.ts`, glued with short
+  everyday words). Grids past 7 keep 44px squares and slide sideways in
+  their own box. She wins only when every square is right; once the shaded
+  squares are right she may stop early with "Take the clue" (still `won`).
   **Word search**: leftover letters spell the word, every listed word appears
   exactly once, and she can type the word early.
 - **Word lists.** Fill and answers come from `src/content/words.ts` (common
-  words with clues) and never use a theme word (`themeWords`).
+  words with clues; harder crossword fill in `crosswordWords.ts`) and never
+  use a theme word (`themeWords`).
   `public/words.txt` (from `word-list` via `npm run build-words`) is full of
   obscure words: use it only to accept guesses. It's committed, fetched on
   demand and precached for offline; until it loads any guess is accepted.

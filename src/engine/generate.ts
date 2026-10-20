@@ -280,7 +280,7 @@ export function assemble(o: Layout): Case {
         seed: hashSeed(`${seed}-${kind}`),
         clues: [],
         unlocksScene: true,
-        size: kind === 'wordle' ? 5 : 7,
+        size: kind === 'wordle' ? 5 : kind === 'crossword' ? settings.crosswordSize : 7,
         scene: { answer, text: sceneText(answer) },
       };
     }),

@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
+import { hardClueWords, mediumClueWords } from '../content/crosswordWords.ts';
 import { clueWords } from '../content/words.ts';
 import { generateCase } from '../engine/generate.ts';
 import { Rng } from '../engine/rng.ts';
@@ -9,6 +10,7 @@ import type { Difficulty } from '../engine/types.ts';
 import {
   CROSSWORD_SIZE,
   cellKey,
+  crosswordFull,
   crosswordHint,
   crosswordWon,
   entryCells,
@@ -17,11 +19,12 @@ import {
   fullLetters,
   generateCrossword,
   newlyWrong,
+  shadedRight,
   solutionAt,
 } from '../games/crossword.ts';
 import { everyWordOnce, leftovers, lineBetween, wordAt } from '../games/wordsearch.ts';
 import { emptyProgress, finaleOpen, reduce, sceneGameInPlay, sceneText, sceneUnlocked } from './state.ts';
-import { sceneCrossword, sceneWordSearch, themeWords } from './sceneGames.ts';
+import { crosswordWords, sceneCrossword, sceneWordSearch, themeWords } from './sceneGames.ts';
 
 test('word list: upper case, 3–7 letters, no repeats, a clue for each', () => {
   const seen = new Set<string>();
@@ -31,6 +34,19 @@ test('word list: upper case, 3–7 letters, no repeats, a clue for each', () => 
     seen.add(word);
     assert.ok(clue.length > 3 && !clue.endsWith('.'), word);
     assert.ok(!clue.toUpperCase().includes(word), `${word}: clue gives it away`);
+  }
+});
+
+test('harder crossword words: 4–11 letters, no repeats with each other or the everyday list', () => {
+  const seen = new Set(clueWords.map((w) => w.word));
+  for (const [list, max] of [[mediumClueWords, 9], [hardClueWords, 11]] as const) {
+    for (const { word, clue } of list) {
+      assert.match(word, new RegExp(`^[A-Z]{4,${max}}$`));
+      assert.ok(!seen.has(word), `${word} twice`);
+      seen.add(word);
+      assert.ok(clue.length > 2 && !clue.endsWith('.'), word);
+      assert.ok(!clue.toUpperCase().includes(word), `${word}: clue gives it away`);
+    }
   }
 });
 
@@ -49,73 +65,79 @@ test('room things: one word of 4–9 letters, in every room', () => {
   }
 });
 
-test('every room thing can be hidden in an interlocking crossword', () => {
+test('every room thing can be hidden in an interlocking crossword, at every size', () => {
   const objects = [...new Set(content.house.rooms.flatMap((r) => r.things))];
   const exclude = themeWords(content);
-  for (const answer of objects) {
-    for (let seed = 1; seed <= 5; seed++) {
-      const p = generateCrossword(answer, clueWords, exclude, new Rng(seed));
-      // The shaded squares, in order, spell the word, and are all different squares.
-      assert.equal(p.shaded.map(([r, c]) => solutionAt(p, r, c)).join(''), answer);
-      assert.equal(new Set(p.shaded.map(([r, c]) => cellKey(r, c))).size, answer.length);
-      assert.ok(p.entries.length >= 6, `${answer}: only ${p.entries.length} words`);
-      assert.ok(p.entries.some((e) => e.dir === 'across') && p.entries.some((e) => e.dir === 'down'), 'both directions');
-      assert.equal(new Set(p.entries.map((e) => e.word)).size, p.entries.length, 'no repeated words');
-      const squares = new Map<string, string>();
-      for (const e of p.entries) {
-        assert.ok(!exclude.has(e.word) && e.word !== answer, e.word);
-        const cells = entryCells(e);
-        for (const [r, c] of cells) assert.ok(r >= 0 && c >= 0 && r < CROSSWORD_SIZE && c < CROSSWORD_SIZE, `${e.word} off the grid`);
-        // Crossing words agree on their shared letter.
-        cells.forEach(([r, c], i) => {
-          const k = cellKey(r, c);
-          assert.ok(!squares.has(k) || squares.get(k) === e.word[i], `${answer}: clash at ${k}`);
-          squares.set(k, e.word[i]);
-        });
-        // Every word crosses another, so the grid is one piece.
-        assert.ok(p.entries.some((o) => o !== e && entryCells(o).some(([r, c]) => cells.some(([er, ec]) => er === r && ec === c))));
-      }
-      // No stray words: every run of two or more letters in a row or column is an entry.
-      for (const dir of ['across', 'down'] as const) {
-        for (let line = 0; line < CROSSWORD_SIZE; line++) {
-          let run = '';
-          let from = 0;
-          for (let k = 0; k <= CROSSWORD_SIZE; k++) {
-            const [r, c] = dir === 'across' ? [line, k] : [k, line];
-            const l = k < CROSSWORD_SIZE ? squares.get(cellKey(r, c)) : undefined;
-            if (l) {
-              if (!run) from = k;
-              run += l;
-              continue;
+  for (const [size, fewest] of [[CROSSWORD_SIZE, 6], [9, 8], [11, 11]]) {
+    for (const answer of objects) {
+      for (let seed = 1; seed <= (size === CROSSWORD_SIZE ? 5 : 2); seed++) {
+        const p = generateCrossword(answer, crosswordWords(size), exclude, new Rng(seed), size);
+        // The shaded squares, in order, spell the word, and are all different squares.
+        assert.equal(p.shaded.map(([r, c]) => solutionAt(p, r, c)).join(''), answer);
+        assert.equal(new Set(p.shaded.map(([r, c]) => cellKey(r, c))).size, answer.length);
+        assert.ok(p.entries.length >= fewest, `${answer}: only ${p.entries.length} words`);
+        assert.ok(p.entries.some((e) => e.dir === 'across') && p.entries.some((e) => e.dir === 'down'), 'both directions');
+        assert.equal(new Set(p.entries.map((e) => e.word)).size, p.entries.length, 'no repeated words');
+        const squares = new Map<string, string>();
+        for (const e of p.entries) {
+          assert.ok(!exclude.has(e.word) && e.word !== answer, e.word);
+          const cells = entryCells(e);
+          for (const [r, c] of cells) assert.ok(r >= 0 && c >= 0 && r < size && c < size, `${e.word} off the grid`);
+          // Crossing words agree on their shared letter.
+          cells.forEach(([r, c], i) => {
+            const k = cellKey(r, c);
+            assert.ok(!squares.has(k) || squares.get(k) === e.word[i], `${answer}: clash at ${k}`);
+            squares.set(k, e.word[i]);
+          });
+          // Every word crosses another, so the grid is one piece.
+          assert.ok(p.entries.some((o) => o !== e && entryCells(o).some(([r, c]) => cells.some(([er, ec]) => er === r && ec === c))));
+        }
+        // No stray words: every run of two or more letters in a row or column is an entry.
+        for (const dir of ['across', 'down'] as const) {
+          for (let line = 0; line < size; line++) {
+            let run = '';
+            let from = 0;
+            for (let k = 0; k <= size; k++) {
+              const [r, c] = dir === 'across' ? [line, k] : [k, line];
+              const l = k < size ? squares.get(cellKey(r, c)) : undefined;
+              if (l) {
+                if (!run) from = k;
+                run += l;
+                continue;
+              }
+              if (run.length >= 2) {
+                const [sr, sc] = dir === 'across' ? [line, from] : [from, line];
+                assert.ok(p.entries.some((e) => e.dir === dir && e.row === sr && e.col === sc && e.word === run), `${answer}: stray ${run}`);
+              }
+              run = '';
             }
-            if (run.length >= 2) {
-              const [sr, sc] = dir === 'across' ? [line, from] : [from, line];
-              assert.ok(p.entries.some((e) => e.dir === dir && e.row === sr && e.col === sc && e.word === run), `${answer}: stray ${run}`);
-            }
-            run = '';
           }
         }
+        // Numbers go up in reading order.
+        const starts = [...new Map(p.entries.map((e) => [e.number, e.row * 100 + e.col])).entries()].sort((x, y) => x[0] - y[0]);
+        starts.forEach(([n, pos], k) => {
+          assert.equal(n, k + 1);
+          if (k) assert.ok(pos > starts[k - 1][1]);
+        });
       }
-      // Numbers go up in reading order.
-      const starts = [...new Map(p.entries.map((e) => [e.number, e.row * 100 + e.col])).entries()].sort((x, y) => x[0] - y[0]);
-      starts.forEach(([n, pos], k) => {
-        assert.equal(n, k + 1);
-        if (k) assert.ok(pos > starts[k - 1][1]);
-      });
     }
   }
 });
 
-test('crossword: won as soon as the shaded squares are right; words check on their own', () => {
+test('crossword: the shaded squares let her stop early, but only the whole grid wins', () => {
   const p = generateCrossword('TABLE', clueWords, new Set(), new Rng(4));
   const letters: Record<string, string> = {};
-  assert.equal(crosswordWon(p, letters), false);
+  assert.equal(shadedRight(p, letters), false);
   p.shaded.forEach(([r, c], k) => (letters[cellKey(r, c)] = p.answer[k]));
-  assert.equal(crosswordWon(p, letters), true);
-  assert.ok(p.entries.every((e) => entrySolved(e, fullLetters(p))));
-  delete letters[cellKey(...p.shaded[0])];
-  assert.equal(crosswordWon(p, letters), false);
-  assert.ok(crosswordWon(p, fullLetters(p)));
+  assert.equal(shadedRight(p, letters), true);
+  assert.equal(crosswordWon(p, letters), false, 'not won with just the shaded squares');
+  const full = fullLetters(p);
+  assert.ok(p.entries.every((e) => entrySolved(e, full)));
+  assert.ok(crosswordWon(p, full) && crosswordFull(p, full));
+  // Every square filled but one letter wrong: full, not won.
+  const [r0, c0] = entryCells(p.entries[0])[0];
+  const wrong = { ...full, [cellKey(r0, c0)]: full[cellKey(r0, c0)] === 'Q' ? 'X' : 'Q' };
+  assert.ok(crosswordFull(p, wrong) && !crosswordWon(p, wrong));
 });
 
 test('crossword hints: wrong letters first, then a word, then its letters until it is solved', () => {
@@ -155,9 +177,10 @@ test('crossword hints: wrong letters first, then a word, then its letters until 
   assert.equal(crosswordHint(p, fullLetters(p)), null);
 });
 
-test('crossword hints always lead to a win', () => {
-  for (let seed = 1; seed <= 30; seed++) {
-    const p = generateCrossword('TABLE', clueWords, new Set(), new Rng(seed));
+test('crossword hints always lead to a win, on every size of grid', () => {
+  for (let seed = 1; seed <= 36; seed++) {
+    const size = [CROSSWORD_SIZE, 9, 11][seed % 3];
+    const p = generateCrossword('TABLE', crosswordWords(size), new Set(), new Rng(seed), size);
     let letters: Record<string, string> = {};
     let state: { flagged?: Record<string, string>; nudged?: string } = {};
     let asks = 0;
@@ -166,7 +189,7 @@ test('crossword hints always lead to a win', () => {
       if (h.kind === 'wrong') state = { ...state, flagged: { ...state.flagged, ...h.squares } };
       else if (h.kind === 'nudge') state = { ...state, nudged: entryLabel(h.entry) };
       else letters = { ...letters, [cellKey(...h.square)]: h.letter };
-      assert.ok(++asks < 200, `seed ${seed}: hints go round in circles`);
+      assert.ok(++asks < 400, `seed ${seed}: hints go round in circles`);
     }
   }
 });

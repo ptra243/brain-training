@@ -2,7 +2,8 @@
 // (`spec.scene.answer`, a thing in the scene room); she only needs to solve one.
 
 import { content } from '../content/index.ts';
-import { clueWords } from '../content/words.ts';
+import { hardClueWords, mediumClueWords } from '../content/crosswordWords.ts';
+import { clueWords, type ClueWord } from '../content/words.ts';
 import { Rng } from '../engine/rng.ts';
 import { caseSettings } from '../engine/settings.ts';
 import type { Case, Content, SceneGameSpec } from '../engine/types.ts';
@@ -19,8 +20,16 @@ export function themeWords(theme: Content): Set<string> {
   return new Set(names.flatMap((n) => n.toUpperCase().split(/[^A-Z]+/)).filter((w) => w.length >= 3 && w !== 'THE'));
 }
 
+/** Fill for a crossword of this size: bigger grids (medium and hard cases) bring in harder words. */
+export function crosswordWords(size: number): readonly ClueWord[] {
+  if (size <= 7) return clueWords;
+  if (size <= 9) return [...clueWords, ...mediumClueWords];
+  // Short everyday words still glue the long ones together.
+  return [...clueWords.filter((w) => w.word.length <= 4), ...mediumClueWords, ...hardClueWords];
+}
+
 export function sceneCrossword(spec: SceneGameSpec, theme: Content = content): CrosswordPuzzle {
-  return generateCrossword(spec.scene.answer, clueWords, themeWords(theme), new Rng(spec.seed));
+  return generateCrossword(spec.scene.answer, crosswordWords(spec.size), themeWords(theme), new Rng(spec.seed), spec.size);
 }
 
 export function sceneWordSearch(c: Case, spec: SceneGameSpec, theme: Content = content): WordSearchPuzzle {

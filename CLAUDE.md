@@ -74,9 +74,17 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
 
 Long sessions re-read their whole context every turn, so keep them short.
 
-- Delegate to the `implementer` agent (Sonnet) when a change is well defined:
-  you can name the files, the behaviour and how to test it. Give it a full
-  brief; it starts with no context.
+- **Delegating is authorised and expected.** Once the design decisions for a
+  task are settled, and before writing the code, stop and list the pieces.
+  Hand each well-defined piece to the `implementer` agent (Sonnet) with a
+  full brief (files, behaviour, how to test); it starts with no context.
+  Always delegate:
+  - content lists (word lists, clues, theme text) of more than ~20 entries
+  - test updates after a rule change, once the new rule is decided
+  - CSS and copy changes you can describe exactly
+  Keep in the main session: design decisions, generator tuning that needs
+  experiments, ambiguous bugs, cross-cutting refactors.
+  Say in one line which pieces you're delegating and which you're keeping.
 - Keep design decisions, ambiguous bugs and cross-cutting refactors in the
   main session.
 - Run browser and screenshot checks through the `browser-check` agent and ask

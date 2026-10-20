@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  CROSSWORD_SIZE,
   cellKey,
+  crosswordFull,
   crosswordHint,
   crosswordWon,
   entryLabel,
@@ -8,6 +10,7 @@ import {
   entrySolved,
   fullLetters,
   letterAt,
+  shadedRight,
   type CrosswordEntry,
   type CrosswordHint,
   type CrosswordPuzzle,
@@ -26,10 +29,12 @@ export interface CrosswordData {
   nudged?: string;
   /** How many hints she asked for. */
   hints?: number;
+  /** Grid size the letters were typed on. Saves from before grids grew have none (7). */
+  size?: number;
 }
 
 export const crosswordInitial = (): CrosswordData => ({ letters: {} });
-export const crosswordSolved = (p: CrosswordPuzzle): CrosswordData => ({ letters: fullLetters(p) });
+export const crosswordSolved = (p: CrosswordPuzzle): CrosswordData => ({ letters: fullLetters(p), size: p.width });
 
 interface Cursor {
   r: number;
@@ -47,7 +52,7 @@ interface Square {
 
 const label = entryLabel;
 
-const ORDINALS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'];
+const ORDINALS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh'];
 const count = (n: number, one: string, many: string) => (n === 1 ? one : `${n} ${many}`);
 
 /** What the cat did, in a sentence. */
@@ -66,13 +71,16 @@ function hintText(cat: string, h: CrosswordHint): string {
   }
 }
 
-export function CrosswordGame({ puzzle, data, finished, helper = 'The cat', onChange, onFinish }: GameProps<CrosswordPuzzle, CrosswordData>) {
+export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The cat', onChange, onFinish }: GameProps<CrosswordPuzzle, CrosswordData>) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
   const [focused, setFocused] = useState(false);
   const [note, setNote] = useState<string | null>(null);
-  const flagged = data?.flagged ?? {};
+  // Letters typed on a grid of another size (medium and hard grids grew) don't fit this one: start afresh.
+  const data = savedData && (savedData.size ?? CROSSWORD_SIZE) === puzzle.width ? savedData : crosswordInitial();
+  const flagged = data.flagged ?? {};
   // Saves from the old one-line crossword have no `letters`: start afresh.
-  const letters = data?.letters ?? {};
+  const letters = data.letters ?? {};
   const { entries, shaded, answer } = puzzle;
 
   const squares = useMemo(() => {
@@ -115,27 +123,40 @@ export function CrosswordGame({ puzzle, data, finished, helper = 'The cat', onCh
     if (!finished && hasFinePointer()) focusTyping(inputRef);
   }, []); // once, when the game opens
 
+  // Keep the square she's on in sight: big grids scroll sideways, and the clue list sits below the grid.
+  const jump = useRef<ScrollBehavior | null>(null);
+  useEffect(() => {
+    const behavior = jump.current;
+    jump.current = null;
+    if (!behavior) return;
+    gridRef.current?.querySelector(`[data-cell="${cellKey(cursor.r, cursor.c)}"]`)?.scrollIntoView({ behavior, block: 'nearest', inline: 'nearest' });
+  });
+  const moveTo = (next: Cursor, behavior: ScrollBehavior = 'auto') => {
+    jump.current = behavior;
+    setCursor(next);
+  };
+
   const commit = (next: Record<string, string>, extra: Partial<CrosswordData> = {}) => {
-    const d = { ...data, ...extra, letters: next };
+    const d = { ...data, ...extra, letters: next, size: puzzle.width };
     if (crosswordWon(puzzle, next)) onFinish('won', d);
     else onChange(d);
   };
 
   const askHint = () => {
     if (finished) return;
-    const h = crosswordHint(puzzle, letters, { flagged, nudged: data?.nudged });
+    const h = crosswordHint(puzzle, letters, { flagged, nudged: data.nudged });
     if (!h) return;
-    const hints = (data?.hints ?? 0) + 1;
+    const hints = (data.hints ?? 0) + 1;
     setNote(hintText(helper, h));
     if (h.kind === 'wrong') commit(letters, { hints, flagged: { ...flagged, ...h.squares } });
     else if (h.kind === 'nudge') {
-      setCursor(start(h.entry, letters));
+      moveTo(start(h.entry, letters), 'smooth');
       commit(letters, { hints, nudged: label(h.entry) });
     } else {
       const key = cellKey(...h.square);
       const rest = { ...flagged };
       delete rest[key];
-      setCursor({ r: h.square[0], c: h.square[1], dir: h.entry.dir });
+      moveTo({ r: h.square[0], c: h.square[1], dir: h.entry.dir }, 'smooth');
       commit({ ...letters, [key]: h.letter }, { hints, flagged: rest });
     }
   };
@@ -157,13 +178,13 @@ export function CrosswordGame({ puzzle, data, finished, helper = 'The cat', onCh
     // Tapping the square you're on turns the word round, where there is one the other way.
     if (r === cursor.r && c === cursor.c) dir = dir === 'across' ? 'down' : 'across';
     if (!here[dir]) dir = dir === 'across' ? 'down' : 'across';
-    setCursor({ r, c, dir });
+    moveTo({ r, c, dir });
     focusTyping(inputRef);
   };
 
   const selectEntry = (e: CrosswordEntry) => {
     if (finished) return;
-    setCursor(start(e, letters));
+    moveTo(start(e, letters), 'smooth');
     focusTyping(inputRef);
   };
 
@@ -189,7 +210,7 @@ export function CrosswordGame({ puzzle, data, finished, helper = 'The cat', onCh
         i = cells.findIndex(([r, c]) => r === er && c === ec);
       }
     }
-    setCursor({ r: cells[i][0], c: cells[i][1], dir: e.dir });
+    moveTo({ r: cells[i][0], c: cells[i][1], dir: e.dir });
     commit(l);
   };
 
@@ -198,12 +219,16 @@ export function CrosswordGame({ puzzle, data, finished, helper = 'The cat', onCh
     const dir: Direction = dc ? 'across' : 'down';
     for (let r = cursor.r + dr, c = cursor.c + dc; r >= 0 && c >= 0 && r < puzzle.height && c < puzzle.width; r += dr, c += dc) {
       const here = squares.get(cellKey(r, c));
-      if (here) return setCursor({ r, c, dir: here[dir] ? dir : dir === 'across' ? 'down' : 'across' });
+      if (here) return moveTo({ r, c, dir: here[dir] ? dir : dir === 'across' ? 'down' : 'across' });
     }
-    if (squares.get(cellKey(cursor.r, cursor.c))?.[dir]) setCursor({ ...cursor, dir });
+    if (squares.get(cellKey(cursor.r, cursor.c))?.[dir]) moveTo({ ...cursor, dir });
   };
 
   const spelled = shaded.map(([r, c]) => letterAt(letters, r, c));
+  const wordRead = !finished && shadedRight(puzzle, letters);
+  const fullButWrong = !finished && crosswordFull(puzzle, letters);
+  // Past 7 squares the grid keeps 44px squares and scrolls sideways in its own box.
+  const wide = cols > CROSSWORD_SIZE;
 
   const clueList = (dir: Direction) => (
     <section className="crossword-clue-group">
@@ -231,8 +256,8 @@ export function CrosswordGame({ puzzle, data, finished, helper = 'The cat', onCh
   return (
     <div className="crossword">
       <p className="hint dark">
-        The numbered shaded squares spell what the body was lying by: 1 is its first letter. Fill in enough answers to read it; you don't
-        need them all.
+        The numbered shaded squares spell what the body was lying by: 1 is its first letter. Once you can read it you can take the clue, or
+        finish the grid first.
       </p>
       {!finished && (
         <div className="crossword-top">
@@ -246,14 +271,29 @@ export function CrosswordGame({ puzzle, data, finished, helper = 'The cat', onCh
             <HintButton helper={helper} onAsk={askHint} />
           </div>
           {note && <HintNote text={note} onClose={() => setNote(null)} />}
+          {wordRead && (
+            <div className="crossword-read">
+              <p>
+                The shaded squares spell <b>{answer}</b>. Finish the grid, or take the clue now.
+              </p>
+              <button className="secondary" onPointerDown={(e) => e.preventDefault()} onClick={() => onFinish('won', { ...data, size: puzzle.width })}>
+                Take the clue
+              </button>
+            </div>
+          )}
         </div>
       )}
-      <div className="typing-host">
+      <div className={`typing-host ${wide ? 'crossword-scroll' : ''}`}>
         <div
-          className="crossword-grid"
+          ref={gridRef}
+          className={`crossword-grid ${wide ? 'wide' : ''}`}
           role="grid"
           aria-label="Crossword"
-          style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, maxWidth: `${cols * 3.4}rem` }}
+          style={
+            wide
+              ? { gridTemplateColumns: `repeat(${cols}, 2.75rem)` }
+              : { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, maxWidth: `${cols * 3.4}rem` }
+          }
         >
           {Array.from({ length: rows }, (_, y) =>
             Array.from({ length: cols }, (_, x) => {
@@ -270,6 +310,7 @@ export function CrosswordGame({ puzzle, data, finished, helper = 'The cat', onCh
               return (
                 <button
                   key={`${r}-${c}`}
+                  data-cell={cellKey(r, c)}
                   className={`crossword-cell ${here.shaded ? 'shaded' : ''} ${inWord ? 'in-row' : ''} ${isCursor ? 'cursor' : ''} ${solved ? 'solved' : ''} ${wrong ? 'wrong' : ''}`}
                   aria-label={`${words}${letter ? `, ${letter}` : ''}${wrong ? ', crossed out as wrong' : ''}${here.shaded ? `, shaded square ${here.shaded}` : ''}`}
                   // Keep the keyboard up while moving between squares.
@@ -301,7 +342,7 @@ export function CrosswordGame({ puzzle, data, finished, helper = 'The cat', onCh
               .map(([r, c]) => letterAt(letters, r, c) || '-')
               .join('')}
             onType={type}
-            onEnter={() => setCursor(start(nextOpen(active, letters), letters))}
+            onEnter={() => moveTo(start(nextOpen(active, letters), letters))}
             onArrow={arrow}
             onFocusChange={setFocused}
             enterKeyHint="next"
@@ -310,7 +351,15 @@ export function CrosswordGame({ puzzle, data, finished, helper = 'The cat', onCh
         )}
       </div>
       <p className="game-message" role="status">
-        {finished ? `The shaded squares spell ${answer}.` : focused ? '' : 'Tap a square to type. Tap it again to switch between across and down.'}
+        {finished
+          ? `The shaded squares spell ${answer}.`
+          : fullButWrong
+            ? `Every square is filled, but some letters aren't right. ${helper} can point them out.`
+            : focused
+              ? ''
+              : wide
+                ? 'Tap a square to type, or a clue to jump to it. Slide the grid sideways to see the rest.'
+                : 'Tap a square to type. Tap it again to switch between across and down.'}
       </p>
       {finished === null && spelled.some(Boolean) && (
         <p className="crossword-shaded" aria-label="Shaded letters so far">
