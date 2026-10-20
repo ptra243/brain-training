@@ -85,7 +85,7 @@ export function generate<J extends CaseJob>(job: J): Promise<CaseJobResult<J>> {
     const id = nextId++;
     pending.set(id, { job, resolve, reject });
     try {
-      w.postMessage({ id, job });
+      w.postMessage({ id, job, randoms: Array.from({ length: 32 }, random) });
     } catch {
       pending.delete(id);
       runSync(job).then(resolve, reject);
