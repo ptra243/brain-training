@@ -10,26 +10,13 @@ Keeping an entry current: when you work on one, or when its handoff docs change,
 ## Session: Tarot match, build
 Last touched: 2026-10-20
 Reads first: `docs/tarot-match.md` (Decisions and Implementer brief).
-Goal: the open points are settled and the brief is written. Do "Golden case snapshots" first. Hand its three pieces (engine and tests,
+Goal: the open points are settled and the brief is written, and the golden case snapshots are in (`npm test` checks them; run
+`npm run update-golden` only for an intended change). Hand its three pieces (engine and tests,
 wiring, UI and content) to the `implementer` agent, then dump and diff existing cases and run
 `browser-check`. "Tell me again" was dropped after playtesting; `docs/tell-me-again.md` is history.
 Starting prompt:
 ```
 Read docs/tarot-match.md and hand the three brief pieces to the implementer agent.
-```
-
-## Session: Golden case snapshots
-Last touched: 2026-10-20
-Reads first: `src/engine/CLAUDE.md`, `src/engine/generate.test.ts`, `scripts/check-cases.ts`.
-Goal: do this before the tarot build. A node test that builds about 20 codes per mode (presets,
-campaigns, Play, Quick, with several levels) and compares a hash of each full `Case` JSON against a
-committed file (`src/engine/golden.json`). It fails on any unintended change and prints which codes
-differ. An `npm run update-golden` script rewrites the file. Well defined: hand it to the
-`implementer` agent. Erasable TS only; run with `npx -y node@22`. Mention it in the README and under
-"Checks before committing" in `CLAUDE.md`.
-Starting prompt:
-```
-Read the "Golden case snapshots" entry in docs/next-sessions.md and hand it to the implementer agent.
 ```
 
 ## Session: Theme content, tarot cast and line pools
