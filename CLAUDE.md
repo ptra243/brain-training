@@ -57,7 +57,7 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
 - Keep logic in plain TS (`src/engine/`, `src/games/`, `src/game/*.ts`) with
   node tests next to it; React components stay thin. Tests run with Node's
   type stripping, so that TS must be erasable syntax only.
-- Checks before committing: `npm test` (includes the golden case snapshot), `npm run check-cases`, `npm run build`.
+- Checks before committing: `npm test` (includes the golden case snapshot), `npm run check-cases` (the quick run; CI runs `check-cases:full`, so run that locally after generator changes), `npm run build`.
   Needs Node 22.18 or newer (the owner's machine has Node 24): run scripts
   directly, e.g. `node scripts/check-cases.ts`.
 - Python isn't installed. Edit files with the Edit tool; for scripted bulk

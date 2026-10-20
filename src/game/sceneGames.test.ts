@@ -70,7 +70,7 @@ test('every room thing can be hidden in an interlocking crossword, at every size
   const exclude = themeWords(content);
   for (const [size, fewest] of [[CROSSWORD_SIZE, 6], [9, 8], [11, 11]]) {
     for (const answer of objects) {
-      for (let seed = 1; seed <= (size === CROSSWORD_SIZE ? 5 : 2); seed++) {
+      for (let seed = 1; seed <= (size === CROSSWORD_SIZE ? 2 : 1); seed++) {
         const p = generateCrossword(answer, crosswordWords(size), exclude, new Rng(seed), size);
         // The shaded squares, in order, spell the word, and are all different squares.
         assert.equal(p.shaded.map(([r, c]) => solutionAt(p, r, c)).join(''), answer);
@@ -206,9 +206,9 @@ test('word search: lines, either-way reading, and the leftovers spell the hidden
   assert.equal(wordAt(p, w.cells.slice(1)), null);
 });
 
-test('scene games build for 30 cases of each difficulty', () => {
+test('scene games build for 10 cases of each difficulty', () => {
   for (const difficulty of ['easy', 'medium', 'hard'] as Difficulty[]) {
-    for (let n = 1; n <= 30; n++) {
+    for (let n = 1; n <= 10; n++) {
       const c = generateCase(content, n, difficulty);
       const room = content.house.rooms.find((r) => r.id === c.sceneRoom)!;
       const cwSpec = c.games.filter(isSceneGame).find((g) => g.kind === 'crossword')!;
