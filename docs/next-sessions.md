@@ -42,3 +42,39 @@ Starting prompt:
 ```
 Read the Model and Follow-up threads sections of docs/theme-draft.md and the Murder Mystery Mode doc, then help me settle the open questions and write an implementer brief.
 ```
+
+## Session: Two-storey houses, picked per case
+Last touched: 2026-10-20
+Reads first: `src/engine/CLAUDE.md`, `src/engine/house.ts`, `src/engine/caseFacts.ts`, `src/engine/clues.ts`
+(the adjacency clue types), the house in `src/content/index.ts`, `src/game/MapPanel.tsx`.
+Goal: replace the single 6x6 manor with 3 to 5 hand-drawn two-storey houses (8 to 10 rooms, two
+6x6 floors joined by stairs), one picked per case on its own seeded stream (like `BOARD_SHARE`), so
+the rest of the generator keeps its draws. Cases still use at most 5 rooms (the grid cap); unused rooms
+stay on the map as red herrings. Today every room touches 3 to 5 of the other 5, so "next to" clues
+are weak; floors make adjacency sparse. Settle first: does adjacency cross the stairs (proposed: same
+floor only), and do we add floor clues ("was upstairs", "same floor as", "different floor from")?
+Then write an implementer brief: `House`/`Room` types with floors and stairs, `houseFromLayout`
+checks, `roomAdjacency`, MapPanel and CaseInspector drawing two floors (tabs or stacked, 360px, no
+sideways scroll), room word lists, `check-cases` over every house. It's a content change: all cases
+change, so bump the storage prefix (wipes saved progress; time it between campaigns). Room names and
+words should match the theme (`docs/theme-draft.md`).
+Starting prompt:
+```
+Read the "Two-storey houses" entry in docs/next-sessions.md, help me settle the open questions, then write an implementer brief.
+```
+
+## Session: Hunting the weapon (campaign)
+Last touched: 2026-10-20
+Reads first: the "Hunting the weapon" item in the Murder Mystery Mode — What's Left doc (link in
+`CLAUDE.md`), `src/engine/CLAUDE.md`, `src/engine/campaign.ts`, `src/game/campaign.ts`.
+Goal: make the weapon matter in the campaign. One weapon all night (today it's rolled each round);
+loose either-or weapon clues on night 1; a new puzzle at the start of night 2 that gives a shortlist
+of 2–3 weapons; night 3 settles the killer and the weapon; a wrong weapon costs a body like a wrong
+person (an innocent dies; the accused survives, and she's told one of her two picks was right).
+Settle first: the shortlist puzzle's design, the either-or clue types and wording, and how
+`roundProblems` and `check-cases` prove each night. Then write an implementer brief. Every campaign
+changes, so bump the storage prefix.
+Starting prompt:
+```
+Read the "Hunting the weapon" item in the What's Left doc and docs/next-sessions.md, help me design the shortlist puzzle and the either-or clues, then write an implementer brief.
+```
