@@ -78,3 +78,27 @@ Starting prompt:
 ```
 Read the "Hunting the weapon" item in the What's Left doc and docs/next-sessions.md, help me design the shortlist puzzle and the either-or clues, then write an implementer brief.
 ```
+
+## Session: Crossword word lists, review
+Last touched: 2026-10-20
+Reads first: `src/games/CLAUDE.md` (Crossword and Word lists), `src/content/crosswordWords.ts`.
+Goal: read the medium and hard fill (about 330 words) and fix clues that are too obscure, too easy
+for their level, or give the answer away; swap out words she couldn't get from the clue. Well
+defined: hand it to the `implementer` agent. Changing words changes medium and hard crosswords, so
+run `npm test` and `npm run check-cases` after.
+Starting prompt:
+```
+Review the medium and hard crossword clues in src/content/crosswordWords.ts for fairness and fix weak ones.
+```
+
+## Session: Crossword difficulty roll in Quick play
+Last touched: 2026-10-20
+Reads first: `src/engine/CLAUDE.md` (Play cases), `src/engine/settings.ts` (`perGame`, `crosswordSize`).
+Goal: Quick play rolls a level per game, but not for the crossword (or Wordle), so its grid size
+still follows `levels.minigames`. Decide whether it gets its own roll (it would go last in
+`playLevels` so earlier rolls stay the same) and wire `crosswordSize` to it. Design first, in the
+main session; the wiring and tests can go to `implementer`. Dump and diff Play cases before and after.
+Starting prompt:
+```
+Give the crossword its own difficulty roll in Quick play.
+```
