@@ -130,3 +130,20 @@ export const houseDetails: readonly string[] = [
   'A teapot shaped like a cottage',
   'Muddy paw prints, probably the cats',
 ];
+
+/**
+ * Scene-setting openings for the top of a Play case's "Get a clue" card. Kept
+ * out of `content` like the cats, so they never change a case. `{count}` is
+ * replaced with the number of guests in words. Never name a guest, room or
+ * weapon here.
+ */
+export const caseOpenings: readonly string[] = [
+  '{count} guests are still in the house, and one of them did it.',
+  'The fire is low and the cards are dealt. {count} guests sit very quietly.',
+  'The library clock strikes midnight. Among the {count} guests, someone is lying.',
+  'Rain taps at the windows, and nobody can leave. One of the {count} guests has a secret worth killing for.',
+  'The tea has gone cold and the evening has gone wrong. One of the {count} guests knows why.',
+  'Somebody in this house is not what they seem. {count} guests remain, and every one of them has a story.',
+  'A hush has fallen over the manor. {count} guests are waiting to be questioned.',
+  'The candles are guttering and the clues are scattered like cards. Find the one of {count} who did it.',
+];

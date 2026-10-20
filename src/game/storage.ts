@@ -32,15 +32,20 @@ export interface QuickSave {
   progress: Progress;
 }
 
+// Bumped when Play cases change, so a saved one isn't replayed against a different case.
+// 2: Play cases draw 3 to 5 games and share clues by level.
+const PLAY_VERSION = 2;
+
 export function loadQuick(): QuickSave | null {
   const saved = read<QuickSave>('quick');
   if (!saved?.ref || typeof saved.ref.code !== 'string') return null;
   // A Play case is just its code; an old Quick start also needs its levels.
   if (saved.ref.mode !== 'play' && (!saved.ref.difficulty || !saved.ref.length)) return null;
+  if (saved.ref.mode === 'play' && (saved as { playVersion?: number }).playVersion !== PLAY_VERSION) return null;
   return { ref: saved.ref, progress: { ...emptyProgress(), ...saved.progress } };
 }
 
-export const saveQuick = (q: QuickSave) => write('quick', q);
+export const saveQuick = (q: QuickSave) => write('quick', { ...q, playVersion: PLAY_VERSION });
 
 /** The campaign she's on (one at a time). */
 export function loadCampaign(): CampaignSave | null {

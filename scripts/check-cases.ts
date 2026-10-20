@@ -10,7 +10,7 @@ import { boardPuzzle, endBoard } from '../src/engine/caseBoard.ts';
 import { boardSolvable } from '../src/engine/board.ts';
 import type { Board } from '../src/engine/boardTypes.ts';
 import { disproves } from '../src/engine/interrogation.ts';
-import { ROTATION, SCENE_GAMES, isInterrogation, isSceneGame } from '../src/engine/gameKinds.ts';
+import { isInterrogation, isSceneGame } from '../src/engine/gameKinds.ts';
 import { DIFFICULTIES, LENGTHS, PRESETS, allLevels, caseSettings, levelsKey, presetOf, type CaseLevels } from '../src/engine/settings.ts';
 import { countMatching } from '../src/engine/search.ts';
 import { sceneCrossword, sceneWordSearch } from '../src/game/sceneGames.ts';
@@ -61,8 +61,8 @@ function problems(c: Case): string[] {
   return out;
 }
 
-// Play: how often word games blank a scene-room clue, and how often games are left out.
-const play = { blanks: 0, sceneBlanks: 0, dropped: 0, wordDropped: 0 };
+// Play: how often word games blank a scene-room clue, and how many games cases draw.
+const play = { blanks: 0, sceneBlanks: 0, games: new Map<number, number>() };
 
 /** Play cases: no free clues, every game unlocks something, every word game blanks one room clue and hides an object of that room. */
 function playProblems(c: Case): string[] {
@@ -75,8 +75,8 @@ function playProblems(c: Case): string[] {
     } else if (g.clues.length < 1 || g.clues.length > s.maxPerGame) out.push(`${g.kind} unlocks ${g.clues.length} clues`);
   }
   const words = c.games.filter(isSceneGame);
-  play.dropped += [...SCENE_GAMES, ...ROTATION].filter((k) => !c.games.some((g) => g.kind === k)).length;
-  play.wordDropped += SCENE_GAMES.length - words.length;
+  const drawn = c.games.filter((g) => g.kind !== 'finale').length;
+  play.games.set(drawn, (play.games.get(drawn) ?? 0) + 1);
   for (const g of words) {
     const blanked = c.clues.filter((cl) => cl.blank?.game === g.kind);
     if (blanked.length !== 1 || !g.clues.includes(blanked[0].id)) {
@@ -230,7 +230,7 @@ for (let i = 1; i <= PER_PLAY; i++) {
 }
 console.log(
   `${PER_PLAY} Quick play codes (${((performance.now() - playStarted) / PER_PLAY).toFixed(0)} ms per case): ` +
-    `${play.sceneBlanks} of ${play.blanks} word games blank a scene-room clue; ${play.dropped} games left out, ${play.wordDropped} of them word games`,
+    `${play.sceneBlanks} of ${play.blanks} word games blank a scene-room clue; games drawn ${[...play.games].sort((a, b) => a[0] - b[0]).map(([n, k]) => `${n}: ${k}`).join(', ')}`,
 );
 
 // Campaigns: every path of wrong accusations, each round fair for any puzzles she picks.
