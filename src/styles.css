@@ -206,7 +206,7 @@ h1, h2 { font-family: var(--serif); font-weight: 600; margin: 0; }
 .picker legend { font-family: var(--serif); font-weight: 600; font-size: 1rem; margin-bottom: 0.4rem; padding: 0; }
 .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .chip {
-  min-height: 2.6rem; padding: 0 0.85rem; border-radius: 999px; cursor: pointer;
+  min-height: 2.75rem; padding: 0 0.85rem; border-radius: 999px; cursor: pointer;
   border: 1px solid #b9b09a; background: #fffcf3; color: var(--ink);
 }
 .chip[aria-pressed='true'] { background: var(--ink); color: var(--card); border-color: var(--ink); }

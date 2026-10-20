@@ -40,7 +40,7 @@ interface Props {
   accuse?: ReactNode;
   /** An earlier round: look, don't touch. */
   readOnly?: boolean;
-  /** Starting option: a Board tab that fits her clues together before she accuses. */
+  /** Final puzzle "Jigsaw": a Jigsaw tab that fits her clues together before she accuses. It replaces the Grid tab. */
   endBoard?: boolean;
 }
 
@@ -182,7 +182,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
           />
         )}
         <nav className="tabbar" aria-label="Casebook">
-          {TABS.filter((t) => t.id !== 'board' || endBoard).map((t) => (
+          {TABS.filter((t) => (endBoard ? t.id !== 'grid' : t.id !== 'board')).map((t) => (
             <button key={t.id} aria-current={tab === t.id ? 'page' : undefined} onClick={() => select(t.id)}>
               {t.label}
             </button>

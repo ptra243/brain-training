@@ -56,10 +56,11 @@ export function loadCampaign(): CampaignSave | null {
 export const saveCampaign = (c: CampaignSave) => write('campaign', c);
 
 /** Where she was: the home screen, her Quick start case or her campaign, so reopening the app goes back there. */
-export type Screen = 'home' | 'case' | 'campaign';
+export type Screen = 'home' | 'case' | 'campaign' | 'campaign-setup';
 
 export const loadScreen = (): Screen => {
   const s = read<Screen>('screen');
+  // 'campaign-setup' is never restored: reopening the app lands on home.
   return s === 'case' || s === 'campaign' ? s : 'home';
 };
 

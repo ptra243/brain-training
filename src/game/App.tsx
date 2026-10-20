@@ -5,6 +5,7 @@ import { caseCode, caseFor, codeFor, newQuickCase, type Cast, type QuickRef } fr
 import type { Length } from '../engine/settings.ts';
 import type { Case, Difficulty } from '../engine/types.ts';
 import { CampaignCard } from './CampaignCard.tsx';
+import { CampaignSetup } from './CampaignSetup.tsx';
 import { CampaignView } from './CampaignView.tsx';
 import { Casebook } from './Casebook.tsx';
 import { newCampaign, roundCase, type CampaignSave } from './campaign.ts';
@@ -89,6 +90,9 @@ export function App() {
   if (screen === 'campaign' && campaign) {
     return <CampaignView save={campaign} onSave={setCampaign} onHome={() => go('home')} />;
   }
+  if (screen === 'campaign-setup') {
+    return <CampaignSetup campaign={campaign} onHome={() => go('home')} onStart={startCampaign} />;
+  }
   if (screen === 'case' && current) {
     return (
       <Casebook
@@ -108,7 +112,7 @@ export function App() {
       current={current}
       onContinue={() => go('case')}
       onStart={start}
-      campaign={<CampaignCard campaign={campaign} onContinue={() => go('campaign')} onStart={startCampaign} />}
+      campaign={<CampaignCard campaign={campaign} onContinue={() => go('campaign')} onNew={() => go('campaign-setup')} />}
     />
   );
 }

@@ -21,7 +21,7 @@ export const FINISHES: readonly Finish[] = ['grid', 'jigsaw'];
 export const FINISH_LABEL: Record<Finish, string> = { grid: 'Grid', jigsaw: 'Jigsaw' };
 export const FINISH_HINT: Record<Finish, string> = {
   grid: 'Work out who was where on the map and grid, then accuse.',
-  jigsaw: 'A Jigsaw tab as well: fit your clues together as pieces to see who is still unaccounted for before you accuse.',
+  jigsaw: 'A Jigsaw tab instead of the grid: fit your clues together as pieces to see who is still unaccounted for before you accuse.',
 };
 
 const LENGTH_HINT: Record<Length, string> = {

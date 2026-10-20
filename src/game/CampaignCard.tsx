@@ -1,31 +1,18 @@
-import { useState } from 'react';
 import { ROUNDS } from '../engine/campaign.ts';
-import { DIFFICULTIES } from '../engine/settings.ts';
-import type { Difficulty } from '../engine/types.ts';
-import { Picker } from './AccusePanel.tsx';
 import { DIFFICULTY_LABEL } from './Casebook.tsx';
 import { ROUND_TIMES } from './CampaignView.tsx';
-import { Dialog } from './Dialog.tsx';
-import { FINISHES, FINISH_HINT, FINISH_LABEL, type Finish } from './Home.tsx';
 import { currentRound, type CampaignSave } from './campaign.ts';
-
-type Accusing = 'anyone' | 'possible';
-const ACCUSING_LABEL: Record<Accusing, string> = { anyone: 'Anyone alive', possible: 'Only possible killers' };
 
 interface Props {
   campaign: CampaignSave | null;
   onContinue: () => void;
-  onStart: (difficulty: Difficulty, possibleOnly: boolean, endBoard: boolean) => void;
+  /** Open the campaign setup screen. */
+  onNew: () => void;
 }
 
-/** The home screen's campaign card: the one in progress, and starting a fresh one. */
-export function CampaignCard({ campaign, onContinue, onStart }: Props) {
-  const [difficulty, setDifficulty] = useState<Difficulty>(campaign?.ref.difficulty ?? 'medium');
-  const [accusing, setAccusing] = useState<Accusing>(campaign?.ref.possibleOnly ? 'possible' : 'anyone');
-  const [finish, setFinish] = useState<Finish>(campaign?.ref.endBoard ? 'jigsaw' : 'grid');
-  const [confirming, setConfirming] = useState(false);
+/** The home screen's campaign card: the one in progress, and a way to set up a fresh one. */
+export function CampaignCard({ campaign, onContinue, onNew }: Props) {
   const unfinished = campaign?.outcome === 'playing';
-  const start = () => onStart(difficulty, accusing === 'possible', finish === 'jigsaw');
 
   const status = !campaign
     ? null
@@ -55,46 +42,9 @@ export function CampaignCard({ campaign, onContinue, onStart }: Props) {
           </button>
         </div>
       )}
-      <Picker
-        legend="Difficulty"
-        options={DIFFICULTIES}
-        value={difficulty}
-        onChange={(d) => setDifficulty(d as Difficulty)}
-        name={(d) => DIFFICULTY_LABEL[d as Difficulty]}
-      />
-      <Picker
-        legend="Who you can accuse"
-        options={['anyone', 'possible']}
-        value={accusing}
-        onChange={(v) => setAccusing(v as Accusing)}
-        name={(v) => ACCUSING_LABEL[v as Accusing]}
-      />
-      <Picker legend="Final puzzle" options={FINISHES} value={finish} onChange={(v) => setFinish(v as Finish)} name={(v) => FINISH_LABEL[v as Finish]} />
-      <p className="muted home-lead">{FINISH_HINT[finish]}</p>
-      <button className={unfinished ? 'secondary' : 'primary'} onClick={() => (unfinished ? setConfirming(true) : start())}>
-        Start a new campaign
+      <button className={unfinished ? 'secondary' : 'primary'} onClick={onNew}>
+        New campaign
       </button>
-
-      {confirming && campaign && (
-        <Dialog placement="center" labelId="new-campaign-title" onClose={() => setConfirming(false)}>
-          <h2 id="new-campaign-title">Start a new campaign?</h2>
-          <p className="dialog-text">Your campaign isn't over yet. A new one replaces it, with a new cast and killer.</p>
-          <div className="dialog-actions">
-            <button data-autofocus className="secondary" onClick={() => setConfirming(false)}>
-              Keep playing
-            </button>
-            <button
-              className="primary"
-              onClick={() => {
-                setConfirming(false);
-                start();
-              }}
-            >
-              Start new
-            </button>
-          </div>
-        </Dialog>
-      )}
     </article>
   );
 }
