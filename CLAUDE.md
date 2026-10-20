@@ -58,8 +58,8 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
   node tests next to it; React components stay thin. Tests run with Node's
   type stripping, so that TS must be erasable syntax only.
 - Checks before committing: `npm test` (includes the golden case snapshot), `npm run check-cases`, `npm run build`.
-  The owner's machine (Windows) has Node 20: run scripts as
-  `npx -y node@22 <script>`.
+  Needs Node 22.18 or newer (the owner's machine has Node 24): run scripts
+  directly, e.g. `node scripts/check-cases.ts`.
 - Cloud sessions can't reach the npm registry: add new dependencies on the
   owner's machine or via CI. Without `node_modules`, at least run the global
   `tsc` over the non-React files with `--strict --noUnusedLocals
