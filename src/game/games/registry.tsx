@@ -182,26 +182,30 @@ export const GAMES: Record<GameKind, GameEntry> = {
       if (!board) throw new Error(`Case ${c.code}: no case board for these clues`);
       return board;
     },
-    play: (board, a) => ({
-      solved: () => boardSolvedSave(board, a.c.levels.minigames),
-      view: (
-        <CaseBoard
-          board={board}
-          level={a.c.levels.minigames}
-          c={a.c}
-          save={(a.saved as BoardSave | undefined) ?? boardInitial()}
-          onChange={a.onChange}
-          finished={a.finished !== null}
-          helper={a.helper}
-          intro={
-            <p className="muted">
-              Your free clues and this puzzle's own clues, as pieces. Its own pieces stay blank until you finish: the only way
-              everything fits proves what they say.
-            </p>
-          }
-          onComplete={(s) => a.onFinish('won', s)}
-        />
-      ),
-    }),
+    play: (board, a) => {
+      // Play cases roll a level for this game; every other case uses its minigame level.
+      const level = a.c.games.find((g) => g.kind === 'board')?.level ?? a.c.levels.minigames;
+      return {
+        solved: () => boardSolvedSave(board, level),
+        view: (
+          <CaseBoard
+            board={board}
+            level={level}
+            c={a.c}
+            save={(a.saved as BoardSave | undefined) ?? boardInitial()}
+            onChange={a.onChange}
+            finished={a.finished !== null}
+            helper={a.helper}
+            intro={
+              <p className="muted">
+                Your free clues and this puzzle's own clues, as pieces. Its own pieces stay blank until you finish: the only way
+                everything fits proves what they say.
+              </p>
+            }
+            onComplete={(s) => a.onFinish('won', s)}
+          />
+        ),
+      };
+    },
   }),
 };

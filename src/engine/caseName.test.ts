@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { caseNameWords as words } from '../content/caseNames.ts';
 import { content } from '../content/index.ts';
 import { themeWords } from '../game/sceneGames.ts';
-import { CODE_COUNT, caseName, codeFor, parseCase, parseCaseName, type QuickRef } from './caseRef.ts';
+import { CODE_COUNT, caseName, codeFor, parseCase, parseCaseName, playLevels, type PlayRef, type QuickRef } from './caseRef.ts';
 import type { Difficulty } from './types.ts';
 import type { Length } from './settings.ts';
 
@@ -41,13 +41,25 @@ test('names never use a room, suspect, weapon or anything in a room', () => {
   for (const w of [...words.adjectives, ...words.nouns, ...words.kinds]) assert.ok(!theme.has(w.toUpperCase()), w);
 });
 
-test('a name reads back as the same case, for any code and levels', () => {
+test('a name reads back as the Play case of its code, for any code and levels', () => {
   for (const n of [0, 1, 99, 100, 12345, 9_876_543, 499_999, 500_000, CODE_COUNT - 1])
     for (const ref of refs(codeFor(n))) {
       const name = caseName(ref, words);
       assert.match(name, /^The [A-Z][a-z]+ [A-Z][a-z]+ [A-Z][a-z]+ at [A-Z][a-z]+$/);
-      assert.deepEqual(parseCaseName(name, words), ref, name);
+      assert.deepEqual(parseCaseName(name, words), { mode: 'play', code: ref.code }, name);
     }
+});
+
+test('a Play name uses the kind word of its rolled logic and guests', () => {
+  for (let n = 0; n < 200; n++) {
+    const code = codeFor(n * 7919);
+    const ref: PlayRef = { mode: 'play', code };
+    const name = caseName(ref, words);
+    assert.deepEqual(parseCaseName(name, words), ref, name);
+    const levels = playLevels(code);
+    const quick: QuickRef = { mode: 'quick', code, difficulty: levels.logic, length: 'normal', ...(levels.suspects === 7 && { cast: 'big' as const }) };
+    assert.equal(name, caseName(quick, words));
+  }
 });
 
 test('different levels of one code get different names', () => {
@@ -60,12 +72,14 @@ test('names are fixed: changing the word lists breaks saved names', () => {
 });
 
 test('typing a name back is forgiving', () => {
-  const ref: QuickRef = { mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' };
-  const name = caseName(ref, words);
+  const old: QuickRef = { mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' };
+  const ref: PlayRef = { mode: 'play', code: 'K7QF2' };
+  const name = caseName(old, words);
   const [, adj, noun, kind, place] = name.split(' ').filter((w) => w !== 'at');
   for (const typed of [name, name.toLowerCase(), `  ${adj} ${noun} ${kind} ${place}  `, `${adj}, ${noun} ${kind} at ${place.slice(0, 3)} ${place.slice(3)}`])
     assert.deepEqual(parseCase(typed, words), ref, typed);
-  assert.deepEqual(parseCase('K7QF2-MN', words), ref, 'codes still work');
+  assert.deepEqual(parseCase('K7QF2-MN', words), old, 'old codes still work');
+  assert.deepEqual(parseCase('K7QF2', words), ref, 'bare codes are Play cases');
   for (const bad of ['', 'The Teacup Affair', `The ${noun} ${adj} ${kind} at ${place}`, `The ${adj} ${noun} ${kind} at Nowhere`])
     assert.equal(parseCase(bad, words), null, bad);
 });

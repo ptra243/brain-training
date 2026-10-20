@@ -51,6 +51,14 @@
   the free clues settle the weapon and any one puzzle settles the killer.
   Rounds are checked by `roundProblems`, not uniqueness; `check-cases` walks
   every wrong-guess path.
+- **Play cases** (Quick play, `buildPlayCase`, seed `play-<code>`): the bare
+  code rolls everything (`playLevels`, its own seed; a new game's roll goes
+  last so earlier rolls stay the same). Every game is in the case, each with
+  its own `level`; no free clues, the scene is given (`sceneGiven`), and the
+  word games are clue games: each blanks one room-naming clue (`Clue.blank`),
+  scene-room clues first, and hides an object of that room. Games that would
+  get no clue are dropped. Other modes never set `perGame`, `level`,
+  `blank` or `sceneGiven`, so their cases are unchanged.
 - **A case name is its code in words** ("The Black Dahlia Scandal at
   Ashcombe": the code's number as a descriptor, a cat or flower word and a
   place, then the kind word for its levels), so either replays the case

@@ -2,7 +2,7 @@
 // the generator settings each combination turns into. Every combination is
 // checked by `npm run check-cases`, so only levels listed here can ship.
 
-import type { ClueType, Difficulty } from './types.ts';
+import type { ClueType, Difficulty, GameKind } from './types.ts';
 
 export type Length = 'short' | 'normal' | 'long';
 
@@ -19,7 +19,15 @@ export interface CaseLevels {
   minigames: Difficulty;
   /** How many rotating games share the clues: 1, 2 or 3. */
   length: Length;
+  /**
+   * Play mode only: a difficulty per game, falling back to `minigames` for any
+   * game without one (the word games wordle and crossword have no roll yet).
+   */
+  perGame?: Partial<Record<GameKind, Difficulty>>;
 }
+
+/** The difficulty rolled for one game in a Play case, if any. */
+export const gameLevel = (levels: CaseLevels, kind: GameKind): Difficulty | undefined => levels.perGame?.[kind];
 
 export const SUSPECT_COUNTS: readonly CaseLevels['suspects'][] = [4, 5, 7];
 export const DIFFICULTIES: readonly Difficulty[] = ['easy', 'medium', 'hard'];
@@ -165,6 +173,13 @@ export function caseSettings(levels: CaseLevels): CaseSettings {
     shared: levels.suspects > 5,
     ...LOGIC[levels.logic],
     ...MINIGAMES[levels.minigames],
+    ...(levels.perGame && {
+      catSize: MINIGAMES[levels.perGame.cats ?? levels.minigames].catSize,
+      catEasy: MINIGAMES[levels.perGame.cats ?? levels.minigames].catEasy,
+      sudoku: MINIGAMES[levels.perGame.sudoku ?? levels.minigames].sudoku,
+      hardInterrogation: MINIGAMES[levels.perGame.interrogation ?? levels.minigames].hardInterrogation,
+      wordSearchLevel: MINIGAMES[levels.perGame.wordsearch ?? levels.minigames].wordSearchLevel,
+    }),
     games: GAMES[levels.length],
     maxPerGame: MAX_PER_GAME,
   };

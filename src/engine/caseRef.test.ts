@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
-import { CODE_COUNT, caseCode, caseFor, codeFor, codeNumber, newQuickCase, parseCaseCode, type QuickRef } from './caseRef.ts';
+import { CODE_COUNT, caseCode, caseFor, codeFor, codeNumber, newQuickCase, parseCaseCode, type PlayRef, type QuickRef } from './caseRef.ts';
 import { generateCase } from './generate.ts';
 
 test('codes are five easy-to-read characters and turn back into their number', () => {
@@ -17,10 +17,19 @@ test('case codes read back however she types them', () => {
   const ref: QuickRef = { mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'long' };
   assert.equal(caseCode(ref), 'K7QF2-ML');
   for (const typed of ['K7QF2-ML', 'k7qf2-ml', ' K7QF2 ML ', 'K7QF2ML']) assert.deepEqual(parseCaseCode(typed), ref, typed);
-  for (const bad of ['', 'K7QF2', 'K7QF2-XL', 'K7QF-ML', 'K7QO2-ML', 'K7QF22-ML', 'K7QF2-MLX']) assert.equal(parseCaseCode(bad), null, bad);
+  for (const bad of ['', 'K7QF', 'K7QF2-XL', 'K7QF-ML', 'K7QO2-ML', 'K7QF22-ML', 'K7QF2-MLX']) assert.equal(parseCaseCode(bad), null, bad);
   const big: QuickRef = { ...ref, cast: 'big' };
   assert.equal(caseCode(big), 'K7QF2-MLB');
   assert.deepEqual(parseCaseCode('k7qf2 mlb'), big);
+});
+
+test('a bare code is a Play case and round-trips', () => {
+  const ref: PlayRef = { mode: 'play', code: 'K7QF2' };
+  assert.equal(caseCode(ref), 'K7QF2');
+  for (const typed of ['K7QF2', 'k7qf2', ' K7 QF2 ']) assert.deepEqual(parseCaseCode(typed), ref, typed);
+  assert.equal(parseCaseCode('K7QO2'), null);
+  assert.equal(parseCaseCode('K7QF22'), null);
+  for (const n of [0, 5, 4242]) assert.deepEqual(parseCaseCode(caseCode({ mode: 'play', code: codeFor(n) })), { mode: 'play', code: codeFor(n) });
 });
 
 test('same ref, same case; quick cases are their own', () => {

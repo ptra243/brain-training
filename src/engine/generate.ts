@@ -6,9 +6,9 @@ import { allHoldings, allRoomings, countMatching } from './search.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
 import { BOARD_SHARE, CLUE_SOURCE, ROTATION, SCENE_GAMES } from './gameKinds.ts';
 import { boardPuzzle } from './caseBoard.ts';
-import type { Case, Clue, ClueDelivery, ClueFact, ClueType, Content, Difficulty, GameKind, GameSpec, Interrogation, RotatingKind, Solution, CampaignRound } from './types.ts';
+import type { Case, Clue, ClueDelivery, ClueFact, ClueType, Content, Difficulty, GameKind, GameSpec, Interrogation, RotatingKind, SceneKind, Solution, CampaignRound } from './types.ts';
 import { buildInterrogation, type CaseFacts } from './interrogation.ts';
-import { PRESETS, caseSettings, clueShares, levelsKey, type CaseLevels, type CaseSettings, type ClueShares } from './settings.ts';
+import { PRESETS, caseSettings, clueShares, gameLevel, levelsKey, type CaseLevels, type CaseSettings, type ClueShares } from './settings.ts';
 
 /** Difficulty curve for the campaign: a few easy cases, then mostly medium with every third hard. */
 export function campaignDifficulty(caseNumber: number): Difficulty {
@@ -52,6 +52,100 @@ export function buildCase(content: Content, seedText: string, caseNumber: number
   return assemble({ content, seed, rng, settings, levels, caseNumber, code, truth, order, rotating, kinds, shares });
 }
 
+/**
+ * A Play case: one code rolls the levels, every game is in the case (unless
+ * dropped to leave each one a clue), the scene is given from the start with
+ * no free clues, and the three word games are clue games. Each hides an
+ * object word that fills the blank in one of its clues.
+ */
+export function buildPlayCase(content: Content, seedText: string, caseNumber: number, code: string, levels: CaseLevels): Case {
+  const seed = hashSeed(seedText);
+  const rng = new Rng(seed);
+  const settings = caseSettings(levels);
+  const truth = settings.shared ? sharedTruth(content, settings, rng, code) : classicTruth(content, settings, rng, code);
+  const { suspects, rooms, items, solution, murdererIndex } = truth;
+  const sceneRoom = solution.room[murdererIndex];
+  const shuffled = rng.shuffle(truth.minimal);
+  // Separate seeded streams so the wording above never moves the choices below.
+  const dropRng = new Rng(hashSeed(`${seed}-play-drop`));
+  const blankRng = new Rng(hashSeed(`${seed}-play-blank`));
+  const atScene = (f: ClueFact) => canLocate(f) && f.room === sceneRoom;
+
+  type Name = SceneKind | RotatingKind;
+  let names: Name[] = [...SCENE_GAMES, ...ROTATION, 'board'];
+  for (;;) {
+    if (!names.length) throw new Error(`Case ${code}: no game could be given a clue`);
+    const shares = clueShares(shuffled.length, { ...settings, games: names.length, freeClues: 0 }, names.indexOf('sudoku'));
+    if (shares.free > 0) throw new Error(`Case ${code}: too many clues for its games`);
+    // Every game left must get a clue: otherwise drop one, seeded.
+    if (shares.games.some((g) => g < 1)) {
+      const out = dropRng.int(names.length);
+      names = names.filter((_, i) => i !== out);
+      continue;
+    }
+    // Word games: each blanks a clue that names one room, the scene room's first.
+    const words = names.filter((n): n is SceneKind => SCENE_GAMES.includes(n as SceneKind));
+    const taken = new Set<ClueFact>();
+    const blanks = new Map<SceneKind, Extract<ClueFact, { room: string }>>();
+    let failed: SceneKind | undefined;
+    for (const w of words) {
+      const free = shuffled.filter((f) => canLocate(f) && !taken.has(f));
+      const pool = free.filter(atScene).length ? free.filter(atScene) : free;
+      if (!pool.length) {
+        failed = w;
+        break;
+      }
+      const fact = blankRng.pick(pool);
+      taken.add(fact);
+      blanks.set(w, fact as Extract<ClueFact, { room: string }>);
+    }
+    if (failed) {
+      names = names.filter((n) => n !== failed);
+      continue;
+    }
+    // Their other clues come from the scene room's first.
+    const fillers = [...shuffled.filter((f) => !taken.has(f) && atScene(f)), ...shuffled.filter((f) => !taken.has(f) && !atScene(f))];
+    const wordFacts: ClueFact[] = [];
+    words.forEach((w, i) => wordFacts.push(blanks.get(w)!, ...fillers.splice(0, shares.games[i] - 1)));
+    const placed = new Set(wordFacts);
+    const order = [...wordFacts, ...shuffled.filter((f) => !placed.has(f))];
+    // The case board puzzle must build from its share.
+    const at = names.indexOf('board');
+    if (at >= 0) {
+      const start = shares.games.slice(0, at).reduce((a, b) => a + b, 0);
+      const clues = order.map((fact, i) => ({ id: `c${i + 1}`, fact, delivery: 'board' as ClueDelivery }));
+      const share = clues.slice(start, start + shares.games[at]).map((cl) => cl.id);
+      const c = { suspects, rooms, items, shared: settings.shared, seed, sceneRoom, clues };
+      if (!boardPuzzle(content, c, { seed: hashSeed(`${seed}-board`), clues: share })) {
+        names = names.filter((n) => n !== 'board');
+        continue;
+      }
+    }
+
+    // Each word game hides an object of the room its blank names; no two hide the same word when the lists allow.
+    const hidden = new Set<string>();
+    const wordList = words.map((kind) => {
+      const blank = blanks.get(kind)!;
+      const room = content.house.rooms.find((r) => r.id === blank.room)!;
+      const all = kind === 'wordle' ? room.objects : room.things;
+      const fresh = all.filter((w) => !hidden.has(w.toUpperCase()));
+      const answer = new Rng(hashSeed(`${seed}-play-${kind}-word`)).pick(fresh.length ? fresh : all);
+      hidden.add(answer.toUpperCase());
+      return { kind, blank, answer };
+    });
+    const rotating = names.filter((n): n is RotatingKind => !SCENE_GAMES.includes(n as SceneKind));
+    const kinds = settings.finale ? [...rotating, 'finale' as const] : rotating;
+    return assemble({ content, seed, rng, settings, levels, caseNumber, code, truth, order, rotating, kinds, shares, words: wordList });
+  }
+}
+
+/** A Play word game: the clue it blanks and the object word that fills the blank. */
+export interface PlayWord {
+  kind: SceneKind;
+  blank: Extract<ClueFact, { room: string }>;
+  answer: string;
+}
+
 /** Everything `assemble` needs: the truth, its clues in hand-out order, and how they're shared. */
 export interface Layout {
   content: Content;
@@ -68,13 +162,20 @@ export interface Layout {
   kinds: (RotatingKind | 'finale')[];
   shares: ClueShares;
   campaign?: CampaignRound;
+  /**
+   * Play cases: the word games that share clues, taken before the rotating
+   * games in hand-out order (`shares.games` lists them first). Each blanks
+   * one clue. Absent for every other mode, which `assemble` handles as before.
+   */
+  words?: PlayWord[];
 }
 
 /** Words the clues, builds the interrogations, the scene and the game specs. */
 export function assemble(o: Layout): Case {
   const { content, seed, rng, settings, levels, caseNumber, code, order, shares } = o;
   // The case board puzzle may stand in for one of the drawn games.
-  const slot = boardSlot(o);
+  const slot = o.words ? -1 : boardSlot(o);
+  const wordKinds: SceneKind[] = o.words?.map((w) => w.kind) ?? [];
   const swap = <K extends string>(k: K, i: number) => (i === slot ? ('board' as const) : k);
   const rotating = o.rotating.map(swap);
   const kinds = o.kinds.map(swap);
@@ -88,7 +189,7 @@ export function assemble(o: Layout): Case {
   const free = shares.free;
   const gameFacts = new Map<GameKind, ClueFact[]>();
   let at = free;
-  rotating.forEach((k, i) => {
+  [...wordKinds, ...rotating].forEach((k, i) => {
     gameFacts.set(k, order.slice(at, at + shares.games[i]));
     at += shares.games[i];
   });
@@ -100,14 +201,18 @@ export function assemble(o: Layout): Case {
   const deliveryOf = (f: ClueFact, i: number): ClueDelivery => {
     if (i < free) return 'given';
     if (finaleFacts.includes(f)) return 'finale';
-    return kinds.find((k) => shareOf(k).includes(f)) ?? 'given';
+    return [...wordKinds, ...kinds].find((k) => shareOf(k).includes(f)) ?? 'given';
   };
   const wordAs = (fact: ClueFact, i: number, speaker?: string): Clue => {
     const delivery = deliveryOf(fact, i);
-    const isLocated = locatedFacts.includes(fact) && canLocate(fact);
+    const blankOf = o.words?.find((pw) => pw.blank === fact);
+    const isLocated = (locatedFacts.includes(fact) && canLocate(fact)) || blankOf !== undefined;
     const w = wordClue(fact, CLUE_SOURCE[delivery], content, suspects, rng, isLocated, speaker);
     const clue: Clue = { id: `c${i + 1}`, fact, delivery, source: CLUE_SOURCE[delivery], speaker: w.speaker, body: w.body, text: plainText(w, content) };
-    if (isLocated && w.located) {
+    if (blankOf && w.located) {
+      // A Play word game's clue, with its room hidden behind the word.
+      clue.blank = { game: blankOf.kind, answer: blankOf.answer, teaser: `${w.located.before}the room with the ${WORDLE_BLANK}${w.located.after}` };
+    } else if (isLocated && w.located && canLocate(fact)) {
       const room = house.rooms.find((r) => r.id === fact.room)!;
       clue.location = { ...w.located, target: rng.pick(room.cells) };
     }
@@ -140,7 +245,8 @@ export function assemble(o: Layout): Case {
   // The scene is a hidden word, found by whichever word game she picks: "The body was found by the _____."
   const sceneRoom = solution.room[murdererIndex];
   const scene = house.rooms.find((r) => r.id === sceneRoom)!;
-  const sceneWord = rng.pick(scene.objects);
+  // Play shows the scene sentence from the start, so it never names a word a word game hides.
+  const sceneWord = rng.pick(o.words ? scene.objects.filter((w) => !o.words!.some((pw) => pw.answer === w)) : scene.objects);
   const sceneText = (word: string) => `The body was found by the ${word.toLowerCase()} in the ${scene.name}.`;
   const sceneClue = {
     text: sceneText(sceneWord),
@@ -149,10 +255,25 @@ export function assemble(o: Layout): Case {
   };
 
   const idsFor = (kind: GameKind) => clues.filter((c) => c.delivery === kind).map((c) => c.id);
+  const levelOf = (kind: GameKind) => {
+    const level = gameLevel(levels, kind);
+    return level && { level };
+  };
   const games: GameSpec[] = [
+    // Play: clue games, each hiding the word that fills its blanked clue.
+    ...(o.words ?? []).map((w): GameSpec => ({
+      kind: w.kind,
+      seed: hashSeed(`${seed}-${w.kind}`),
+      clues: idsFor(w.kind),
+      unlocksScene: true,
+      // The crossword has no Play level yet, so it keeps its smallest grid.
+      size: w.kind === 'wordle' ? 5 : 7,
+      scene: { answer: w.answer, text: clues.find((c) => c.blank?.game === w.kind)!.text },
+      ...(w.kind === 'wordsearch' && levelOf(w.kind)),
+    })),
     // Seeded separately so adding word games never changes the case itself.
     // The Wordle hides a 5-letter object; the others hide a room thing of any length.
-    ...SCENE_GAMES.map((kind): GameSpec => {
+    ...(o.words ? [] : SCENE_GAMES).map((kind): GameSpec => {
       const answer = kind === 'wordle' ? sceneWord : new Rng(hashSeed(`${seed}-${kind}-word`)).pick(scene.things);
       return {
         kind,
@@ -164,7 +285,7 @@ export function assemble(o: Layout): Case {
       };
     }),
     ...kinds.map((kind): GameSpec => {
-      const base = { seed: hashSeed(`${seed}-${kind}`), clues: idsFor(kind), unlocksScene: false as const };
+      const base = { seed: hashSeed(`${seed}-${kind}`), clues: idsFor(kind), unlocksScene: false as const, ...(kind !== 'finale' && levelOf(kind)) };
       if (kind === 'cats') return { kind, ...base, size: settings.catSize, ...(settings.catEasy && { easy: true }) };
       if (kind === 'board') return { kind, ...base };
       if (kind === 'sudoku')
@@ -196,6 +317,7 @@ export function assemble(o: Layout): Case {
     murderer: suspects[murdererIndex],
     weapon: solution.item[murdererIndex]!,
     sceneClue,
+    ...(o.words && { sceneGiven: true as const }),
     clues,
     games,
   };

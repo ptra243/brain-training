@@ -95,9 +95,17 @@ interface GameBase {
   seed: number;
   /** Clue ids this game unlocks. */
   clues: readonly string[];
+  /** Play cases only: the difficulty rolled for this game (absent in every other mode). */
+  level?: Difficulty;
 }
 
-/** A word game that reveals the scene (any one will do). It unlocks no clues. */
+/**
+ * A word game that reveals the scene (any one will do). It unlocks no clues,
+ * except in Play cases, where it is a clue game: `scene.answer` is an object
+ * word that fills the blank of one of its clues (`Clue.blank`), `unlocksScene`
+ * still marks it as a word game for narrowing, and the scene is already given
+ * (`Case.sceneGiven`).
+ */
 export interface SceneGameSpec extends GameBase {
   kind: SceneKind;
   unlocksScene: true;
@@ -217,6 +225,12 @@ export interface Clue {
   /** Sudoku statements only. */
   location?: Location;
   wordle?: WordleReveal;
+  /**
+   * Play word games only: this clue's room is hidden behind `answer`, an
+   * object of that room. `teaser` is the clue with "the room with the _ _ _ _ _"
+   * in place of the room.
+   */
+  blank?: { game: SceneKind; answer: string; teaser: string };
 }
 
 /**
@@ -267,6 +281,8 @@ export interface Case {
    * own word in `GameSpec.scene`.
    */
   sceneClue: { text: string; delivery: 'wordle'; wordle: WordleReveal };
+  /** Play cases: the scene card is filled in from the first screen, with no free clues. */
+  sceneGiven?: true;
   /** Minimal clue set: removing any one allows a second solution. */
   clues: readonly Clue[];
   /** Minigames in play order; together with the free clues they unlock everything. */
