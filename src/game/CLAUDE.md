@@ -49,3 +49,9 @@
 - **Case board UI** lives in `board/` (`CaseBoard`, pure rules in `boardSave.ts`). Pair rules (touching, apart, a guest's pieces in one place) never refuse a drop: the pieces get a red outline and a note, so one wrong piece can't lock another out. A piece's own rules (rooms ruled out) and pinned partners do refuse. The end board (`EndBoardPanel`, a Jigsaw tab that replaces the Grid tab when she picks "Final puzzle: Jigsaw", `ref.endBoard`; Play cases always show Map, Grid and Jigsaw) is rebuilt whenever she finds a clue; her moves are kept per set of clues (`Progress.endBoard`).
 - **Saves**: only one Quick case (a Play case, or an old Quick start one) and
   one campaign are saved at a time; a new Play case replaces the saved one.
+- **Cases are built in a worker.** UI code never calls `caseFor`,
+  `newPlayCase`, `newPickCase`, `newQuickCase` or `roundCase` directly: add a
+  job to `caseJobs.ts` and `await generate(job)` (`caseClient.ts`) behind the
+  `Shuffling` overlay. The client falls back to building on the main thread
+  when workers fail; tests call the engine (or `runCaseJob`) directly. Board
+  rebuilds (`endBoard`, `boardPuzzle`) stay on the main thread (≤60 ms on a PC).
