@@ -4,13 +4,13 @@
 import { content } from '../src/content/index.ts';
 import { caseContext, caseFacts, caseSpace, interrogationEvidence } from '../src/engine/caseFacts.ts';
 import { campaignCast, campaignRound, roundProblems, type CampaignRef } from '../src/engine/campaign.ts';
-import { caseCode, caseFor, codeFor, type Cast, type QuickRef } from '../src/engine/caseRef.ts';
+import { caseCode, caseFor, codeFor, type Cast, type PlayRef, type QuickRef } from '../src/engine/caseRef.ts';
 import { generateCase } from '../src/engine/generate.ts';
 import { boardPuzzle, endBoard } from '../src/engine/caseBoard.ts';
 import { boardSolvable } from '../src/engine/board.ts';
 import type { Board } from '../src/engine/boardTypes.ts';
 import { disproves } from '../src/engine/interrogation.ts';
-import { isInterrogation, isSceneGame } from '../src/engine/gameKinds.ts';
+import { ROTATION, SCENE_GAMES, isInterrogation, isSceneGame } from '../src/engine/gameKinds.ts';
 import { DIFFICULTIES, LENGTHS, PRESETS, allLevels, caseSettings, levelsKey, presetOf, type CaseLevels } from '../src/engine/settings.ts';
 import { countMatching } from '../src/engine/search.ts';
 import { sceneCrossword, sceneWordSearch } from '../src/game/sceneGames.ts';
@@ -48,6 +48,7 @@ function problems(c: Case): string[] {
   if (c.solution.room.filter((r) => r === c.sceneRoom).length !== 1 || c.solution.room[k] !== c.sceneRoom) out.push('killer not alone at the scene');
   if (c.solution.item[k] !== c.weapon) out.push("killer doesn't hold the weapon");
   out.push(...puzzleProblems(c));
+  if (c.sceneGiven) return [...out, ...playProblems(c)];
   // Clue shares: every rotating game unlocks something, none too much.
   const s = caseSettings(c.levels);
   const rotating = c.games.filter((g) => !g.unlocksScene && g.kind !== 'finale');
@@ -57,6 +58,40 @@ function problems(c: Case): string[] {
   }
   const finale = c.games.find((g) => g.kind === 'finale');
   if (finale && finale.clues.length > 2) out.push(`finale unlocks ${finale.clues.length} clues`);
+  return out;
+}
+
+// Play: how often word games blank a scene-room clue, and how often games are left out.
+const play = { blanks: 0, sceneBlanks: 0, dropped: 0, wordDropped: 0 };
+
+/** Play cases: no free clues, every game unlocks something, every word game blanks one room clue and hides an object of that room. */
+function playProblems(c: Case): string[] {
+  const out: string[] = [];
+  if (c.clues.some((cl) => cl.delivery === 'given')) out.push('a Play case has free clues');
+  const s = caseSettings(c.levels);
+  for (const g of c.games) {
+    if (g.kind === 'finale') {
+      if (g.clues.length > 2) out.push(`finale unlocks ${g.clues.length} clues`);
+    } else if (g.clues.length < 1 || g.clues.length > s.maxPerGame) out.push(`${g.kind} unlocks ${g.clues.length} clues`);
+  }
+  const words = c.games.filter(isSceneGame);
+  play.dropped += [...SCENE_GAMES, ...ROTATION].filter((k) => !c.games.some((g) => g.kind === k)).length;
+  play.wordDropped += SCENE_GAMES.length - words.length;
+  for (const g of words) {
+    const blanked = c.clues.filter((cl) => cl.blank?.game === g.kind);
+    if (blanked.length !== 1 || !g.clues.includes(blanked[0].id)) {
+      out.push(`${g.kind} has ${blanked.length} blanked clues of its own`);
+      continue;
+    }
+    const { fact, blank } = blanked[0];
+    const room = 'room' in fact ? content.house.rooms.find((r) => r.id === fact.room) : undefined;
+    if (!room) out.push(`${g.kind} blanks a clue that names no one room`);
+    else if (!(g.kind === 'wordle' ? room.objects : room.things).includes(blank!.answer)) out.push(`${g.kind} hides ${blank!.answer}, not an object of the ${room.name}`);
+    if (blank!.answer !== g.scene.answer) out.push(`${g.kind} hides ${g.scene.answer} but its clue needs ${blank!.answer}`);
+    if (blank!.answer === c.sceneClue.wordle.answer) out.push(`${g.kind} hides the scene sentence's word`);
+    play.blanks++;
+    if (room?.id === c.sceneRoom) play.sceneBlanks++;
+  }
   return out;
 }
 
@@ -98,8 +133,8 @@ function puzzleProblems(c: Case): string[] {
   }
   // End board (a starting option): builds from the free clues alone, and from every clue once the scene is known.
   const free = new Set(c.clues.filter((cl) => cl.delivery === 'given').map((cl) => cl.id));
-  const puzzles = c.games.filter((g) => !g.unlocksScene).length;
-  for (const [found, scene, left] of [[free, false, puzzles], [new Set(c.clues.map((cl) => cl.id)), true, 0]] as const) {
+  const puzzles = c.games.filter((g) => c.sceneGiven || !g.unlocksScene).length;
+  for (const [found, scene, left] of [[free, c.sceneGiven ?? false, puzzles], [new Set(c.clues.map((cl) => cl.id)), true, 0]] as const) {
     const b = timed(() => endBoard(content, c, found, scene, left));
     boards.ends++;
     if (!b) out.push(`no end board for ${found.size} clues`);
@@ -178,6 +213,26 @@ for (const difficulty of DIFFICULTIES) {
 const QUICK_CHOICES = DIFFICULTIES.length * LENGTHS.length * CASTS.length;
 console.log(`${QUICK_CHOICES} Quick start choices × ${PER_QUICK} codes`);
 
+// Quick play: the code alone rolls the levels.
+const PER_PLAY = 50;
+const playStarted = performance.now();
+for (let i = 1; i <= PER_PLAY; i++) {
+  const ref: PlayRef = { mode: 'play', code: codeFor(i * 1_215_773) };
+  try {
+    for (const p of problems(caseFor(content, ref))) {
+      failures++;
+      console.log(`  FAIL play ${caseCode(ref)}: ${p}`);
+    }
+  } catch (err) {
+    failures++;
+    console.log(`  FAIL play ${caseCode(ref)}: ${(err as Error).message}`);
+  }
+}
+console.log(
+  `${PER_PLAY} Quick play codes (${((performance.now() - playStarted) / PER_PLAY).toFixed(0)} ms per case): ` +
+    `${play.sceneBlanks} of ${play.blanks} word games blank a scene-room clue; ${play.dropped} games left out, ${play.wordDropped} of them word games`,
+);
+
 // Campaigns: every path of wrong accusations, each round fair for any puzzles she picks.
 const PER_DIFFICULTY = 3;
 let rounds = 0;
@@ -210,10 +265,10 @@ console.log(`${DIFFICULTIES.length * PER_DIFFICULTY} campaigns, every wrong-gues
 
 console.log(`Case boards: ${boards.puzzles} puzzles and ${boards.ends} end boards built (slowest ${boards.slowest.toFixed(0)} ms)`);
 
-const total = 3 * PER_PRESET + others.length * PER_COMBINATION + QUICK_CHOICES * PER_QUICK + rounds;
+const total = 3 * PER_PRESET + others.length * PER_COMBINATION + QUICK_CHOICES * PER_QUICK + PER_PLAY + rounds;
 console.log(
   failures
     ? `\n${failures} problems`
-    : `\nAll ${total} cases have exactly one solution, every interrogation can be caught fairly, every cat puzzle is fair, every word game spells its word, every case board builds, every game unlocks a fair share of clues, and every campaign round is fair whatever she picks.`,
+    : `\nAll ${total} cases have exactly one solution, every interrogation can be caught fairly, every cat puzzle is fair, every word game spells its word, every case board builds, every game unlocks a fair share of clues, every Quick play word game hides an object of the room its clue names, and every campaign round is fair whatever she picks.`,
 );
 process.exit(failures ? 1 : 0);
