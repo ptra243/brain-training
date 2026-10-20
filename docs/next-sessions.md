@@ -9,33 +9,37 @@ Keeping an entry current: when you work on one, or when its handoff docs change,
 
 ## Session: Tell me again, engine brief
 Last touched: 2026-10-20
-Reads first: `docs/tell-me-again.md`, and the Questioning variants doc (link: add here).
+Reads first: `docs/tell-me-again.md`, and the Questioning variants doc (link in `CLAUDE.md`).
 Goal: turn the settled design into an implementer brief for the engine part: the retell generator,
 the solver fact checks, rewording templates, and the tests (exactly one fact changed, or two on
 hard; tangents never change meaning). Keep design decisions in the main session; hand the built
 brief to the `implementer` agent.
 Starting prompt:
 ```
-Read docs/tell-me-again.md and the Questioning variants doc <paste the link>, then write an implementer brief for the engine part: the retell generator, the fact checks and the tests.
+Read docs/tell-me-again.md and the Questioning variants doc (linked in CLAUDE.md), then write an implementer brief for the engine part: the retell generator, the fact checks and the tests.
 ```
 
 ## Session: Theme content, tarot cast and line pools
 Last touched: 2026-10-20
 Reads first: `docs/theme-draft.md`.
-Goal: grow the draft to about 6 lines per card per reading, mark role-neutral versus role-bound
-lines, write about 40 shared tangents, and pick the tone. Content only; no engine code.
+Goal: the line pools and shared tangents are drafted. What's left is content only (no engine code):
+fix lines that break rules 2 and 3 (times such as "all night", "for hours"), write the 4 extra
+next-door tangents, lines for the six extra cards, the missing card + object and follow-up threads,
+and pick the tone.
 Starting prompt:
 ```
-Read docs/theme-draft.md, then expand the line pools to about 6 lines per card per reading, with the role-neutral lines marked.
+Read docs/theme-draft.md, fix the lines that break rules 2 and 3, then draft the six extra cards and the missing card + object threads.
 ```
 
-## Session: Plan-doc links in CLAUDE.md
+## Session: Tangent threads and Talk/Play flow
 Last touched: 2026-10-20
-Reads first: nothing.
-Goal: add the Build Plan and Questioning variants doc links to `CLAUDE.md` so a fresh session can
-open them with the Docs reader. Needs the two links from the owner. Small; do it at the start of
-any other session.
+Reads first: `docs/theme-draft.md` (the "Model" and "Follow-up threads" sections), `docs/tell-me-again.md`,
+and the Murder Mystery Mode doc (link in `CLAUDE.md`) for how she travels the house.
+Goal: settle the open questions (unprompted versus "Anything else?", threads per suspect, Play after
+Talk in one visit, side characters, the `visit` trigger), then write an implementer brief for the set
+roll, the saved stage per character, the triggers and the Talk screen. Dump and diff existing cases
+before and after (rule 10).
 Starting prompt:
 ```
-Add these doc links to CLAUDE.md under the opening paragraph: Murder Mystery Mode Build Plan <link>, Questioning variants Build Plan <link>.
+Read the Model and Follow-up threads sections of docs/theme-draft.md and the Murder Mystery Mode doc, then help me settle the open questions and write an implementer brief.
 ```
