@@ -31,6 +31,8 @@ export interface TarotState {
   jokerGone: number | null;
   /** The card the joker turned up, still unmatched. */
   peek: number | null;
+  /** The peek has not yet been used in a turn: it is her automatic first pick. */
+  peekFresh: boolean;
   /** Positions she has seen face up at any time. */
   seen: number[];
   /** Cat hints and joker peeks used (they seed the next draw). */
@@ -38,7 +40,7 @@ export interface TarotState {
   peeks: number;
 }
 
-export const tarotInitial = (): TarotState => ({ picked: [], matched: [], jokerGone: null, peek: null, seen: [], hints: 0, peeks: 0 });
+export const tarotInitial = (): TarotState => ({ picked: [], matched: [], jokerGone: null, peek: null, peekFresh: false, seen: [], hints: 0, peeks: 0 });
 
 /**
  * Deal the board. `deck` is every card id the case can use; clue cards not in it
@@ -74,9 +76,9 @@ const withSeen = (s: TarotState, i: number): number[] => (s.seen.includes(i) ? s
 /** Turn the joker's free peek: a random unmatched, face-down card, or none. */
 function peekFree(board: TarotBoard, s: TarotState, seed: number): TarotState {
   const choices = unmatchedPositions(board, s).filter((i) => !s.picked.includes(i));
-  if (choices.length === 0) return { ...s, peek: null };
+  if (choices.length === 0) return { ...s, peek: null, peekFresh: false };
   const i = new Rng(hashSeed(`${seed}-peek-${s.peeks}`)).pick(choices);
-  return { ...s, peek: i, peeks: s.peeks + 1, seen: withSeen(s, i) };
+  return { ...s, peek: i, peekFresh: true, peeks: s.peeks + 1, seen: withSeen(s, i) };
 }
 
 /**
@@ -84,19 +86,19 @@ function peekFree(board: TarotBoard, s: TarotState, seed: number): TarotState {
  * are already waiting for `resolveTurn`. Flipping the joker removes it and turns
  * one card up free; it does not count as one of her two picks. While that peek
  * card is up and she has picked nothing, it is her first pick: tapping any other
- * card makes the pair (`picked` = [peek, tapped]). Tapping the peek itself then
- * does nothing. With one ordinary card already picked, the next tap pairs with it.
+ * card makes the pair (`picked` = [peek, tapped]) and tapping the peek itself does
+ * nothing. After a miss that used the peek it stops being automatic (`peekFresh`
+ * false): taps pick ordinary cards and she may tap the peek to pair it. With one ordinary card already picked, the next tap pairs with it.
  */
 export function flip(board: TarotBoard, s: TarotState, seed: number, i: number): TarotState {
   if (i < 0 || i >= board.length || s.matched.includes(i) || s.picked.includes(i) || s.jokerGone === i) return s;
   if (board[i] === JOKER) return peekFree(board, { ...s, jokerGone: i }, seed);
   if (s.picked.length >= 2) return s;
-  if (s.peek !== null) {
-    // The peeked card counts as her first pick: with none made, one tap resolves against it.
-    if (s.picked.length === 0) {
-      if (i === s.peek) return s;
-      return { ...s, picked: [s.peek, i], seen: withSeen(s, i) };
-    }
+  // A fresh peek card counts as her first pick: with none made, one tap resolves against it.
+  // Once a turn has used it and missed, it is just a face-up card she may tap like any other.
+  if (s.peek !== null && s.peekFresh && s.picked.length === 0) {
+    if (i === s.peek) return s;
+    return { ...s, picked: [s.peek, i], seen: withSeen(s, i) };
   }
   return { ...s, picked: [...s.picked, i], seen: withSeen(s, i) };
 }
@@ -111,7 +113,7 @@ export const turnReady = (s: TarotState): boolean => s.picked.length === 2;
 export function resolveTurn(board: TarotBoard, s: TarotState, seed: number): TarotState {
   if (s.picked.length !== 2) return s;
   const [a, b] = s.picked;
-  if (board[a] !== board[b]) return { ...s, picked: [] };
+  if (board[a] !== board[b]) return { ...s, picked: [], peekFresh: s.peek !== null && s.picked.includes(s.peek) ? false : s.peekFresh };
   const next: TarotState = { ...s, picked: [], matched: [...s.matched, a, b] };
   if (next.peek !== null && next.matched.includes(next.peek)) return peekFree(board, next, seed);
   return next;
@@ -131,7 +133,7 @@ export function tarotHint(board: TarotBoard, s: TarotState, seed: number): Tarot
   const seen = s.seen.filter((i) => !s.matched.includes(i) && board[i] !== JOKER && !isFaceUp(s, i));
   if (seen.length === 0) return { state: s, ghost: null };
   // With a peek up and nothing picked, her next tap pairs with it: point at its partner if she has seen it.
-  if (s.peek !== null && s.picked.length === 0) {
+  if (s.peek !== null && s.peekFresh && s.picked.length === 0) {
     const partner = seen.find((i) => board[i] === board[s.peek!]);
     if (partner !== undefined) return { state: { ...s, hints: s.hints + 1 }, ghost: partner };
   }
@@ -146,5 +148,5 @@ export const tarotSolved = (board: TarotBoard, s: TarotState): boolean => unmatc
 /** Solve button: the whole board face up. */
 export function tarotRevealAll(board: TarotBoard, s: TarotState): TarotState {
   const all = board.map((_, i) => i);
-  return { ...s, picked: [], peek: null, matched: all.filter((i) => board[i] !== JOKER), seen: all };
+  return { ...s, picked: [], peek: null, peekFresh: false, matched: all.filter((i) => board[i] !== JOKER), seen: all };
 }

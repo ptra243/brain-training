@@ -73,7 +73,7 @@ test('joker: removed on flip, turns one unmatched card up, which stays up until 
   s = resolveTurn(b, flip(b, s, 3, wrong), 3);
   assert.equal(s.peek, first);
   // Matching it turns a new one up for free.
-  s = resolveTurn(b, flip(b, s, 3, pairOf(b, first)), 3);
+  s = resolveTurn(b, flip(b, flip(b, s, 3, first), 3, pairOf(b, first)), 3);
   assert.ok(s.peek !== null && s.peek !== first && !s.matched.includes(s.peek));
   assert.equal(s.matched.length, 2);
   // Joker flipped again does nothing.
@@ -91,12 +91,17 @@ test('peek counts as the first pick: one tap pairs, match stays, miss keeps the 
   assert.ok(turnReady(t));
   assert.deepEqual(flip(b, t, 3, wrong[1]), t); // nothing more while judging
   s = resolveTurn(b, t, 3);
-  assert.deepEqual([s.picked, s.matched, s.peek], [[], [], p]); // miss: peek stays up
-  s = resolveTurn(b, flip(b, s, 3, wrong[1]), 3); // try another
-  assert.equal(s.peek, p);
-  s = resolveTurn(b, flip(b, s, 3, pairOf(b, p)), 3);
+  assert.deepEqual([s.picked, s.matched, s.peek, s.peekFresh], [[], [], p, false]); // miss: peek stays up, no longer automatic
+  // Free choice again: B then C are an ordinary pair of picks (the third-card bug).
+  s = flip(b, s, 3, wrong[1]);
+  assert.deepEqual(s.picked, [wrong[1]]);
+  s = flip(b, s, 3, wrong[2]);
+  assert.deepEqual(s.picked, [wrong[1], wrong[2]]);
+  s = resolveTurn(b, s, 3);
+  assert.deepEqual([s.picked, s.peek], [[], p]);
+  s = resolveTurn(b, flip(b, flip(b, s, 3, p), 3, pairOf(b, p)), 3); // tap the peek to pair it on purpose
   assert.deepEqual([...s.matched].sort(), [p, pairOf(b, p)].sort());
-  assert.ok(s.peek !== null && s.peek !== p && !s.matched.includes(s.peek));
+  assert.ok(s.peek !== null && s.peek !== p && !s.matched.includes(s.peek) && s.peekFresh);
 });
 
 test('peek up with one ordinary pick made: two ordinary picks resolve as before, peek untouched', () => {
@@ -108,7 +113,13 @@ test('peek up with one ordinary pick made: two ordinary picks resolve as before,
   s = flip(b, s, 3, y);
   assert.deepEqual(s.picked, [x, y]);
   s = resolveTurn(b, s, 3);
-  assert.deepEqual([s.picked, s.matched, s.peek], [[], [], p]);
+  assert.deepEqual([s.picked, s.matched, s.peek, s.peekFresh], [[], [], p, true]);
+  // The fresh peek is still her next first pick; after that miss she can go on freely.
+  const z = nonJoker(b).find((i) => i !== p && i !== pairOf(b, p))!;
+  s = resolveTurn(b, flip(b, s, 3, z), 3);
+  assert.equal(s.peekFresh, false);
+  s = flip(b, flip(b, s, 3, x), 3, y);
+  assert.deepEqual(s.picked, [x, y]);
 });
 
 test('joker with no unmatched cards left turns nothing up', () => {
@@ -157,7 +168,7 @@ test('following hints always reaches a win', () => {
       const down = () => b.map((_, i) => i).filter((i) => !s.matched.includes(i) && !s.picked.includes(i) && b[i] !== JOKER && s.jokerGone !== i);
       const fresh = () => down().filter((i) => !s.seen.includes(i));
       // With a peek up her tap pairs with it, so she only follows a hint that points at its partner.
-      const peekUp = s.peek !== null && s.picked.length === 0;
+      const peekUp = s.peek !== null && s.peekFresh && s.picked.length === 0;
       const useGhost = ghost !== null && (!peekUp || b[ghost] === b[s.peek!]);
       const first = useGhost ? ghost! : rng.pick(fresh().length ? fresh() : down());
       s = flip(b, s, seed, first);

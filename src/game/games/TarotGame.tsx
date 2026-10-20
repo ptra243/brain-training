@@ -21,6 +21,16 @@ export interface TarotPuzzle {
   seed: number;
 }
 
+const JOKER_TEXT = 'The joker turns one card face up for free. That card counts as your first pick; match it to get another.';
+
+function JokerIcon() {
+  return (
+    <svg viewBox="0 0 40 40" aria-hidden="true">
+      <path d={TAROT_JOKER_ART.path} fill={TAROT_JOKER_ART.colour} fillRule="evenodd" stroke="#7a5f1c" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 /** How long two mismatched cards stay up so she can see both. */
 const LOOK_MS = 900;
 
@@ -55,6 +65,7 @@ export function TarotGame({ puzzle, data, finished, helper = 'The cat', onChange
   const { board, seed } = puzzle;
   const [note, setNote] = useState<string | null>(null);
   const [ghost, setGhost] = useState<number | null>(null);
+  const [jokerNote, setJokerNote] = useState(false);
   const pairs = (board.length - 1) / 2;
   const found = data.matched.length / 2;
 
@@ -81,6 +92,7 @@ export function TarotGame({ puzzle, data, finished, helper = 'The cat', onChange
 
   const askHint = () => {
     if (finished) return;
+    setJokerNote(false);
     const h = tarotHint(board, data, seed);
     if (h.ghost === null) {
       setGhost(null);
@@ -96,23 +108,50 @@ export function TarotGame({ puzzle, data, finished, helper = 'The cat', onChange
     <div className="tarot">
       <p className="hint dark">
         Turn two cards over to find a pair. A match stays face up; a miss turns back, and it costs you nothing. Find
-        the joker for a free peek: that card stays up and counts as your first pick.
+        the joker for a free peek: it leaves the table, and the card it turns up stays up and counts as your first
+        pick.
       </p>
       {!finished && (
         <div className="hint-bar">
-          <HintButton helper={helper} onAsk={askHint} />
+          <div className="tarot-tools">
+            {data.jokerGone !== null && (
+              <button
+                className={`hint-button joker-button ${data.peek !== null ? 'lit' : ''}`}
+                aria-label={data.peek !== null ? 'Joker: you have a free peek card up' : 'Joker: waiting for a card to match'}
+                title={JOKER_TEXT}
+                onClick={() => {
+                  setNote(null);
+                  setJokerNote((v) => !v);
+                }}
+              >
+                <JokerIcon />
+                Joker
+              </button>
+            )}
+            <HintButton helper={helper} onAsk={askHint} />
+          </div>
+          {jokerNote && data.jokerGone !== null && (
+            <div className="hint-note" role="status">
+              <JokerIcon />
+              <p>{JOKER_TEXT}</p>
+              <button className="hint-note-close" aria-label="Close the joker note" onClick={() => setJokerNote(false)}>
+                ×
+              </button>
+            </div>
+          )}
           {note && <HintNote text={note} onClose={() => setNote(null)} />}
         </div>
       )}
       <div className="tarot-board" role="group" aria-label="Tarot cards">
         {board.map((id, i) => {
+          // The joker has left the table: keep its place so the other cards don't move.
           if (data.jokerGone === i) return <span key={i} className="tarot-card gone" aria-hidden="true" />;
           const up = !!finished || isFaceUp(data, i);
           const matched = data.matched.includes(i);
           const peeking = data.peek === i && !matched;
           const showGhost = !up && ghost === i;
           const label = up
-            ? `Card ${i + 1}, ${id === JOKER ? 'the joker' : tarotArt(id).label}${matched ? ', matched' : ''}`
+            ? `Card ${i + 1}, ${id === JOKER ? 'the joker' : tarotArt(id).label}${matched ? ', matched' : peeking ? ', your free pick' : ''}`
             : `Card ${i + 1}, face down${showGhost ? `, ${helper} is showing a faint ${tarotArt(id).label}` : ''}`;
           return (
             <button
@@ -134,6 +173,11 @@ export function TarotGame({ puzzle, data, finished, helper = 'The cat', onChange
                   <CardFace id={id} />
                 </span>
               </span>
+              {peeking && (
+                <span className="tarot-tag" aria-hidden="true">
+                  Free
+                </span>
+              )}
             </button>
           );
         })}
