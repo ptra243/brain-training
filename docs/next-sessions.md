@@ -7,15 +7,29 @@ mention any entry untouched for 14 days or more and ask whether to keep, update 
 Keeping an entry current: when you work on one, or when its handoff docs change, update its
 `Last touched` line (`YYYY-MM-DD`). Delete an entry once its session is done.
 
-## Session: Tarot match, implementer brief
+## Session: Tarot match, build
 Last touched: 2026-10-20
-Reads first: `docs/tarot-match.md`, `docs/theme-draft.md` (tarot cast), `src/games/CLAUDE.md`.
-Goal: settle the open points, then write an implementer brief for the tarot match minigame: the
-seeded deal, the joker free peek, the cat hint, Solve, and the tests. "Tell me again" was dropped
-after playtesting (not a puzzle, tedious, hard to spot); `docs/tell-me-again.md` is history.
+Reads first: `docs/tarot-match.md` (Decisions and Implementer brief).
+Goal: the open points are settled and the brief is written. Do "Golden case snapshots" first. Hand its three pieces (engine and tests,
+wiring, UI and content) to the `implementer` agent, then dump and diff existing cases and run
+`browser-check`. "Tell me again" was dropped after playtesting; `docs/tell-me-again.md` is history.
 Starting prompt:
 ```
-Read docs/tarot-match.md and write an implementer brief for the tarot match minigame.
+Read docs/tarot-match.md and hand the three brief pieces to the implementer agent.
+```
+
+## Session: Golden case snapshots
+Last touched: 2026-10-20
+Reads first: `src/engine/CLAUDE.md`, `src/engine/generate.test.ts`, `scripts/check-cases.ts`.
+Goal: do this before the tarot build. A node test that builds about 20 codes per mode (presets,
+campaigns, Play, Quick, with several levels) and compares a hash of each full `Case` JSON against a
+committed file (`src/engine/golden.json`). It fails on any unintended change and prints which codes
+differ. An `npm run update-golden` script rewrites the file. Well defined: hand it to the
+`implementer` agent. Erasable TS only; run with `npx -y node@22`. Mention it in the README and under
+"Checks before committing" in `CLAUDE.md`.
+Starting prompt:
+```
+Read the "Golden case snapshots" entry in docs/next-sessions.md and hand it to the implementer agent.
 ```
 
 ## Session: Theme content, tarot cast and line pools
@@ -77,16 +91,4 @@ changes, so bump the storage prefix.
 Starting prompt:
 ```
 Read the "Hunting the weapon" item in the What's Left doc and docs/next-sessions.md, help me design the shortlist puzzle and the either-or clues, then write an implementer brief.
-```
-
-## Session: Crossword word lists, review
-Last touched: 2026-10-20
-Reads first: `src/games/CLAUDE.md` (Crossword and Word lists), `src/content/crosswordWords.ts`.
-Goal: read the medium and hard fill (about 330 words) and fix clues that are too obscure, too easy
-for their level, or give the answer away; swap out words she couldn't get from the clue. Well
-defined: hand it to the `implementer` agent. Changing words changes medium and hard crosswords, so
-run `npm test` and `npm run check-cases` after.
-Starting prompt:
-```
-Review the medium and hard crossword clues in src/content/crosswordWords.ts for fairness and fix weak ones.
 ```

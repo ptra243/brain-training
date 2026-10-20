@@ -7,6 +7,13 @@
   clamps anything unsafe; `clueShares` gives every rotating game 1 to 7 clues
   and hands the rest out free. Only levels listed there can ship;
   `check-cases` runs every combination.
+- **A new game joins on its own seed stream, after the existing draw, never
+  inside it.** Don't add to `ROTATION`, reorder anything, or change what the
+  draw consumes. Copy `boardSlot`: a separate seed decides whether the new
+  game stands in for a drawn one, so cases that don't get it stay identical.
+  Its Play level roll goes last in `PLAY_ROLLED`. The golden snapshot test
+  fails on any other change; regenerate the snapshot only on purpose, in the
+  same commit as the storage prefix bump.
 - **Games in a case**: three scene word games (any one reveals the scene
   room) plus one to three rotating games from cat puzzle, sudoku and
   interrogation. Hard logic adds a finale interrogation that uses her
