@@ -39,3 +39,14 @@ test('reload mid-case lands back in the same case with its progress', async ({ p
   await expect(page.getByText(/^1 of \d+ games played/)).toBeVisible();
   expect(await page.locator('ul.clue-list > li').count()).toBeGreaterThan(0);
 });
+
+test('campaign: one clue a puzzle offers five puzzles', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'New campaign' }).click();
+  await page.getByRole('group', { name: 'Clues per puzzle' }).getByRole('button', { name: 'One', exact: true }).click();
+  await page.getByRole('button', { name: 'Start the campaign' }).click();
+  await expect(page.getByRole('navigation', { name: 'Rounds' })).toBeVisible();
+  await openTab(page, 'Clues');
+  await expect(page.getByText('You can play four of these five puzzles')).toBeVisible();
+  await checkScreen(page, 'campaign five puzzles');
+});

@@ -44,6 +44,22 @@ export function goldenRefs(): Record<string, () => Case> {
       }
     }
   }
+  // Campaigns with fewer clues per puzzle (more puzzles a round).
+  for (const perPuzzle of [1, 2] as const) {
+    for (const difficulty of DIFFICULTIES) {
+      for (const i of [1, 2]) {
+        const ref: CampaignRef = { mode: 'campaign', code: codeFor(i * 2_654_435), difficulty, perPuzzle };
+        for (let round = 1; round <= 2; round++) {
+          out[`campaign-${ref.code}-${difficulty}-per${perPuzzle}-round${round}`] = () => {
+            const killer = campaignCast(content, ref).killer;
+            const victims: string[] = [];
+            for (let r = 1; r < round; r++) victims.push(campaignRound(content, ref, victims).suspects.find((s) => s !== killer)!);
+            return campaignRound(content, ref, victims);
+          };
+        }
+      }
+    }
+  }
   // Play: the code rolls everything.
   for (let i = 1; i <= 20; i++) {
     const ref: PlayRef = { mode: 'play', code: codeFor(i * 1_215_773) };

@@ -57,7 +57,14 @@
   every choice of puzzles leaves 2 or 3 possible killers; in the last round
   the free clues settle the weapon and any one puzzle settles the killer.
   Rounds are checked by `roundProblems`, not uniqueness; `check-cases` walks
-  every wrong-guess path.
+  every wrong-guess path. **Clues per puzzle** (`ref.perPuzzle`, a starting
+  option; absent = 3, the original rounds, which `tryRound` builds and must
+  not change): at 2 a round also offers the case board, at 1 the board and
+  tarot (`ROUND_PUZZLES`), with one more to play per extra puzzle
+  (`roundBudget`). These rounds (`wideRound`, own seed text `-per<n>`) fix
+  their games (no stand-ins, `Layout.picked`), and no puzzle settles it
+  alone: every guest the puzzles must rule out is ruled out, alone with the
+  free clues, by clues in `offered - budget + 1` different puzzles.
 - **Play cases** (Quick play, `buildPlayCase`, seed `play-<code>`): the bare
   code rolls everything (`playLevels`, its own seed; a new game's roll goes
   last so earlier rolls stay the same; the crossword's roll sets its grid size,

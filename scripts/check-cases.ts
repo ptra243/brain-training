@@ -5,7 +5,7 @@
 // and 3. Quick uses the same seeds as the start of a full run.
 import { content } from '../src/content/index.ts';
 import { caseContext, caseFacts, caseSpace, interrogationEvidence } from '../src/engine/caseFacts.ts';
-import { campaignCast, campaignRound, roundProblems, type CampaignRef } from '../src/engine/campaign.ts';
+import { campaignCast, campaignRound, roundBudget, roundProblems, type CampaignRef } from '../src/engine/campaign.ts';
 import { PICK_ORDER, caseCode, caseFor, codeFor, pickedInOrder, type Cast, type PlayRef, type QuickRef } from '../src/engine/caseRef.ts';
 import { generateCase } from '../src/engine/generate.ts';
 import { boardPuzzle, endBoard } from '../src/engine/caseBoard.ts';
@@ -328,16 +328,22 @@ console.log(`Tarot match: easy ${tarotChecked.easy}, medium ${tarotChecked.mediu
 const PER_DIFFICULTY = FULL ? 3 : 1;
 let rounds = 0;
 const campaignStarted = performance.now();
-for (const difficulty of DIFFICULTIES) {
+let campaigns = 0;
+for (const perPuzzle of [3, 2, 1] as const) for (const difficulty of DIFFICULTIES) {
   for (let i = 1; i <= PER_DIFFICULTY; i++) {
-    const ref: CampaignRef = { mode: 'campaign', code: codeFor(i * 2_654_435), difficulty };
+    campaigns++;
+    const ref: CampaignRef = { mode: 'campaign', code: codeFor(i * 2_654_435), difficulty, ...(perPuzzle !== 3 && { perPuzzle }) };
     const cast = campaignCast(content, ref);
     const walk = (victims: string[]) => {
       rounds++;
       const where = `campaign ${ref.code}-${difficulty} after [${victims.join(', ')}]`;
       try {
         const c = campaignRound(content, ref, victims);
-        for (const p of [...roundProblems(content, c), ...puzzleProblems(c)]) {
+        const sizes = c.games.filter((g) => !g.unlocksScene).map((g) => `${g.kind}:${g.clues.length}`);
+        const tooMany = c.games.filter((g) => !g.unlocksScene && (g.clues.length < 1 || g.clues.length > perPuzzle));
+        const budgetBad = c.campaign!.budget !== roundBudget(ref) ? [`budget ${c.campaign!.budget}, expected ${roundBudget(ref)}`] : [];
+        const sizeProblems = [...budgetBad, ...tooMany.map((g) => `${g.kind} holds ${g.clues.length} clues of ${perPuzzle} (${sizes.join(' ')})`)];
+        for (const p of [...sizeProblems, ...roundProblems(content, c), ...puzzleProblems(c)]) {
           failures++;
           console.log(`  FAIL ${where}: ${p}`);
         }
@@ -352,7 +358,7 @@ for (const difficulty of DIFFICULTIES) {
     walk([]);
   }
 }
-console.log(`${DIFFICULTIES.length * PER_DIFFICULTY} campaigns, every wrong-guess path: ${rounds} rounds (${((performance.now() - campaignStarted) / rounds).toFixed(0)} ms per round)`);
+console.log(`${campaigns} campaigns (1, 2 and 3 clues per puzzle), every wrong-guess path: ${rounds} rounds (${((performance.now() - campaignStarted) / rounds).toFixed(0)} ms per round)`);
 
 console.log(`Case boards: ${boards.puzzles} puzzles and ${boards.ends} end boards built (slowest ${boards.slowest.toFixed(0)} ms)`);
 

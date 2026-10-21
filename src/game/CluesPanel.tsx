@@ -29,7 +29,7 @@ interface Props {
   fresh?: readonly string[];
 }
 
-const NUMBER_WORDS = ['no', 'one', 'two', 'three'];
+const NUMBER_WORDS = ['no', 'one', 'two', 'three', 'four', 'five'];
 
 export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly, fresh = [] }: Props) {
   const unlocked = unlockedClueIds(c, progress);
@@ -156,7 +156,10 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly, fres
         <Dialog placement="center" labelId="pick-title" onClose={() => setConfirming(null)}>
           <h2 id="pick-title">Play the {GAMES[confirming].name.toLowerCase()}?</h2>
           <p className="dialog-text">
-            It uses one of tonight's picks: {gate.left} left. Any one puzzle's clues are enough to narrow it down.
+            It uses one of tonight's picks: {gate.left} left.{' '}
+            {gate.budget > 1 && puzzles.some((g) => g.clues.length < 3)
+              ? `Any ${NUMBER_WORDS[gate.budget]} of them are enough to narrow it down.`
+              : "Any one puzzle's clues are enough to narrow it down."}
           </p>
           <div className="dialog-actions">
             <button data-autofocus className="secondary" onClick={() => setConfirming(null)}>

@@ -205,7 +205,7 @@ function CampaignRounds({ save, cases, onSave, onHome, setNotice }: RoundsProps)
       onHome={onHome}
       onNewCase={onHome}
       title={ROUND_TIMES[viewing]}
-      subtitle={`Round ${viewing + 1} of ${ROUNDS} · ${DIFFICULTY_LABEL[save.ref.difficulty]}, ${c.suspects.length} guests${isNow && save.outcome === 'caught' ? ', solved' : ''}`}
+      subtitle={`Round ${viewing + 1} of ${ROUNDS} · ${DIFFICULTY_LABEL[save.ref.difficulty]}${save.ref.perPuzzle ? `, ${save.ref.perPuzzle} clue${save.ref.perPuzzle === 1 ? '' : 's'} a puzzle` : ''}, ${c.suspects.length} guests${isNow && save.outcome === 'caught' ? ', solved' : ''}`}
       banner={tabs}
       gate={
         isNow && save.outcome === 'playing' && c.campaign

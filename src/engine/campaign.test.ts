@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
-import { BUDGET, ROUNDS, campaignCast, campaignRound, roundProblems, roundSuspects, type CampaignRef } from './campaign.ts';
+import { BUDGET, ROUNDS, ROUND_PUZZLES, campaignCast, campaignRound, roundBudget, roundProblems, roundSuspects, type CampaignRef } from './campaign.ts';
 import { codeFor } from './caseRef.ts';
 
 const ref = (n: number, difficulty: CampaignRef['difficulty']): CampaignRef => ({ mode: 'campaign', code: codeFor(n * 104_729), difficulty });
@@ -52,4 +52,20 @@ test('no round after the killer is caught or gets away', () => {
   const innocent = cast.suspects.filter((s) => s !== cast.killer);
   assert.throws(() => campaignRound(content, r, [cast.killer]));
   assert.throws(() => campaignRound(content, r, innocent.slice(0, ROUNDS)));
+});
+
+test('fewer clues per puzzle: more puzzles of the right kinds, each holding at most that many clues', () => {
+  for (const perPuzzle of [1, 2] as const) {
+    for (const difficulty of ['easy', 'medium', 'hard'] as const) {
+      for (const n of [4, 5]) {
+        const r: CampaignRef = { ...ref(n, difficulty), perPuzzle };
+        const c = campaignRound(content, r, []);
+        const puzzles = c.games.filter((g) => !g.unlocksScene);
+        assert.deepEqual(puzzles.map((g) => g.kind).sort(), [...ROUND_PUZZLES[perPuzzle]].sort(), `${perPuzzle} ${difficulty}`);
+        for (const g of puzzles) assert.ok(g.clues.length >= 1 && g.clues.length <= perPuzzle, `${g.kind} holds ${g.clues.length}`);
+        assert.equal(c.campaign!.budget, roundBudget(r));
+        assert.deepEqual(roundProblems(content, c), [], `${perPuzzle} ${difficulty} ${n}`);
+      }
+    }
+  }
 });

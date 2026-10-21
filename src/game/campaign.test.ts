@@ -68,3 +68,18 @@ test('still possible: everyone alive until she knows the scene, then whoever her
   assert.ok(left.includes(c.murderer));
   assert.ok(left.length >= 2 && left.length <= 3, `${left.length} left`);
 });
+
+test('the budget with a five-puzzle round (one clue a puzzle, medium: four of five)', () => {
+  const wide: CampaignRef = { ...ref, perPuzzle: 1 };
+  let save = newCampaign(wide);
+  const c = roundCase(content, save, 0);
+  const puzzles = c.games.filter((g) => !g.unlocksScene).map((g) => g.kind);
+  assert.equal(puzzles.length, 5);
+  assert.equal(c.campaign!.budget, 4);
+  assert.equal(puzzlesLeft(save, c), 4);
+  for (const k of puzzles.slice(0, 4)) save = pick(save, c, k);
+  assert.equal(puzzlesLeft(save, c), 0);
+  assert.ok(canPlay(save, c, puzzles[3]));
+  assert.ok(!canPlay(save, c, puzzles[4]));
+  assert.equal(pick(save, c, puzzles[4]), save);
+});

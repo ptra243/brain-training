@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { caseCode, type CaseRef, type Cast, type PickedGame } from '../engine/caseRef.ts';
+import type { PerPuzzle } from '../engine/campaign.ts';
 import type { Length } from '../engine/settings.ts';
 import type { Case, Difficulty } from '../engine/types.ts';
 import { CampaignCard } from './CampaignCard.tsx';
@@ -108,9 +109,9 @@ export function App() {
       (made) => startCase({ ref: { ...made.ref, ...(endBoard && { endBoard }) }, c: made.c }),
     );
 
-  const startCampaign = (difficulty: Difficulty, possibleOnly: boolean, endBoard: boolean) =>
+  const startCampaign = (difficulty: Difficulty, possibleOnly: boolean, endBoard: boolean, perPuzzle: PerPuzzle) =>
     building(
-      () => generate({ kind: 'campaign-new', difficulty, possibleOnly, endBoard }),
+      () => generate({ kind: 'campaign-new', difficulty, possibleOnly, endBoard, perPuzzle }),
       (made) => {
         setCampaign(made.save);
         go('campaign');

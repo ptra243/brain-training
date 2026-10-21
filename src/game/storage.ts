@@ -52,6 +52,8 @@ export const saveQuick = (q: QuickSave) => write('quick', { ...q, playVersion: P
 export function loadCampaign(): CampaignSave | null {
   const saved = read<CampaignSave>('campaign');
   if (!saved?.ref || typeof saved.ref.code !== 'string' || !Array.isArray(saved.rounds) || !saved.rounds.length) return null;
+  const per: unknown = saved.ref.perPuzzle;
+  if (per !== undefined && per !== 1 && per !== 2) return null;
   return {
     ...saved,
     victims: saved.victims ?? [],

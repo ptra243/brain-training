@@ -24,7 +24,7 @@ test('case, play, pick and quick jobs match the engine', () => {
 });
 
 test('campaign jobs match the engine, and results survive structuredClone', () => {
-  const made = runCaseJob(content, { kind: 'campaign-new', difficulty: 'medium', possibleOnly: true, endBoard: false }, seq(31_337));
+  const made = runCaseJob(content, { kind: 'campaign-new', difficulty: 'medium', possibleOnly: true, endBoard: false, perPuzzle: 3 }, seq(31_337));
   const ref: CampaignRef = { mode: 'campaign', code: codeFor(31_337), difficulty: 'medium', possibleOnly: true };
   assert.deepStrictEqual(made.save, newCampaign(ref));
   assert.deepStrictEqual(made.cases, [roundCase(content, made.save, 0)]);
@@ -45,4 +45,11 @@ test('roundsKey changes with victims and rounds', () => {
   assert.notEqual(roundsKey({ ...save, victims: ['x'] }), key);
   assert.notEqual(roundsKey({ ...save, rounds: [...save.rounds, ...save.rounds] }), key);
   assert.equal(roundsKey({ ...save }), key);
+});
+
+test('a campaign job sets perPuzzle only when it is 1 or 2', () => {
+  const two = runCaseJob(content, { kind: 'campaign-new', difficulty: 'easy', possibleOnly: false, endBoard: false, perPuzzle: 2 }, seq(4242));
+  assert.equal(two.save.ref.perPuzzle, 2);
+  const three = runCaseJob(content, { kind: 'campaign-new', difficulty: 'easy', possibleOnly: false, endBoard: false, perPuzzle: 3 }, seq(4242));
+  assert.ok(!('perPuzzle' in three.save.ref));
 });

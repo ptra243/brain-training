@@ -1,5 +1,5 @@
 // Case generation as plain jobs, so the same code runs in a worker or on the main thread.
-import type { CampaignRef } from '../engine/campaign.ts';
+import type { CampaignRef, PerPuzzle } from '../engine/campaign.ts';
 import { caseFor, codeFor, newPickCase, newPlayCase, newQuickCase, type Cast, type CaseRef, type PickedGame, type PlayRef, type QuickRef } from '../engine/caseRef.ts';
 import type { Length } from '../engine/settings.ts';
 import type { Case, Content, Difficulty } from '../engine/types.ts';
@@ -10,7 +10,7 @@ export type CaseJob =
   | { kind: 'play' }
   | { kind: 'pick'; code: string; games: PickedGame[] }
   | { kind: 'quick'; difficulty: Difficulty; length: Length; cast: Cast }
-  | { kind: 'campaign-new'; difficulty: Difficulty; possibleOnly: boolean; endBoard: boolean }
+  | { kind: 'campaign-new'; difficulty: Difficulty; possibleOnly: boolean; endBoard: boolean; perPuzzle: PerPuzzle }
   | { kind: 'campaign-rounds'; save: CampaignSave };
 
 export interface CaseJobResults {
@@ -43,9 +43,16 @@ function run(content: Content, job: CaseJob, random: () => number): CaseJobResul
     case 'quick':
       return newQuickCase(content, job.difficulty, job.length, job.cast, random);
     case 'campaign-new': {
-      const { difficulty, possibleOnly, endBoard } = job;
+      const { difficulty, possibleOnly, endBoard, perPuzzle } = job;
       for (let tries = 0; tries < 10; tries++) {
-        const ref: CampaignRef = { mode: 'campaign', code: codeFor(random()), difficulty, ...(possibleOnly && { possibleOnly }), ...(endBoard && { endBoard }) };
+        const ref: CampaignRef = {
+          mode: 'campaign',
+          code: codeFor(random()),
+          difficulty,
+          ...(possibleOnly && { possibleOnly }),
+          ...(endBoard && { endBoard }),
+          ...(perPuzzle !== 3 && { perPuzzle }),
+        };
         const save = newCampaign(ref);
         try {
           return { save, cases: [roundCase(content, save, 0)] };

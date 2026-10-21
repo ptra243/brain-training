@@ -20,7 +20,9 @@ import { caseContext, caseSpace } from './caseFacts.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { couldBeKiller, possibleKillers, possibleWeapons, type Space } from './search.ts';
 import { caseSettings, type CaseLevels, type CaseSettings } from './settings.ts';
-import type { Case, ClueFact, Content, Difficulty } from './types.ts';
+import { boardPuzzle } from './caseBoard.ts';
+import { tarotClueCards, tarotPairsFor } from './tarotCards.ts';
+import type { Case, ClueFact, Content, Difficulty, RotatingKind } from './types.ts';
 
 export interface CampaignRef {
   mode: 'campaign';
@@ -31,20 +33,37 @@ export interface CampaignRef {
   possibleOnly?: boolean;
   /** Starting option: a case board tab that fits her clues together before she accuses. Doesn't change the rounds. */
   endBoard?: boolean;
+  /** Starting option: each puzzle unlocks at most this many clues (absent: 3). Fewer means more puzzles, and more to play. */
+  perPuzzle?: 1 | 2;
 }
+
+export type PerPuzzle = 1 | 2 | 3;
+export const PER_PUZZLE: readonly PerPuzzle[] = [3, 2, 1];
 
 export const ROUNDS = 3;
 export const CAST = 7;
 
-/** Puzzles she may play each round, of the three on offer (the word game is always free). */
+/** Puzzles she may play each round, of the three on offer at 3 clues a puzzle (the word game is always free). */
 export const BUDGET: Record<Difficulty, number> = { easy: 3, medium: 2, hard: 1 };
+
+/** The puzzles a round offers at each number of clues per puzzle: one more for each clue fewer. */
+export const ROUND_PUZZLES: Record<PerPuzzle, readonly RotatingKind[]> = {
+  3: ROTATION,
+  2: [...ROTATION, 'board'],
+  1: [...ROTATION, 'board', 'tarot'],
+};
+
+const perPuzzleOf = (ref: CampaignRef): PerPuzzle => ref.perPuzzle ?? 3;
+
+/** Puzzles she may play each round: her difficulty's budget, plus one for each extra puzzle on offer. */
+export const roundBudget = (ref: CampaignRef): number => BUDGET[ref.difficulty] + ROUND_PUZZLES[perPuzzleOf(ref)].length - ROTATION.length;
 
 /** Fewest clues a puzzle unlocks: past the ones that narrow it down, the rest say where others were. */
 const MIN_PER_PUZZLE = 3;
 /** The last round must pin down the killer and the weapon, which takes more clues on hard. */
 const LAST_ROUND_EXTRA = 3;
 
-const seedText = (ref: CampaignRef) => `campaign-${ref.code}-${ref.difficulty}`;
+const seedText = (ref: CampaignRef) => `campaign-${ref.code}-${ref.difficulty}${ref.perPuzzle ? `-per${ref.perPuzzle}` : ''}`;
 
 /** Who's at the manor, what's in play, and who the killer is: fixed for the whole campaign. */
 export interface CampaignCast {
@@ -82,7 +101,9 @@ export function campaignRound(content: Content, ref: CampaignRef, victims: reado
   const seed = hashSeed(`${seedText(ref)}-round-${round}-${victims.join('-')}`);
   const rng = new Rng(seed);
   const last = round === ROUNDS - 1;
-  const budget = BUDGET[ref.difficulty];
+  const budget = roundBudget(ref);
+  const per = perPuzzleOf(ref);
+  if (per < 3) return wideRound(content, ref, cast, alive, round, victims, budget, per);
 
   for (let attempt = 0; attempt < 40; attempt++) {
     const built = tryRound(content, cast, alive, settings, last, rng);
@@ -214,6 +235,179 @@ function tryRound(
   return { truth: { suspects: alive, rooms, items, solution, murdererIndex: k, ctx }, free, puzzles };
 }
 
+/**
+ * A round with at most `per` (1 or 2) clues a puzzle, built from its own
+ * puzzle list. No single puzzle settles it, so fairness comes from cover:
+ * every guest the puzzles must rule out is ruled out, alone with the free
+ * clues, by a clue in `offered - budget + 1` different puzzles, so any
+ * `budget` of them rule out every one.
+ */
+function wideRound(
+  content: Content,
+  ref: CampaignRef,
+  cast: CampaignCast,
+  alive: string[],
+  round: number,
+  victims: readonly string[],
+  budget: number,
+  per: PerPuzzle,
+): Case {
+  const { levels, settings } = roundSettings(ref.difficulty);
+  const seed = hashSeed(`${seedText(ref)}-round-${round}-${victims.join('-')}`);
+  const rng = new Rng(seed);
+  const last = round === ROUNDS - 1;
+  const kinds = ROUND_PUZZLES[per];
+  const cover = kinds.length - budget + 1;
+
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const built = tryWide(content, cast, alive, settings, last, rng, kinds.length, per, cover);
+    if (!built) continue;
+    const { truth, free, puzzles } = built;
+    const rotating = rng.shuffle(kinds);
+    const order = [free, ...puzzles].flat();
+    const tarotAt = rotating.indexOf('tarot');
+    let tarotPairs = 0;
+    if (tarotAt >= 0) {
+      const cards = tarotClueCards(truth, puzzles[tarotAt], order.filter((f) => !puzzles[tarotAt].includes(f)));
+      const pairs = tarotPairsFor(settings.tarotPairs, cards.reward.length);
+      if (pairs === null) continue;
+      tarotPairs = pairs;
+    }
+    const c = assemble({
+      content,
+      seed,
+      rng,
+      settings,
+      levels,
+      caseNumber: round + 1,
+      code: ref.code,
+      truth: { ...truth, minimal: order },
+      order,
+      rotating,
+      kinds: rotating,
+      shares: { free: free.length, finale: 0, games: puzzles.map((p) => p.length) },
+      campaign: { round, rounds: ROUNDS, budget, last, victims: [...victims] },
+      picked: { tarotPairs },
+    });
+    const board = c.games.find((g) => g.kind === 'board');
+    if (board && !boardPuzzle(content, c, board)) continue;
+    return c;
+  }
+  throw new Error(`Campaign ${ref.code}: could not build round ${round + 1}`);
+}
+
+/** One try at a wide round's truth and clues; null if the clues can't be made to fit. */
+function tryWide(
+  content: Content,
+  cast: CampaignCast,
+  alive: string[],
+  settings: CaseSettings,
+  last: boolean,
+  rng: Rng,
+  offered: number,
+  per: number,
+  cover: number,
+): { truth: Omit<Truth, 'minimal'>; free: ClueFact[]; puzzles: ClueFact[][] } | null {
+  const { rooms, items, killer } = cast;
+  const k = alive.indexOf(killer);
+  const { scene, solution } = rollShared(rng, alive, rooms, items, k);
+  const ctx = caseContext(content.house, { suspects: alive });
+  const space = caseSpace({ suspects: alive, rooms, items, shared: true });
+  const pool = cluePool(solution, ctx, rooms, items, content.house.rooms.map((r) => r.id), rng, true);
+  const ordered = weightedOrder(pool, settings, rng);
+
+  const decoys = last ? [] : rng.shuffle(alive.filter((s) => s !== killer)).slice(0, 1 + rng.int(2));
+  const target = 1 + decoys.length;
+  const keepsDecoys = (facts: ClueFact[]) => decoys.every((d) => couldBeKiller(space, facts, ctx, scene, d));
+  const suspectsLeft = (facts: ClueFact[]) => possibleKillers(space, facts, ctx, scene);
+  const weaponsLeft = (facts: ClueFact[]) => possibleWeapons(space, facts, ctx, scene, killer).length;
+  const used = new Set<ClueFact>();
+  // How many guests the puzzles can rule out between them, each in `cover`
+  // puzzles; at most 2, as in a 3-clue round, so the free clues still narrow it.
+  const reach = Math.min(2, Math.max(1, Math.floor((offered * per) / cover)));
+
+  // Free clues: narrow to within reach of the puzzles, never all the way.
+  const free: ClueFact[] = [];
+  let left = suspectsLeft(free).length;
+  for (const fact of ordered) {
+    if (left <= target + reach || free.length >= settings.freeClues + 4) break;
+    const next = suspectsLeft([...free, fact]).length;
+    if (next < left && next > target && keepsDecoys([...free, fact])) {
+      free.push(fact);
+      used.add(fact);
+      left = next;
+    }
+  }
+  if (left > target + reach) return null;
+  // Last round: the free clues settle the weapon, so the puzzles only settle who.
+  if (last) {
+    let weapons = weaponsLeft(free);
+    for (const fact of ordered) {
+      if (weapons === 1 || free.length >= settings.freeClues + 9) break;
+      if (used.has(fact)) continue;
+      const trial = [...free, fact];
+      const w = weaponsLeft(trial);
+      if (w < weapons && suspectsLeft(trial).length > target) {
+        free.push(fact);
+        used.add(fact);
+        weapons = w;
+      }
+    }
+    if (weapons !== 1) return null;
+  }
+
+  // Who the puzzles must rule out, and which unused clues rule each out on their own.
+  const innocent = new Set([killer, ...decoys]);
+  const toRule = suspectsLeft(free).filter((s) => !innocent.has(s));
+  const candidates = ordered
+    .filter((f) => !used.has(f) && keepsDecoys([...free, f]))
+    .map((f) => {
+      const still = new Set(suspectsLeft([...free, f]));
+      return { fact: f, rules: toRule.filter((s) => !still.has(s)) };
+    });
+  const covered = new Map(toRule.map((s) => [s, 0]));
+  // Every puzzle clue so far: together they must still leave every decoy possible.
+  const chosen = [...free];
+  const fits = (f: ClueFact) => !used.has(f) && keepsDecoys([...chosen, f]);
+  const puzzles: ClueFact[][] = [];
+  for (let p = 0; p < offered; p++) {
+    const set: ClueFact[] = [];
+    const mine = new Set<string>();
+    while (set.length < per) {
+      let best: (typeof candidates)[number] | null = null;
+      let gain = 0;
+      for (const cand of candidates) {
+        if (used.has(cand.fact)) continue;
+        const g = cand.rules.filter((s) => !mine.has(s) && covered.get(s)! < cover).length;
+        if (g > gain && fits(cand.fact)) [best, gain] = [cand, g];
+      }
+      if (!best) break;
+      set.push(best.fact);
+      chosen.push(best.fact);
+      used.add(best.fact);
+      for (const s of best.rules) {
+        if (mine.has(s)) continue;
+        mine.add(s);
+        covered.set(s, covered.get(s)! + 1);
+      }
+    }
+    puzzles.push(set);
+  }
+  if ([...covered.values()].some((n) => n < cover)) return null;
+  // Top up with true clues that leave every decoy possible.
+  for (const set of puzzles) {
+    for (const cand of candidates) {
+      if (set.length >= per) break;
+      if (!fits(cand.fact)) continue;
+      set.push(cand.fact);
+      chosen.push(cand.fact);
+      used.add(cand.fact);
+    }
+    if (!set.length) return null;
+  }
+  return { truth: { suspects: alive, rooms, items, solution, murdererIndex: k, ctx }, free, puzzles };
+}
+
 /** Every way to pick `size` of these. */
 function choose<T>(list: readonly T[], size: number): T[][] {
   if (size === 0) return [[]];
@@ -242,7 +436,9 @@ export function roundProblems(content: Content, c: Case): string[] {
   if (c.solution.item[k] !== c.weapon) out.push("killer doesn't hold the weapon");
   const free = c.clues.filter((cl) => cl.delivery === 'given').map((cl) => cl.fact);
   const puzzles = c.games.filter((g) => !g.unlocksScene);
-  if (puzzles.length !== ROTATION.length) out.push(`${puzzles.length} puzzles, not ${ROTATION.length}`);
+  const offered = Object.values(ROUND_PUZZLES).map((p) => p.length);
+  if (!offered.includes(puzzles.length)) out.push(`${puzzles.length} puzzles, not ${offered.join(' or ')}`);
+  if (round.budget > puzzles.length) out.push(`a budget of ${round.budget} for ${puzzles.length} puzzles`);
   const space = caseSpace(c);
   const ctx = caseContext(content.house, c);
   for (const picked of choose(puzzles, round.budget)) {

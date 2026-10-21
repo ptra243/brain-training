@@ -219,15 +219,18 @@ export interface Layout {
    * one clue. Absent for every other mode, which `assemble` handles as before.
    */
   words?: PlayWord[];
-  /** Picked Play cases: tarot is a chosen game (this many pairs, 0 if absent), never a random stand-in. */
+  /**
+   * The games are chosen (Picked Play cases, campaign rounds with fewer clues
+   * per puzzle): no stand-ins, and tarot, if there, has this many pairs (0 if absent).
+   */
   picked?: { tarotPairs: number };
 }
 
 /** Words the clues, builds the interrogations, the scene and the game specs. */
 export function assemble(o: Layout): Case {
   const { content, seed, rng, settings, levels, caseNumber, code, order, shares } = o;
-  // The case board puzzle may stand in for one of the drawn games.
-  const slot = o.words ? -1 : boardSlot(o);
+  // The case board puzzle may stand in for one of the drawn games (not when the games are chosen).
+  const slot = o.words || o.picked ? -1 : boardSlot(o);
   // Play only: tarot match may stand in for one of the drawn games, on its own seed, after the board.
   const tarot = o.picked ? { slot: -1, pairs: o.picked.tarotPairs } : o.words ? tarotSlot(o) : null;
   const wordKinds: SceneKind[] = o.words?.map((w) => w.kind) ?? [];
