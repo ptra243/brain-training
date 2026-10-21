@@ -1,11 +1,10 @@
-import { useMemo, type CSSProperties } from 'react';
-import { talk } from '../content/talk.ts';
+import type { CSSProperties } from 'react';
 import type { Case, GameKind } from '../engine/types.ts';
-import { greeting, questioningOf, readyBeats, setsFor } from './talk.ts';
 import { itemName, roomName, suspectColour, suspectInitials, suspectName } from './names.ts';
 import { ClueCard } from './ClueCard.tsx';
 import { Dialog } from './Dialog.tsx';
-import { gameDone, heldItem, mentionsSuspect, placedRoom, visibleClues, type Action, type Progress } from './state.ts';
+import { TalkSection } from './TalkSection.tsx';
+import { heldItem, mentionsSuspect, placedRoom, visibleClues, type Action, type Progress } from './state.ts';
 
 interface Props {
   c: Case;
@@ -21,11 +20,6 @@ interface Props {
 
 /** Card that slides up over the map with the clues naming one suspect. */
 export function SuspectSheet({ c, progress, dispatch, suspect, onClose, onMove, onQuestion }: Props) {
-  const set = useMemo(() => setsFor(c)[suspect], [c, suspect]);
-  const heard = progress.talk?.[suspect] ?? 0;
-  const ready = readyBeats(c, progress, suspect, set.thread.length);
-  const questioning = questioningOf(c, suspect);
-  const question = questioning && !gameDone(progress, questioning.kind) && onQuestion ? questioning : undefined;
   const clues = visibleClues(c, progress).filter((clue) => mentionsSuspect(clue, suspect));
   const room = placedRoom(c, progress, suspect);
   const item = heldItem(c, progress, suspect);
@@ -65,35 +59,7 @@ export function SuspectSheet({ c, progress, dispatch, suspect, onClose, onMove, 
           <p className="muted">No clue you've found so far names {suspectName(suspect)}. Play the games to unlock more, or work them out from everyone else.</p>
         )}
 
-        <section className="talk" aria-labelledby="talk-title">
-          <h3 id="talk-title">Talk</h3>
-          <p className="talk-greeting">“{greeting(set, heard, talk.greetings)}”</p>
-          <div className="talk-pips" role="img" aria-label={`${heard} of ${set.thread.length} heard`}>
-            {set.thread.map((_, i) => (
-              <span key={i} className={`pip ${i < heard ? 'filled' : ''}`} />
-            ))}
-          </div>
-          {heard > 0 && (
-            <ol className="talk-log">
-              {set.thread.slice(0, heard).map((beat) => (
-                <li key={beat}>{beat}</li>
-              ))}
-            </ol>
-          )}
-          {heard < set.thread.length &&
-            (ready > heard ? (
-              <button className="secondary" onClick={() => dispatch({ type: 'talk-hear', suspect })}>
-                Anything else?
-              </button>
-            ) : (
-              <p className="muted">Nothing more to say yet.</p>
-            ))}
-          {question && (
-            <button className="secondary" onClick={() => onQuestion?.(question.kind)}>
-              Question them
-            </button>
-          )}
-        </section>
+        <TalkSection c={c} progress={progress} dispatch={dispatch} suspect={suspect} onQuestion={onQuestion} />
 
         <button className="secondary" onClick={onMove}>
           {room ? 'Move to another room' : 'Place in a room'}

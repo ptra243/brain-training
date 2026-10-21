@@ -35,6 +35,16 @@
   Get a clue (`GetClue.tsx`); the scene is given from the start, each word
   game shows its half-heard clue (`Clue.blank.teaser`) and the finale opens
   when every other game is done.
+- **Campaign rounds are explored** (`docs/exploration-mode.md`): `CampaignRounds`
+  hands the casebook copies of the rounds with `explore: true` (a UI flag the
+  engine never sets, so cases are unchanged). It makes `sceneUnlocked` true, so
+  the scene is known and the scene word games are not offered. `explore.ts` has
+  the pure parts (`roomContents`, the clock, `canOpen`); `ExploreMap` replaces
+  `MapPanel` in these rounds (Map is the first tab, no clue drawer or cat hint);
+  `Progress.at` is the room she is in. Guests, objects and flavour lines are
+  seeded from `c.seed`, never the truth. At midnight (`atMidnight`) the Accuse
+  tab opens once and the map and puzzles are frozen. Quick play keeps `MapPanel`.
+  The talk section is shared (`TalkSection`) by `SuspectSheet` and the person screen.
 - **Word games type with the phone's keyboard** through `TypingInput` (one
   hidden input; tapping the board focuses it). No on-screen keyboards.
   Buttons beside a focused board use `onPointerDown={(e) =>

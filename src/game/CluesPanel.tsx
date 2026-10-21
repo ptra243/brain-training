@@ -4,6 +4,7 @@ import { midSentence } from '../engine/text.ts';
 import type { Case, GameKind } from '../engine/types.ts';
 import { ClueCard } from './ClueCard.tsx';
 import { Dialog } from './Dialog.tsx';
+import { clockAfterNext, minutesPerGame } from './explore.ts';
 import { GetClue } from './GetClue.tsx';
 import { GAMES } from './games/registry.tsx';
 import { suspectName } from './names.ts';
@@ -51,6 +52,8 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly, fres
   const statusOf = (kind: GameKind) => progress.games[kind]?.status;
 
   const play = c.sceneGiven === true;
+  // Exploring a campaign round: the scene is known, so there are no scene word games to offer.
+  const exploring = c.explore === true;
 
   return (
     <section className="panel">
@@ -60,11 +63,12 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly, fres
         <h2>Tonight's puzzles</h2>
         {gate && gate.budget < puzzles.length && (
           <p className="muted small budget-note">
-            You can play {NUMBER_WORDS[gate.budget]} of these {NUMBER_WORDS[puzzles.length]} puzzles, besides the word game.{' '}
+            You can play {NUMBER_WORDS[gate.budget]} of these {NUMBER_WORDS[puzzles.length]} puzzles{exploring ? '.' : ', besides the word game.'}{' '}
             {gate.left ? `${gate.left} left to choose.` : 'Those are your picks for tonight.'}
           </p>
         )}
         <ul>
+          {!exploring && (
           <li>
             <button
               className={`puzzle-row ${scene ? 'done' : ''}`}
@@ -80,6 +84,7 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly, fres
               </span>
             </button>
           </li>
+          )}
           {puzzles.map((g) => {
             const status = progress.games[g.kind]?.status;
             const done = status === 'won' || status === 'revealed';
@@ -123,7 +128,7 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly, fres
         )}
       </article>
 
-      {choosing && (
+      {choosing && !exploring && (
         <Dialog labelId="choose-title" onClose={() => setChoosing(false)}>
           <h2 id="choose-title">Pick a word game</h2>
           <p className="dialog-text">Any one of them shows where the body was found.</p>
@@ -156,8 +161,10 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly, fres
         <Dialog placement="center" labelId="pick-title" onClose={() => setConfirming(null)}>
           <h2 id="pick-title">Play the {GAMES[confirming].name.toLowerCase()}?</h2>
           <p className="dialog-text">
-            It uses one of tonight's picks: {gate.left} left.{' '}
-            {gate.budget > 1 && puzzles.some((g) => g.clues.length < 3)
+            {exploring
+              ? `This takes ${minutesPerGame(c)} minutes: the clock moves to ${clockAfterNext(c, progress)} when you finish it.`
+              : `It uses one of tonight's picks: ${gate.left} left.`}{' '}
+            {exploring ? '' : gate.budget > 1 && puzzles.some((g) => g.clues.length < 3)
               ? `Any ${NUMBER_WORDS[gate.budget]} of them are enough to narrow it down.`
               : "Any one puzzle's clues are enough to narrow it down."}
           </p>

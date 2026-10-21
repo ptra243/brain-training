@@ -6,13 +6,14 @@ import { midSentence } from '../engine/text.ts';
 import { AccusePanel } from './AccusePanel.tsx';
 import { Casebook } from './Casebook.tsx';
 import { Dialog } from './Dialog.tsx';
+import { atMidnight } from './explore.ts';
 import { DIFFICULTY_LABEL, ROUND_TIMES } from './labels.ts';
 import { itemName, suspectName } from './names.ts';
 import { currentRound, pick, puzzlesLeft, stillPossible, updateRound, type CampaignSave, type Verdict } from './campaign.ts';
 import { generate } from './caseClient.ts';
 import { roundsKey } from './caseJobs.ts';
 import { Shuffling } from './Shuffling.tsx';
-import { reduce, sceneUnlocked, unlockedClueIds, type Action, type Progress } from './state.ts';
+import { reduce, unlockedClueIds, type Action, type Progress } from './state.ts';
 
 interface Props {
   save: CampaignSave;
@@ -100,7 +101,9 @@ interface RoundsProps extends Props {
   setNotice: (verdict: Verdict) => void;
 }
 
-function CampaignRounds({ save, cases, onSave, onHome, setNotice }: RoundsProps) {
+function CampaignRounds({ save, cases: built, onSave, onHome, setNotice }: RoundsProps) {
+  // Every campaign round is explored: the scene is known from the start (a flag on the copy, not the engine's case).
+  const cases = useMemo(() => built.map((rc): Case => ({ ...rc, explore: true })), [built]);
   const now = currentRound(save);
   const [viewing, setViewing] = useState(now);
   // A new round opens on that round (adjusted during render, not in an effect).
@@ -123,23 +126,23 @@ function CampaignRounds({ save, cases, onSave, onHome, setNotice }: RoundsProps)
   };
   const dispatch = (a: Action) => onProgress((p) => reduce(c, p, a));
 
-  // The "only possible killers" option: who her clues, over every round so far, still allow.
-  // Only the clues she has found matter, so key the memo on those (save changes on every move).
-  const possibleOnly = save.ref.possibleOnly && isNow;
-  const foundKey = possibleOnly
+  // Who her clues, over every round so far, still allow as the killer (the "only possible killers" option
+  // limits the Accuse tab to them). Only the clues she has found matter, so key the memo on those (save changes on every move).
+  const foundKey = isNow
     ? cases
         .slice(0, now + 1)
         .map((rc, i) => {
           const p = save.rounds[i];
-          return p ? `${sceneUnlocked(rc, p) ? 1 : 0}:${[...unlockedClueIds(rc, p)].sort().join(',')}` : '-';
+          return p ? [...unlockedClueIds(rc, p)].sort().join(',') : '-';
         })
         .join('|')
     : '';
-  const allowed = useMemo(
-    () => (possibleOnly ? stillPossible(content, save, cases.slice(0, now + 1)) : c.suspects),
+  const possible = useMemo(
+    () => (isNow ? stillPossible(content, save, cases.slice(0, now + 1)) : c.suspects),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- save is read only through the clues that foundKey summarises
-    [possibleOnly, foundKey, cases, now, c],
+    [isNow, foundKey, cases, now, c],
   );
+  const allowed = save.ref.possibleOnly && isNow ? possible : c.suspects;
 
   const tabs = (
     <nav className="round-tabs" aria-label="Rounds">
@@ -191,6 +194,8 @@ function CampaignRounds({ save, cases, onSave, onHome, setNotice }: RoundsProps)
       onNextCase={onHome}
       campaign
       suspects={allowed}
+      stillPointing={possible.length}
+      midnight={atMidnight(c, progress)}
       nextLabel="Back to the start"
     />
   );

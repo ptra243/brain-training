@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Dialog } from './Dialog.tsx';
 import type { Case } from '../engine/types.ts';
 import { itemName, roomName, suspectName } from './names.ts';
 import { ACCUSATION_PARTS, sceneUnlocked, type Action, type Progress } from './state.ts';
@@ -13,6 +14,10 @@ interface Props {
   /** Who she may accuse (the campaign's "only possible killers" option). Default: everyone. */
   suspects?: readonly string[];
   nextLabel?: string;
+  /** Exploring a campaign round: how many people her clues still allow as the killer. Above one, she's asked before she guesses. */
+  stillPointing?: number;
+  /** Exploring: it's midnight and she must name someone. */
+  midnight?: boolean;
 }
 
 export function Picker({
@@ -42,11 +47,12 @@ export function Picker({
   );
 }
 
-export function AccusePanel({ c, progress, dispatch, onNextCase, campaign, suspects = c.suspects, nextLabel = 'Start a new case' }: Props) {
+export function AccusePanel({ c, progress, dispatch, onNextCase, campaign, suspects = c.suspects, nextLabel = 'Start a new case', stillPointing = 0, midnight }: Props) {
   const [suspect, setSuspect] = useState('');
   const [item, setItem] = useState('');
   const scene = sceneUnlocked(c, progress);
   const [error, setError] = useState('');
+  const [warning, setWarning] = useState(false);
   const last = progress.accusations.at(-1);
 
   if (progress.solved) {
@@ -84,16 +90,22 @@ export function AccusePanel({ c, progress, dispatch, onNextCase, campaign, suspe
       return;
     }
     setError('');
-    dispatch({ type: 'accuse', suspect, item });
+    if (stillPointing > 1) setWarning(true);
+    else dispatch({ type: 'accuse', suspect, item });
   };
 
   return (
     <section className="panel">
+      {midnight && (
+        <p className="hint midnight-note" role="status">
+          It's midnight. Time is up, and you must name someone now.
+        </p>
+      )}
       <p className="hint">
         {campaign
           ? "Name the murderer and the weapon. Name the wrong person and they'll be the next body. The right person with the wrong weapon costs nothing."
-          : "Name the murderer and the weapon. You'll hear how many you got right, but not which."}{' '}
-        You can also accuse straight from the map.
+          : "Name the murderer and the weapon. You'll hear how many you got right, but not which."}
+        {!campaign && ' You can also accuse straight from the map.'}
       </p>
       <article className="card">
         <p className="scene-note">
@@ -108,6 +120,27 @@ export function AccusePanel({ c, progress, dispatch, onNextCase, campaign, suspe
           Make the accusation
         </button>
       </article>
+
+      {warning && (
+        <Dialog placement="center" labelId="guess-title" onClose={() => setWarning(false)}>
+          <h2 id="guess-title">Guess now?</h2>
+          <p className="dialog-text">Your clues still point at {stillPointing} people. Guess now?</p>
+          <div className="dialog-actions">
+            <button data-autofocus className="secondary" onClick={() => setWarning(false)}>
+              Not yet
+            </button>
+            <button
+              className="primary"
+              onClick={() => {
+                setWarning(false);
+                dispatch({ type: 'accuse', suspect, item });
+              }}
+            >
+              Guess now
+            </button>
+          </div>
+        </Dialog>
+      )}
 
       {last && (
         <article className="card result" aria-live="polite">

@@ -14,6 +14,9 @@ test('campaign: home, setup, start, campaign view', async ({ page }) => {
   await checkScreen(page, 'campaign view');
   await openTab(page, 'Clues');
   await checkScreen(page, 'campaign clues');
+  // The body's room is known from the start, so no word game is offered for it.
+  await expect(page.getByText(/^The body was found in the /)).toBeVisible();
+  await expect(page.getByRole('button', { name: /Word game/ })).toHaveCount(0);
 
   // Back home, the campaign card offers to continue it.
   await page.getByRole('button', { name: 'Home' }).click();

@@ -323,6 +323,11 @@ export interface Case {
   sceneClue: { text: string; delivery: 'wordle'; wordle: WordleReveal };
   /** Play cases: the scene card is filled in from the first screen, with no free clues. */
   sceneGiven?: true;
+  /**
+   * Set by the casebook (never by the engine) on a campaign round she explores: the scene counts as
+   * known from the start and the scene word games aren't offered. Case output is unchanged.
+   */
+  explore?: true;
   /** Minimal clue set: removing any one allows a second solution. */
   clues: readonly Clue[];
   /** Minigames in play order; together with the free clues they unlock everything. */

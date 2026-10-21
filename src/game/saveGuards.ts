@@ -185,6 +185,7 @@ export function sanitizeProgress(v: unknown): Progress {
   if (isGridHintState(v.gridHints)) p.gridHints = v.gridHints;
   if (isObject(v.endBoard) && isString(v.endBoard.key)) p.endBoard = { key: v.endBoard.key, save: v.endBoard.save };
   if (isRecordOf(isNum)(v.talk)) p.talk = v.talk;
+  if (isString(v.at)) p.at = v.at;
   return p;
 }
 

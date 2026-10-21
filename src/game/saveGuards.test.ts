@@ -37,6 +37,7 @@ const filled: Progress = {
   gridHints: { flagged: { 'k|a|b': 'x' }, target: 'k|a|b', step: 'why', count: 2 },
   endBoard: { key: 'c1,c2', save: { placed: {} } },
   talk: { a: 2 },
+  at: 'study',
 };
 const campaignRef: CampaignRef = { mode: 'campaign', code: 'K7QF2', difficulty: 'medium', possibleOnly: true, endBoard: false, perPuzzle: 2 };
 
@@ -92,12 +93,13 @@ for (const [name, guard, good, bad] of guards) {
 
 test('a malformed progress repairs field by field', () => {
   const cats = { status: 'won', data: { marks: {} } };
-  const p = sanitizeProgress({ ...filled, marks: 5, used: 'a', found: [1, 'f'], solved: 'yes', talk: { a: 'x' }, gridHints: 7, endBoard: { key: 3 }, accusations: [{ suspect: 'a' }, filled.accusations[0]], games: { wordle: { status: 'nope' }, cats } });
+  const p = sanitizeProgress({ ...filled, marks: 5, used: 'a', found: [1, 'f'], solved: 'yes', talk: { a: 'x' }, at: 4, gridHints: 7, endBoard: { key: 3 }, accusations: [{ suspect: 'a' }, filled.accusations[0]], games: { wordle: { status: 'nope' }, cats } });
   assert.deepEqual(p.marks, {});
   assert.deepEqual(p.used, []);
   assert.deepEqual(p.found, ['f']);
   assert.equal(p.solved, false);
   assert.equal(p.talk, undefined);
+  assert.equal(p.at, undefined);
   assert.equal(p.gridHints, undefined);
   assert.equal(p.endBoard, undefined);
   assert.deepEqual(p.accusations, filled.accusations);
