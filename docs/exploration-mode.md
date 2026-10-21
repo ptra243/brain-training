@@ -15,6 +15,14 @@ are shelved (see Later).
 - **A round opens with a body.** The body is found, the scene is marked on the map, and the clock starts in
   the evening. The Clues tab starts the round with only what she knows (earlier rounds' clues stay; they
   are still true) and fills as she earns clues.
+- **The scene is known from the start; the scene word game is dropped** (decided 2026-10-22). Its only
+  prize was the scene, and the campaign's fairness checks already assume the scene is known. She starts
+  the round in the scene room. The engine still builds the word games (same cases); exploration rounds
+  just don't offer them.
+- **Placeholders for now.** The person screen's portrait is a card with the counter colour and initials
+  until the Portraits session lands. The explore map has no cat hint and no clue drawer (the Grid keeps
+  both). Opening a fresh puzzle asks first ("This takes 45 minutes: the clock moves to 10:30 when you
+  finish it."), like tonight's picks do now.
 - **The map is the main screen.** Map is the first tab and fills most of the screen. A marker shows the
   room she is in. Tapping another room moves her there (the marker slides). Moving costs no time.
 - **Rooms with a puzzle get a mark.** A stylised exclamation mark on the map over each room that still has
