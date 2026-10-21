@@ -51,8 +51,10 @@ Goal: make characters react to each other, without anything depending on the kil
   thread between the two people holding them ("{other} won't look at me tonight").
 - Hand-picked pairs, not every combination (21 pairs × 4 reading combinations for the core 7 cards is
   about 250 lines, mostly never seen). Start with 4 to 6 pairs whose roles already suggest a story: Host +
-  Hostess (the marriage), Host + Uncle (the old quarrel), Host + Financier (debt), Solicitor + Uncle (the
-  will), Magician + High Priestess (the one who fools people and the one who notices). Beats 1 and 2 are
+  Hostess (the marriage), Elder heir + Younger heir (rivals for the house), Host + Elder heir
+  (succession), Host + Uncle (the old quarrel), Host + Financier (debt), Detective + Conjurer (the one
+  who sees through tricks and the one who makes them). A pair thread only comes up when both are seated
+  (10-guest pool, 7 seated). Beats 1 and 2 are
   shared; the two readings pick only beat 3 (both upright: they make up; both reversed: they fall out
   for good; one of each: only one of them still cares). Check how a pair thread fits with "one thread
   per suspect" in `docs/talk-threads.md`.
@@ -212,4 +214,21 @@ case rotation.
 Starting prompt:
 ```
 Read the "Target or another word game" entry in docs/next-sessions.md and help me design the game: confirm Target or pick another, settle goals, hints and the clue reward, then plan the two word lists.
+```
+
+## Session: Confidant arcs and case framing
+Last touched: 2026-10-21
+Reads first: `docs/theme-draft.md` (Guest pool, draft cast, Extension: Confidants) and
+`docs/talk-threads.md`. Content first; code after.
+Goal: write the campaign's story content for the 10-guest pool:
+- A 5-chapter backstory arc per guest, 3 beats each (about 150 lines). About the past, never tonight
+  (rule 1), and true whoever turns out to be the killer (rule 5).
+- Victim openings: 2 or 3 lines per guest on why they mattered to the house.
+- Endings: one pool per card for after the solve, with `{victim}` filled in.
+- Lines for the three new guests (Elder heir, Younger heir, Detective) and the Butler's reworded lines.
+Then code: chapters in the campaign thread slot, ranks saved as her moves, and the named first victim
+(the 8th guest in `campaignCast`).
+Starting prompt:
+```
+Read the Guest pool and Confidants sections of docs/theme-draft.md, then help me write the 5-chapter arcs, victim openings and endings.
 ```

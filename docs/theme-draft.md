@@ -50,6 +50,30 @@ The Fool, the unnumbered tarot card: the innocent wanderer with a little dog. Th
 Marking: **N** = role-neutral (any suspect rolling this card may use it), **B** = role-bound (home suspect only).
 Six lines per card per reading. Tone so far: warm with a little bite.
 
+### Guest pool: 10 guests, 7 seated
+Decided 2026-10-21. The pool is 10 guests with unique home cards; each case seats 7.
+
+| Guest | Home card | Lines |
+|---|---|---|
+| The Host | Emperor | drafted |
+| The Hostess | Empress | drafted |
+| The Butler | Hierophant | drafted (was the Solicitor) |
+| The Conjurer | Magician | drafted |
+| The Housekeeper | High Priestess | drafted |
+| The Financier | Devil | drafted |
+| The Uncle | Hermit | drafted |
+| The Elder heir | Chariot | to write |
+| The Younger heir | Sun | to write |
+| The Detective | Justice | to write |
+
+- Seating needs no engine work: `campaignCast` and `generate.ts` already shuffle `content.suspects` and
+  take the first 7 (or the level's count), from the case ref, before the killer is picked. Adding 3 guests
+  to content changes cases, so bump the storage prefix with the theme.
+- Role labels can depend on who is seated, never on the killer: with both heirs seated they're the elder
+  and younger child; with one, that one is "the Heir".
+- Pair threads (see `docs/next-sessions.md`, Relationships) only come up when both guests are seated.
+- Open: should any guest always be seated (the Host: it's their house)? That would be engine work.
+
 ### The Host: The Emperor
 Master of the estate; everything runs by their say-so.
 - Upright
@@ -84,8 +108,9 @@ Generous, fond of comfort, protective of the family.
   - N: "I've fussed over a few people too much, I suppose. They never minded the cake."
   - B: "A home can feel like a cage, with the wrong people in it."
 
-### The Solicitor: The Hierophant
-Keeper of the family's papers and its proprieties.
+### The Butler: The Hierophant
+Keeper of the household's traditions and proprieties. Takes in the old Solicitor; role-bound lines about
+papers still to be reworded for a butler (keys, the silver, the household books).
 - Upright
   - N: "There's a right way of doing things, and it's usually written down."
   - B: "I know where every document is kept. That's all I'll say."
@@ -169,11 +194,25 @@ Keeps to the margins; has an old quarrel with the family.
   - N: "Solitude is lovely until it's all you're offered."
   - N: "I was here before most of them, and nobody remembers."
 
-Other cards for variety: the Lovers (secret engagement), Justice (a judge guest), the Moon (deceiver), the Star
+### The Elder heir: The Chariot
+Son or daughter of the house who wants to be its head, and will do anything for it. Threads with the Host
+(succession) and the Financier (debts against the inheritance). Reversed: ambition with no brakes. Lines to write.
+
+### The Younger heir: The Sun
+The other child: cheerful, open, everyone's favourite. With the Elder heir seated, the two are rivals for the
+house (a strong pair thread). Reversed: spoilt, used to getting their way. Lines to write.
+
+### The Detective: Justice
+A rival detective at the party, the Fool's counterpart; a suspect like the rest. Lines are about method and
+pride, never conclusions ("I always start with the hands"): they never name a suspect, room or weapon and
+never vouch for anyone. Reversed: has already decided, and bends the facts to fit. A natural Confidant arc
+(rivalry to respect). Lines to write.
+
+Other cards for variety: the Lovers (secret engagement), the Moon (deceiver), the Star
 (actress), Death (the doctor, with a wink), the Hanged Man (failed investor). The Tower is the storm.
 
 ### Major arcana coverage
-15 of 22 have a place; ideas for the rest. Not every card needs a person: a card can be a non-character (the
+18 of 22 have a place (10 of them in the guest pool); ideas for the rest. Not every card needs a person: a card can be a non-character (the
 Tower), a wandering card, or a secondary-only pool that suspects borrow. A smaller cast with full pools beats 21 thin ones.
 
 | # | Card | Draft | Idea |
@@ -183,13 +222,13 @@ Tower), a wandering card, or a secondary-only pool that suspects borrow. A small
 | 2 | High Priestess | The Housekeeper | |
 | 3 | Empress | The Hostess | |
 | 4 | Emperor | The Host | |
-| 5 | Hierophant | The Solicitor | |
+| 5 | Hierophant | The Butler | |
 | 6 | Lovers | Extra: secret engagement | Wandering card: whose secret is it tonight? |
-| 7 | Chariot | — | Retired officer: driven, wants to win, restless in the storm |
+| 7 | Chariot | The Elder heir | |
 | 8 | Strength | — | Nurse or companion to an old relative; reversed, temper held by force |
 | 9 | Hermit | The Uncle | |
 | 10 | Wheel of Fortune | — | Fortune teller (a gambler would overlap the Hanged Man), or a non-character (fate) |
-| 11 | Justice | Extra: a judge guest | |
+| 11 | Justice | The Detective | |
 | 12 | Hanged Man | Extra: failed investor | |
 | 13 | Death | Extra: the doctor | |
 | 14 | Temperance | — | The cook: mixes and measures; reversed, at the cooking sherry |
@@ -197,7 +236,7 @@ Tower), a wandering card, or a secondary-only pool that suspects borrow. A small
 | 16 | Tower | The storm (non-character) | |
 | 17 | Star | Extra: actress | |
 | 18 | Moon | Extra: deceiver | Wandering card (see Hidden tarot layer); "deceiver" overlaps the Magician |
-| 19 | Sun | — | Youngest guest or heir: cheerful; reversed, spoilt |
+| 19 | Sun | The Younger heir | |
 | 20 | Judgement | — | Long-lost relative come back (the vicar would overlap the Hierophant) |
 | 21 | World | — | World traveller: seen everything; reversed, finishes nothing. Or the house itself |
 
@@ -357,17 +396,17 @@ Status: proposed 2026-10-21, after the base theme and Talk and threads. Inspired
 Goal: she gets more invested in the cast as she plays campaigns. Quick play stays as it is: loose lines
 only, no chapters, no ranks, just solve the murder.
 
-A campaign is one evening with the same 7 guests (`src/engine/campaign.ts`), so every campaign is the same
-cast in a new reading. Each guest's card is a **Confidant with 5 ranks** that carry over between campaigns.
+A campaign is one evening with 7 of the 10 guests (`src/engine/campaign.ts`), so every campaign is the
+same company in a new reading. A guest who isn't seated this campaign just waits; no rank is lost. Each guest's card is a **Confidant with 5 ranks** that carry over between campaigns.
 
 | | What it does |
 |---|---|
 | Earning a rank | In a campaign, a guest's one thread (`docs/talk-threads.md`) is their next backstory chapter. Hearing all its beats in that campaign earns the rank. Each campaign code counts once; replaying it earns nothing. |
-| Chapters | Fixed order per character, 3 beats each: 7 guests × 5 chapters × 3 beats, about 105 lines. About the past, never tonight (rule 1), so a tender chapter still reads fine when that guest is tonight's killer. |
+| Chapters | Fixed order per character, 3 beats each: 10 guests × 5 chapters × 3 beats, about 150 lines. About the past, never tonight (rule 1), so a tender chapter still reads fine when that guest is tonight's killer. |
 | Reading | Upright or reversed is still rolled per campaign. It colours that campaign's loose lines, not the chapter. |
 | Rank 3 | The card is revealed: that guest's counter shows its card face from then on. The hidden layer comes out one person at a time. |
 | Rank 5 | The arc ends; the Fool's journey (her deck) gains that card. |
-| Tarot mode | Unlocks when all 7 are revealed (settles "How tarot mode unlocks" above). |
+| Tarot mode | Unlocks when all 10 are revealed (settles "How tarot mode unlocks" above). |
 
 - Safe by rule 5: chapters, ranks and reveals depend only on what she has done, never on the killer.
   Ranks are saved as her moves (`src/game/storage.ts`), so cases never change.
@@ -376,5 +415,15 @@ cast in a new reading. Each guest's card is a **Confidant with 5 ranks** that ca
 - Proposed defaults (not settled): 5 ranks, not 10. No perks; if perks are ever added, they're small
   puzzle helps (a free crossword letter), never case clues, which would break the campaign's fairness rules.
   One telling per chapter, not one per reading. No neglect; ignoring a guest never reverses them.
-- Next: write each character's 5-chapter arc (a content session), then wire chapters into the thread slot
-  for campaign mode.
+- **Named first victim** (campaign only): the campaign shuffle already orders all 10 guests; the first 7 are
+  seated and the 8th is the round 1 victim. No extra roll, so cases don't change; fixed by the campaign code,
+  never by the killer. Rounds 2 and 3 already make a wrongly accused guest the body. Quick play keeps the
+  unnamed body. This is the only piece here that needs code (`campaignCast` in `src/engine/campaign.ts`).
+- **Opening**: a line or two per victim on why they mattered to the house ("Nobody expected the Financier
+  to be the first"). 10 guests × 2 or 3 lines. About the victim only, never the killer.
+- **Ending**: after she solves it, why the killer did it, from the killer's card (reversed pool, `{victim}`
+  filled in). Safe because she already knows. One pool per card, not one per killer + victim pair (90).
+- No storyline per case: cases are generated. The story is made of who's seated, the victim, the readings,
+  each guest's next chapter and the seated pairs, framed by the opening and the ending.
+- Next: write each character's 5-chapter arc, the openings and the endings (a content session), then wire
+  chapters into the thread slot for campaign mode and name the first victim.
