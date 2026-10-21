@@ -40,7 +40,8 @@ are shelved (see Later).
   time the same way and closes itself after about 1.5 s. The time is worked out from games done; the only
   new saved move is her room (`progress.at`).
 - **One guess per round, any time.** She can accuse whenever she likes, however much time is left. A right
-  guess solves the case. A wrong one jumps to the next murder (as now, the accused is the next body). While
+  guess solves the case. A wrong one jumps to the next murder (as now, the accused is the next body;
+  `docs/face-to-face.md` adds the questioning before it, and a wrong weapon ending the round). While
   her clues still allow more than one killer, the Accuse tab says so before she confirms ("Your clues
   still point at 3 people. Guess now?"). At midnight without a guess, the round is out of time: the Accuse
   tab opens and the round can't end until she names someone, then the scene plays. Until she does, she can
