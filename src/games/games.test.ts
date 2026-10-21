@@ -6,7 +6,7 @@ import { Rng } from '../engine/rng.ts';
 import { autoDots, catConflicts, catMoveId, catsHint, catsSolved, countCatSolutions, generateCats, solvableBySimpleSteps, type CatHintState, type CatMark, type CatPuzzle } from './cats.ts';
 import { foundLocations, generateSudoku, locationSquares, solvableBySingles, sudokuConflicts, sudokuHint, sudokuShape, sudokuSolved, type SudokuHintState, type SudokuPuzzle } from './sudoku.ts';
 import { isAllowedGuess, parseWords } from './dictionary.ts';
-import { keyboardState, scoreGuess } from './wordle.ts';
+import { WORD_LENGTH, keyboardState, scoreGuess } from './wordle.ts';
 import { typedEdit } from './typing.ts';
 
 test('wordle scoring handles repeated letters', () => {
@@ -25,9 +25,9 @@ test('keyboard keeps the best colour seen for each letter', () => {
 
 const dictionary = parseWords(readFileSync(new URL('../../public/words.txt', import.meta.url), 'utf8'));
 
-test('word list: 4–9 letter upper-case words, including every room object', () => {
-  assert.ok(dictionary.size > 100_000);
-  for (const word of dictionary) assert.match(word, /^[A-Z]{4,9}$/);
+test('word list: WORD_LENGTH-letter upper-case words, including every room object', () => {
+  assert.ok(dictionary.size > 10_000);
+  for (const word of dictionary) assert.match(word, new RegExp(`^[A-Z]{${WORD_LENGTH}}$`));
   for (const room of content.house.rooms) for (const word of room.objects) assert.ok(dictionary.has(word), word);
 });
 

@@ -74,8 +74,6 @@ for (const seed of SEEDS) {
     });
 
     test('game screens fit the phone', async ({ page }) => {
-      // Only the sudoku screen offends (only seed 10 has one). Expected failure until fixed.
-      test.fail(seed === 10,'Real layout bug: sudoku number pad buttons are 41x48 and Clear square 43x48, under 44px wide.');
       await solveEveryGame(page, true);
     });
   });

@@ -501,7 +501,7 @@ body.dev { background: #f2f1ec; color: #222; }
 .sudoku-cell.clash { color: var(--pencil); }
 .number-pad { display: grid; gap: 0.4rem; margin: 0.75rem auto 0; max-width: 28rem; }
 .pad-key {
-  min-height: 3rem; border: 0; border-radius: 0.35rem; cursor: pointer;
+  min-width: 44px; min-height: 3rem; border: 0; border-radius: 0.35rem; cursor: pointer;
   background: var(--card); color: var(--ink); font-family: var(--serif); font-size: 1.3rem; font-weight: 600;
 }
 .pad-key:disabled { opacity: 0.35; cursor: default; }

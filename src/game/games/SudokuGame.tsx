@@ -172,7 +172,7 @@ export function SudokuGame({
         })}
       </div>
       {!finished && (
-        <div className="number-pad" style={{ gridTemplateColumns: `repeat(${size === 6 ? 7 : 5}, 1fr)` }}>
+        <div className="number-pad" style={{ gridTemplateColumns: `repeat(${size === 6 ? 4 : 5}, 1fr)` }}>
           {Array.from({ length: size }, (_, k) => k + 1).map((d) => (
             <button key={d} className="pad-key" disabled={remaining(d) === 0} onClick={() => put(d)}>
               {d}

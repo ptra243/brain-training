@@ -1,4 +1,4 @@
-// Words the word games accept as guesses: public/words.txt, 4–9 letters,
+// Words the word games accept as guesses: public/words.txt, WORD_LENGTH (5) letters,
 // built by scripts/build-words.ts. It's large, so it's fetched the first time
 // a word game opens rather than bundled.
 
