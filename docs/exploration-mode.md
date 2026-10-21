@@ -1,6 +1,7 @@
 # Exploration mode: settled design and build plan
 
-Status: designed 2026-10-21, nothing built. Reverses "She doesn't move around the house" in
+Status: designed 2026-10-21; step 1 (exploring campaign rounds) built and merged 2026-10-22; step 2
+(the next-murder scene) next. Reverses "She doesn't move around the house" in
 `docs/talk-threads.md`: she is the detective, walking the house between murders. Bigger generated houses
 are shelved (see Later).
 

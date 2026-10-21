@@ -62,18 +62,19 @@ Starting prompt:
 Read "Speed round: fill in the blank" in docs/nosing-around.md, settle whether board questions use cards too, then brief the engine and the UI separately.
 ```
 
-## Session: Exploration mode, phase 1
+## Session: Exploration mode, the next-murder scene
 Last touched: 2026-10-22
-Reads first: `docs/exploration-mode.md` (settled design), `src/game/CLAUDE.md`, `e2e/CLAUDE.md`, then
-`CampaignView.tsx`, `Casebook.tsx`, `SuspectSheet.tsx` and `MapPanel.tsx`.
-Goal: build-order step 1. In campaign rounds the map becomes the main screen: her marker, exclamation
-marks on rooms with puzzles, a room list (things, puzzles, guests), the person screen with portrait and
-talk, the time header ("10:30 (2 games left)") and card, one guess any time with the warning, and the
-midnight lock. Quick play stays untouched; no case changes, no storage bump. Then the next-murder scene
-(step 2) as its own small session.
+Reads first: `docs/exploration-mode.md` ("The next murder" and the build order), `src/game/CLAUDE.md`,
+`e2e/CLAUDE.md`, then `CampaignView.tsx` (the "next-body" notice it replaces).
+Goal: build-order step 2. Step 1 (exploring campaign rounds: `explore.ts`, `ExploreMap.tsx`, the clock,
+midnight lock) is merged. Now the full-screen scene between rounds after a wrong guess: window with rain,
+a lightning bolt, the room lit by the flash, a clock at twelve, a jagged speech bubble screaming. SVG and
+CSS only; only the bolt and flash animate, at most 3 flashes a second, a still picture with reduced
+motion. Tap to continue into the next round. Small: one implementer brief, e2e for the tap-through, a
+`browser-check` look pass.
 Starting prompt:
 ```
-Read docs/exploration-mode.md, write the implementer brief for build-order step 1 (exploration in campaign rounds), and hand it off.
+Read docs/exploration-mode.md, write the implementer brief for build-order step 2 (the next-murder scene), and hand it off.
 ```
 
 ## Session: Face to face, questioning the accused
