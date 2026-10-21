@@ -58,11 +58,28 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
 - Keep logic in plain TS (`src/engine/`, `src/games/`, `src/game/*.ts`) with
   node tests next to it; React components stay thin. Tests run with Node's
   type stripping, so that TS must be erasable syntax only.
-- Checks before committing: `npm run lint` (ESLint with the React Compiler
-  hooks rules: no ref writes during render, use `useEffectEvent` for
-  "latest handler" listeners; an `eslint-disable` needs a reason beside it),
-  `npm test` (includes the golden case snapshot), `npm run check-cases` (the quick run; CI runs `check-cases:full`, so run that locally after generator changes), `npm run build`.
+- Checks before committing: `npm run checks` runs these in parallel, one
+  pass/fail line each (`-- --full` for the full case check): `npm run lint`
+  (ESLint with the React Compiler hooks rules: no ref writes during render,
+  use `useEffectEvent` for "latest handler" listeners; an `eslint-disable`
+  needs a reason beside it), `npm test` (includes the golden case snapshot),
+  `npm run check-cases` (the quick run), `npm run build`. While fixing one
+  failure, re-run just that check.
   For UI changes also run `npm run e2e` (Playwright: layout rules and main flows at phone size).
+- **`check-cases:full` runs once, in the main session**, after generator
+  changes (CI runs it too). Delegated pieces run only the quick check. Once
+  they're all back, start the full run in the background and review, write
+  docs and draft the commit message meanwhile. If it fails, fix generator
+  failures here (this session has the context); delegate only a failure
+  with an obvious cause (a test expectation, a check-script bug).
+- **Don't re-run what a hand-back already passed.** When the implementer
+  reports `npm run checks` passing after its last edit, re-run only what
+  your own later edits could affect: docs need nothing, engine code needs
+  `npm test` and `check-cases`.
+- **Design questions: read the code first, then ask once with a proposal.**
+  Make the recommended option concrete (the numbers, a table of what each
+  setting does, what stays unchanged), with the alternatives beside it, so
+  one round of questions settles the design.
   Needs Node 22.18 or newer (the owner's machine has Node 24): run scripts
   directly, e.g. `node scripts/check-cases.ts`.
 - Python isn't installed. Edit files with the Edit tool; for scripted bulk
@@ -131,5 +148,7 @@ Long sessions re-read their whole context every turn, so keep them short.
   a rule that replaces judging topic drift.
   Session ideas worth starting fresh live in `docs/next-sessions.md`, each
   with a `Last touched` date and a starting prompt; a `SessionStart` hook
-  (`stale-sessions.mjs`) flags entries untouched for 14 days. When you
+  (`stale-sessions.mjs`) shows them as a numbered menu on a fresh session
+  ("start 3" runs that entry's starting prompt) and flags entries untouched
+  for 14 days. Keep each heading short: it is the menu line. When you
   suggest a split, offer to add or refresh the entry.
