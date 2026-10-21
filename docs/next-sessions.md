@@ -32,19 +32,8 @@ Starting prompt:
 Read "Next build" in docs/nosing-around.md, settle its open items with me, then split the number grid, the lock on the grid and the dog fight into implementer briefs.
 ```
 
-## Session: Validate saved data
-Last touched: 2026-10-21
-Reads first: `docs/code-review-followups.md` section 4, `src/game/storage.ts`, `src/game/games/saveData.ts`.
-Goal: saves are checked, not cast. A bad game record resets that game only; a bad field falls back to
-its empty value. Decide Valibot or hand-written guards (Valibot needs installing on the owner's
-machine), then delegate. Add node tests with malformed saves.
-Starting prompt:
-```
-Read docs/code-review-followups.md section 4, help me pick Valibot or hand-written guards, then write an implementer brief with tests for malformed saves.
-```
-
 ## Session: Exploration mode, phase 1
-Last touched: 2026-10-21
+Last touched: 2026-10-22
 Reads first: `docs/exploration-mode.md` (settled design), `src/game/CLAUDE.md`, `e2e/CLAUDE.md`, then
 `CampaignView.tsx`, `Casebook.tsx`, `SuspectSheet.tsx` and `MapPanel.tsx`.
 Goal: build-order step 1. In campaign rounds the map becomes the main screen: her marker, exclamation

@@ -14,15 +14,6 @@ profile on her phone shows a drag stutters.
 - Class names are long template strings (e.g. `MapPanel.tsx` counters and weapons). `clsx` (0.2 KB)
   would tidy them. Optional.
 
-## 4. Validate saved data
-
-- `src/game/storage.ts` and the game registry cast saved data (`a.saved as WordleData`) instead of
-  checking it. Today a malformed save crashes into the error boundary, which clears everything.
-- Add small schemas (Valibot, about 1–2 KB, or hand-written guards) for `QuickSave`, `CampaignSave`
-  and each game's data in `src/game/games/saveData.ts`. A bad game record should reset just that
-  game; a bad progress field should fall back to `emptyProgress()` for that field.
-- No storage prefix bump needed: valid saves stay valid.
-
 ## 5. Property tests for the engine (exploratory)
 
 - `npm run check-cases` already sweeps fixed seeds. `fast-check` would generate seeds and settings

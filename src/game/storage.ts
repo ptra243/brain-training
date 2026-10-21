@@ -4,15 +4,16 @@
 
 import { PICK_ORDER, pickedInOrder, type CaseRef, type PickedGame } from '../engine/caseRef.ts';
 import type { CampaignSave } from './campaign.ts';
-import { emptyProgress, type Progress } from './state.ts';
+import { PLAY_VERSION, sanitizeCampaign, sanitizeQuick } from './saveGuards.ts';
+import type { Progress } from './state.ts';
 
 // v5: the case board puzzle stands in for a game in some cases, which changes those cases.
 const PREFIX = 'brain-training:v5:';
 
-function read<T>(key: string): T | null {
+function read(key: string): unknown {
   try {
     const raw = localStorage.getItem(PREFIX + key);
-    return raw ? (JSON.parse(raw) as T) : null;
+    return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
@@ -32,36 +33,13 @@ export interface QuickSave {
   progress: Progress;
 }
 
-// Bumped when Play cases change, so a saved one isn't replayed against a different case.
-// 2: Play cases draw 3 to 5 games and share clues by level. 4: Nosing around joins Play (a level roll for every Play code).
-const PLAY_VERSION = 4;
-
-export function loadQuick(): QuickSave | null {
-  const saved = read<QuickSave>('quick');
-  if (!saved?.ref || typeof saved.ref.code !== 'string') return null;
-  // A Play case is just its code; an old Quick start also needs its levels.
-  if (saved.ref.mode !== 'play' && (!saved.ref.difficulty || !saved.ref.length)) return null;
-  if (saved.ref.mode === 'play' && saved.ref.games !== undefined && !Array.isArray(saved.ref.games)) return null;
-  if (saved.ref.mode === 'play' && (saved as { playVersion?: number }).playVersion !== PLAY_VERSION) return null;
-  return { ref: saved.ref, progress: { ...emptyProgress(), ...saved.progress } };
-}
+// What comes back is checked in `saveGuards.ts`; a bad save is dropped or repaired there.
+export const loadQuick = (): QuickSave | null => sanitizeQuick(read('quick'));
 
 export const saveQuick = (q: QuickSave) => write('quick', { ...q, playVersion: PLAY_VERSION });
 
 /** The campaign she's on (one at a time). */
-export function loadCampaign(): CampaignSave | null {
-  const saved = read<CampaignSave>('campaign');
-  if (!saved?.ref || typeof saved.ref.code !== 'string' || !Array.isArray(saved.rounds) || !saved.rounds.length) return null;
-  const per: unknown = saved.ref.perPuzzle;
-  if (per !== undefined && per !== 1 && per !== 2) return null;
-  return {
-    ...saved,
-    victims: saved.victims ?? [],
-    rounds: saved.rounds.map((p) => ({ ...emptyProgress(), ...p })),
-    picked: saved.rounds.map((_, i) => saved.picked?.[i] ?? []),
-    outcome: saved.outcome ?? 'playing',
-  };
-}
+export const loadCampaign = (): CampaignSave | null => sanitizeCampaign(read('campaign'));
 
 export const saveCampaign = (c: CampaignSave) => write('campaign', c);
 
@@ -69,7 +47,7 @@ export const saveCampaign = (c: CampaignSave) => write('campaign', c);
 export type Screen = 'home' | 'case' | 'campaign' | 'campaign-setup' | 'pick';
 
 export const loadScreen = (): Screen => {
-  const s = read<Screen>('screen');
+  const s = read('screen');
   // 'campaign-setup' and 'pick' are never restored: reopening the app lands on home.
   return s === 'case' || s === 'campaign' ? s : 'home';
 };
@@ -78,7 +56,7 @@ export const saveScreen = (s: Screen) => write('screen', s);
 
 /** The games she last ticked in "Choose games", so the picker starts there. */
 export function loadPicks(): PickedGame[] {
-  const saved = read<unknown>('picks');
+  const saved = read('picks');
   if (!Array.isArray(saved)) return [];
   return pickedInOrder(saved.filter((g): g is PickedGame => PICK_ORDER.includes(g)));
 }
