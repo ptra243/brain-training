@@ -70,6 +70,21 @@ Starting prompt:
 Read docs/face-to-face.md, build piece 1 (wrong weapon ends the round) here, then brief the implementer on pieces 2 to 4.
 ```
 
+## Session: Portraits, parametric faceted cast
+Last touched: 2026-10-22
+Reads first: `docs/portraits.md` (settled style and open items), the mockup canvas it links (the
+three-quarter board's SVG is the reference drawing), `docs/theme-draft.md` ("Guest pool"), and the
+person screen in `docs/exploration-mode.md`.
+Goal: settle the three open items (which cast, portrait versus tarot card art, where mood comes from),
+then design the parts model (base figure, per-guest hair, headwear, costume, accent and background in
+`src/content/`, mood tint overlay) here. Hand the drawing code, the React component and the per-guest
+content to the implementer. Check the cards, the 52px and 32px counters and the large view at 360px
+through `browser-check`.
+Starting prompt:
+```
+Read docs/portraits.md, settle its open items with me, design the parametric parts model, then brief the implementer on the portrait component and the guest parts.
+```
+
 ## Session: Theme content, tarot cast and line pools
 Last touched: 2026-10-20
 Reads first: `docs/theme-draft.md`. Best after "The cast", which fixes the roles.
