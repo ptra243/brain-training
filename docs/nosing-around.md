@@ -1,6 +1,7 @@
 # Nosing around (maths board game): design
 
-Status: designed with the owner on 2026-10-21, not built. The name is a working title.
+Status: designed with the owner on 2026-10-21; first build (plain questions, speed round, lock) merged
+on 2026-10-22. Next: the number grid and the dog (see "Next build"). The name is a working title.
 
 A snakes-and-ladders game played on the floor plan. She follows the house cat through every room;
 squares ask mental-maths questions; the last square is a numbers puzzle that opens a lock and gives
@@ -59,13 +60,10 @@ with its own hint function and tests), so any of them can later be promoted to a
   the reward (e.g. 5 right: one bonus; 8: two; 12: two plus extra steps; scaled by level). Below the
   lowest tier she just walks on: the timer only sizes the reward, never costs her anything. The only
   timer in the game. No cat hints during the round.
-- **The dog (card battle, a snake encounter):** the cat has a seeded deck of number and operator cards;
-  the dog has a health dial. Each round: **attack**, make the largest number she can from her hand,
-  that's the damage; **defend**, the dog rolls an attack number and she makes one that meets or beats
-  it, and hitting it **exactly** gives her an extra card next turn. Win: the dog runs off, with a good
-  reward. Lose: the cat is chased back down the snake, and the dog is gone for the rest of the run (so
-  the worst case stays bounded). Hints: the cat suggests a good combination, then the best one. Trains
-  biggest-product thinking (attack) and hitting a target (defend, practice for the lock).
+- **The dog (card battle, a snake encounter):** replaced by "Next build: the dog" below (playing cards,
+  lives, beat or double the dog's number). Win: the dog runs off, with a good reward. Lose: the cat is
+  chased back down the snake, and the dog is gone for the rest of the run (so the worst case stays
+  bounded).
 - **Estimate:** "how many jars on the larder shelf?"; the closer, the bigger the reward.
 - **Balance the scales:** pick weights so both pans match.
 - **Pattern:** the next number in a sequence (the clock chimes).
@@ -208,6 +206,8 @@ better fit turns up in the code.
 
 ### The lock
 
+(First build. The next build moves it onto the number grid; see "Next build".)
+
 - She builds a number in steps: pick two of the tiles she has, then + − × ÷. The result becomes a new
   tile, and the two she used are spent. Only whole, positive results are allowed (÷ only when it
   divides exactly; − only when the result is above 0). "Undo" takes back a step. "Try this number"
@@ -233,6 +233,97 @@ Her moves in order: `{ t: 'roll' }`, `{ t: 'reroll' }`, `{ t: 'answer', value }`
 `{ t: 'speed', right }`, lock steps `{ t: 'combine', a, b, op }`, `{ t: 'undo' }`, `{ t: 'try' }`,
 plus `hints` and `solved?: 'revealed'`. If she reloads in the middle of a speed round, the round starts
 again with the same questions.
+
+## Next build: the number grid and the dog
+
+Talked through with the owner on 2026-10-22, before she had played the first build. The grid is one
+shared piece: the lock moves onto it, and the dog fight is played on it. Later the cat-vs-dog game can
+grow into a deck builder of its own (see the "dog card battle" entry in `docs/next-sessions.md`); this
+build is the side game, with fixed decks and no building.
+
+### The number grid
+
+Replaces the lock's "pick two tiles, then an operator" steps. Rows take away the need for brackets.
+
+```text
+        [ 25 ][ × ][ 4 ]              = 100
+  [ + ] [ 7 ][ × ][ 3 ][ − ][ 1 ]     =  20  → 120
+  [ × ] [ 2 ]                         =   2  → 240
+```
+
+- She places number cards and operator cards into slots by tap or drag. A row is number, operator,
+  number, operator, number: **at most 3 numbers a row**, so five 44px slots plus the row-operator slot
+  fit 360px. Up to 3 rows.
+- **Inside a row**, × and ÷ go before + and −, as in real maths. Each row shows its total live at its
+  right edge.
+- **Between rows**, the operator in the slot left of a row joins it to the running total from the top
+  down: `(row 1 op row 2) op row 3`. The running total shows beside each row, so she always sees where
+  she stands. The answer is the last running total.
+- Only whole, positive results count (÷ only when exact, − only above 0), checked for each row and each
+  running total; a slot that breaks the rule shows red and the total waits.
+- Cards she doesn't place are fine. The answer must use at least two numbers (as the lock today).
+- **Operators:** the lock gives a fixed palette of + − × ÷ that never runs out. The dog fight deals
+  operator cards that are spent when placed, the row-operator slots included.
+- **Solver:** a pure module (suggested `src/games/numberGrid.ts`) that evaluates a grid and lists every
+  value reachable *in the grid's shape* from a hand (numbers plus an operator palette or operator
+  cards), with one way for each. The lock generator checks its targets with it, so every lock is still
+  exact with no bonuses **on the grid**; the dog uses it to find her best, the dog's plays and the hints.
+- **Saves:** her lock moves change shape (place and clear a slot instead of `combine`), so old saves of
+  a lock in progress need a storage prefix bump or a reading of the old moves. Lock numbers and targets
+  may change where a target can't be made in the grid's shape: dump some cases before and after.
+- Lock hints become: step 0 fills the first row of a stored way, step 1 fills all but the last row,
+  step 2 the whole way.
+
+### The dog
+
+A fight on a snake head, played with tarot cards: the cat and the dog each have **3 lives**. Turns alternate, the cat attacks
+first.
+
+- **Cards: the tarot minor arcana** (cups, wands, swords, pentacles; faces already in
+  `src/content/tarotArt.ts`), small numbers, so it feels like quick arithmetic rather than the lock.
+  Easy: 40 cards (ace = 1, 2–10, no court cards). Medium and hard: all 56 (page = 11, knight = 12,
+  queen = 13, king = 14). The major arcana stay out of this game; they're saved for the deck builder.
+  Each side has its own seeded shuffle; a used deck reshuffles from the next seed. Card ids and values
+  come from content, never named in code.
+- **Operator deck**, separate, weighted toward +: 5 +, 3 ×, 1 −, 1 ÷ (easy: the ÷ becomes a +).
+  Its own seeded shuffle.
+- **Each turn** she draws 5 number cards and 3 operator cards and builds one number on the grid.
+  Placed cards are spent; unplaced cards go back.
+- **Attack:** the dog plays its number first (shown as its play, e.g. "9 × 4 + 2 = 38"). Meet or beat
+  it: the dog loses 1 life. Reach **double** it: the dog loses 2.
+- **Defend:** the dog plays its number. Meet or beat it, or the cat loses a life. Hit it **exactly**:
+  one extra number card next turn.
+- **The dog's play:** it has its own hand (5 numbers, 3 operators from the same decks' rules) and picks
+  at random (seeded) from its plays that are **neither its best nor its worst**, and only from plays
+  she can answer with her current hand:
+  - attack: at most her best; about a third of the time at most half her best, so a double is there;
+  - defend: at most her best; prefer one she can hit exactly about half the time.
+  If no play qualifies, the dog's hand is redealt from the next seed (`-1`, `-2`, …). So a weak hand
+  meets a weak dog, and every round can be won.
+- **Hints** (the cat): attack: whether a double is possible, then a play that beats it, then the best
+  play. Defend: whether an exact hit is possible, then a play that meets it, then the exact play when
+  there is one. Following hints wins every round, so it always wins the fight; test that.
+- **Win:** the dog runs off, and she gets a good reward (two bonuses, drawn from the seed). **Lose:** the
+  cat goes down the snake and the dog is gone for the run. Losing never costs more than the snake, so
+  the turn bounds hold.
+- Her moves only (placements, end turn); dog plays and draws are replayed from the seed. Pure module
+  (suggested `src/games/dogFight.ts`) so it can be promoted to a minigame of its own later.
+
+### Speed round: fill in the blank
+
+Also from 2026-10-22, the owner's idea; can go in the same build or right after.
+
+- No keypad: each question shows a sum with a blank and **4 cards** to tap: `7 × _ = 56`, `_ − 9 = 14`,
+  and sometimes the operator, `7 _ 8 = 56`.
+- Wrong cards are near misses: one table off (7×7 for 7×8), ±10, or the result of the wrong operation.
+- A wrong tap costs 3 seconds off the timer, so tapping at random can't climb the tiers.
+- Plain board questions could use 4 cards the same way and retire `NumberPad`; decide when building.
+
+### Still open
+
+- Which snake heads get the dog: suggested one dog per run on medium and hard, none on easy.
+- Whether the dog's 3 lives make the encounter too long on the board (about 4–6 rounds); if so, the dog
+  starts on 2.
 
 ## To check on the phone
 

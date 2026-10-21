@@ -16,6 +16,22 @@ first whatever unblocks other entries. **Re-rank an entry whenever you add it, r
 status changes** (built, blocked, unblocked, done): move it to its place, don't edit it where it
 stands. A blocked entry keeps its rank and names its blocker in the heading.
 
+## Session: Nosing around: number grid and the dog
+Last touched: 2026-10-22
+Reads first: `docs/nosing-around.md` ("Next build", then "Build spec" for the first build), then
+`src/games/lock.ts`, `src/games/nosing.ts`, `src/game/games/NosingLock.tsx`.
+Goal: the owner asked for this next. Build the shared number grid (rows, at most 3 numbers a row,
+row-operator slots, live row and running totals, a solver for the grid's shape), move the lock onto it
+(lock targets checked on the grid; storage prefix bump or reading old lock moves), then add the dog
+fight on a snake head (tarot minor-arcana decks, operator deck, 3 lives each, beat for 1 or double for 2,
+exact defence for an extra card, the dog picks a middle play she can answer). Settle the two "Still
+open" items first, then split: grid and solver, lock UI, dog module, dog UI, `check-cases` additions.
+The fill-in-the-blank speed round can follow in the same session if there's room.
+Starting prompt:
+```
+Read "Next build" in docs/nosing-around.md, settle its open items with me, then split the number grid, the lock on the grid and the dog fight into implementer briefs.
+```
+
 ## Session: Validate saved data
 Last touched: 2026-10-21
 Reads first: `docs/code-review-followups.md` section 4, `src/game/storage.ts`, `src/game/games/saveData.ts`.
@@ -209,17 +225,22 @@ Starting prompt:
 Read the "Target or another word game" entry in docs/next-sessions.md and help me design the game: confirm Target or pick another, settle goals, hints and the clue reward, then plan the two word lists.
 ```
 
-## Session: The dog card battle as its own game (exploratory)
-Last touched: 2026-10-21
-Reads first: `docs/nosing-around.md` (the "Encounters" section, the dog). Best after Nosing around is
-built, so the encounter module exists to grow from.
-Goal: decide whether the dog encounter becomes a full minigame: a longer duel with deck building
-between fights (Slay the Spire style), seeded decks and dog rolls, attack = largest number from her
-hand, defend = meet or beat the dog's roll, exact = an extra card. Settle levels, how a loss works
-without getting her stuck, the hint ladder, and whether it joins the case rotation.
+## Session: The dog card deck builder (exploratory)
+Last touched: 2026-10-22
+Reads first: `docs/nosing-around.md` ("Next build: the dog"). Best after the dog encounter is built,
+so its card, grid and operator modules exist to grow from.
+Goal: decide whether the dog fight grows into a real deck builder (Slay the Spire style). Owner's seed
+idea: start with one tarot suit (ace to king, 14 cards) plus a small operator deck; after each fight
+pick one of three cards from other suits, or remove one. Suits only mean something once they mix, so
+cards from other suits could carry small effects (e.g. cups a life back on an exact hit, swords +1
+damage on a double, pentacles draw a card, wands any operator). The major arcana (0–21) are rare
+rewards with bigger effects (the Fool as a wild card). A run is a series of stronger dogs, so it needs
+saved progress between fights.
+Settle the effects, the run length, how a loss works without getting her stuck, hints, and whether it
+joins the case rotation.
 Starting prompt:
 ```
-Read the dog encounter in docs/nosing-around.md and help me decide whether to grow it into its own card-battle minigame: rules, levels, losing without getting stuck, hints.
+Read "Next build: the dog" in docs/nosing-around.md and help me design the dog card game as a real deck builder: one-suit start deck, suit effects, rewards, run length, losing without getting stuck.
 ```
 
 ## Session: Side missions (exploratory)
