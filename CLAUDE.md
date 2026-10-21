@@ -7,8 +7,10 @@ floor-plan map and logic grids. Played mostly on her phone.
 Plan, design decisions and status: the "Murder Mystery Mode — What's Left" doc
 (https://claude.ai/code/artifact/0af63967-9517-43d8-89a2-6c09dd2e2a71), the
 "Questioning variants — Build Plan" doc
-(https://claude.ai/code/artifact/d133c2ba-5666-435a-a751-3a388c6c3fa2; read
-both with the Claude Docs reader, not WebFetch) and the README (setup, layout,
+(https://claude.ai/code/artifact/d133c2ba-5666-435a-a751-3a388c6c3fa2), the
+"Grid cases — Build Plan" doc for the Murdoku-style mode
+(https://claude.ai/artifact/Vkrc5ipo8cJ91ofWiUbmAj; read all three with the
+Claude Docs reader, not WebFetch) and the README (setup, layout,
 how a case is made). The original "Murder Mystery Mode — Build Plan"
 (https://claude.ai/code/artifact/d0571578-5078-425b-8c62-56b3b55a1326) is
 history and about 16k tokens: read one section with a search, never whole.

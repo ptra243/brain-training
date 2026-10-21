@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { content } from '../content/index.ts';
-import type { Case, Room } from '../engine/types.ts';
+import type { Case, GameKind, Room } from '../engine/types.ts';
 import { ClueCard } from './ClueCard.tsx';
 import { cellOf, showsWrong } from './gridHints.ts';
 import { Dialog } from './Dialog.tsx';
@@ -28,6 +28,8 @@ interface Props {
   onAccused: () => void;
   /** `markKey` of the grid square the cat's hint is about. */
   pawedSquare?: string;
+  /** Open a guest's questioning game from their sheet (absent where games can't be opened). */
+  onQuestion?: (kind: GameKind) => void;
 }
 
 type Piece = { kind: 'suspect' | 'item'; id: string };
@@ -62,7 +64,7 @@ const SPREAD: [number, number][][] = [
   [[-0.27, -0.3], [-0.27, 0.3], [0.27, -0.3], [0.27, 0.3], [0, 0]],
 ];
 
-export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare }: Props) {
+export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQuestion }: Props) {
   // The cat's hint: the person or weapon and the room (or weapon) its square is about.
   const hint = pawedSquare ? cellOf(pawedSquare) : null;
   const hintedPiece = (p: Piece) => !!hint && hint.row === p.id;
@@ -330,6 +332,7 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare }: Prop
           dispatch={dispatch}
           suspect={open.id}
           onClose={() => setOpen(null)}
+          onQuestion={onQuestion}
           onMove={() => {
             setSelected(open.id);
             setOpen(null);

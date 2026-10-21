@@ -43,6 +43,33 @@ export interface Content {
   items: readonly Item[];
 }
 
+// ---------- Talk (what guests say; see `sets.ts`) ----------
+
+/** One reading of a card (upright or reversed): loose lines and follow-up threads. */
+export interface CardReading {
+  /** `neutral` can be said by anyone using the card; `bound` only by the card's home suspect. */
+  lines: { neutral: readonly string[]; bound: readonly string[] };
+  /** Each thread is 2 to 3 beats, heard in order. */
+  threads: readonly (readonly string[])[];
+}
+
+export interface TalkCard {
+  upright: CardReading;
+  reversed: CardReading;
+}
+
+/**
+ * Everything guests say, kept out of `Content` (like the cats) so it never
+ * changes a case. Never name a card in a line; lines never state times or alibis.
+ */
+export interface TalkContent {
+  /** Per suspect id: the home card and the cards they may borrow for a night. */
+  suspects: Readonly<Record<string, { card: string; mayAlsoRoll: readonly string[] }>>;
+  cards: Readonly<Record<string, TalkCard>>;
+  /** Ordered: a cold guest warms up a step per beat heard, then moves on to `warm[0]`. */
+  greetings: { cold: readonly string[]; warm: readonly string[] };
+}
+
 // ---------- Generated per case ----------
 
 export type Difficulty = 'easy' | 'medium' | 'hard';

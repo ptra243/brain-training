@@ -51,7 +51,7 @@ const menu = entries.map((name, i) => `${i + 1}. ${name}`).join('\n');
 let context = `NEXT SESSIONS MENU (from a hook). docs/next-sessions.md has these session ideas. The terminal CLI shows the user this numbered list, but the desktop app does not display hook messages, so assume they have NOT seen it:
 ${menu}
 
-If the user's first message already names a task, just do that task; do not show the menu. If it is a greeting, vague, "menu", "next", or asks what to work on, reply with the numbered list (names only, one line each) and ask which to start. When they pick one (by number or name), read only that entry in docs/next-sessions.md (Grep for its "## Session:" heading, then Read with offset and limit), read its "Reads first" docs, set its "Last touched" date to today, and carry out its starting prompt as if they had typed it.`;
+If the user's first message already names a task, just do that task; do not show the menu. If it is a greeting, vague, "menu", "next", or asks what to work on, reply with the numbered list (names only, one line each) and ask which to start. When they pick one (by number or name), first rename this session to that entry's heading (mcp__ccd_session_mgmt__set_session_title in the desktop app, loaded with ToolSearch if deferred; skip it where that tool doesn't exist), then read only that entry in docs/next-sessions.md (Grep for its "## Session:" heading, then Read with offset and limit), read its "Reads first" docs, set its "Last touched" date to today, and carry out its starting prompt as if they had typed it.`;
 
 if (stale.length) {
   context += `

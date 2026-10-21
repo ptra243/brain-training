@@ -93,6 +93,12 @@
   (`caseName`, `parseCase`). Never change, reorder or add to the lists in
   `src/content/caseNames.ts`: that renames every case (a test pins one).
   Names never use theme words (tested).
+- **Character sets** (`sets.ts`, talk): built from the talk content and a seed, never from a `Case`, so
+  nothing in them can depend on the killer, and on their own stream so cases never change. In a campaign
+  they are seeded from the campaign and built over the whole cast (victims included), so a guest sounds
+  the same every round; only their mood moves, rolled per guest from the campaign seed and round number.
+  Talk content lives in `src/content/talk.ts`, outside `Content`: the golden hash covers the whole
+  `Case`, so never add talk fields to `Case` or `Content`.
 - **Golden snapshot** (`golden.ts`, `golden.json`): hashes of 77 fixed cases
   across presets, campaign rounds, Play and Quick. If `golden.test.ts` fails on
   an unintended change, fix the code. If the change is intended (say, a

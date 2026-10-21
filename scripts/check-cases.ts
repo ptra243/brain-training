@@ -15,6 +15,9 @@ import { disproves } from '../src/engine/interrogation.ts';
 import { isInterrogation, isSceneGame } from '../src/engine/gameKinds.ts';
 import { DIFFICULTIES, LENGTHS, PRESETS, allLevels, caseSettings, levelsKey, presetOf, type CaseLevels } from '../src/engine/settings.ts';
 import { countMatching } from '../src/engine/search.ts';
+import { emptyProgress } from '../src/game/state.ts';
+import { talk } from '../src/content/talk.ts';
+import { readyBeats, setsFor } from '../src/game/talk.ts';
 import { sceneCrossword, sceneWordSearch } from '../src/game/sceneGames.ts';
 import { Rng, hashSeed } from '../src/engine/rng.ts';
 import { TAROT_MAX_PAIRS, tarotClueCards } from '../src/engine/tarotCards.ts';
@@ -42,6 +45,9 @@ function timed(make: () => Board | null): Board | null {
 
 /** Every piece's truth is a packing the board's own rules accept. */
 const packs = (b: Board) => boardSolvable(b, Object.fromEntries(Object.entries(b.truth).map(([id, t]) => [id, t.cells])));
+
+// Talk: guests checked, and those with a beat still waiting for the solved case.
+const talkChecked = { guests: 0, short: 0 };
 
 const tarotChecked: Record<string, number> = { easy: 0, medium: 0, hard: 0, none: 0 };
 
@@ -179,6 +185,26 @@ function puzzleProblems(c: Case): string[] {
     boards.ends++;
     if (!b) out.push(`no end board for ${found.size} clues`);
     else if (!packs(b)) out.push("end board's answer doesn't pack");
+  }
+  // Talk: every guest gets a thread, and with every game finished every beat is ready.
+  try {
+    const sets = setsFor(c);
+    const done = { ...emptyProgress(), games: Object.fromEntries(c.games.map((g) => [g.kind, { status: 'won' as const }])) };
+    for (const s of c.suspects) {
+      const thread = sets[s]?.thread;
+      if (!thread || thread.length < 2 || thread.length > 3) out.push(`${s} has no usable thread`);
+      else {
+        // The formula (1 + about + floor(other / 2)) can fall a beat short in a 3-game Play case;
+        // solving the case readies every beat. Count them, but only fail below 2 beats.
+        const ready = readyBeats(c, done, s, thread.length);
+        talkChecked.guests++;
+        if (c.campaign && (sets[s].mood < 0 || sets[s].mood > talk.greetings.cold.length)) out.push(`${s}'s mood is out of range`);
+        if (ready < thread.length) talkChecked.short++;
+        if (ready < Math.min(2, thread.length)) out.push(`${s} has only ${ready} beat ready once every game is done`);
+      }
+    }
+  } catch (err) {
+    out.push(`character sets don't build: ${(err as Error).message}`);
   }
   // Cat puzzle: one answer; easy ones also come out by simple steps.
   for (const g of c.games.filter((g) => g.kind === 'cats')) {
@@ -360,7 +386,8 @@ for (const perPuzzle of [3, 2, 1] as const) for (const difficulty of DIFFICULTIE
 }
 console.log(`${campaigns} campaigns (1, 2 and 3 clues per puzzle), every wrong-guess path: ${rounds} rounds (${((performance.now() - campaignStarted) / rounds).toFixed(0)} ms per round)`);
 
-console.log(`Case boards: ${boards.puzzles} puzzles and ${boards.ends} end boards built (slowest ${boards.slowest.toFixed(0)} ms)`);
+console.log(`Talk: ${talkChecked.guests} guests have a thread; ${talkChecked.short} still have a beat waiting for the solved case once every game is done`);
+console.log(`Case boards:${boards.puzzles} puzzles and ${boards.ends} end boards built (slowest ${boards.slowest.toFixed(0)} ms)`);
 
 const total = 3 * PER_PRESET + others.length * PER_COMBINATION + QUICK_CHOICES * PER_QUICK + PER_PLAY + rounds;
 console.log(

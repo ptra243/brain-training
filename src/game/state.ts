@@ -7,6 +7,7 @@
 import { isInterrogation, isSceneGame } from '../engine/gameKinds.ts';
 import type { Case, Clue, GameKind, GameSpec } from '../engine/types.ts';
 import type { GridHintState } from './gridHints.ts';
+import { readyBeats, setsFor } from './talk.ts';
 
 export type Mark = 'x' | 'o';
 
@@ -44,6 +45,8 @@ export interface Progress {
   gridHints?: GridHintState;
   /** Her moves on the end board, for the clues it was built from (`key`); a new clue means a new board. */
   endBoard?: { key: string; save: unknown };
+  /** Beats she has heard from each guest (`talk.ts`). Optional so older saves load. */
+  talk?: Record<string, number>;
 }
 
 export const emptyProgress = (): Progress => ({ marks: {}, used: [], accusations: [], solved: false, games: {}, found: [] });
@@ -78,6 +81,7 @@ export type Action =
   | { type: 'found'; clues: string[] }
   | { type: 'grid-hint'; hints: GridHintState }
   | { type: 'end-board'; key: string; save: unknown }
+  | { type: 'talk-hear'; suspect: string }
   | { type: 'reset' };
 
 function clearTicks(marks: Record<string, Mark>, kind: GridKind, row: string | null, col: string | null, c: Case) {
@@ -194,6 +198,13 @@ export function reduce(c: Case, p: Progress, action: Action): Progress {
       return { ...p, gridHints: action.hints };
     case 'end-board':
       return { ...p, endBoard: { key: action.key, save: action.save } };
+    case 'talk-hear': {
+      const thread = setsFor(c)[action.suspect]?.thread;
+      if (!thread) return p;
+      const heard = p.talk?.[action.suspect] ?? 0;
+      if (heard >= readyBeats(c, p, action.suspect, thread.length)) return p;
+      return { ...p, talk: { ...p.talk, [action.suspect]: heard + 1 } };
+    }
     case 'reset':
       return emptyProgress();
   }
