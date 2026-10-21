@@ -26,6 +26,11 @@ The Fool, the unnumbered tarot card: the innocent wanderer with a little dog. Th
 - Content fields needed per suspect: `card`, `mayAlsoRoll`. Per card: two line pools (upright, reversed),
   each split into role-neutral lines (any suspect with the card may use them) and role-bound lines (home suspect only).
 - How she unlocks tarot mode is open: earned after N cases, discovered (tap the cat), or a plain setting.
+- **Wandering cards** (the Moon; maybe the Lovers): no suspect holds one as a home card. Each case deals it
+  to one suspect as an extra secondary card, from its own seeded `Rng` stream, never from who the killer is.
+  Its lines are role-neutral only (dreams, half-truths, "I'm not sure what I saw"). Fixed home cards are
+  known after one game in tarot mode, so a twist story ("not who they claim to be") would surprise once;
+  "who is the Moon tonight?" is new each case. Test: the holder is the killer no more often than chance.
 
 ## Rules for the lines
 1. Motive lines are background, never case facts. They never say where anyone was, what anyone held, or when.
@@ -167,6 +172,35 @@ Keeps to the margins; has an old quarrel with the family.
 Other cards for variety: the Lovers (secret engagement), Justice (a judge guest), the Moon (deceiver), the Star
 (actress), Death (the doctor, with a wink), the Hanged Man (failed investor). The Tower is the storm.
 
+### Major arcana coverage
+15 of 22 have a place; ideas for the rest. Not every card needs a person: a card can be a non-character (the
+Tower), a wandering card, or a secondary-only pool that suspects borrow. A smaller cast with full pools beats 21 thin ones.
+
+| # | Card | Draft | Idea |
+|---|---|---|---|
+| 0 | Fool | The player; the cat is the Fool's dog | |
+| 1 | Magician | The Conjurer | |
+| 2 | High Priestess | The Housekeeper | |
+| 3 | Empress | The Hostess | |
+| 4 | Emperor | The Host | |
+| 5 | Hierophant | The Solicitor | |
+| 6 | Lovers | Extra: secret engagement | Wandering card: whose secret is it tonight? |
+| 7 | Chariot | — | Retired officer: driven, wants to win, restless in the storm |
+| 8 | Strength | — | Nurse or companion to an old relative; reversed, temper held by force |
+| 9 | Hermit | The Uncle | |
+| 10 | Wheel of Fortune | — | Fortune teller (a gambler would overlap the Hanged Man), or a non-character (fate) |
+| 11 | Justice | Extra: a judge guest | |
+| 12 | Hanged Man | Extra: failed investor | |
+| 13 | Death | Extra: the doctor | |
+| 14 | Temperance | — | The cook: mixes and measures; reversed, at the cooking sherry |
+| 15 | Devil | The Financier | |
+| 16 | Tower | The storm (non-character) | |
+| 17 | Star | Extra: actress | |
+| 18 | Moon | Extra: deceiver | Wandering card (see Hidden tarot layer); "deceiver" overlaps the Magician |
+| 19 | Sun | — | Youngest guest or heir: cheerful; reversed, spoilt |
+| 20 | Judgement | — | Long-lost relative come back (the vicar would overlap the Hierophant) |
+| 21 | World | — | World traveller: seen everything; reversed, finishes nothing. Or the house itself |
+
 ## Shared tangents (any suspect, tagged by what the question is about)
 No names, seating, times or outdoors (rules 2 and 3). 8 per tag for the first four, 4 for next door; 36 in all.
 - Dinner
@@ -286,6 +320,8 @@ today: knife, rope, candlestick, wrench (the stories go in content, keyed by obj
   candlestick + Emperor/Hermit. Aim for about 3 objects per card so most draws find a thread.
 
 ## Model: a set per character, triggers, and stage
+Settled 2026-10-21 in `docs/talk-threads.md` (Talk on the suspect sheet, when beats are ready, `visit`
+dropped, one thread per suspect, hostility). That doc wins where it differs from this section.
 - **Set**: at case start each character (suspect or side character) rolls a set from their own seeded `Rng`
   stream: a reading (upright or reversed), their loose tangent lines, and their threads (card threads, plus
   card + object threads for objects in play). Fixed by who they are and the roll, never by the killer.
@@ -302,11 +338,43 @@ today: knife, rope, candlestick, wrench (the stories go in content, keyed by obj
 
 ## Open
 - Card + object threads: check rule 8 (never tappable) and that none reads as a hint about a real weapon.
-- Follow-ups: are beats shown unprompted on repeat asks, or only if she taps "Anything else?"
-- Follow-ups: how many threads per suspect per case (suggest 1, with 2 for her favourite).
 - Tone: warm with a little bite (this draft), funnier, or darker.
+- Variety: four of seven reversed pools are the same "nobody appreciates me" note (Emperor, Empress, High
+  Priestess, Hermit), three with the same "...and see what/where/how..." shape. Give each reversed reading
+  its own feeling (cold control, vanity, recklessness, fear). Upright leans on "X is just Y" sayings.
+- Pool size: 6 lines per reading repeats within a few cases (rule 7 is per case only). Aim for 10 to 12
+  per reading on the core cast before the campaign.
+- Threads first: one thread per suspect (`docs/talk-threads.md`) needs one card thread per card per
+  reading (14 for the core seven; 2 drafted). Card pairs are in the "Relationships" session.
 - How tarot mode unlocks.
 - About 4 more next-door tangents to reach 40, and lines for the extra cards (Lovers, Justice, Moon, Star, Death, Hanged Man).
 - Check "all night", "during the toast" and "for hours" against rule 3 (no times) before building.
 - Ids: reuse the old placeholder ids (saves load, wrong lines) or bump the storage prefix in `src/game/storage.ts`.
 - Name length of cards on counters at 360px (High Priestess, Hierophant); check before committing.
+
+## Extension: Confidants (campaign only)
+Status: proposed 2026-10-21, after the base theme and Talk and threads. Inspired by Persona's Confidants.
+Goal: she gets more invested in the cast as she plays campaigns. Quick play stays as it is: loose lines
+only, no chapters, no ranks, just solve the murder.
+
+A campaign is one evening with the same 7 guests (`src/engine/campaign.ts`), so every campaign is the same
+cast in a new reading. Each guest's card is a **Confidant with 5 ranks** that carry over between campaigns.
+
+| | What it does |
+|---|---|
+| Earning a rank | In a campaign, a guest's one thread (`docs/talk-threads.md`) is their next backstory chapter. Hearing all its beats in that campaign earns the rank. Each campaign code counts once; replaying it earns nothing. |
+| Chapters | Fixed order per character, 3 beats each: 7 guests × 5 chapters × 3 beats, about 105 lines. About the past, never tonight (rule 1), so a tender chapter still reads fine when that guest is tonight's killer. |
+| Reading | Upright or reversed is still rolled per campaign. It colours that campaign's loose lines, not the chapter. |
+| Rank 3 | The card is revealed: that guest's counter shows its card face from then on. The hidden layer comes out one person at a time. |
+| Rank 5 | The arc ends; the Fool's journey (her deck) gains that card. |
+| Tarot mode | Unlocks when all 7 are revealed (settles "How tarot mode unlocks" above). |
+
+- Safe by rule 5: chapters, ranks and reveals depend only on what she has done, never on the killer.
+  Ranks are saved as her moves (`src/game/storage.ts`), so cases never change.
+- Victims: a guest killed in round 1 can't finish their chapter that campaign. It waits; nothing is lost.
+  That gives her a small reason to care who dies.
+- Proposed defaults (not settled): 5 ranks, not 10. No perks; if perks are ever added, they're small
+  puzzle helps (a free crossword letter), never case clues, which would break the campaign's fairness rules.
+  One telling per chapter, not one per reading. No neglect; ignoring a guest never reverses them.
+- Next: write each character's 5-chapter arc (a content session), then wire chapters into the thread slot
+  for campaign mode.

@@ -43,12 +43,19 @@ Read docs/talk-threads.md, hand part A to the implementer, then check the result
 ```
 
 ## Session: Relationships between characters
-Last touched: 2026-10-20
+Last touched: 2026-10-21
 Reads first: `docs/theme-draft.md` (Follow-up threads, Model), the cast and who-knows-whom map from
 "The cast" session. The trigger list is settled in `docs/talk-threads.md`.
 Goal: make characters react to each other, without anything depending on the killer (rule 5). Explore:
 - Card pairs: tarot pairs (Emperor and Empress, Magician and High Priestess, Devil and Lovers) open a
   thread between the two people holding them ("{other} won't look at me tonight").
+- Hand-picked pairs, not every combination (21 pairs × 4 reading combinations for the core 7 cards is
+  about 250 lines, mostly never seen). Start with 4 to 6 pairs whose roles already suggest a story: Host +
+  Hostess (the marriage), Host + Uncle (the old quarrel), Host + Financier (debt), Solicitor + Uncle (the
+  will), Magician + High Priestess (the one who fools people and the one who notices). Beats 1 and 2 are
+  shared; the two readings pick only beat 3 (both upright: they make up; both reversed: they fall out
+  for good; one of each: only one of them still cares). Check how a pair thread fits with "one thread
+  per suspect" in `docs/talk-threads.md`.
 - Shared card: two suspects can't share a home card (tarot mode labels would clash), but they can
   share tonight's secondary card. Their upright/reversed rolls decide how it goes: both upright,
   kindred spirits; both reversed, rivals who are too alike; one of each, one-sided. Aim for about one
