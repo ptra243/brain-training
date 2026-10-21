@@ -2,7 +2,7 @@
 // rules live in boardSave.ts and the words in boardText.ts; this file is the
 // drawing and the dragging.
 
-import { useEffect, useEffectEvent, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, useId, useLayoutEffect, useMemo, useReducer, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { Board, BoardCell } from '../../engine/boardTypes.ts';
 import { UNKNOWN, boardKey } from '../../engine/boardTypes.ts';
@@ -30,7 +30,6 @@ import {
   sectionAt,
   touching,
   trayIds,
-  turnCells,
   unmetTouches,
   withHint,
   withPlaced,
@@ -40,6 +39,8 @@ import {
   type BoardSave,
 } from './boardSave.ts';
 import { blockText, caption, clashText, lowerThe, pieceName, rulesOf, sectionName, shortName, theSection } from './boardText.ts';
+import { useBoardDrag, type Held } from './useBoardDrag.ts';
+import { boardUiReducer, initialBoardUi, type Toast } from './boardUi.ts';
 import './board.css';
 
 export type { BoardSave };
@@ -51,36 +52,6 @@ const SIDES: readonly (readonly [BoardCell, BoardCell, BoardCell])[] = [
   [[1, 0], [1, 0], [1, 1]],
   [[0, -1], [0, 0], [1, 0]],
 ];
-
-type Over = { kind: 'cell'; r: number; c: number; sec: string } | { kind: 'hint' } | { kind: 'tray' };
-interface Drag {
-  pid: string;
-  cells: BoardCell[];
-  gi: number;
-  gr: number;
-  gc: number;
-  x: number;
-  y: number;
-  lx: number;
-  ly: number;
-  moved: boolean;
-  fromBoard: boolean;
-  pointerId: number;
-  right: boolean;
-  over: Over | null;
-}
-interface DragView {
-  pid: string;
-  cells: BoardCell[];
-  over: Over | null;
-}
-interface Toast {
-  kind: 'bad' | 'good' | 'cat';
-  text: string;
-  quote?: string;
-}
-
-const sameOver = (a: Over | null, b: Over | null) => (a === b ? true : !a || !b ? false : a.kind === b.kind && (a.kind !== 'cell' || (b.kind === 'cell' && a.r === b.r && a.c === b.c)));
 
 export interface CaseBoardProps {
   board: Board;
@@ -121,22 +92,10 @@ export function CaseBoard(props: CaseBoardProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [clueSel, setClueSel] = useState<string | null>(null);
   const [legend, setLegend] = useState<string | null>(null);
-  const [toast, setToast] = useState<Toast | null>(null);
-  const [flagged, setFlagged] = useState<ReadonlySet<string>>(new Set());
-  const [drag, setDrag] = useState<DragView | null>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
-  const [tip, setTip] = useState<{ pid: string; holding: boolean } | null>(null);
+  const [ui, dispatch] = useReducer(boardUiReducer, initialBoardUi);
+  const { toast, flagged } = ui;
   const [cell, setCell] = useState(36);
-  const [undoN, setUndoN] = useState(0);
 
-  const dragRef = useRef<Drag | null>(null);
-  const undoRef = useRef<BoardSave[]>([]);
-  const lastTap = useRef<{ pid: string; t: number } | null>(null);
-  const lastDragEnd = useRef(0);
-  const lastWheel = useRef(0);
-  const tipBox = useRef({ x: 0, y: 0, width: 0, height: 0 });
-  const ghostRef = useRef<HTMLDivElement>(null);
-  const tipRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const fired = useRef(false);
 
@@ -155,14 +114,35 @@ export function CaseBoard(props: CaseBoardProps) {
     return () => ro.disconnect();
   }, [board.W]);
 
+  // ---------- Actions and dragging ----------
+  const commit = (next: BoardSave) => onChange(next);
+  const undoN = ui.undo.length;
+  const pushUndo = () => dispatch({ type: 'pushUndo', save });
+  const say = (t: Toast | null) => dispatch({ type: 'say', toast: t });
+
+  const { drag, hovered, tip, onPointerDown, ghostRef, tipRef, ghostOffset } = useBoardDrag({
+    rules,
+    save,
+    finished,
+    cell,
+    commit,
+    tryPlace,
+    askHint,
+    pushUndo,
+    setSelected,
+    turnSelected,
+    hasSelection: !!selected,
+  });
+
   // ---------- What's on the board ----------
   const heldPid = drag ? drag.pid : null;
-  const viewSave = heldPid && save.placed[heldPid] ? withoutPlaced(save, heldPid) : save;
-  const occ = occupancy(rules, viewSave);
-  const clashList = clashes(rules, viewSave);
-  const full = isFull(rules, viewSave, occ);
+  const viewSave = useMemo(() => (heldPid && save.placed[heldPid] ? withoutPlaced(save, heldPid) : save), [save, heldPid]);
+  const occ = useMemo(() => occupancy(rules, viewSave), [rules, viewSave]);
+  const clashList = useMemo(() => clashes(rules, viewSave), [rules, viewSave]);
+  const full = useMemo(() => isFull(rules, viewSave, occ), [rules, viewSave, occ]);
+  const metSyms = useMemo(() => new Set(rules.touch.filter((t) => touching(rules, viewSave, t.a, t.b, occ)).map((t) => t.sym)), [rules, viewSave, occ]);
   const complete = finished || (full && isComplete(rules, viewSave));
-  const unmet = full && !clashList.length && unmetTouches(rules, viewSave, occ).length > 0;
+  const unmet = useMemo(() => full && !clashList.length && unmetTouches(rules, viewSave, occ).length > 0, [full, clashList, rules, viewSave, occ]);
   const focus = drag ? drag.pid : selected;
   const loose = (pid: string) => !rules.pinned.has(pid);
   const tray = trayIds(rules, save);
@@ -186,15 +166,6 @@ export function CaseBoard(props: CaseBoardProps) {
     if (p.kind === 'weapon') return WEAPON_COLOURS[weaponIdx(p.who as string) % WEAPON_COLOURS.length];
     return p.kind === 'grey' ? '#8f918b' : p.kind === 'fog' ? '#6d726e' : 'var(--brass)';
   };
-
-  // ---------- Actions ----------
-  const commit = (next: BoardSave) => onChange(next);
-  const pushUndo = () => {
-    undoRef.current.push(save);
-    if (undoRef.current.length > 60) undoRef.current.shift();
-    setUndoN(undoRef.current.length);
-  };
-  const say = (t: Toast | null) => setToast(t);
 
   function runCheck(): { flagged: string[]; text: string; kind: Toast['kind'] } {
     const res = checkBoard(rules, save, boardSolvable);
@@ -222,7 +193,7 @@ export function CaseBoard(props: CaseBoardProps) {
   }
   function check() {
     const res = runCheck();
-    setFlagged(new Set(res.flagged));
+    dispatch({ type: 'flag', ids: res.flagged });
     say({ kind: res.kind, text: res.text });
   }
   function askHint(pid: string) {
@@ -243,7 +214,7 @@ export function CaseBoard(props: CaseBoardProps) {
   }
   function stuck(pid: string) {
     const res = runCheck();
-    setFlagged(new Set(res.flagged));
+    dispatch({ type: 'flag', ids: res.flagged });
     const name = lowerThe(pieceName(rules, pid));
     const k = res.flagged.length;
     say({
@@ -268,7 +239,7 @@ export function CaseBoard(props: CaseBoardProps) {
     if (own && rulesOut(own.fact)) return own;
     return c.clues.find((x) => rulesOut(x.fact) && rules.board.pieces.some((p) => p.clue === x.id || p.who === who));
   }
-  function tryPlace(d: Drag, br: number, bc: number) {
+  function tryPlace(d: Held, br: number, bc: number) {
     const pid = d.pid;
     const aimed = sectionAt(rules.board, br, bc);
     if (!aimed) return;
@@ -288,26 +259,22 @@ export function CaseBoard(props: CaseBoardProps) {
     }
     pushUndo();
     const next = withPlaced(save, pid, { section: res.section, cells: target, shape: d.cells });
-    setFlagged((f) => {
-      const g = new Set(f);
-      g.delete(pid);
-      return g;
-    });
+    dispatch({ type: 'unflag', pid });
     const clash = clashes(rules, next).find((x) => x.ids.includes(pid));
     say(clash ? { kind: 'bad', text: `Placed, but something doesn't add up. ${clashText(rules, clash)}` } : null);
     commit(next);
   }
   function undo() {
-    const prev = undoRef.current.pop();
-    setUndoN(undoRef.current.length);
+    const prev = ui.undo[ui.undo.length - 1];
+    dispatch({ type: 'popUndo' });
     if (!prev) return;
-    setFlagged(new Set());
+    dispatch({ type: 'clearFlags' });
     // Hints stay asked.
     commit({ ...prev, hints: save.hints, hintCount: save.hintCount });
   }
   function restart() {
     pushUndo();
-    setFlagged(new Set());
+    dispatch({ type: 'clearFlags' });
     commit(clearPlaced(save));
     say({ kind: 'good', text: 'Board cleared. Undo brings it back.' });
   }
@@ -315,192 +282,10 @@ export function CaseBoard(props: CaseBoardProps) {
     if (selected && loose(selected) && !save.placed[selected]) commit(withTurn(save, selected));
   }
 
-  // ---------- Dragging ----------
-  const view = (d: Drag): DragView => ({ pid: d.pid, cells: d.cells, over: d.over });
-
-  function positionGhost() {
-    const d = dragRef.current;
-    const g = ghostRef.current;
-    if (!d || !g || !d.moved) return;
-    g.style.left = `${d.lx - (d.gc + 0.5) * cell}px`;
-    g.style.top = `${d.ly - (d.gr + 0.5) * cell}px`;
-    const b = g.getBoundingClientRect();
-    tipBox.current = { x: b.left, y: b.top, width: b.width, height: b.height };
-    placeTip();
-  }
-  function placeTip() {
-    const t = tipRef.current;
-    if (!t) return;
-    const box = tipBox.current;
-    const w = t.offsetWidth;
-    const h = t.offsetHeight;
-    const x = Math.min(Math.max(8, box.x + box.width / 2 - w / 2), window.innerWidth - w - 8);
-    let y = box.y - h - 10;
-    if (y < 8) y = box.y + box.height + 10;
-    t.style.left = `${x}px`;
-    t.style.top = `${Math.max(8, Math.min(y, window.innerHeight - h - 8))}px`;
-  }
-  useLayoutEffect(() => {
-    positionGhost();
-    placeTip();
-  });
-
-  function turnHeld() {
-    const d = dragRef.current;
-    if (!d?.moved) return;
-    d.cells = turnCells(d.cells);
-    [d.gr, d.gc] = d.cells[d.gi];
-    if (!d.fromBoard) commit(withTurn(save, d.pid));
-    setDrag(view(d));
-  }
-  function endDrag(drop: boolean) {
-    const d = dragRef.current;
-    if (!d) return;
-    dragRef.current = null;
-    if (d.moved) lastDragEnd.current = Date.now();
-    setDrag(null);
-    setTip(null);
-    if (!d.moved) {
-      const now = Date.now();
-      const double = lastTap.current && lastTap.current.pid === d.pid && now - lastTap.current.t < 350;
-      lastTap.current = { pid: d.pid, t: now };
-      if (double && !save.placed[d.pid]) {
-        setSelected(d.pid);
-        commit(withTurn(save, d.pid));
-      } else setSelected((s) => (s === d.pid ? null : d.pid));
-      return;
-    }
-    const over = d.over;
-    if (drop && over?.kind === 'cell') tryPlace(d, over.r, over.c);
-    else if (drop && over?.kind === 'hint') askHint(d.pid);
-    else if (drop && over?.kind === 'tray' && save.placed[d.pid]) {
-      pushUndo();
-      commit(withoutPlaced(save, d.pid));
-    }
-    setSelected(d.pid);
-  }
-  function onRootPointerDown(e: ReactPointerEvent<HTMLDivElement>) {
-    if (finished || dragRef.current || e.button > 0) return;
-    const el = (e.target as Element).closest<HTMLElement>('[data-cbpid]');
-    if (!el) return;
-    const pid = el.dataset.cbpid as string;
-    const placed = save.placed[pid];
-    const cells = placed ? placed.shape.map((x) => [x[0], x[1]] as BoardCell) : orient(rules.piece[pid].shape, save.rot[pid] || 0);
-    const gi = Math.min(+(el.dataset.cbi ?? 0), cells.length - 1);
-    dragRef.current = { pid, cells, gi, gr: cells[gi][0], gc: cells[gi][1], x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, moved: false, fromBoard: !!placed, pointerId: e.pointerId, right: false, over: null };
-    e.preventDefault();
-  }
-  function onMove(e: PointerEvent) {
-    const d = dragRef.current;
-    if (!d) {
-      if (e.pointerType !== 'mouse') return;
-      const t = (e.target as Element | null)?.closest?.<HTMLElement>('[data-cbtip]');
-      const pid = t?.dataset.cbtip ?? null;
-      tipBox.current = { x: e.clientX - 10, y: e.clientY - 14, width: 20, height: 28 };
-      if (pid !== (tip?.pid ?? null)) setTip(pid ? { pid, holding: false } : null);
-      else placeTip();
-      if (pid !== hovered) setHovered(pid);
-      return;
-    }
-    if (e.pointerId !== d.pointerId) return;
-    if (e.pointerType === 'mouse' && !(e.buttons & 1)) {
-      endDrag(false);
-      return;
-    }
-    d.lx = e.clientX;
-    d.ly = e.clientY;
-    if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 8) return;
-    let changed = false;
-    if (!d.moved) {
-      d.moved = true;
-      changed = true;
-      setTip({ pid: d.pid, holding: true });
-      setHovered(null);
-    }
-    if (e.pointerType === 'mouse') {
-      const r = !!(e.buttons & 2);
-      if (r && !d.right) turnHeld();
-      d.right = r;
-    }
-    const under = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
-    let over: Over | null = null;
-    const cellEl = under?.closest<HTMLElement>('[data-cbr]');
-    if (cellEl) over = { kind: 'cell', r: +(cellEl.dataset.cbr as string), c: +(cellEl.dataset.cbc as string), sec: cellEl.dataset.cbsec as string };
-    else if (under?.closest('[data-cbhint]')) over = { kind: 'hint' };
-    else if (under?.closest('[data-cbtray]')) over = { kind: 'tray' };
-    if (!sameOver(over, d.over)) {
-      d.over = over;
-      changed = true;
-    }
-    if (changed) setDrag(view(d));
-    positionGhost();
-  }
-
-  // Window listeners are added once; effect events call the latest handlers.
-  const heldTurn = useEffectEvent(() => turnHeld());
-  const dragMove = useEffectEvent((e: PointerEvent) => onMove(e));
-  const dragEnd = useEffectEvent((drop: boolean) => endDrag(drop));
-  const turnKey = useEffectEvent(() => {
-    if (dragRef.current?.moved) turnHeld();
-    else if (selected) turnSelected();
-  });
-  useEffect(() => {
-    const down = (e: PointerEvent) => {
-      const d = dragRef.current;
-      if (d?.moved && e.pointerId !== d.pointerId) {
-        e.preventDefault();
-        heldTurn();
-      }
-    };
-    const move = (e: PointerEvent) => dragMove(e);
-    const up = (e: PointerEvent) => {
-      if (dragRef.current && e.pointerId === dragRef.current.pointerId) dragEnd(true);
-    };
-    const cancel = (e: PointerEvent) => {
-      if (dragRef.current && e.pointerId === dragRef.current.pointerId) dragEnd(false);
-    };
-    const blur = () => dragEnd(false);
-    const menu = (e: Event) => {
-      if (dragRef.current?.moved || Date.now() - lastDragEnd.current < 400) e.preventDefault();
-    };
-    const wheel = (e: WheelEvent) => {
-      if (!dragRef.current?.moved) return;
-      e.preventDefault();
-      if (Date.now() - lastWheel.current > 180) {
-        lastWheel.current = Date.now();
-        heldTurn();
-      }
-    };
-    const key = (e: KeyboardEvent) => {
-      if (e.key !== 'r' && e.key !== 'R') return;
-      const t = e.target as HTMLElement | null;
-      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-      turnKey();
-    };
-    window.addEventListener('pointerdown', down, { capture: true });
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
-    window.addEventListener('pointercancel', cancel);
-    window.addEventListener('blur', blur);
-    window.addEventListener('contextmenu', menu);
-    window.addEventListener('wheel', wheel, { passive: false });
-    window.addEventListener('keydown', key);
-    return () => {
-      window.removeEventListener('pointerdown', down, { capture: true });
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-      window.removeEventListener('pointercancel', cancel);
-      window.removeEventListener('blur', blur);
-      window.removeEventListener('contextmenu', menu);
-      window.removeEventListener('wheel', wheel);
-      window.removeEventListener('keydown', key);
-    };
-  }, []);
-
   // A note fades after a few seconds.
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(null), 6000);
+    const t = setTimeout(() => dispatch({ type: 'say', toast: null }), 6000);
     return () => clearTimeout(t);
   }, [toast]);
 
@@ -515,8 +300,6 @@ export function CaseBoard(props: CaseBoardProps) {
   useEffect(() => reportComplete(completeNow), [completeNow]);
 
   // ---------- Pieces ----------
-  const metSyms = new Set(rules.touch.filter((t) => touching(rules, viewSave, t.a, t.b, occ)).map((t) => t.sym));
-
   function square(pid: string, i: number, opts: { draggable: boolean; flat: boolean; shape?: boolean }) {
     const p = rules.piece[pid];
     const cls = p.kind === 'guest' ? `cb-gp-${guestIdx(p.who as string) % 7}` : p.kind === 'weapon' ? `weapon cb-wp-${weaponIdx(p.who as string) % 6}` : p.kind;
@@ -678,7 +461,7 @@ export function CaseBoard(props: CaseBoardProps) {
   const ghostAt = drag ? new Map(drag.cells.map((x, i) => [boardKey(x[0], x[1]), i])) : new Map<string, number>();
 
   return (
-    <div className={`cb-root ${holding ? 'cb-dragging' : ''}`} style={{ '--cell': `${cell}px` } as CSSProperties} onPointerDown={onRootPointerDown}>
+    <div className={`cb-root ${holding ? 'cb-dragging' : ''}`} style={{ '--cell': `${cell}px` } as CSSProperties} onPointerDown={onPointerDown}>
       {intro && <div className="cb-intro">{intro}</div>}
       <details className="cb-how">
         <summary>How to play</summary>
@@ -867,7 +650,7 @@ export function CaseBoard(props: CaseBoardProps) {
             {toast.text}
             {toast.quote && <> “{toast.quote}”</>}
           </p>
-          <button aria-label="Close" onClick={() => setToast(null)}>
+          <button aria-label="Close" onClick={() => say(null)}>
             ×
           </button>
         </div>
@@ -877,7 +660,7 @@ export function CaseBoard(props: CaseBoardProps) {
         createPortal(
           <>
             {drag && (
-              <div ref={ghostRef} className="cb-ghost" style={{ '--w': ghostW, '--cell': `${cell}px` } as CSSProperties}>
+              <div ref={ghostRef} className="cb-ghost" style={{ '--w': ghostW, '--cell': `${cell}px`, ...ghostOffset } as CSSProperties}>
                 {Array.from({ length: ghostH * ghostW }, (_, n) => {
                   const r = Math.floor(n / ghostW);
                   const k = n % ghostW;

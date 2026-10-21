@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
+import { useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { content } from '../content/index.ts';
 import type { Case, Room } from '../engine/types.ts';
 import { ClueCard } from './ClueCard.tsx';
@@ -18,6 +18,7 @@ import {
   type Progress,
 } from './state.ts';
 import { SuspectSheet } from './SuspectSheet.tsx';
+import { usePointerDrag } from './usePointerDrag.ts';
 
 interface Props {
   c: Case;
@@ -61,14 +62,6 @@ const SPREAD: [number, number][][] = [
   [[-0.27, -0.3], [-0.27, 0.3], [0.27, -0.3], [0.27, 0.3], [0, 0]],
 ];
 
-interface Drag extends Piece {
-  x: number;
-  y: number;
-  startX: number;
-  startY: number;
-  moved: boolean;
-}
-
 export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare }: Props) {
   // The cat's hint: the person or weapon and the room (or weapon) its square is about.
   const hint = pawedSquare ? cellOf(pawedSquare) : null;
@@ -82,7 +75,6 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare }: Prop
     c.suspects.some((s) => progress.marks[markKey('suspect-item', s, i)] === 'o' && showsWrong(progress, progress.gridHints, markKey('suspect-item', s, i)));
   const { house } = content;
   const mapRef = useRef<HTMLDivElement>(null);
-  const [drag, setDrag] = useState<Drag | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [open, setOpen] = useState<Piece | null>(null);
   const [confirming, setConfirming] = useState(false);
@@ -125,31 +117,23 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare }: Prop
     dispatch({ type: 'place-item', item: piece.id, room: room?.id ?? null });
   };
 
-  const handlers = (piece: Piece) => ({
-    onPointerDown: (e: PointerEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
-      e.currentTarget.setPointerCapture(e.pointerId);
-      setDrag({ ...piece, x: e.clientX, y: e.clientY, startX: e.clientX, startY: e.clientY, moved: false });
+  const { start, held, ghostRef } = usePointerDrag<Piece>({
+    onDrop: (piece, at) => {
+      drop(piece, at.x, at.y);
+      setSelected(null);
     },
-    onPointerMove: (e: PointerEvent<HTMLButtonElement>) => {
-      if (!drag) return;
-      const moved = drag.moved || Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) > 8;
-      setDrag({ ...drag, x: e.clientX, y: e.clientY, moved });
-    },
-    onPointerUp: (e: PointerEvent<HTMLButtonElement>) => {
-      if (!drag) return;
-      if (drag.moved) {
-        drop(drag, e.clientX, e.clientY);
-        setSelected(null);
-      } else if (piece.kind === 'suspect' && selected === piece.id) {
+    onTap: (piece) => {
+      if (piece.kind === 'suspect' && selected === piece.id) {
         setSelected(null); // tapping the counter again cancels "tap a room"
       } else {
         setSelected(null);
         setOpen(piece); // short tap: show the clues about it
       }
-      setDrag(null);
     },
-    onPointerCancel: () => setDrag(null),
+  });
+
+  const handlers = (piece: Piece) => ({
+    onPointerDown: (e: ReactPointerEvent) => start(piece, e),
     // Keyboard activation (Enter/Space) fires click with detail 0 and no pointer events.
     onClick: (e: { detail: number }) => {
       if (e.detail === 0) setOpen(piece);
@@ -165,7 +149,7 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare }: Prop
   // Walls: a thick edge wherever the neighbouring square is another room or outside.
   const wall = (r: number, col: number, dr: number, dc: number) => roomAtCell(r, col) !== roomAtCell(r + dr, col + dc);
 
-  const lifted = (p: Piece) => drag?.moved && drag.kind === p.kind && drag.id === p.id;
+  const lifted = (p: Piece) => held?.kind === p.kind && held.id === p.id;
 
   const counter = (suspect: string) => (
     <button
@@ -379,14 +363,14 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare }: Prop
         </Dialog>
       )}
 
-      {drag?.moved &&
-        (drag.kind === 'suspect' ? (
-          <div className="ghost" style={{ left: drag.x, top: drag.y, '--counter': suspectColour(drag.id) } as CSSProperties}>
-            {suspectInitials(drag.id)}
+      {held &&
+        (held.kind === 'suspect' ? (
+          <div ref={ghostRef} className="ghost" style={{ '--counter': suspectColour(held.id) } as CSSProperties}>
+            {suspectInitials(held.id)}
           </div>
         ) : (
-          <div className="ghost weapon-ghost" style={{ left: drag.x, top: drag.y }}>
-            {itemName(drag.id)}
+          <div ref={ghostRef} className="ghost weapon-ghost">
+            {itemName(held.id)}
           </div>
         ))}
     </section>

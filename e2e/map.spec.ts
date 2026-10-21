@@ -1,32 +1,7 @@
-import type { Page } from '@playwright/test';
 import { test, expect, newCase, openTab } from './fixtures.ts';
-
-/** Real touch events through CDP, as a finger would send them. */
-async function touchDrag(page: Page, from: { x: number; y: number }, to: { x: number; y: number }, steps = 8) {
-  const cdp = await page.context().newCDPSession(page);
-  const send = (type: 'touchStart' | 'touchMove' | 'touchEnd', p?: { x: number; y: number }) =>
-    cdp.send('Input.dispatchTouchEvent', { type, touchPoints: p ? [{ x: p.x, y: p.y }] : [] });
-  await send('touchStart', from);
-  for (let i = 1; i <= steps; i++) {
-    await send('touchMove', { x: from.x + ((to.x - from.x) * i) / steps, y: from.y + ((to.y - from.y) * i) / steps });
-  }
-  await send('touchEnd');
-  await cdp.detach();
-}
-
-async function touchTap(page: Page, at: { x: number; y: number }) {
-  const cdp = await page.context().newCDPSession(page);
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [at] });
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-  await cdp.detach();
-}
+import { touchDrag, touchTap, centre } from './touch.ts';
 
 const escapeRe = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, (ch) => '\\' + ch);
-
-const centre = async (loc: ReturnType<Page['locator']>) => {
-  const b = (await loc.boundingBox())!;
-  return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
-};
 
 test('dragging a suspect counter from the tray into a room places it there', async ({ page }) => {
   await newCase(page);
@@ -80,4 +55,38 @@ test('a short tap on a counter opens its clues, and the late click lands on noth
   await dialog.getByRole('button', { name: 'Close' }).click();
   await expect(dialog).toHaveCount(0);
   await expect(page.locator(`.tray [data-suspect="${id}"]`)).toHaveCount(1);
+});
+
+test('a second finger during a drag does not start a second drag, and the drop still places the first counter', async ({ page }) => {
+  await newCase(page);
+  await openTab(page, 'Map');
+  const counters = page.locator('.tray .counter');
+  const first = counters.nth(0);
+  const second = counters.nth(1);
+  const id = (await first.getAttribute('data-suspect'))!;
+  const otherId = (await second.getAttribute('data-suspect'))!;
+  const start = await centre(first);
+  const other = await centre(second);
+  const target = await centre(page.locator('.floorplan .tile:not(.closed):has(.room-name)').first());
+
+  const cdp = await page.context().newCDPSession(page);
+  const send = (type: 'touchStart' | 'touchMove' | 'touchEnd', pts: { x: number; y: number; id: number }[]) =>
+    cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts });
+  const f1 = (t: number) => ({ x: start.x + (target.x - start.x) * t, y: start.y + (target.y - start.y) * t, id: 1 });
+  await send('touchStart', [f1(0)]);
+  for (let i = 1; i <= 8; i++) await send('touchMove', [f1(i / 8)]);
+  await expect(page.locator('.ghost')).toHaveCount(1);
+  // Second finger lands on another counter and moves while the first is held.
+  const f2 = (dx: number) => ({ x: other.x + dx, y: other.y, id: 2 });
+  await send('touchStart', [f1(1), f2(0)]);
+  for (let i = 1; i <= 4; i++) await send('touchMove', [f1(1), f2(10 * i)]);
+  await expect(page.locator('.ghost')).toHaveCount(1);
+  await send('touchEnd', [f1(1)]);
+  await send('touchEnd', []);
+  await cdp.detach();
+
+  await expect(page.locator(`.floorplan [data-suspect="${id}"]`)).toHaveCount(1);
+  await expect(page.locator(`.tray [data-suspect="${otherId}"]`)).toHaveCount(1);
+  await expect(page.locator('.ghost')).toHaveCount(0);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 });

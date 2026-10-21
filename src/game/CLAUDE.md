@@ -43,6 +43,14 @@
 - **Touch.** Test with real touch events (CDP `Input.dispatchTouchEvent`): a
   tap sends a late `click` that can land on whatever it just opened. All
   pop-ups go through `Dialog`, which handles this; don't build another.
+- **Dragging goes through `usePointerDrag`** (`src/game/usePointerDrag.ts`):
+  window listeners (no pointer capture), an 8 px threshold, short tap vs
+  drop, a second finger never starts a second drag, and the ghost is moved
+  through its ref with no React state per move. Set state only when what's
+  under the finger changes. The case board's extras (turning, hover tips)
+  live in `board/useBoardDrag.ts`; board UI state (undo, toast, flags) is
+  the pure reducer in `board/boardUi.ts`. No React Compiler (measured, no
+  gain; see `docs/code-review-followups.md`).
 - **Map**: a short tap on a counter or weapon opens its clues; dragging moves
   it. Keep the tray of unplaced pieces right under the map so every drag fits
   on one phone screen.
