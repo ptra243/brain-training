@@ -180,7 +180,25 @@ export function useBoardDrag(o: BoardDragOptions) {
   const onPointerDown = (e: ReactPointerEvent<HTMLElement>) => {
     if (o.finished || press.current || e.button > 0) return;
     const el = (e.target as Element).closest<HTMLElement>('[data-cbpid]');
-    if (!el) return;
+    if (!el) {
+      // A pinned piece can't move, but a short tap selects it so its clue can be read (no mouse hover on a phone).
+      const pin = (e.target as Element).closest<HTMLElement>('[data-cbtip]');
+      if (!pin || !pin.closest('.cb-board')) return;
+      const pinPid = pin.dataset.cbtip as string;
+      const { pointerId, clientX, clientY } = e;
+      const end = () => {
+        window.removeEventListener('pointerup', up);
+        window.removeEventListener('pointercancel', end);
+      };
+      const up = (u: PointerEvent) => {
+        if (u.pointerId !== pointerId) return;
+        end();
+        if (Math.hypot(u.clientX - clientX, u.clientY - clientY) <= 8) o.setSelected((s) => (s === pinPid ? null : pinPid));
+      };
+      window.addEventListener('pointerup', up);
+      window.addEventListener('pointercancel', end);
+      return;
+    }
     const pid = el.dataset.cbpid as string;
     const placed = o.save.placed[pid];
     const cells = placed ? placed.shape.map((x) => [x[0], x[1]] as BoardCell) : orient(o.rules.piece[pid].shape, o.save.rot[pid] || 0);

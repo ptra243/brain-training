@@ -115,7 +115,10 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
     const behavior = jump.current;
     jump.current = null;
     if (!behavior) return;
-    gridRef.current?.querySelector(`[data-cell="${cellKey(cursor.r, cursor.c)}"]`)?.scrollIntoView({ behavior, block: 'nearest', inline: 'nearest' });
+    const see = (r: number, c: number) => gridRef.current?.querySelector(`[data-cell="${cellKey(r, c)}"]`)?.scrollIntoView({ behavior, block: 'nearest', inline: 'nearest' });
+    // Show a couple of squares ahead in the word's direction first; the cursor square wins if both can't fit.
+    if (at >= 0) see(...activeCells[Math.min(at + 2, activeCells.length - 1)]);
+    see(cursor.r, cursor.c);
   });
   const moveTo = (next: Cursor, behavior: ScrollBehavior = 'auto') => {
     jump.current = behavior;
