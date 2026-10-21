@@ -270,3 +270,38 @@ export function sudokuHint(p: SudokuPuzzle, grid: readonly number[], state: Sudo
   if (state.explained !== nudged) return { kind: 'why', cell: nudged, digit, reason };
   return { kind: 'fill', cell: nudged, digit };
 }
+
+// ---------- Pencil marks ----------
+// Her notes per square (sorted digits). With "show possible numbers" on, a square
+// she has never edited shows the candidates; once edited, her notes within them.
+
+export type SudokuNotes = Record<number, number[]>;
+
+/** Digits not already in square `i`'s row, column or box in her grid; empty for a filled square. */
+export function sudokuCandidates(p: SudokuPuzzle, grid: readonly number[], i: number): number[] {
+  if (grid[i]) return [];
+  return candidates(shape(p.size), grid as number[], i);
+}
+
+/** What an empty square shows as notes: her notes (or the candidates if never edited and the checkbox is on), within the candidates. */
+export function visibleNotes(p: SudokuPuzzle, grid: readonly number[], notes: SudokuNotes, show: boolean, i: number): number[] {
+  if (grid[i]) return [];
+  const cands = sudokuCandidates(p, grid, i);
+  const mine = notes[i] ?? (show ? cands : []);
+  return mine.filter((d) => cands.includes(d));
+}
+
+/** Toggle one note in square `i`, starting from what it shows. Filled squares are left alone. */
+export function toggleNote(p: SudokuPuzzle, grid: readonly number[], notes: SudokuNotes, show: boolean, i: number, digit: number): SudokuNotes {
+  if (grid[i] || p.givens[i]) return notes;
+  const now = visibleNotes(p, grid, notes, show, i);
+  const next = now.includes(digit) ? now.filter((d) => d !== digit) : [...now, digit].sort((x, y) => x - y);
+  return { ...notes, [i]: next };
+}
+
+/** Clear square `i`'s notes: its key goes, so it shows the candidates (checkbox on) or nothing (off). */
+export function clearNotes(notes: SudokuNotes, i: number): SudokuNotes {
+  const out = { ...notes };
+  delete out[i];
+  return out;
+}

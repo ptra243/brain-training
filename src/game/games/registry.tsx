@@ -156,15 +156,17 @@ export const GAMES: Record<GameKind, GameEntry> = {
       view: <CatsGame puzzle={puzzle} data={(a.saved as CatsData | undefined) ?? catsInitial()} {...common(a)} />,
     }),
   }),
-  sudoku: game<SudokuSpec, { puzzle: SudokuPuzzle; squares: Record<string, LocationSquares> }>({
+  sudoku: game<SudokuSpec, { puzzle: SudokuPuzzle; squares: Record<string, LocationSquares>; finish: string[] }>({
     name: 'Sudoku',
     blurb: 'Fill the grid; some squares point to rooms.',
     build(c, spec) {
       const puzzle = generateSudoku(spec.size, spec.givens, new Rng(spec.seed));
       const targets = c.clues.filter((cl) => cl.location && spec.located.includes(cl.id)).map((cl) => ({ id: cl.id, target: cl.location!.target }));
-      return { puzzle, squares: locationSquares(puzzle, targets, new Rng(spec.seed ^ 0x5eed)) };
+      const squares = locationSquares(puzzle, targets, new Rng(spec.seed ^ 0x5eed));
+      // Clues for finishing the grid: everything this game gives that has no squares.
+      return { puzzle, squares, finish: spec.clues.filter((id) => !(id in squares)) };
     },
-    play({ puzzle, squares }, a) {
+    play({ puzzle, squares, finish }, a) {
       const data = (a.saved as SudokuData | undefined) ?? sudokuInitial(puzzle);
       // A statement unlocks the moment both its squares are right, even mid-game.
       const check = (d: SudokuData) => {
@@ -184,6 +186,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
             puzzle={puzzle}
             data={data}
             statements={statements}
+            finishClues={finish.map((id) => a.c.clues.find((cl) => cl.id === id)).filter((cl) => cl !== undefined)}
             finished={a.finished}
             helper={a.helper}
             onChange={(d: SudokuData) => {

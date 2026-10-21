@@ -88,3 +88,35 @@ test('choose games: the picker lists games and closes', async ({ page }) => {
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
 });
+
+test.describe('sudoku notes', () => {
+  test.use({ seed: 10 });
+
+  test('Notes marks a digit, and "Show possible numbers" fills in the candidates', async ({ page }) => {
+    await newCase(page);
+    await openTab(page, 'Clues');
+    await page.getByRole('button', { name: 'Get a clue' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Pick a game' });
+    await dialog.locator('button.puzzle-row:not(.locked):not(.done)', { hasText: 'Sudoku' }).first().click();
+
+    const empties = page.getByRole('gridcell', { name: /: empty/ });
+    await expect(empties.first()).toBeVisible();
+    await checkScreen(page, 'sudoku with notes pad');
+
+    // Notes off, so nothing is marked until she turns Notes on.
+    const notesKey = page.getByRole('button', { name: 'Notes', exact: true });
+    await expect(notesKey).toHaveAttribute('aria-pressed', 'false');
+    await empties.first().click();
+    await notesKey.click();
+    await expect(notesKey).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', { name: '1', exact: true }).click();
+    await expect(page.getByRole('gridcell', { name: /: empty.*notes 1$/ })).toHaveCount(1);
+    await expect(page.locator('.cell-notes').first()).toContainText('1');
+
+    // The checkbox shows candidates in squares she hasn't marked.
+    const before = await page.getByRole('gridcell', { name: /notes/ }).count();
+    await page.getByRole('checkbox', { name: 'Show possible numbers' }).check();
+    expect(await page.getByRole('gridcell', { name: /notes/ }).count()).toBeGreaterThan(before);
+    await checkScreen(page, 'sudoku with possible numbers');
+  });
+});

@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import type { Clue } from '../../engine/types.ts';
 import {
+  clearNotes,
   sudokuConflicts,
   sudokuHint,
   sudokuReason,
   sudokuSolved,
+  toggleNote,
+  visibleNotes,
   type LocationSquares,
   type SudokuHint,
   type SudokuPuzzle,
@@ -59,7 +62,8 @@ export function SudokuGame({
   onChange,
   onFinish,
   statements,
-}: GameProps<SudokuPuzzle, SudokuData> & { statements: SudokuStatement[] }) {
+  finishClues = [],
+}: GameProps<SudokuPuzzle, SudokuData> & { statements: SudokuStatement[]; finishClues?: Clue[] }) {
   const tags = new Map<number, string>();
   for (const st of statements) {
     tags.set(st.squares.row, `${st.label}↓`);
@@ -68,6 +72,10 @@ export function SudokuGame({
   const { size, boxRows, boxCols, givens } = puzzle;
   const [selected, setSelected] = useState<number | null>(() => givens.findIndex((d) => d === 0));
   const [note, setNote] = useState<string | null>(null);
+  const [notesOn, setNotesOn] = useState(false);
+  const notes = data.notes ?? {};
+  const show = data.showCandidates ?? false;
+  const shownNotes = (i: number) => (finished ? [] : visibleNotes(puzzle, data.grid, notes, show, i));
   const flagged = data.flagged ?? {};
   const bad = sudokuConflicts(puzzle, data.grid);
   // The square the cat sat on, until it's right; once she's been told why, the row, column or box that shows it.
@@ -90,9 +98,19 @@ export function SudokuGame({
 
   const put = (digit: number) => {
     if (finished || sel < 0 || givens[sel]) return;
+    if (notesOn && !data.grid[sel]) {
+      commit(data.grid, { notes: toggleNote(puzzle, data.grid, notes, show, sel, digit) });
+      return;
+    }
     const grid = data.grid.slice();
     grid[sel] = grid[sel] === digit ? 0 : digit;
     commit(grid);
+  };
+
+  const clear = () => {
+    if (finished || sel < 0 || givens[sel]) return;
+    if (data.grid[sel]) put(data.grid[sel]);
+    else if (shownNotes(sel).length) commit(data.grid, { notes: clearNotes(notes, sel) });
   };
 
   const askHint = () => {
@@ -122,10 +140,18 @@ export function SudokuGame({
         Fill the grid so every row, column and box has 1 to {size} once each. Tap a square, then a number.
         {statements.length > 0 &&
           ' Lettered squares point at the floor plan: ↓ is the row, → the column. Fill both to hear that statement.'}
+        {finishClues.length > 0 && ' Finish the grid for one more.'}
       </p>
       {!finished && (
         <div className="hint-bar">
-          <HintButton helper={helper} onAsk={askHint} />
+          <div className="hint-row">
+            <label className="check-row">
+              <input type="checkbox" checked={show} onChange={(e) => commit(data.grid, { showCandidates: e.target.checked })} />
+              <span className="check-box" aria-hidden="true" />
+              Show possible numbers
+            </label>
+            <HintButton helper={helper} onAsk={askHint} />
+          </div>
           {note && <HintNote text={note} onClose={() => setNote(null)} />}
         </div>
       )}
@@ -138,6 +164,7 @@ export function SudokuGame({
         {data.grid.map((d, i) => {
           const r = Math.floor(i / size);
           const c = i % size;
+          const cellNotes = shownNotes(i);
           const wrong = !finished && !!d && flagged[i] === d;
           const classes = [
             'sudoku-cell',
@@ -161,32 +188,44 @@ export function SudokuGame({
                 borderBottomWidth: r === size - 1 ? 2.5 : 0.5,
                 borderRightWidth: c === size - 1 ? 2.5 : 0.5,
               }}
-              aria-label={`Row ${r + 1}, column ${c + 1}: ${d || 'empty'}${givens[i] ? ', given' : ''}${wrong ? ', crossed out as wrong' : ''}${i === nudged ? `, ${helper} is sitting here` : ''}${tags.has(i) ? `, square ${tags.get(i)}` : ''}`}
+              aria-label={`Row ${r + 1}, column ${c + 1}: ${d || 'empty'}${givens[i] ? ', given' : ''}${wrong ? ', crossed out as wrong' : ''}${i === nudged ? `, ${helper} is sitting here` : ''}${tags.has(i) ? `, square ${tags.get(i)}` : ''}${cellNotes.length ? `, notes ${cellNotes.join(', ')}` : ''}`}
               onClick={() => !finished && setSelected(i)}
             >
               {tags.has(i) && <span className="cell-tag">{tags.get(i)}</span>}
               {d || ''}
+              {cellNotes.length > 0 && (
+                <span className={`cell-notes size-${size}`} aria-hidden="true">
+                  {Array.from({ length: size }, (_, k) => k + 1).map((n) => (
+                    <span key={n} className={n === selDigit && cellNotes.includes(n) ? 'same' : ''}>
+                      {cellNotes.includes(n) ? n : ''}
+                    </span>
+                  ))}
+                </span>
+              )}
               {i === nudged && <Paw />}
             </button>
           );
         })}
       </div>
       {!finished && (
-        <div className="number-pad" style={{ gridTemplateColumns: `repeat(${size === 6 ? 4 : 5}, 1fr)` }}>
+        <div className="number-pad" style={{ gridTemplateColumns: `repeat(${size === 6 ? 4 : 6}, 1fr)` }}>
           {Array.from({ length: size }, (_, k) => k + 1).map((d) => (
-            <button key={d} className="pad-key" disabled={remaining(d) === 0} onClick={() => put(d)}>
+            <button key={d} className="pad-key" disabled={!notesOn && remaining(d) === 0} onClick={() => put(d)}>
               {d}
             </button>
           ))}
-          <button className="pad-key erase" aria-label="Clear square" onClick={() => sel >= 0 && !givens[sel] && data.grid[sel] && put(data.grid[sel])}>
+          <button className="pad-key erase" aria-label="Clear square" onClick={clear}>
             Clear
+          </button>
+          <button className={`pad-key notes-key ${notesOn ? 'on' : ''}`} aria-pressed={notesOn} onClick={() => setNotesOn(!notesOn)}>
+            Notes
           </button>
         </div>
       )}
       <p className="game-message" role="status">
         {finished ? (finished === 'won' ? 'Solved.' : 'Here is the finished grid.') : bad.size ? 'Some numbers clash.' : ''}
       </p>
-      {statements.length > 0 && (
+      {(statements.length > 0 || finishClues.length > 0) && (
         <section className="statements">
           <h2>Statements</h2>
           {statements.map((st) => {
@@ -204,6 +243,22 @@ export function SudokuGame({
               </div>
             );
           })}
+          {finishClues.map((clue) => (
+            <div key={clue.id} className={`statement ${finished ? 'found' : 'locked'}`}>
+              {/* No letter: no square in the grid points at this one. */}
+              <span className="statement-label" aria-hidden="true">
+                {finished ? (
+                  '✓'
+                ) : (
+                  <svg className="statement-lock" viewBox="0 0 16 16">
+                    <rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor" />
+                    <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                  </svg>
+                )}
+              </span>
+              {finished ? <ClueCard clue={clue} compact /> : <p className="statement-locked">Finish the grid to hear this one.</p>}
+            </div>
+          ))}
         </section>
       )}
     </div>

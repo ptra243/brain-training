@@ -50,6 +50,10 @@ export interface SudokuData {
   explained?: number;
   /** How many hints she asked for. */
   hints?: number;
+  /** Her pencil marks per square (sorted digits). Absent key = never edited. */
+  notes?: Record<number, number[]>;
+  /** Show the possible numbers in squares she hasn't marked herself. */
+  showCandidates?: boolean;
 }
 
 export const sudokuInitial = (p: SudokuPuzzle): SudokuData => ({ grid: p.givens.slice() });

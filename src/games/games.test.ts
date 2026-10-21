@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { content } from '../content/index.ts';
 import { Rng } from '../engine/rng.ts';
 import { autoDots, catConflicts, catMoveId, catsHint, catsSolved, countCatSolutions, generateCats, solvableBySimpleSteps, type CatHintState, type CatMark, type CatPuzzle } from './cats.ts';
-import { foundLocations, generateSudoku, locationSquares, solvableBySingles, sudokuConflicts, sudokuHint, sudokuShape, sudokuSolved, type SudokuHintState, type SudokuPuzzle } from './sudoku.ts';
+import { clearNotes, foundLocations, generateSudoku, locationSquares, solvableBySingles, sudokuCandidates, sudokuConflicts, sudokuHint, sudokuShape, sudokuSolved, toggleNote, visibleNotes, type SudokuHintState, type SudokuPuzzle } from './sudoku.ts';
 import { isAllowedGuess, parseWords } from './dictionary.ts';
 import { WORD_LENGTH, keyboardState, scoreGuess } from './wordle.ts';
 import { typedEdit } from './typing.ts';
@@ -262,4 +262,60 @@ test('cat hints cross out a wrong cat and a dot on a cat square, then clear them
   assert.deepEqual(catsHint(p, start), { kind: 'wrong', squares: start });
   assert.equal(catsHint(p, start, { flagged: start })?.kind, 'nudge');
   followCatHints(p, start);
+});
+
+test('sudoku candidates leave out the row, column and box digits; none for a filled square', () => {
+  const p = generateSudoku(6, 14, new Rng(3));
+  const s = sudokuShape(6);
+  const grid = p.givens.slice();
+  grid.forEach((d, i) => {
+    const cands = sudokuCandidates(p, grid, i);
+    if (d) assert.deepEqual(cands, []);
+    else {
+      for (const j of s.peers[i]) assert.ok(!grid[j] || !cands.includes(grid[j]));
+      assert.ok(cands.includes(p.solution[i]));
+    }
+  });
+});
+
+test('sudoku notes: placing hides a digit from peers and clearing restores it; toggling starts from candidates', () => {
+  const p = generateSudoku(6, 14, new Rng(3));
+  const s = sudokuShape(6);
+  const grid = p.givens.slice();
+  const pairs = grid.flatMap((x, a) => (x ? [] : s.peers[a].filter((j) => !grid[j] && sudokuCandidates(p, grid, j).includes(p.solution[a])).map((j) => [a, j])));
+  assert.ok(pairs.length, "a square whose digit is a candidate of an empty peer");
+  const [i, peer] = pairs[0];
+  const d = p.solution[i];
+  const all = [1, 2, 3, 4, 5, 6];
+  const placed = grid.slice();
+  placed[i] = d;
+  for (const show of [false, true]) {
+    const notes = { [peer]: all.filter((x) => sudokuCandidates(p, grid, peer).includes(x)) };
+    const before = visibleNotes(p, grid, notes, show, peer);
+    assert.ok(before.includes(d));
+    const hidden = visibleNotes(p, placed, notes, show, peer);
+    assert.deepEqual(hidden, before.filter((x) => x !== d));
+    assert.ok(notes[peer].includes(d), 'kept in the saved notes');
+    assert.deepEqual(visibleNotes(p, grid, notes, show, peer), before, 'restored after clearing');
+  }
+  // A note she never marked in checkbox mode follows the candidates both ways.
+  assert.ok(!visibleNotes(p, placed, {}, true, peer).includes(d));
+  assert.ok(visibleNotes(p, grid, {}, true, peer).includes(d));
+
+  assert.deepEqual(visibleNotes(p, grid, {}, false, i), []);
+  const cands = sudokuCandidates(p, grid, i);
+  assert.deepEqual(visibleNotes(p, grid, {}, true, i), cands);
+  assert.deepEqual(visibleNotes(p, grid, { [i]: all }, true, i), cands);
+  const struck = toggleNote(p, grid, {}, true, i, cands[0])[i];
+  assert.deepEqual(struck, cands.slice(1));
+  const added = toggleNote(p, grid, toggleNote(p, grid, {}, false, i, cands[1]), false, i, cands[0]);
+  assert.deepEqual(added[i], [cands[0], cands[1]].sort((x, y) => x - y));
+  assert.deepEqual(toggleNote(p, grid, added, false, i, cands[0])[i], [cands[1]]);
+  // Clear deletes the key: blank with the checkbox off, candidates with it on.
+  const cleared = clearNotes(added, i);
+  assert.equal(i in cleared, false);
+  assert.deepEqual(visibleNotes(p, grid, cleared, false, i), []);
+  assert.deepEqual(visibleNotes(p, grid, cleared, true, i), cands);
+  const given = grid.findIndex((x) => x);
+  assert.deepEqual(toggleNote(p, grid, {}, false, given, 1), {});
 });
