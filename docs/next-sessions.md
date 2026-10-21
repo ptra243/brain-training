@@ -202,3 +202,16 @@ Starting prompt:
 ```
 Read docs/nosing-around.md, settle its open questions with me, then tune the board generator per level until the check-cases turn ranges hold before delegating the rest.
 ```
+
+## Session: The dog card battle as its own game (exploratory)
+Last touched: 2026-10-21
+Reads first: `docs/nosing-around.md` (the "Encounters" section, the dog). Best after Nosing around is
+built, so the encounter module exists to grow from.
+Goal: decide whether the dog encounter becomes a full minigame: a longer duel with deck building
+between fights (Slay the Spire style), seeded decks and dog rolls, attack = largest number from her
+hand, defend = meet or beat the dog's roll, exact = an extra card. Settle levels, how a loss works
+without getting her stuck, the hint ladder, and whether it joins the case rotation.
+Starting prompt:
+```
+Read the dog encounter in docs/nosing-around.md and help me decide whether to grow it into its own card-battle minigame: rules, levels, losing without getting stuck, hints.
+```

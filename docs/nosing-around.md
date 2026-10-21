@@ -48,6 +48,31 @@ the clues. It is the "long" minigame and can carry more clues than the others.
   still comes from the seed); close enough (the lock accepts an answer within 10% more of the target).
 - Optional choice per question: pick one of two cards, a short sum or a harder one for a better bonus.
 
+## Encounters
+
+Every question square is an **encounter**: a small self-contained puzzle with tiered outcomes. A plain
+maths question is the simplest one. Each encounter kind is its own pure module in `src/games/` (seeded,
+with its own hint function and tests), so any of them can later be promoted to a game of its own.
+
+- **Plain question:** right or wrong, as in the squares table.
+- **Speed round:** quick sums against a sand timer (about 60s); it ends when time runs out. Tiers set
+  the reward (e.g. 5 right: one bonus; 8: two; 12: two plus extra steps; scaled by level). Below the
+  lowest tier she just walks on: the timer only sizes the reward, never costs her anything. The only
+  timer in the game. No cat hints during the round.
+- **The dog (card battle, a snake encounter):** the cat has a seeded deck of number and operator cards;
+  the dog has a health dial. Each round: **attack**, make the largest number she can from her hand,
+  that's the damage; **defend**, the dog rolls an attack number and she makes one that meets or beats
+  it, and hitting it **exactly** gives her an extra card next turn. Win: the dog runs off, with a good
+  reward. Lose: the cat is chased back down the snake, and the dog is gone for the rest of the run (so
+  the worst case stays bounded). Hints: the cat suggests a good combination, then the best one. Trains
+  biggest-product thinking (attack) and hitting a target (defend, practice for the lock).
+- **Estimate:** "how many jars on the larder shelf?"; the closer, the bigger the reward.
+- **Balance the scales:** pick weights so both pans match.
+- **Pattern:** the next number in a sequence (the clock chimes).
+
+Which encounter sits on which square is decided by the generator per level; the turn-range checks
+must account for each encounter's worst case.
+
 ## The lock (last square)
 
 - A numbers puzzle: make the target from six numbers with + − × ÷ (Countdown style; don't use that
@@ -71,7 +96,7 @@ the clues. It is the "long" minigame and can carry more clues than the others.
   snakes; bigger target.
 - Questions are dressed as household facts (clocks, the larder, train times, bills); templates are
   content. Every answer is a whole number in the level's range.
-- No timers.
+- No timers, except the speed round (where the timer only sizes the reward).
 
 ## House rules this must keep
 
