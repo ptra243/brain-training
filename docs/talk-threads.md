@@ -5,7 +5,8 @@ Status: designed 2026-10-21; part A built 2026-10-21 with placeholder lines (`sr
 a few placeholder lines so it runs.
 
 ## Settled
-- **She doesn't move around the house.** Games open from the casebook and a tap on a counter opens its
+- **She doesn't move around the house.** (Reversed 2026-10-21 by `docs/exploration-mode.md`: she walks the
+  house before midnight and talk opens from a person in her room; `visit` comes back then.) Games open from the casebook and a tap on a counter opens its
   sheet, so the `visit` trigger is dropped. The triggers left are `ask`, `object` and `talk`.
 - **Talk lives on the suspect sheet** (`SuspectSheet.tsx`, opened by a short tap on a counter). It shows the
   greeting, the meter, the beats she has heard, an "Anything else?" button, and "Question them" when that
