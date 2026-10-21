@@ -13,6 +13,25 @@ The list is ordered like a project backlog, roughly by what to pick up next: eas
 important fixes at the top, planned builds in the middle, exploratory and design work at the
 bottom. Put a new entry where it fits in that order, not just at the end.
 
+## Session: Merge Nosing around (after Talk lands)
+Last touched: 2026-10-21
+Reads first: `docs/nosing-around.md` on the branch (design, tuning, build spec), then
+`git log main..nosing-around` and `git diff main...nosing-around --stat`.
+Goal: the game is built and committed on branch `nosing-around` (worktree
+`.claude/worktrees/nosing-around`, one commit; `npm run checks`, e2e 27/27 and `check-cases:full` all
+passed there). Wait until the Talk and threads work is committed on `main`. Then, in the worktree:
+bring `main` in (likely conflicts: `src/engine/types.ts`, `scripts/check-cases.ts`, `src/styles.css`,
+`src/game/storage.ts`, `src/engine/golden.json`; if Talk also changed golden or bumped a prefix, re-run
+`npm run update-golden` after merging and check that only intended entries moved). Re-run
+`npm run checks` and `npm run e2e`, then `check-cases:full` in the background. Merge into `main`, push,
+and check the deploy (`gh run list --limit 1`, then `gh run watch <id> --exit-status`). Afterwards remove
+the worktree and branch, and delete this entry. Open items to check on the phone: the board shrinks
+to a 3.5rem strip during questions (small), and the fullest question screen fits with only ~6px spare.
+Starting prompt:
+```
+Talk has landed: merge the nosing-around branch into main (sync, re-run checks, e2e and check-cases:full, push, check the deploy), following its entry in docs/next-sessions.md.
+```
+
 ## Session: Validate saved data
 Last touched: 2026-10-21
 Reads first: `docs/code-review-followups.md` section 4, `src/game/storage.ts`, `src/game/games/saveData.ts`.
@@ -36,6 +55,19 @@ midnight lock. Quick play stays untouched; no case changes, no storage bump. The
 Starting prompt:
 ```
 Read docs/exploration-mode.md, write the implementer brief for build-order step 1 (exploration in campaign rounds), and hand it off.
+```
+
+## Session: Face to face, questioning the accused
+Last touched: 2026-10-21
+Reads first: `docs/face-to-face.md` (settled design), `src/engine/CLAUDE.md` (campaign, interrogations),
+`src/game/CLAUDE.md`, then `src/engine/interrogation.ts`, `src/engine/campaign.ts`, `src/game/campaign.ts`.
+Goal: in campaigns, accusing opens the finale questioning with the accused (only the killer lies), with
+rotating closing lines; a wrong weapon now ends the round and a seeded innocent non-decoy is the next
+body. Rounds that never hit the new path stay the same. Do piece 1 (the wrong-weapon rule) here, delegate
+pieces 2 to 4. If exploration phase 1 lands first, the questioning plays before its next-murder scene.
+Starting prompt:
+```
+Read docs/face-to-face.md, build piece 1 (wrong weapon ends the round) here, then brief the implementer on pieces 2 to 4.
 ```
 
 ## Session: Theme content, tarot cast and line pools
@@ -154,20 +186,20 @@ Starting prompt:
 Read the "Hunting the weapon" item in the What's Left doc and docs/next-sessions.md, help me design the shortlist puzzle and the either-or clues, then write an implementer brief.
 ```
 
-## Session: Nosing around (maths board game), build
+## Session: Grid cases (Murdoku-style), build
 Last touched: 2026-10-21
-Reads first: `docs/nosing-around.md` (the full design), `src/games/CLAUDE.md`, `src/engine/CLAUDE.md`
-(how a new game joins on its own seed stream), `src/engine/house.ts`, and `src/games/tarot.ts` with
-`TAROT_SHARE` in `gameKinds.ts` as the most recent example of adding a game.
-Goal: build the snakes-and-ladders maths game on the floor plan. Keep in the main session: settling
-the open questions at the end of the design doc, and tuning board size, ladders and snakes per level
-by experiment until the turn ranges hold. Then delegate to `implementer`: the pure board/question/lock
-logic with hints and tests (`src/games/`), the content lists (question templates, ladders, snakes,
-bonuses, locks), the `check-cases` checks, and the screen with its number pad. Existing cases must
-not change (golden snapshot).
+Reads first: the "Grid cases — Build Plan" doc
+(https://claude.ai/artifact/Vkrc5ipo8cJ91ofWiUbmAj; read it with the Claude Docs reader),
+`src/engine/CLAUDE.md`, `src/engine/house.ts`, `src/engine/types.ts`.
+Goal: a new grid case mode beside the current one. An N×N floor plan generated per case, one person
+per row and column, rooms shared, and the killer is the only other person in the victim's room.
+Minigames unlock the clues. Steps 1 and 3 of the plan (the map generator, clue selection and tuning)
+stay in the main session; the rest go to the implementer. Existing cases must not change (no prefix
+bump; the grid gets its own save key and golden snapshot). Settle the plan's open questions with the
+owner first, ideally from screenshots of her game.
 Starting prompt:
 ```
-Read docs/nosing-around.md, settle its open questions with me, then tune the board generator per level until the check-cases turn ranges hold before delegating the rest.
+Read the Grid cases build plan doc, go through its open questions with me, then start step 1: grid types and the per-case map generator in src/engine/grid/.
 ```
 
 ## Session: Target or another word game (exploratory)
@@ -250,20 +282,4 @@ Explore and settle:
 Starting prompt:
 ```
 Read "The killer lies" entry in docs/next-sessions.md and src/engine/CLAUDE.md, then help me decide whether it's worth building and sketch the clue model and solver change.
-```
-
-## Session: Grid cases (Murdoku-style), build
-Last touched: 2026-10-21
-Reads first: the "Grid cases — Build Plan" doc
-(https://claude.ai/artifact/Vkrc5ipo8cJ91ofWiUbmAj; read it with the Claude Docs reader),
-`src/engine/CLAUDE.md`, `src/engine/house.ts`, `src/engine/types.ts`.
-Goal: a new grid case mode beside the current one. An N×N floor plan generated per case, one person
-per row and column, rooms shared, and the killer is the only other person in the victim's room.
-Minigames unlock the clues. Steps 1 and 3 of the plan (the map generator, clue selection and tuning)
-stay in the main session; the rest go to the implementer. Existing cases must not change (no prefix
-bump; the grid gets its own save key and golden snapshot). Settle the plan's open questions with the
-owner first, ideally from screenshots of her game.
-Starting prompt:
-```
-Read the Grid cases build plan doc, go through its open questions with me, then start step 1: grid types and the per-case map generator in src/engine/grid/.
 ```
