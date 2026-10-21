@@ -24,6 +24,20 @@ Starting prompt:
 Read docs/code-review-followups.md section 4, help me pick Valibot or hand-written guards, then write an implementer brief with tests for malformed saves.
 ```
 
+## Session: Exploration mode, phase 1
+Last touched: 2026-10-21
+Reads first: `docs/exploration-mode.md` (settled design), `src/game/CLAUDE.md`, `e2e/CLAUDE.md`, then
+`CampaignView.tsx`, `Casebook.tsx`, `SuspectSheet.tsx` and `MapPanel.tsx`.
+Goal: build-order step 1. In campaign rounds the map becomes the main screen: her marker, exclamation
+marks on rooms with puzzles, a room list (things, puzzles, guests), the person screen with portrait and
+talk, the time header ("10:30 (2 games left)") and card, one guess any time with the warning, and the
+midnight lock. Quick play stays untouched; no case changes, no storage bump. Then the next-murder scene
+(step 2) as its own small session.
+Starting prompt:
+```
+Read docs/exploration-mode.md, write the implementer brief for build-order step 1 (exploration in campaign rounds), and hand it off.
+```
+
 ## Session: Theme content, tarot cast and line pools
 Last touched: 2026-10-20
 Reads first: `docs/theme-draft.md`. Best after "The cast", which fixes the roles.
