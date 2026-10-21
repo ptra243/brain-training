@@ -2,7 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../../content/index.ts';
 import { nosingLadders, nosingSnakes } from '../../content/nosing.ts';
-import { buildNosing } from '../../games/nosing.ts';
+import { buildNosing, nosingInitial, nosingView } from '../../games/nosing.ts';
+import { emptyFill, place } from '../../games/numberGrid.ts';
+import { hasClearable, rowCaption, slotLabel } from './numberGridUi.ts';
 import { diceFaces, padPress, padValue, pawTrail, roomSquares, squareCentre, wallLines, walkSteps, woolPath } from './nosingUi.ts';
 
 const puzzle = (level: 'easy' | 'medium' | 'hard') =>
@@ -61,4 +63,33 @@ test('paw trails and wool strands run from one end to the other', () => {
   assert.ok(paws.every((p) => p.x > 0.5 && p.x < 4.5));
   assert.deepEqual(pawTrail({ x: 1, y: 1 }, { x: 1, y: 1 }, 0.8), []);
   assert.match(woolPath({ x: 1, y: 1 }, { x: 5, y: 3 }), /^M1 1 C.* 5 3$/);
+});
+
+test('grid captions show a row\'s total and the running total once the row is complete', () => {
+  const row = (value: number | null, total: number | null) => ({ used: true, value, total });
+  assert.equal(rowCaption(0, row(100, 100)), '= 100');
+  assert.equal(rowCaption(1, row(20, 120)), '= 20 → 120');
+  assert.equal(rowCaption(1, row(20, null)), '= 20');
+  assert.equal(rowCaption(2, row(null, null)), '');
+  assert.equal(rowCaption(0, { used: false, value: null, total: null }), '');
+});
+
+test('slots are named for a screen reader, and Clear only counts what is not locked', () => {
+  assert.equal(slotLabel({ row: 1, kind: 'num', i: 2 }), 'Row 2, third number');
+  assert.equal(slotLabel({ row: 0, kind: 'op', i: 0 }), 'Row 1, first sign');
+  assert.equal(slotLabel({ row: 2, kind: 'rowOp' }), 'Row 3, how it joins the total');
+  const n0 = { row: 0, kind: 'num', i: 0 } as const;
+  const fill = place(emptyFill(), n0, 3);
+  assert.equal(hasClearable(emptyFill(), []), false);
+  assert.equal(hasClearable(fill, []), true);
+  assert.equal(hasClearable(fill, [n0]), false);
+});
+
+test('the lock view starts with an empty grid and the palette hand', () => {
+  const p = puzzle('easy');
+  const v = nosingView(p, nosingInitial());
+  assert.equal(v.grid.length, 3);
+  assert.equal(v.hand.numbers.length, 6);
+  assert.equal(v.hand.ops, 'palette');
+  assert.deepEqual(v.locked, []);
 });

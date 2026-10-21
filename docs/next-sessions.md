@@ -16,20 +16,50 @@ first whatever unblocks other entries. **Re-rank an entry whenever you add it, r
 status changes** (built, blocked, unblocked, done): move it to its place, don't edit it where it
 stands. A blocked entry keeps its rank and names its blocker in the heading.
 
-## Session: Nosing around: number grid and the dog
+
+## Session: Faster checks and tests
 Last touched: 2026-10-22
-Reads first: `docs/nosing-around.md` ("Next build", then "Build spec" for the first build), then
-`src/games/lock.ts`, `src/games/nosing.ts`, `src/game/games/NosingLock.tsx`.
-Goal: the owner asked for this next. Build the shared number grid (rows, at most 3 numbers a row,
-row-operator slots, live row and running totals, a solver for the grid's shape), move the lock onto it
-(lock targets checked on the grid; storage prefix bump or reading old lock moves), then add the dog
-fight on a snake head (tarot minor-arcana decks, operator deck, 3 lives each, beat for 1 or double for 2,
-exact defence for an extra card, the dog picks a middle play she can answer). Settle the two "Still
-open" items first, then split: grid and solver, lock UI, dog module, dog UI, `check-cases` additions.
-The fill-in-the-blank speed round can follow in the same session if there's room.
+Reads first: the root `CLAUDE.md` ("Working on it"), `e2e/CLAUDE.md`, `scripts/check-cases.ts`,
+`package.json` scripts. Ask the owner what the earlier "automated tests taking too long" session found.
+Best done after the Nosing grid and dog build lands. Measured in that build:
+
+| Check | Before | After |
+|---|---|---|
+| `check-cases` quick, run alone | 106 s | about 130 s |
+| `npm run checks` (parallel) | n/a | lint 44 s, build 46 s, test 57 s, check-cases 136–187 s |
+| e2e | n/a | 29 tests, plus a dog-fight flow on its own seed |
+
+Leads:
+- **`check-cases`** is the long pole. It replays a dog fight and runs `solveGrid` up to 4 numbers on
+  every lock, at every level. Sample those in the quick run and keep every case for `--full`.
+- **Node tests:** bot tests over 100 seeds per level repeat across `nosing`, `lock` and `dogFight`. The
+  dog redeal test was 11 s before being cut to 200 seeds.
+- **Parallel `checks`** may be fighting for CPU (each check is much slower than alone). Try running
+  check-cases alone, or limit the workers.
+- **e2e:** see whether specs could reach their screen from a saved state instead of playing through.
+Targets: one test file under 5 s, `npm test` 10–20 s, lint 10–20 s, quick `check-cases` 30–45 s,
+`npm run checks` under 1 min, e2e about 90 s. Many node tests are seed sweeps (bots over 100–300
+seeds); keep a few fixed seeds per level in `npm test` and move the sweeps to `check-cases`
+(sampled in the quick run, every case in `--full`).
+Goal: a timing table before and after, with no lost coverage (anything moved out of the quick run stays
+in `--full` or CI).
 Starting prompt:
 ```
-Read "Next build" in docs/nosing-around.md, settle its open items with me, then split the number grid, the lock on the grid and the dog fight into implementer briefs.
+Read the "Faster checks and tests" entry in docs/next-sessions.md, time each check alone and in parallel, and propose where to cut before changing anything.
+```
+
+## Session: Nosing around: fill-in-the-blank speed round
+Last touched: 2026-10-22
+Reads first: `docs/nosing-around.md` ("Speed round: fill in the blank", "Settled (2026-10-22)"), then
+`src/games/speedRound.ts`, the speed round and question UI in `src/game/games/`.
+Goal: speed questions become a sum with a blank and 4 cards to tap (near misses as wrong cards, 3 s off
+the timer for a wrong tap). Decide whether board questions use 4 cards too and retire `NumberPad`.
+Also fix a known layout bug there: at most seeds the question screen's OK button ends 12–40px below
+780px (the e2e pad check passes only at seed 12345); 4 cards may remove the cause.
+One layer per brief: engine and tests first, then UI and e2e.
+Starting prompt:
+```
+Read "Speed round: fill in the blank" in docs/nosing-around.md, settle whether board questions use cards too, then brief the engine and the UI separately.
 ```
 
 ## Session: Exploration mode, phase 1
@@ -292,3 +322,27 @@ Starting prompt:
 ```
 Read "The killer lies" entry in docs/next-sessions.md and src/engine/CLAUDE.md, then help me decide whether it's worth building and sketch the clue model and solver change.
 ```
+
+## Session: Session hygiene review (exploratory)
+Last touched: 2026-10-22
+Reads first: "Why sessions ran long" below, the "Token budget" section of `CLAUDE.md`,
+`.claude/agents/implementer.md`, `.claude/hooks/session-length.mjs`.
+When: every few weeks, or once "Why sessions ran long" has three or more new lines since the last review.
+Goal: look for causes that repeat, and change a rule only for those; a cause seen once stays a note.
+Check whether the 700 KB reminder fires at the right moment (raise it toward 1 MB if it fires during
+short, focused work). Use the `explain-usage` skill on a session only if a cause is unclear. Mark the
+lines you reviewed with the date.
+Starting prompt:
+```
+Read "Why sessions ran long" in docs/next-sessions.md and the Token budget section of CLAUDE.md, find the causes that repeat, and propose rule changes for those only.
+```
+
+## Why sessions ran long
+
+One dated line per long session, added when the split is written up (the session-length hook asks for
+it). Not a menu entry; the review session above reads it.
+
+- 2026-10-22, Nosing around grid and dog: one session did design plus four builds. Briefs bundled
+  engine and UI, the dog tuning took three rounds instead of one sweep, and follow-ups were piled onto
+  a 200k-token agent. Rules added: small briefs, measure first, split after the first piece lands,
+  reminder lowered to 700 KB.

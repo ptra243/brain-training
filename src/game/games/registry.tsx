@@ -14,7 +14,7 @@ import type { BoardSpec, Case, CatsSpec, GameKind, GameSpec, Interrogation, Inte
 import { tarotClueCards } from '../../engine/tarotCards.ts';
 import { generateCats, type CatPuzzle } from '../../games/cats.ts';
 import { nosingLadders, nosingSnakes } from '../../content/nosing.ts';
-import { buildNosing, nosingInitial, nosingSeed, nosingSolve, type NosingPuzzle } from '../../games/nosing.ts';
+import { buildNosing, nosingInitial, nosingSeed, nosingSolve, nosingUpgrade, type NosingPuzzle } from '../../games/nosing.ts';
 import { buildTarot, tarotInitial, tarotRevealAll } from '../../games/tarot.ts';
 import type { CrosswordPuzzle } from '../../games/crossword.ts';
 import { foundLocations, generateSudoku, locationSquares, type LocationSquares, type SudokuPuzzle } from '../../games/sudoku.ts';
@@ -292,7 +292,8 @@ export const GAMES: Record<GameKind, GameEntry> = {
         snakes: nosingSnakes,
       }),
     play(puzzle, a) {
-      const data = savedOr(a, isNosingState, nosingInitial, () => nosingSolve(puzzle, nosingInitial()));
+      // A save from the old tile lock loses its lock moves (`nosingUpgrade`); the rest of the walk stays.
+      const data = isNosingState(a.saved) ? nosingUpgrade(a.saved, a.finished !== null) : a.finished === null ? nosingInitial() : nosingSolve(puzzle, nosingInitial());
       return {
         solved: () => nosingSolve(puzzle, data),
         view: (

@@ -10,7 +10,7 @@ import { DIFFICULTIES, LENGTHS } from '../engine/settings.ts';
 import type { GameKind } from '../engine/types.ts';
 import type { CatMark } from '../games/cats.ts';
 import type { Op } from '../games/lock.ts';
-import type { NosingMove, NosingState } from '../games/nosing.ts';
+import type { LegacyNosingMove, NosingMove, SavedNosingState } from '../games/nosing.ts';
 import type { TarotState } from '../games/tarot.ts';
 import type { BoardSave, PlacedPiece } from './board/boardSave.ts';
 import type { CampaignSave, Outcome } from './campaign.ts';
@@ -118,7 +118,18 @@ export const isTarotState = (v: unknown): v is TarotState =>
   isNum(v.hints) &&
   isNum(v.peeks);
 
-const isNosingMove = (v: unknown): v is NosingMove => {
+const isOp = oneOf<Op>('+', '-', '*', '/');
+
+/** A grid slot: `{ row, kind: 'rowOp' }`, `{ row, kind: 'num', i }` or `{ row, kind: 'op', i }`. */
+const isSlot = (v: unknown): boolean => {
+  if (!isObject(v) || !isInt(v.row) || (v.row as number) < 0 || (v.row as number) > 2) return false;
+  if (v.kind === 'rowOp') return (v.row as number) > 0;
+  if (v.kind === 'num') return isInt(v.i) && (v.i as number) >= 0 && (v.i as number) <= 2;
+  return v.kind === 'op' && isInt(v.i) && (v.i as number) >= 0 && (v.i as number) <= 1;
+};
+
+// Also accepts the old lock's `combine` and `undo`; `nosingUpgrade` cuts them out.
+const isNosingMove = (v: unknown): v is NosingMove | LegacyNosingMove => {
   if (!isObject(v)) return false;
   switch (v.t) {
     case 'roll':
@@ -126,19 +137,25 @@ const isNosingMove = (v: unknown): v is NosingMove => {
     case 'undo':
     case 'try':
     case 'hint':
+    case 'clearAll':
+    case 'play':
       return true;
     case 'answer':
       return isNum(v.value);
     case 'speed':
       return isNum(v.right);
     case 'combine':
-      return isNum(v.a) && isNum(v.b) && oneOf<Op>('+', '-', '*', '/')(v.op);
+      return isNum(v.a) && isNum(v.b) && isOp(v.op);
+    case 'place':
+      return isSlot(v.slot) && (isInt(v.card) || isOp(v.card));
+    case 'clear':
+      return isSlot(v.slot);
     default:
       return false;
   }
 };
 
-export const isNosingState = (v: unknown): v is NosingState =>
+export const isNosingState = (v: unknown): v is SavedNosingState =>
   isObject(v) && isArrayOf(isNosingMove)(v.moves) && isNum(v.hints) && opt(oneOf<'revealed'>('revealed'))(v.solved);
 
 // ---------- Progress ----------

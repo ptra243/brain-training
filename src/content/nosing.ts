@@ -95,6 +95,43 @@ export const nosingBonuses: Readonly<Record<NosingBonusName, NosingBonusCopy>> =
   closeEnough: { name: 'Close enough', copy: 'The lock will accept an answer a little off.' },
 };
 
+/** Why a row of the number grid shows red. */
+export const nosingGridProblems = {
+  divide: "doesn't divide exactly",
+  minus: 'goes below 1',
+};
+
+/** The dog on a snake head: wording for the fight screen and its end. Sentence case, from her point of view. */
+export const nosingDog = {
+  title: 'The dog',
+  win: 'The dog runs off.',
+  /** Finishes with the snake's own line when there is one. */
+  lose: (square: string) => `The dog chases the cat down the trail to ${square}.`,
+  dogPlays: 'The dog plays',
+  handTitle: 'Your cards',
+  catLives: 'The cat',
+  dogLives: 'The dog',
+  attack: (n: number) => `Beat ${n} to hurt the dog, or make ${n * 2} to hurt it twice.`,
+  defend: (n: number) => `The dog attacks with ${n}. Meet it or lose a life. Hit ${n} exactly for an extra card.`,
+  hint: {
+    double: (possible: boolean) => (possible ? 'sizes up your cards: a double is there.' : 'sizes up your cards: no double this time.'),
+    exact: (possible: boolean) => (possible ? 'sizes up your cards: an exact hit is there.' : 'sizes up your cards: no exact hit this time.'),
+    fill: 'pushes some cards into place.',
+  },
+  /** The last turn, from the view's `last` data. */
+  last: {
+    attackTwice: (mine: number, dog: number) => `You made ${mine} against ${dog}. The dog loses 2 lives.`,
+    attackOnce: (mine: number, dog: number) => `You made ${mine} against ${dog}. The dog loses a life.`,
+    attackMissed: (mine: number, dog: number) => `You made ${mine} against ${dog}. Not enough, the dog is unhurt.`,
+    defendLost: (mine: number, dog: number) => `You made ${mine} against ${dog}. The cat loses a life.`,
+    defendExact: (mine: number, dog: number) => `You made ${mine} against ${dog}. Exactly right, so you get an extra card.`,
+    defendMet: (mine: number, dog: number) => `You made ${mine} against ${dog}. You met the dog's attack.`,
+  },
+  endTitleWon: 'The dog runs off',
+  endTitleLost: 'The dog wins',
+  next: 'Continue',
+};
+
 export interface NosingLockObject {
   id: string;
   name: string;

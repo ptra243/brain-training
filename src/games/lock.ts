@@ -1,84 +1,26 @@
-// The lock: a numbers puzzle. Six numbers, + - x /, make the target. Only whole
-// positive results count (/ only when exact, - only when above 0). Every lock is
-// built forwards from a real way, then checked with an exhaustive solver, so it
-// is always exact with no bonuses. Pure and seeded; the UI keeps only her moves.
+// The lock: a numbers puzzle. Six numbers, + - x /, make the target on the
+// number grid (`numberGrid.ts`). Only whole positive results count. Every lock
+// is built forwards by filling a random valid grid, then the grid solver finds
+// the stored shortest way, so it is always exact with no bonuses. Pure and
+// seeded; the UI keeps only her moves.
 
 import { Rng, hashSeed } from '../engine/rng.ts';
 import type { Level } from './mentalMaths.ts';
+import { PALETTE, emptyFill, evaluateGrid, place, solveGrid, type GridFill, type Hand, type RowIndex } from './numberGrid.ts';
 
 export type Op = '+' | '-' | '*' | '/';
-
-export interface Step {
-  a: number;
-  b: number;
-  op: Op;
-  result: number;
-}
 
 export interface Lock {
   numbers: number[];
   target: number;
-  /** A shortest exact way: 2 to 5 numbers. */
-  way: Step[];
+  /** A shortest exact way on the grid: 2 to 4 numbers. */
+  way: GridFill;
 }
 
 export const LARGE_NUMBERS: readonly number[] = [25, 50, 75, 100];
 
-/** The steps that can join two values (larger first, so - and / read naturally). */
-function joins(x: number, y: number): Step[] {
-  const a = Math.max(x, y);
-  const b = Math.min(x, y);
-  const out: Step[] = [
-    { a, b, op: '+', result: a + b },
-    { a, b, op: '*', result: a * b },
-  ];
-  if (a > b) out.push({ a, b, op: '-', result: a - b });
-  if (a % b === 0) out.push({ a, b, op: '/', result: a / b });
-  return out;
-}
-
-/** The step for exactly `a op b` in that order, or null when it isn't allowed. */
-function exactStep(a: number, b: number, op: Op): Step | null {
-  if (op === '+') return { a, b, op, result: a + b };
-  if (op === '*') return { a, b, op, result: a * b };
-  if (op === '-') return a > b ? { a, b, op, result: a - b } : null;
-  return a % b === 0 ? { a, b, op, result: a / b } : null;
-}
-
-/**
- * A shortest exact way from `numbers` to `target`, or null. Whole positive
- * intermediates only. The way uses at least two numbers; `maxSteps` caps its
- * length (default: every number).
- */
-export function solveLock(numbers: readonly number[], target: number, maxSteps = numbers.length - 1): Step[] | null {
-  for (let steps = 1; steps <= Math.min(maxSteps, numbers.length - 1); steps++) {
-    const seen = new Set<string>();
-    const found = search(numbers.slice(), target, steps, [], seen);
-    if (found) return found;
-  }
-  return null;
-}
-
-function search(tiles: number[], target: number, left: number, path: Step[], seen: Set<string>): Step[] | null {
-  for (let i = 0; i < tiles.length; i++) {
-    for (let j = i + 1; j < tiles.length; j++) {
-      for (const step of joins(tiles[i], tiles[j])) {
-        if (left === 1) {
-          if (step.result === target) return [...path, step];
-          continue;
-        }
-        const next = tiles.filter((_, k) => k !== i && k !== j);
-        next.push(step.result);
-        const key = next.slice().sort((x, y) => x - y).join(',');
-        if (seen.has(key)) continue;
-        seen.add(key);
-        const found = search(next, target, left - 1, [...path, step], seen);
-        if (found) return found;
-      }
-    }
-  }
-  return null;
-}
+/** The hand the lock gives her: its six numbers and every operator, unlimited. */
+export const lockHand = (lock: { numbers: readonly number[] }): Hand => ({ numbers: lock.numbers, ops: 'palette' });
 
 // --- Building ---
 
@@ -95,26 +37,32 @@ const TIERS: Record<Level, Tier> = {
   hard: { small: 4, large: 2, lo: 300, hi: 699 },
 };
 
-/** Combine `k` of the numbers at random, forwards, and return the result. */
-function forward(rng: Rng, numbers: number[], k: number, preferLarge: boolean): number {
+/** How k numbers split over the rows of the grid (1 to 3 per row, at most 3 rows). */
+const SHAPES: Record<number, number[][]> = {
+  2: [[2], [1, 1]],
+  3: [[3], [1, 2], [2, 1], [1, 1, 1]],
+  4: [[1, 3], [2, 2], [3, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1]],
+};
+
+/** A random grid using `k` of the numbers (by index). Its sums may break the whole-positive rule: check it with `evaluateGrid`. */
+function randomGrid(rng: Rng, numbers: readonly number[], k: number, preferLarge: boolean): GridFill {
   const order = rng.shuffle(numbers.map((_, i) => i));
   if (preferLarge) {
     const at = order.findIndex((i) => numbers[i] > 10);
     if (at > 0) [order[0], order[at]] = [order[at], order[0]];
   }
-  let tiles = order.slice(0, k).map((i) => numbers[i]);
-  while (tiles.length > 1) {
-    const options: { i: number; j: number; step: Step }[] = [];
-    for (let i = 0; i < tiles.length; i++) {
-      for (let j = i + 1; j < tiles.length; j++) {
-        for (const step of joins(tiles[i], tiles[j])) options.push({ i, j, step });
-      }
+  const picked = rng.shuffle(order.slice(0, k));
+  let fill = emptyFill();
+  let used = 0;
+  rng.pick(SHAPES[k]).forEach((size, r) => {
+    const row = r as RowIndex;
+    if (row > 0) fill = place(fill, { row, kind: 'rowOp' }, rng.pick(PALETTE));
+    for (let i = 0; i < size; i++) {
+      fill = place(fill, { row, kind: 'num', i: i as 0 | 1 | 2 }, picked[used++]);
+      if (i < size - 1) fill = place(fill, { row, kind: 'op', i: i as 0 | 1 }, rng.pick(PALETTE));
     }
-    const { i, j, step } = rng.pick(options);
-    tiles = tiles.filter((_, x) => x !== i && x !== j);
-    tiles.push(step.result);
-  }
-  return tiles[0];
+  });
+  return fill;
 }
 
 /** Build the lock for a seed. Retries with derived draws until the tier rules hold. */
@@ -122,19 +70,20 @@ export function buildLock(seed: string, level: Level): Lock {
   const tier = TIERS[level];
   const rng = new Rng(hashSeed(`${seed}-lock-${level}`));
   for (let attempt = 0; attempt < 5000; attempt++) {
-    const numbers = [
+    const numbers = rng.shuffle([
       ...Array.from({ length: tier.small }, () => 1 + rng.int(10)),
       ...rng.shuffle(LARGE_NUMBERS).slice(0, tier.large),
-    ];
-    const shuffled = rng.shuffle(numbers);
+    ]);
+    const hand = lockHand({ numbers });
     const k = level === 'easy' ? 2 + rng.int(2) : level === 'medium' ? 3 + rng.int(2) : 4;
-    const target = forward(rng, shuffled, k, level !== 'easy');
-    if (target < tier.lo || target > tier.hi || shuffled.includes(target)) continue;
+    // Forwards: a random grid that works makes a target the grid can always reach.
+    const target = evaluateGrid(hand, randomGrid(rng, numbers, k, level !== 'easy')).answer;
+    if (target === null || target < tier.lo || target > tier.hi || numbers.includes(target)) continue;
     // Hard: the shortest exact way must need 4 numbers or more.
-    if (level === 'hard' && solveLock(shuffled, target, 2)) continue;
-    const way = solveLock(shuffled, target, k - 1);
+    if (level === 'hard' && solveGrid(hand, target, 3)) continue;
+    const way = solveGrid(hand, target, k);
     if (!way) continue;
-    return { numbers: shuffled, target, way };
+    return { numbers, target, way: way.fill };
   }
   throw new Error(`no lock found for ${seed} (${level})`);
 }
@@ -152,76 +101,52 @@ export function lockAccepts(lock: Lock, value: number, closeEnoughCount: number)
   return value >= lo && value <= hi;
 }
 
-// --- Her tiles ---
+// --- Prefixes of the stored way (notes and hints) ---
 
-/** A tile she holds: its value and how many of the starting numbers went into it. */
-export interface LockTile {
-  value: number;
-  uses: number;
+const rowSize = (row: GridFill[number]) => row.nums.filter((n) => n !== null).length;
+
+/** How many numbers of the way a note or each hint step fills in: [start, most, all]. */
+export function wayCounts(way: GridFill): [number, number, number] {
+  const sizes = way.map(rowSize).filter((s) => s > 0);
+  const all = sizes.reduce((a, b) => a + b, 0);
+  const rows = sizes.length;
+  // The first row; for a one-row way its first two numbers (never the whole way).
+  const start = rows >= 2 ? sizes[0] : Math.min(2, all - 1);
+  // All but the last row; for one or two rows, one more number than the start where possible.
+  const most = rows >= 3 ? all - sizes[rows - 1] : Math.max(start, Math.min(start + 1, all - 1));
+  return [start, most, all];
 }
 
-/** Combine tile `a` with tile `b` (value a op value b), by index. */
-export interface LockMove {
-  a: number;
-  b: number;
-  op: Op;
+/** The way's first `count` numbers in reading order, each with the operator before it. */
+export function wayPrefix(way: GridFill, count: number): GridFill {
+  let left = count;
+  return way.map((row) => {
+    const nums: (number | null)[] = [null, null, null];
+    const ops: (GridFill[number]['ops'][number])[] = [null, null];
+    let rowOp: GridFill[number]['rowOp'] = null;
+    for (let i = 0; i < 3 && left > 0 && row.nums[i] !== null; i++, left--) {
+      nums[i] = row.nums[i];
+      if (i > 0) ops[i - 1] = row.ops[i - 1];
+      else rowOp = row.rowOp;
+    }
+    return { rowOp, nums, ops } as unknown as GridFill[number];
+  });
 }
 
-export function lockStart(numbers: readonly number[]): LockTile[] {
-  return numbers.map((value) => ({ value, uses: 1 }));
-}
-
-/** Apply a move: the two tiles are spent and the result joins the end. Null when it isn't allowed. */
-export function lockMove(tiles: readonly LockTile[], move: LockMove): { tiles: LockTile[]; step: Step } | null {
-  const { a, b, op } = move;
-  if (a === b || !tiles[a] || !tiles[b]) return null;
-  const step = exactStep(tiles[a].value, tiles[b].value, op);
-  if (!step) return null;
-  const next = tiles.filter((_, i) => i !== a && i !== b);
-  next.push({ value: step.result, uses: tiles[a].uses + tiles[b].uses });
-  return { tiles: next, step };
-}
-
-/** Replay her moves from the starting numbers. Moves that are not allowed are skipped. */
-export function lockTiles(numbers: readonly number[], moves: readonly LockMove[]): LockTile[] {
-  let tiles = lockStart(numbers);
-  for (const move of moves) tiles = lockMove(tiles, move)?.tiles ?? tiles;
-  return tiles;
-}
-
-export function undoMove(moves: readonly LockMove[]): LockMove[] {
-  return moves.slice(0, -1);
-}
-
-/** The tile she may submit: the newest one, if it is built from at least two numbers. */
-export function lockSubmittable(tiles: readonly LockTile[]): LockTile | null {
-  const last = tiles[tiles.length - 1];
-  return last && last.uses >= 2 ? last : null;
-}
+/** What the cat's note fills in at the start: the way's first row (see `wayCounts`). */
+export const lockNote = (lock: Lock): GridFill => wayPrefix(lock.way, wayCounts(lock.way)[0]);
 
 // --- Hints ---
 
 export type LockHint =
-  /** Step 0: the two tiles to combine next (indexes into her tiles). */
-  | { kind: 'tiles'; a: number; b: number }
-  /** Step 1: that step as a move. */
-  | { kind: 'move'; move: LockMove; step: Step }
-  /** Step 2: the whole remaining way. */
-  | { kind: 'way'; steps: Step[] }
-  /** She holds a tile that is the target. */
+  /** Her grid is the target already: try it. */
   | { kind: 'submit' }
-  /** No way from her tiles: take a step back. */
-  | { kind: 'undo' };
+  /** Step 0 the start of the way, step 1 most of it, step 2 all of it; it replaces her grid. */
+  | { kind: 'fill'; step: 0 | 1 | 2; fill: GridFill };
 
-export function lockHint(lock: Lock, tiles: readonly LockTile[], step: number): LockHint {
-  if (tiles.some((t) => t.uses >= 2 && t.value === lock.target)) return { kind: 'submit' };
-  const fresh = tiles.length === lock.numbers.length && tiles.every((t) => t.uses === 1);
-  const way = fresh ? lock.way : solveLock(tiles.map((t) => t.value), lock.target, Math.min(tiles.length - 1, 4));
-  if (!way || way.length === 0) return { kind: 'undo' };
-  if (step >= 2) return { kind: 'way', steps: way };
-  const first = way[0];
-  const a = tiles.findIndex((t) => t.value === first.a);
-  const b = tiles.findIndex((t, i) => i !== a && t.value === first.b);
-  if (step <= 0) return { kind: 'tiles', a, b };
-  return { kind: 'move', move: { a, b, op: first.op }, step: first };
+export function lockHint(lock: Lock, fill: GridFill, step: number): LockHint {
+  const ev = evaluateGrid(lockHand(lock), fill);
+  if (ev.submittable && ev.answer === lock.target) return { kind: 'submit' };
+  const s = Math.max(0, Math.min(step, 2)) as 0 | 1 | 2;
+  return { kind: 'fill', step: s, fill: wayPrefix(lock.way, wayCounts(lock.way)[s]) };
 }

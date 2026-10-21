@@ -236,6 +236,8 @@ again with the same questions.
 
 ## Next build: the number grid and the dog
 
+Built 2026-10-22 (the grid, the lock on it, the dog fight); the speed round below is still to do.
+
 Talked through with the owner on 2026-10-22, before she had played the first build. The grid is one
 shared piece: the lock moves onto it, and the dog fight is played on it. Later the cat-vs-dog game can
 grow into a deck builder of its own (see the "dog card battle" entry in `docs/next-sessions.md`); this
@@ -319,11 +321,31 @@ Also from 2026-10-22, the owner's idea; can go in the same build or right after.
 - A wrong tap costs 3 seconds off the timer, so tapping at random can't climb the tiers.
 - Plain board questions could use 4 cards the same way and retire `NumberPad`; decide when building.
 
-### Still open
+### Settled (2026-10-22)
 
-- Which snake heads get the dog: suggested one dog per run on medium and hard, none on easy.
-- Whether the dog's 3 lives make the encounter too long on the board (about 4–6 rounds); if so, the dog
-  starts on 2.
+- **One dog per run on every level**, on a snake head picked from the seed; the dog replaces that
+  snake's question. On easy it is the only snake, with the 40-card deck and no ÷.
+- **The dog stops her passing.** Landing only on the square met it in about 1 run in 6, so any move onto
+  or past the dog's square stops there for the fight. Win: she carries on to where the move would have
+  taken her. Lose: she slides down that snake. The turn bounds model the stop.
+- **Both start on 3 lives.** A first try with the dog on 2 ended most fights in one turn: her best is
+  usually a multiply-everything grid, so a play from the dog's middle range was nearly always doubleable.
+  So on attack the dog now plays in strict tiers. A third of the time it plays at most half her best, so
+  a double is there. Otherwise it plays above half her best and at most her best, so it can only be
+  beaten. It redeals rather than cross tiers. The operator deck may lose a × to keep fights about
+  arithmetic, decided by tuning runs (see `dogCards.ts`).
+- **Old saves:** no prefix bump (that would wipe the campaign). On load, a nosing save holding old
+  `combine` lock moves keeps its board moves and drops its lock moves, so she starts the lock again.
+- **Speed round fill-in-the-blank** comes after the dog, as its own brief.
+- Smaller calls made while splitting the build:
+  - Cards go in by tap: tap a card, then a slot. Tapping a filled slot clears it. Drag can come later.
+  - Each row's total and running total sit on a small line under the row, so the six slots keep 44px
+    at 360px.
+  - Lock `note` fills the first row of the stored way, never the whole way. For a one-row way it places
+    the first two numbers and their op.
+  - An attack that falls short costs nothing; only a failed defence costs the cat a life.
+  - The dog's reward is two bonuses drawn from the seed, never `steps`, so the turn bounds are unchanged
+    (a win keeps the cat on the snake head, a loss is the slip).
 
 ## To check on the phone
 

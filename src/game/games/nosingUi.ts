@@ -3,7 +3,7 @@
 
 import type { House } from '../../engine/types.ts';
 import type { NosingBoard } from '../../games/nosingBoard.ts';
-import type { Op, Step } from '../../games/lock.ts';
+import type { Op } from '../../games/lock.ts';
 
 export interface Point {
   x: number;
@@ -159,10 +159,7 @@ export function diceFaces(dice: number, total: number): number[] {
 // --- Wording ---
 
 export const OP_SIGN: Readonly<Record<Op, string>> = { '+': '+', '-': '−', '*': '×', '/': '÷' };
-export const OPS: readonly Op[] = ['+', '-', '*', '/'];
 export const OP_NAME: Readonly<Record<Op, string>> = { '+': 'plus', '-': 'minus', '*': 'times', '/': 'divided by' };
-
-export const stepText = (s: Step): string => `${s.a} ${OP_SIGN[s.op]} ${s.b} = ${s.result}`;
 
 /** "square 7": squares count from 1 for her. */
 export const squareName = (pathIndex: number): string => `square ${pathIndex + 1}`;

@@ -100,6 +100,14 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false }: Props)
           <g key={`s${i}`} className={`nosing-snake ${used ? 'used' : ''}`}>
             <path d={woolPath(a, b)} />
             <circle className="nosing-wool" cx={a.x} cy={a.y} r={0.2 * unit} />
+            {i === puzzle.dogSquare && !used && (
+              <g className="nosing-dog-mark" transform={`translate(${a.x} ${a.y - (compact ? 0.1 : 0.3) * unit}) scale(${(compact ? 7 : 1.2) * unit})`}>
+                <title>A dog is waiting here</title>
+                <path className="nosing-dog-ear" d="M-0.2 -0.14 L-0.3 0.04 L-0.14 0 Z M0.2 -0.14 L0.3 0.04 L0.14 0 Z" />
+                <ellipse rx="0.18" ry="0.16" />
+                <ellipse className="nosing-dog-nose" cx="0" cy="0.05" rx="0.06" ry="0.04" />
+              </g>
+            )}
           </g>
         );
       })}

@@ -4,9 +4,11 @@
 
 import { Rng, hashSeed } from '../engine/rng.ts';
 import type { House } from '../engine/types.ts';
-import { nosingBonuses, nosingCatFindLines, nosingLockObjects, nosingSearchLines, type NosingJump, type NosingLockObject } from '../content/nosing.ts';
+import { nosingBonuses, nosingCatFindLines, nosingDog, nosingLockObjects, nosingSearchLines, type NosingJump, type NosingLockObject } from '../content/nosing.ts';
 import {
+  BONUS_KINDS,
   buildNosingBoard,
+  pickDogSquare,
   nosingRollSeed,
   rerollFor,
   rollFor,
@@ -19,22 +21,23 @@ import {
   type NosingLevel,
 } from './nosingBoard.ts';
 import { question, questionHint, type Question } from './mentalMaths.ts';
+import { buildDogFight, dogApply, dogSimView, dogStart, type DogFight, type DogHint, type DogSim, type DogView } from './dogFight.ts';
 import { SPEED_COUNT, SPEED_SECONDS, speedQuestions, speedReward, type SpeedQuestion } from './speedRound.ts';
+import { buildLock, lockAccepts, lockHand, lockHint, lockNote, lockWindow, type Lock, type LockHint, type Op } from './lock.ts';
 import {
-  buildLock,
-  lockAccepts,
-  lockMove,
-  lockHint,
-  lockStart,
-  lockSubmittable,
-  lockWindow,
-  type Lock,
-  type LockHint,
-  type LockMove,
-  type LockTile,
-  type Op,
-  type Step,
-} from './lock.ts';
+  PALETTE,
+  allSlots,
+  clear,
+  emptyFill,
+  evaluateGrid,
+  getSlot,
+  place,
+  usedNumbers,
+  type GridEval,
+  type GridFill,
+  type Hand,
+  type Slot,
+} from './numberGrid.ts';
 
 // --- The puzzle ---
 
@@ -57,6 +60,10 @@ export interface NosingPuzzle {
   lockClues: string[];
   ladders: readonly NosingJump[];
   snakes: readonly NosingJump[];
+  /** The snake head (a path index) where the dog waits. It has no question. */
+  dogSquare: number;
+  /** The dog's fight, built once. */
+  dogFight: DogFight;
 }
 
 export interface BuildNosingOptions {
@@ -90,6 +97,9 @@ export function buildNosing(o: BuildNosingOptions): NosingPuzzle {
     if (sq.kind === 'ladder' || sq.kind === 'snake' || sq.kind === 'obstacle' || sq.kind === 'search') questions[i] = question(`${seed}-q-${i}`, level);
     else if (sq.kind === 'speed') speed[i] = speedQuestions(`${seed}-speed-${i}`, level);
   });
+  // One dog per run, on a snake head picked from the seed; the dog replaces that snake's question.
+  const dogSquare = pickDogSquare(board, seed);
+  delete questions[dogSquare];
   const lockObject = new Rng(hashSeed(`${seed}-object`)).pick(nosingLockObjects);
   return {
     seed,
@@ -105,6 +115,8 @@ export function buildNosing(o: BuildNosingOptions): NosingPuzzle {
     lockClues: clues.slice(split.search),
     ladders,
     snakes,
+    dogSquare,
+    dogFight: buildDogFight(`${seed}-dog-${dogSquare}`, level),
   };
 }
 
@@ -115,9 +127,14 @@ export type NosingMove =
   | { t: 'reroll' }
   | { t: 'answer'; value: number }
   | { t: 'speed'; right: number }
-  | { t: 'combine'; a: number; b: number; op: Op }
-  | { t: 'undo' }
+  /** At the lock: put a card in a slot. A number card is an index into `lock.numbers`; an operator is a palette `Op`. */
+  | { t: 'place'; slot: Slot; card: number | Op }
+  | { t: 'clear'; slot: Slot }
+  | { t: 'clearAll' }
+  /** At the lock: submit the grid's answer. */
   | { t: 'try' }
+  /** In the dog fight: play the grid. (`place`, `clear` and `clearAll` act on the fight's grid there; a card is an index into the fight hand.) */
+  | { t: 'play' }
   /** A cat hint was taken (also counted in `hints`); it lets the next hint be a step stronger. */
   | { t: 'hint' };
 
@@ -129,12 +146,37 @@ export interface NosingState {
 
 export const nosingInitial = (): NosingState => ({ moves: [], hints: 0 });
 
+/** A move from before the lock moved onto the number grid. */
+export type LegacyNosingMove = { t: 'combine'; a: number; b: number; op: Op } | { t: 'undo' };
+
+/** A save as read from storage: it may still hold moves from the old tile lock. */
+export interface SavedNosingState {
+  moves: (NosingMove | LegacyNosingMove)[];
+  hints: number;
+  solved?: 'revealed';
+}
+
+/**
+ * Old saves: the lock used to be tiles joined by `combine` and `undo`. From the
+ * first of those (or the first `try`, which then meant a tile's value) on, the
+ * moves belonged to the lock, the last square, so they are dropped; `hints` and
+ * `solved` stay. A state with none of them comes back as it is. When the game is
+ * already `finished`, the cut leaves it open as `revealed`, so its clues stay.
+ */
+export function nosingUpgrade(state: SavedNosingState, finished = false): NosingState {
+  const old = (m: { t: string }) => m.t === 'combine' || m.t === 'undo';
+  if (!state.moves.some(old)) return state as NosingState;
+  const cut = state.moves.findIndex((m) => old(m) || m.t === 'try');
+  const moves = state.moves.slice(0, cut) as NosingMove[];
+  return finished && !state.solved ? { ...state, moves, solved: 'revealed' } : { ...state, moves };
+}
+
 export const TRIES = 3;
 export { STEPS_BONUS };
 
 // --- The view ---
 
-export type NosingPhase = 'roll' | 'rolled' | 'question' | 'speed' | 'lock' | 'open';
+export type NosingPhase = 'roll' | 'rolled' | 'question' | 'dog' | 'speed' | 'lock' | 'open';
 
 export interface NosingQuestionView {
   /** The path index of the square. */
@@ -180,17 +222,23 @@ export interface NosingView {
   waiting: string[];
   question: NosingQuestionView | null;
   speed: NosingSpeedView | null;
-  /** The lock: her tiles, the one she may try, tries left, what it accepts. */
-  tiles: LockTile[];
-  submittable: LockTile | null;
+  /** The dog fight: in the `dog` phase, and after the move that ends it (so its result can show); null otherwise. */
+  dog: DogView | null;
+  /** The lock: her grid, how it adds up, the cards she holds, the slots the cat filled (she can't clear them), tries left, what it accepts. */
+  grid: GridFill;
+  evaluation: GridEval;
+  hand: Hand;
+  locked: Slot[];
   triesLeft: number;
   window: [number, number];
   /** With a torch: a number the stored way never uses. */
   torch: number | null;
-  /** Close but not exact: the cat's bout of inspiration, the exact way to show. */
-  inspiration: Step[] | null;
+  /** With a torch: the index in `hand.numbers` of that card. */
+  torchCard: number | null;
+  /** Close but not exact: the cat's bout of inspiration, the exact way to show (show it with `gridLines`). */
+  inspiration: GridFill | null;
   /** When the lock opened as `revealed`: the exact way to show. */
-  way: Step[] | null;
+  way: GridFill | null;
   finished: 'won' | 'revealed' | null;
   /** How many hints she has already taken on this question or lock position. */
   hintStep: number;
@@ -216,15 +264,21 @@ interface Sim {
   found: string[];
   waiting: string[];
   square: number | null;
-  tileStack: LockTile[][];
+  /** Her grid, and the base it can't go below (the cat's note). */
+  fill: GridFill;
+  base: GridFill;
   triesUsed: number;
   triesTotal: number;
   finished: 'won' | 'revealed' | null;
-  inspiration: Step[] | null;
-  way: Step[] | null;
+  inspiration: GridFill | null;
+  way: GridFill | null;
   hintRun: number;
   messages: string[];
   working: string[] | null;
+  /** The running dog fight (kept after it ends, until the next move). */
+  fight: DogSim | null;
+  /** While the dog has stopped the cat: where the move was going, and whether that square then triggers (a roll) or not (steps, a ladder). */
+  resume: { to: number; land: boolean } | null;
 }
 
 const noBonuses = (): Record<BonusKind, number> => ({ steps: 0, spareTry: 0, torch: 0, note: 0, reroll: 0, closeEnough: 0 });
@@ -244,7 +298,8 @@ function newSim(): Sim {
     found: [],
     waiting: [],
     square: null,
-    tileStack: [],
+    fill: emptyFill(),
+    base: emptyFill(),
     triesUsed: 0,
     triesTotal: TRIES,
     finished: null,
@@ -253,26 +308,43 @@ function newSim(): Sim {
     hintRun: 0,
     messages: [],
     working: null,
+    fight: null,
+    resume: null,
   };
 }
 
 const lastOf = (p: NosingPuzzle) => p.board.path.length - 1;
-const tilesOf = (sim: Sim) => sim.tileStack[sim.tileStack.length - 1] ?? [];
-
-/** The move that makes `step` from the tiles she holds. */
-function moveFor(tiles: readonly LockTile[], step: Step): LockMove | null {
-  const a = tiles.findIndex((t) => t.value === step.a);
-  const b = tiles.findIndex((t, i) => i !== a && t.value === step.b);
-  return a < 0 || b < 0 ? null : { a, b, op: step.op };
-}
+const lockedSlots = (sim: Sim): Slot[] => allSlots().filter((s) => getSlot(sim.base, s) !== null);
+const isLocked = (sim: Sim, slot: Slot) => getSlot(sim.base, slot) !== null;
+const sameFill = (a: GridFill, b: GridFill) => JSON.stringify(a) === JSON.stringify(b);
 
 function gain(p: NosingPuzzle, sim: Sim, kind: BonusKind): void {
   const info = nosingBonuses[kind];
   sim.messages.push(`${info.name}. ${info.copy}`);
   if (kind === 'steps') {
-    sim.pos = stepsFrom(sim.pos, p.board.path.length);
-    sim.trail.push(sim.pos);
+    const len = p.board.path.length;
+    if (sim.resume) sim.resume.to = stepsFrom(sim.resume.to, len); // already stopped by the dog: the steps carry on from where it was going
+    else carryTo(p, sim, stepsFrom(sim.pos, len), false);
   } else sim.bonuses[kind]++;
+}
+
+/**
+ * Moves the cat to `to`, unless the dog is still here and `to` is on or past its square:
+ * then the cat stops on the dog's square and the fight starts, and `to` waits in `resume`.
+ */
+function carryTo(p: NosingPuzzle, sim: Sim, to: number, land: boolean): void {
+  const d = p.dogSquare;
+  if (!sim.usedSnakes.has(d) && sim.pos < d && to >= d) {
+    sim.pos = d;
+    sim.trail.push(d);
+    sim.resume = { to, land };
+    sim.phase = 'dog';
+    sim.square = d;
+    sim.fight = dogStart(p.dogFight);
+  } else {
+    sim.pos = to;
+    sim.trail.push(to);
+  }
 }
 
 function enterLock(p: NosingPuzzle, sim: Sim): void {
@@ -280,18 +352,11 @@ function enterLock(p: NosingPuzzle, sim: Sim): void {
   sim.pendingRoll = null;
   sim.square = null;
   sim.triesTotal = TRIES + sim.bonuses.spareTry;
-  let tiles = lockStart(p.lock.numbers);
-  // A note from the cat does the first step(s) of the stored way, never the last.
-  const notes = Math.min(sim.bonuses.note, p.lock.way.length - 1);
-  for (let i = 0; i < notes; i++) {
-    const move = moveFor(tiles, p.lock.way[i]);
-    const next = move && lockMove(tiles, move);
-    if (!next) break;
-    tiles = next.tiles;
-  }
-  // The base is the starting numbers plus the note's work: undo never goes below it.
-  sim.tileStack = [tiles];
-  if (notes > 0) sim.messages.push('The cat did the first step of the lock for you.');
+  // A note from the cat fills in the start of the stored way (several notes go no further).
+  // Those slots are locked: Clear leaves them.
+  sim.base = sim.bonuses.note > 0 ? lockNote(p.lock) : emptyFill();
+  sim.fill = sim.base;
+  if (sim.bonuses.note > 0) sim.messages.push('The cat filled in the start of the lock for you.');
 }
 
 function openLock(p: NosingPuzzle, sim: Sim, how: 'won' | 'revealed'): void {
@@ -326,6 +391,7 @@ function land(p: NosingPuzzle, sim: Sim): void {
       ask();
       break;
     case 'snake':
+      // The dog's square is never asked: the dog stops the cat there (`carryTo`), then it is a used snake.
       if (!sim.usedSnakes.has(sim.pos)) ask();
       break;
     case 'obstacle':
@@ -344,9 +410,8 @@ function moveCat(p: NosingPuzzle, sim: Sim, roll: number): void {
   sim.lastRoll = roll;
   sim.pendingRoll = null;
   sim.turn++;
-  sim.pos = Math.min(sim.pos + roll, lastOf(p));
-  sim.trail.push(sim.pos);
-  land(p, sim);
+  carryTo(p, sim, Math.min(sim.pos + roll, lastOf(p)), true);
+  if (sim.phase !== 'dog') land(p, sim);
 }
 
 function searchLine(p: NosingPuzzle, pos: number): string {
@@ -372,9 +437,8 @@ function answer(p: NosingPuzzle, sim: Sim, value: number): void {
       if (right) {
         const c = p.ladders.find((l) => l.id === sq.contentId);
         sim.takenLadders.add(at);
-        sim.pos = answerDestination(sq, at, true, p.board.path.length);
-        sim.trail.push(sim.pos);
         sim.messages.push(c ? c.description : 'The cat took a shortcut.');
+        carryTo(p, sim, answerDestination(sq, at, true, p.board.path.length), false);
       }
       break;
     }
@@ -414,6 +478,44 @@ function answer(p: NosingPuzzle, sim: Sim, value: number): void {
   }
 }
 
+/** The bonuses a won fight pays: two draws from the seed, never `steps`, so the turn bounds are unchanged. */
+export function dogReward(seed: string): BonusKind[] {
+  const kinds = BONUS_KINDS.filter((k) => k !== 'steps');
+  const rng = new Rng(hashSeed(`${seed}-dog-reward`));
+  return [rng.pick(kinds), rng.pick(kinds)];
+}
+
+/**
+ * The fight is over. A win is a right answer on the snake (the cat stays put), a
+ * loss a wrong one (it slides); either way the snake is used and the dog is gone.
+ */
+function endDog(p: NosingPuzzle, sim: Sim, won: boolean): void {
+  const at = sim.square!;
+  const sq = p.board.squares[at];
+  sim.square = null;
+  sim.phase = 'roll';
+  sim.usedSnakes.add(at);
+  const resume = sim.resume;
+  sim.resume = null;
+  if (won) {
+    sim.messages.push(nosingDog.win);
+    for (const kind of dogReward(p.seed)) gain(p, sim, kind);
+    // The cat carries on to where the move was going; a rolled-to square triggers as normal.
+    if (resume && resume.to !== at) {
+      sim.pos = resume.to;
+      sim.trail.push(sim.pos);
+      if (resume.land) land(p, sim);
+      settle(p, sim);
+    }
+  } else {
+    const c = p.snakes.find((l) => l.id === sq.contentId);
+    sim.pos = answerDestination(sq, at, false, p.board.path.length);
+    sim.trail.push(sim.pos);
+    sim.messages.push(nosingDog.lose(`square ${sim.pos + 1}`));
+    if (c) sim.messages.push(c.description);
+  }
+}
+
 /** The cat on the last square goes to the lock (once). */
 function settle(p: NosingPuzzle, sim: Sim): void {
   if (sim.pos >= lastOf(p) && sim.phase !== 'lock' && sim.phase !== 'open') enterLock(p, sim);
@@ -422,9 +524,20 @@ function settle(p: NosingPuzzle, sim: Sim): void {
 /** Applies one move to `sim`. False (and `sim` untouched) when the move isn't legal now. */
 function act(p: NosingPuzzle, sim: Sim, move: NosingMove): boolean {
   if (sim.finished) return false;
+  // The fight's result is only in the view for the move that ended it.
+  if (sim.fight?.over) {
+    sim.fight = null;
+    sim.messages = [];
+  }
   switch (move.t) {
     case 'hint':
-      if (sim.phase !== 'question' && sim.phase !== 'lock') return false;
+      if (sim.phase !== 'question' && sim.phase !== 'lock' && sim.phase !== 'dog') return false;
+      if (sim.phase === 'dog') return dogApply(sim.fight!, { t: 'hint' }).ok;
+      if (sim.phase === 'lock') {
+        // A lock hint fills her grid with that much of the stored way.
+        const h = lockHint(p.lock, sim.fill, sim.hintRun);
+        if (h.kind === 'fill') sim.fill = h.fill;
+      }
       sim.hintRun++;
       return true;
     case 'roll': {
@@ -432,6 +545,7 @@ function act(p: NosingPuzzle, sim: Sim, move: NosingMove): boolean {
       sim.hintRun = 0;
       sim.messages = [];
       sim.working = null;
+      sim.fight = null;
       if (sim.phase === 'rolled') {
         moveCat(p, sim, sim.pendingRoll!);
       } else {
@@ -449,6 +563,7 @@ function act(p: NosingPuzzle, sim: Sim, move: NosingMove): boolean {
       sim.hintRun = 0;
       sim.messages = [];
       sim.working = null;
+      sim.fight = null;
       sim.bonuses.reroll--;
       moveCat(p, sim, rerollFor(nosingRollSeed(p.seed, p.board.attempt), p.level, sim.turn));
       break;
@@ -474,34 +589,60 @@ function act(p: NosingPuzzle, sim: Sim, move: NosingMove): boolean {
       if (reward.steps) gain(p, sim, 'steps');
       break;
     }
-    case 'combine': {
+    case 'place': {
+      if (sim.phase === 'dog') return typeof move.card === 'number' && dogApply(sim.fight!, { t: 'place', slot: move.slot, card: move.card }).ok;
       if (sim.phase !== 'lock') return false;
-      const next = lockMove(tilesOf(sim), { a: move.a, b: move.b, op: move.op });
-      if (!next) return false;
+      const { slot, card } = move;
+      const valid =
+        slot.kind === 'num'
+          ? Number.isInteger(card) && (card as number) >= 0 && (card as number) < p.lock.numbers.length
+          : PALETTE.includes(card as Op);
+      if (!valid || getSlot(sim.fill, slot) === card || isLocked(sim, slot)) return false;
+      const next = place(sim.fill, slot, card);
+      if (next === sim.fill) return false; // that number is already placed
       sim.hintRun = 0;
       sim.messages = [];
       sim.working = null;
-      sim.tileStack.push(next.tiles);
+      sim.fill = next;
       return true;
     }
-    case 'undo': {
-      if (sim.phase !== 'lock' || sim.tileStack.length < 2) return false;
+    case 'clear': {
+      if (sim.phase === 'dog') return dogApply(sim.fight!, move).ok;
+      if (sim.phase !== 'lock' || getSlot(sim.fill, move.slot) === null || isLocked(sim, move.slot)) return false;
       sim.hintRun = 0;
       sim.messages = [];
       sim.working = null;
-      sim.tileStack.pop();
+      sim.fill = clear(sim.fill, move.slot);
+      return true;
+    }
+    case 'clearAll': {
+      if (sim.phase === 'dog') return dogApply(sim.fight!, move).ok;
+      if (sim.phase !== 'lock' || sameFill(sim.fill, sim.base)) return false;
+      sim.hintRun = 0;
+      sim.messages = [];
+      sim.working = null;
+      sim.fill = sim.base;
+      return true;
+    }
+    case 'play': {
+      if (sim.phase !== 'dog') return false;
+      sim.messages = [];
+      if (!dogApply(sim.fight!, move).ok) return false;
+      const over = sim.fight!.over;
+      if (over) endDog(p, sim, over === 'won');
       return true;
     }
     case 'try': {
       if (sim.phase !== 'lock') return false;
-      const tile = lockSubmittable(tilesOf(sim));
-      if (!tile || sim.triesUsed >= sim.triesTotal) return false;
+      const ev = evaluateGrid(lockHand(p.lock), sim.fill);
+      if (!ev.submittable || sim.triesUsed >= sim.triesTotal) return false;
+      const value = ev.answer!;
       sim.hintRun = 0;
       sim.messages = [];
       sim.working = null;
       sim.triesUsed++;
-      if (lockAccepts(p.lock, tile.value, sim.bonuses.closeEnough)) {
-        if (tile.value !== p.lock.target) {
+      if (lockAccepts(p.lock, value, sim.bonuses.closeEnough)) {
+        if (value !== p.lock.target) {
           sim.inspiration = p.lock.way;
           sim.messages.push('Close enough. The cat has a bout of inspiration and shows the exact way.');
         }
@@ -528,27 +669,22 @@ function replay(p: NosingPuzzle, state: NosingState): Sim {
     sim.trail.push(lastOf(p));
     if (sim.phase !== 'lock') {
       sim.phase = 'lock';
-      sim.tileStack = [lockStart(p.lock.numbers)];
+      sim.fill = emptyFill();
+      sim.base = sim.fill;
     }
     sim.square = null;
     sim.pendingRoll = null;
+    sim.fight = null;
     openLock(p, sim, 'revealed');
     sim.messages.push('The cat shows the way and the lock opens.');
   }
   return sim;
 }
 
-/** The numbers (by value) the stored way never uses, first one first. */
+/** The indexes of the numbers the stored way never uses, first one first. */
 function unusedNumbers(lock: Lock): number[] {
-  let tiles = lock.numbers.map((value, i) => ({ value, from: [i] }));
-  for (const s of lock.way) {
-    const a = tiles.findIndex((t) => t.value === s.a);
-    const b = tiles.findIndex((t, i) => i !== a && t.value === s.b);
-    const joined = { value: s.result, from: [...tiles[a].from, ...tiles[b].from] };
-    tiles = [...tiles.filter((_, i) => i !== a && i !== b), joined];
-  }
-  const used = new Set(tiles.flatMap((t) => t.from));
-  return lock.numbers.filter((_, i) => !used.has(i));
+  const used = new Set(usedNumbers(lock.way));
+  return lock.numbers.map((_, i) => i).filter((i) => !used.has(i));
 }
 
 export function nosingView(p: NosingPuzzle, state: NosingState): NosingView {
@@ -569,7 +705,7 @@ export function nosingView(p: NosingPuzzle, state: NosingState): NosingView {
   const speed: NosingSpeedView | null =
     sim.phase === 'speed' ? { square: sim.pos, questions: p.speed[sim.pos], seconds: SPEED_SECONDS } : null;
   const unused = sim.bonuses.torch > 0 ? unusedNumbers(p.lock) : [];
-  const tiles = tilesOf(sim);
+  const hand = lockHand(p.lock);
   return {
     phase: sim.phase,
     turn: sim.turn,
@@ -584,15 +720,19 @@ export function nosingView(p: NosingPuzzle, state: NosingState): NosingView {
     waiting: sim.waiting.slice(),
     question,
     speed,
-    tiles: tiles.slice(),
-    submittable: lockSubmittable(tiles),
+    dog: sim.fight ? dogSimView(p.dogFight, sim.fight) : null,
+    grid: sim.fill,
+    evaluation: evaluateGrid(hand, sim.fill),
+    hand,
+    locked: lockedSlots(sim),
     triesLeft: Math.max(0, sim.triesTotal - sim.triesUsed),
     window: lockWindow(p.lock.target, sim.bonuses.closeEnough),
-    torch: unused.length ? unused[0] : null,
+    torch: unused.length ? p.lock.numbers[unused[0]] : null,
+    torchCard: unused.length ? unused[0] : null,
     inspiration: sim.inspiration,
     way: sim.way,
     finished: sim.finished,
-    hintStep: sim.hintRun,
+    hintStep: sim.phase === 'dog' && sim.fight ? sim.fight.hintRun : sim.hintRun,
     messages: sim.messages.slice(),
     working: sim.working,
   };
@@ -615,7 +755,9 @@ export type NosingHint =
   /** In a question: step 0 first line of the working, 1 the three choices, 2 the answer. */
   | { kind: 'question'; step: number; text: string; choices: [number, number, number] | null; answer: number | null }
   /** At the lock: see `LockHint`. */
-  | { kind: 'lock'; hint: LockHint };
+  | { kind: 'lock'; hint: LockHint }
+  /** In the dog fight: see `DogHint`. */
+  | { kind: 'dog'; hint: DogHint };
 
 /** A cat hint for the question or lock she is on, and the state with the hint counted. Null elsewhere (never in the speed round). */
 export function nosingHint(p: NosingPuzzle, state: NosingState): { hint: NosingHint; state: NosingState } | null {
@@ -627,7 +769,11 @@ export function nosingHint(p: NosingPuzzle, state: NosingState): { hint: NosingH
     const step = sim.hintRun;
     hint = { kind: 'question', step, text: questionHint(q, step), choices: step === 1 ? q.choices : null, answer: step >= 2 ? q.answer : null };
   } else if (sim.phase === 'lock') {
-    hint = { kind: 'lock', hint: lockHint(p.lock, tilesOf(sim), sim.hintRun) };
+    hint = { kind: 'lock', hint: lockHint(p.lock, sim.fill, sim.hintRun) };
+  } else if (sim.phase === 'dog') {
+    const r = dogApply(sim.fight!, { t: 'hint' });
+    if (!r.ok || !r.hint) return null;
+    hint = { kind: 'dog', hint: r.hint };
   } else return null;
   return { hint, state: { ...state, moves: [...state.moves, { t: 'hint' }], hints: state.hints + 1 } };
 }

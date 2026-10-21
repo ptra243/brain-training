@@ -58,3 +58,16 @@ Pure puzzle logic, no React. Components live in `src/game/games/`.
   the speed round. The exact turn bounds model ladders, snakes and the `steps` bonus (shared helpers in `nosingBoard.ts`), so every run, however she answers, takes `NOSING_LEVELS[level].turns`. Tests drive bots that follow hints, are always wrong, and answer at random,
   over 100 seeds per level; `check-cases` covers every
   scene room at every level.
+- **Number grid** (`numberGrid.ts`): the shared way she builds a number, used
+  by the lock and the dog fight. Up to 3 rows of at most 3 numbers; × ÷ before
+  + − inside a row, then a running total top down; only whole positive results.
+  A lock target must be reachable *in the grid's shape* (`solveGrid`), never
+  just with free brackets. Moves are `place`, `clear` and `clearAll`; old
+  `combine` and `undo` lock moves are dropped on load by `nosingUpgrade`.
+- **Dog fight** (`dogFight.ts`, cards in `src/content/dogCards.ts`): one
+  per Nosing run, on a seeded snake head. The dog only plays what she can
+  answer with her hand; on attack it is strict-tiered (a third of turns
+  doubleable, the rest only beatable). The dog stops the cat as it passes
+  (a roll, `steps` or a ladder onto or past its square). Following hints always wins; a win
+  carries the cat on to where the move was going and never gives `steps`, a
+  loss slides it; `nosingBounds` models the stop, so turn bounds hold.

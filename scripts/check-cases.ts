@@ -23,9 +23,11 @@ import { Rng, hashSeed } from '../src/engine/rng.ts';
 import { TAROT_MAX_PAIRS, tarotClueCards } from '../src/engine/tarotCards.ts';
 import { JOKER, buildTarot, flip, resolveTurn, tarotHint, tarotInitial, tarotSolved } from '../src/games/tarot.ts';
 import { nosingLadders, nosingSnakes } from '../src/content/nosing.ts';
-import { buildNosing, nosingSeed, nosingSplit, type NosingPuzzle } from '../src/games/nosing.ts';
+import { buildNosing, nosingInitial, nosingSeed, nosingSplit, nosingStep, nosingView, type NosingPuzzle } from '../src/games/nosing.ts';
 import { NOSING_LEVELS, nosingBounds } from '../src/games/nosingBoard.ts';
-import { solveLock } from '../src/games/lock.ts';
+import { lockHand } from '../src/games/lock.ts';
+import { dogApply, dogSimView, dogStart } from '../src/games/dogFight.ts';
+import { evaluateGrid, solveGrid } from '../src/games/numberGrid.ts';
 import { countCatSolutions, generateCats, solvableBySimpleSteps } from '../src/games/cats.ts';
 import { solutionAt } from '../src/games/crossword.ts';
 import { everyWordOnce, leftovers } from '../src/games/wordsearch.ts';
@@ -55,6 +57,47 @@ const talkChecked = { guests: 0, short: 0 };
 
 const tarotChecked: Record<string, number> = { easy: 0, medium: 0, hard: 0, none: 0 };
 const nosingChecked: Record<string, number> = { easy: 0, medium: 0, hard: 0, none: 0 };
+// The dog fights played by the hint bot: dog plays seen, and how many were the fallback (redeals found nothing).
+const dogPlays = { plays: 0, fallbacks: 0 };
+
+/** Whether a run meets the dog: a walker that answers every question right (or wrong) must be stopped by it before the lock. */
+function meetsDog(p: NosingPuzzle, right: boolean): boolean {
+  let s = nosingInitial();
+  for (let n = 0; n < 400; n++) {
+    const v = nosingView(p, s);
+    if (v.phase === 'dog') return true;
+    if (v.finished || v.phase === 'lock' || v.phase === 'open') return false;
+    const move =
+      v.phase === 'question' ? { t: 'answer' as const, value: v.question!.q.answer + (right ? 0 : 1) }
+      : v.phase === 'speed' ? { t: 'speed' as const, right: right ? 40 : 0 }
+      : { t: 'roll' as const };
+    const next = nosingStep(p, s, move);
+    if (next === s) return false;
+    s = next;
+  }
+  return false;
+}
+
+/** The hint bot (three hints, then play) wins the fight within 6 turns; counts the dog's plays. */
+function dogProblems(p: NosingPuzzle): string[] {
+  const out: string[] = [];
+  if (p.board.squares[p.dogSquare]?.kind !== 'snake') out.push(`nosing dog square ${p.dogSquare} is not a snake head`);
+  for (const right of [true, false]) if (!meetsDog(p, right)) out.push(`nosing run never meets the dog (answering ${right ? 'right' : 'wrong'})`);
+  const sim = dogStart(p.dogFight);
+  let turns = 0;
+  for (let view = dogSimView(p.dogFight, sim); !view.over && turns < 10; view = dogSimView(p.dogFight, sim)) {
+    dogPlays.plays++;
+    if (view.dog.fallback) dogPlays.fallbacks++;
+    for (let k = 0; k < 3; k++) dogApply(sim, { t: 'hint' });
+    if (!dogApply(sim, { t: 'play' }).ok) {
+      out.push('nosing dog fight: the hints left a grid that can not be played');
+      break;
+    }
+    turns++;
+  }
+  if (dogSimView(p.dogFight, sim).over !== 'won' || turns > 6) out.push(`nosing dog fight: the hint bot did not win within 6 turns (${turns})`);
+  return out;
+}
 
 /** Everything that makes a Nosing around puzzle unfair. */
 function nosingProblems(p: NosingPuzzle, sceneRoom: string, clueCount: number): string[] {
@@ -71,13 +114,15 @@ function nosingProblems(p: NosingPuzzle, sceneRoom: string, clueCount: number): 
   const tier = { easy: { lo: 20, hi: 99 }, medium: { lo: 100, hi: 299 }, hard: { lo: 300, hi: 699 } }[p.level];
   if (lock.numbers.length !== 6) out.push(`nosing lock has ${lock.numbers.length} numbers`);
   if (lock.target < tier.lo || lock.target > tier.hi) out.push(`nosing lock target ${lock.target}`);
-  const way = solveLock(lock.numbers, lock.target);
+  const hand = lockHand(lock);
+  const way = solveGrid(hand, lock.target, 4);
   if (!way) out.push('nosing lock has no exact way');
   else {
-    if (p.level === 'easy' && way.length > 2) out.push('nosing easy lock needs more than 3 numbers');
-    if (p.level === 'hard' && way.length < 3) out.push('nosing hard lock needs fewer than 4 numbers');
-    if (way[way.length - 1].result !== lock.target) out.push('nosing lock way misses the target');
+    if (p.level === 'easy' && way.numbersUsed > 3) out.push('nosing easy lock needs more than 3 numbers');
+    if (p.level === 'hard' && way.numbersUsed < 4) out.push('nosing hard lock needs fewer than 4 numbers');
   }
+  const stored = evaluateGrid(hand, lock.way);
+  if (!stored.submittable || stored.answer !== lock.target || stored.errors.length) out.push('nosing lock way misses the target');
   // Questions: whole numbers from 0 to 9999, the answer among the choices.
   for (const [i, q] of Object.entries(p.questions)) {
     if (!Number.isInteger(q.answer) || q.answer < 0 || q.answer > 9999) out.push(`nosing question ${i} answers ${q.answer}`);
@@ -87,7 +132,7 @@ function nosingProblems(p: NosingPuzzle, sceneRoom: string, clueCount: number): 
     if (list.some((q) => !Number.isInteger(q.answer) || q.answer < 0 || q.answer > 9999)) out.push(`nosing speed round ${i} has a bad answer`);
   }
   board.squares.forEach((sq, i) => {
-    if ((sq.kind === 'ladder' || sq.kind === 'snake' || sq.kind === 'obstacle' || sq.kind === 'search') && !p.questions[i]) out.push(`nosing square ${i} has no question`);
+    if ((sq.kind === 'ladder' || (sq.kind === 'snake' && i !== p.dogSquare) || sq.kind === 'obstacle' || sq.kind === 'search') && !p.questions[i]) out.push(`nosing square ${i} has no question`);
     if (sq.kind === 'speed' && !p.speed[i]) out.push(`nosing square ${i} has no speed round`);
     if (sq.kind === 'ladder' || sq.kind === 'snake') {
       const c = (sq.kind === 'ladder' ? nosingLadders : nosingSnakes).find((x) => x.id === sq.contentId);
@@ -107,6 +152,7 @@ function nosingProblems(p: NosingPuzzle, sceneRoom: string, clueCount: number): 
   if (lockRoom === sceneRoom) out.push('nosing lock is in the scene room');
   if (!board.clueRooms.includes(lockRoom)) out.push('nosing lock room is not a clue room');
   if (board.clueRooms.includes(sceneRoom)) out.push('nosing has a clue in the scene room');
+  out.push(...dogProblems(p));
   nosingChecked[p.level]++;
   return out;
 }
@@ -508,6 +554,12 @@ console.log(`${campaigns} campaigns (1, 2 and 3 clues per puzzle), every wrong-g
 
 console.log(`Talk: ${talkChecked.guests} guests have a thread; ${talkChecked.short} still have a beat waiting for the solved case once every game is done`);
 console.log(`Case boards:${boards.puzzles} puzzles and ${boards.ends} end boards built (slowest ${boards.slowest.toFixed(0)} ms)`);
+
+if (dogPlays.fallbacks > dogPlays.plays * 0.02) {
+  failures++;
+  console.log(`  FAIL nosing dog: its fallback play fired ${dogPlays.fallbacks} of ${dogPlays.plays} times (over 2%)`);
+}
+console.log(`Nosing dog: ${dogPlays.plays} dog plays across the fights the hint bot won, ${dogPlays.fallbacks} fallbacks`);
 
 const total = 3 * PER_PRESET + others.length * PER_COMBINATION + QUICK_CHOICES * PER_QUICK + PER_PLAY + rounds;
 console.log(

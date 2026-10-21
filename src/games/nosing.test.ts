@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import { Rng, hashSeed } from '../engine/rng.ts';
 import { house } from '../content/index.ts';
 import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
-import { NOSING_LEVELS, rerollFor, rollFor, nosingRollSeed, type NosingLevel } from './nosingBoard.ts';
-import { lockAccepts, lockStart, lockMove } from './lock.ts';
+import { BONUS_KINDS, NOSING_LEVELS, rerollFor, rollFor, nosingRollSeed, type NosingLevel } from './nosingBoard.ts';
+import { lockAccepts, lockNote } from './lock.ts';
+import { allSlots, getSlot, gridValues, usedNumbers, type GridFill } from './numberGrid.ts';
 import {
   buildNosing,
   nosingHint,
@@ -12,7 +13,9 @@ import {
   nosingSolve,
   nosingSplit,
   nosingStep,
+  nosingUpgrade,
   nosingView,
+  dogReward,
   type NosingMove,
   type NosingPuzzle,
   type NosingState,
@@ -36,6 +39,38 @@ function make(level: NosingLevel, i: number, share = 5): NosingPuzzle {
 
 type Policy = 'hints' | 'wrong' | 'mixed';
 
+const targetCache = new Map<string, GridFill>();
+
+/**
+ * The grid a non-hint bot wants this dog turn: its smallest (wrong bot) or a random
+ * (random bot) submittable value, picked once per turn from the fight's hand.
+ */
+function dogTarget(p: NosingPuzzle, v: NosingView, policy: Policy): GridFill {
+  const key = `${p.seed}|${policy}|${v.dog!.turn}|${v.dog!.numbers.map((c) => c.value)}|${v.dog!.ops.map((o) => o.op)}`;
+  let fill = targetCache.get(key);
+  if (!fill) {
+    const vals = gridValues({ numbers: v.dog!.numbers.map((c) => c.value), ops: v.dog!.ops.map((o) => o.op) });
+    const keys = [...vals.keys()].sort((a, b) => a - b);
+    const value = policy === 'wrong' ? keys[0] : new Rng(hashSeed(key)).pick(keys);
+    fill = vals.get(value)!.fill;
+    if (targetCache.size > 2000) targetCache.clear();
+    targetCache.set(key, fill);
+  }
+  return fill;
+}
+
+/** One step towards the target grid: clear what is wrong, place what is missing, then play. */
+function dogMove(p: NosingPuzzle, v: NosingView, policy: Policy): NosingMove {
+  const want = dogTarget(p, v, policy);
+  const have = v.dog!.fill;
+  const off = allSlots().filter((slot) => getSlot(want, slot) !== getSlot(have, slot));
+  const wrong = off.find((slot) => getSlot(have, slot) !== null);
+  if (wrong) return { t: 'clear', slot: wrong };
+  const missing = off[0];
+  if (missing) return { t: 'place', slot: missing, card: getSlot(want, missing) as number };
+  return { t: 'play' };
+}
+
 /** The next move a bot makes, and whether to take a hint first. */
 function next(p: NosingPuzzle, s: NosingState, v: NosingView, policy: Policy, rng?: Rng): { move?: NosingMove; hint?: boolean } {
   if (v.phase === 'roll' || v.phase === 'rolled') return { move: { t: 'roll' } };
@@ -46,27 +81,48 @@ function next(p: NosingPuzzle, s: NosingState, v: NosingView, policy: Policy, rn
     if (v.hintStep < 3) return { hint: true };
     return { move: { t: 'answer', value: q.answer } };
   }
+  if (v.phase === 'dog') {
+    if (policy === 'hints') return v.dog!.hintsThisTurn < 3 ? { hint: true } : { move: { t: 'play' } };
+    return { move: dogMove(p, v, policy) };
+  }
   // The lock.
-  if (policy !== 'hints') return v.submittable ? { move: { t: 'try' } } : { move: { t: 'combine', a: 0, b: 1, op: '+' } };
-  const h = nosingHint(p, s)!;
-  const hint = h.hint;
-  if (hint.kind !== 'lock') throw new Error('expected a lock hint');
-  const k = hint.hint;
-  if (k.kind === 'submit') return { move: { t: 'try' } };
-  if (k.kind === 'undo') return { move: { t: 'undo' } };
-  if (k.kind === 'tiles') return { hint: true };
-  if (k.kind === 'move') return { move: { t: 'combine', ...k.move } };
-  // 'way': follow its first step
+  if (policy !== 'hints') return v.evaluation.submittable ? { move: { t: 'try' } } : { move: fillNext(p, s) };
+  // A hint fills the grid with more of the way; try once it holds the target.
+  if (v.evaluation.submittable && v.evaluation.answer === p.lock.target) return { move: { t: 'try' } };
   return { hint: true };
 }
 
-function drive(p: NosingPuzzle, policy: Policy, stop?: (v: NosingView) => boolean): { s: NosingState; v: NosingView } {
+/** The next card to place: the first empty slot, in reading order, that takes one (any unused number, or +). */
+function fillNext(p: NosingPuzzle, s: NosingState): NosingMove {
+  const v = nosingView(p, s);
+  for (const slot of allSlots()) {
+    if (getSlot(v.grid, slot) !== null) continue;
+    const cards: (number | '+')[] = slot.kind === 'num' ? p.lock.numbers.map((_, i) => i) : ['+'];
+    for (const card of cards) {
+      const move: NosingMove = { t: 'place', slot, card };
+      if (nosingStep(p, s, move) !== s) return move;
+    }
+  }
+  throw new Error('nothing to place');
+}
+
+/** Her grid made submittable by placing cards. */
+function fillUntilSubmittable(p: NosingPuzzle, s: NosingState): NosingState {
+  for (let n = 0; n < 20 && !nosingView(p, s).evaluation.submittable; n++) s = nosingStep(p, s, fillNext(p, s));
+  return s;
+}
+
+function drive(p: NosingPuzzle, policy: Policy, stop?: (v: NosingView) => boolean): { s: NosingState; v: NosingView; dog: 'won' | 'lost' | null; sawDog: boolean } {
   let s = nosingInitial();
+  let dog: 'won' | 'lost' | null = null;
+  let sawDog = false;
   const rng = new Rng(hashSeed(`${p.seed}-bot`));
   for (let n = 0; n < 2000; n++) {
     const v = nosingView(p, s);
     for (const m of v.messages) assert.ok(!/\b[A-Z]{3,}\b/.test(m), `${p.seed}: all-caps word in "${m}"`);
-    if (v.finished || stop?.(v)) return { s, v };
+    if (v.phase === 'dog') sawDog = true;
+    if (v.dog?.over) dog = v.dog.over;
+    if (v.finished || stop?.(v)) return { s, v, dog, sawDog };
     const a = next(p, s, v, policy, rng);
     if (a.hint) {
       const h = nosingHint(p, s);
@@ -131,7 +187,8 @@ test('ladder: a right answer climbs, a wrong one walks on', () => {
     const { p, s, v } = find(level, 'hints', (x) => x.question?.kind === 'ladder');
     const to = v.question!.climbTo!;
     const right = nosingView(p, nosingStep(p, s, { t: 'answer', value: v.question!.q.answer }));
-    assert.equal(right.pos, to);
+    const crosses = v.pos < p.dogSquare && to >= p.dogSquare && !v.usedSnakes.includes(p.dogSquare);
+    assert.equal(right.pos, crosses ? p.dogSquare : to, 'a climb past the dog stops on it');
     assert.deepEqual(right.takenLadders, [v.question!.square]);
     const wrong = nosingView(p, nosingStep(p, s, { t: 'answer', value: v.question!.q.answer + 1 }));
     assert.equal(wrong.pos, v.question!.square);
@@ -141,15 +198,15 @@ test('ladder: a right answer climbs, a wrong one walks on', () => {
 });
 
 test('snake: a wrong answer slides once and the landing square does not trigger', () => {
-  for (const level of LEVELS) {
+  for (const level of LEVELS.filter((l) => l !== 'easy')) { // easy has a single snake, and the dog has it
     const { p, s, v } = find(level, 'hints', (x) => x.question?.kind === 'snake');
     const q = v.question!;
     const right = nosingView(p, nosingStep(p, s, { t: 'answer', value: q.q.answer }));
     assert.equal(right.pos, q.square);
-    assert.deepEqual(right.usedSnakes, []);
+    assert.deepEqual(right.usedSnakes.filter((i) => i !== p.dogSquare), []);
     const wrong = nosingView(p, nosingStep(p, s, { t: 'answer', value: q.q.answer + 1 }));
     assert.equal(wrong.pos, q.slipTo);
-    assert.deepEqual(wrong.usedSnakes, [q.square]);
+    assert.deepEqual(wrong.usedSnakes.filter((i) => i !== p.dogSquare), [q.square]);
     assert.equal(wrong.phase, 'roll');
     assert.equal(wrong.question, null);
   }
@@ -193,7 +250,7 @@ test('the lock: tries run out and the way is shown as revealed', () => {
   for (const level of LEVELS) {
     const { p, s, v } = find(level, 'hints', (x) => x.phase === 'lock' && x.bonuses.closeEnough === 0);
     assert.equal(v.triesLeft, 3 + v.bonuses.spareTry);
-    let cur = nosingStep(p, s, { t: 'combine', a: 0, b: 1, op: '+' });
+    let cur = fillUntilSubmittable(p, s);
     let view = nosingView(p, cur);
     for (let n = 0; n < 10 && !view.finished; n++) {
       cur = nosingStep(p, cur, { t: 'try' });
@@ -206,21 +263,141 @@ test('the lock: tries run out and the way is shown as revealed', () => {
   }
 });
 
-test('close enough: a near number opens the lock as won, with the way to show', () => {
-  const { p, s, v } = find('medium', 'hints', (x) => x.phase === 'lock' && x.bonuses.closeEnough > 0);
-  const tiles = lockStart(p.lock.numbers);
-  let made: { value: number; move: NosingMove } | null = null;
-  for (const op of ['+', '*', '-'] as const) {
-    const m = lockMove(tiles, { a: 0, b: 1, op });
-    if (m) {
-      const value = m.step.result;
-      const near = { ...p.lock, target: value + 1 };
-      if (lockAccepts(near, value, v.bonuses.closeEnough)) made = { value, move: { t: 'combine', a: 0, b: 1, op } };
+test('a wrong try costs a try and leaves the grid as it is', () => {
+  const { p, s } = find('easy', 'hints', (x) => x.phase === 'lock' && x.bonuses.closeEnough === 0);
+  const ready = fillUntilSubmittable(p, s);
+  const before = nosingView(p, ready);
+  if (before.evaluation.answer === p.lock.target) return; // a lucky sum
+  const after = nosingView(p, nosingStep(p, ready, { t: 'try' }));
+  assert.equal(after.triesLeft, before.triesLeft - 1);
+  assert.deepEqual(after.grid, before.grid);
+  assert.ok(after.messages[0].startsWith('Not that number'));
+});
+
+test('the dog waits on a snake head, which has no question, and never pays out steps', () => {
+  for (const level of LEVELS) {
+    for (let i = 0; i < 100; i++) {
+      const p = make(level, i);
+      assert.equal(p.board.squares[p.dogSquare].kind, 'snake', `${p.seed}: the dog sits on a snake head`);
+      assert.equal(p.questions[p.dogSquare], undefined, 'no question on the dog square');
+      const reward = dogReward(p.seed);
+      assert.equal(reward.length, 2);
+      assert.ok(reward.every((k) => BONUS_KINDS.includes(k) && k !== 'steps'), `${p.seed}: reward ${reward}`);
     }
   }
-  if (!made) return; // these first two numbers were too small to be within 10%
-  const near: NosingPuzzle = { ...p, lock: { ...p.lock, target: made.value + 1 } };
-  const after = nosingView(near, nosingStep(near, nosingStep(near, s, made.move), { t: 'try' }));
+  assert.equal(make('easy', 3).board.squares.filter((sq) => sq.kind === 'snake').length, 1, 'on easy the dog is the only snake');
+});
+
+test('the dog fight: landing starts it, a win keeps the cat and pays two bonuses, a loss slides it, Solve works mid-fight', () => {
+  for (const level of LEVELS) {
+    const lost = find(level, 'hints', (x) => x.phase === 'dog');
+    const { p, s, v } = lost;
+    assert.equal(v.pos, p.dogSquare);
+    assert.equal(v.question, null);
+    assert.ok(v.dog && !v.dog.over && v.dog.catLives === 3 && v.dog.dogLives === 3);
+    assert.equal(nosingStep(p, s, { t: 'roll' }), s, 'no rolling mid-fight');
+    assert.equal(nosingStep(p, s, { t: 'answer', value: 3 }), s);
+    assert.equal(nosingStep(p, s, { t: 'try' }), s);
+    assert.equal(nosingStep(p, s, { t: 'play' }), s, 'an empty grid can not be played');
+    const hinted = nosingHint(p, s)!;
+    assert.equal(hinted.hint.kind, 'dog');
+    assert.equal(nosingView(p, hinted.state).dog!.hints, 1);
+    assert.equal(hinted.state.hints, s.hints + 1);
+    // Solve mid-fight.
+    const solved = nosingView(p, nosingSolve(p, s));
+    assert.equal(solved.finished, 'revealed');
+    assert.equal(solved.dog, null);
+    assert.deepEqual([...solved.found].sort(), p.clues.slice().sort());
+
+    const won = drive(p, 'hints', (x) => !!x.dog?.over);
+    assert.equal(won.v.dog!.over, 'won');
+    assert.ok(won.v.pos >= p.dogSquare, 'the cat carries on from the snake head');
+    assert.ok(won.v.usedSnakes.includes(p.dogSquare));
+    const gained = dogReward(p.seed);
+    assert.ok(
+      Object.values(won.v.bonuses).reduce((a, b) => a + b, 0) - Object.values(v.bonuses).reduce((a, b) => a + b, 0) >= 2,
+      'at least the two bonuses',
+    );
+    assert.equal(won.v.messages[0], 'The dog runs off.');
+    assert.ok(won.v.messages.length >= 3, `${gained}`);
+    // The result stays until the next roll, which clears it.
+    const next = nosingView(p, nosingStep(p, won.s, { t: 'roll' }));
+    assert.equal(next.dog, null);
+    assert.ok(next.usedSnakes.includes(p.dogSquare));
+
+    const slid = drive(p, 'wrong', (x) => !!x.dog?.over);
+    if (slid.v.dog?.over === 'lost') {
+      const sq = p.board.squares[p.dogSquare];
+      assert.equal(slid.v.pos, sq.to);
+      assert.deepEqual(slid.v.usedSnakes, [p.dogSquare]);
+      assert.equal(slid.v.phase, 'roll');
+      assert.ok(slid.v.messages[0].startsWith('The dog chases the cat'));
+    }
+  }
+});
+
+test('place, clear and clear all: bad moves change nothing', () => {
+  const { p, s, v } = find('easy', 'hints', (x) => x.phase === 'lock' && x.locked.length === 0);
+  const n0 = { row: 0, kind: 'num', i: 0 } as const;
+  const n1 = { row: 0, kind: 'num', i: 1 } as const;
+  const o0 = { row: 0, kind: 'op', i: 0 } as const;
+  assert.equal(nosingStep(p, s, { t: 'try' }), s, 'an empty grid can not be tried');
+  assert.equal(nosingStep(p, s, { t: 'clear', slot: n0 }), s, 'nothing to clear');
+  assert.equal(nosingStep(p, s, { t: 'clearAll' }), s);
+  assert.equal(nosingStep(p, s, { t: 'place', slot: n0, card: '+' }), s, 'an operator in a number slot');
+  assert.equal(nosingStep(p, s, { t: 'place', slot: o0, card: 0 }), s, 'a number in an operator slot');
+  assert.equal(nosingStep(p, s, { t: 'place', slot: n0, card: 6 }), s, 'no such number');
+  assert.equal(nosingStep(p, s, { t: 'place', slot: { row: 0, kind: 'rowOp' }, card: '+' }), s, 'row 1 has no row operator');
+  const a = nosingStep(p, s, { t: 'place', slot: n0, card: 0 });
+  assert.notEqual(a, s);
+  assert.equal(nosingStep(p, a, { t: 'place', slot: n1, card: 0 }), a, 'a number is placed once');
+  assert.equal(nosingView(p, a).grid[0].nums[0], 0);
+  const b = nosingStep(p, nosingStep(p, a, { t: 'place', slot: o0, card: '+' }), { t: 'place', slot: n1, card: 1 });
+  const ev = nosingView(p, b).evaluation;
+  assert.ok(ev.submittable);
+  assert.equal(ev.answer, p.lock.numbers[0] + p.lock.numbers[1]);
+  const cleared = nosingView(p, nosingStep(p, b, { t: 'clear', slot: n1 }));
+  assert.equal(cleared.grid[0].nums[1], null);
+  assert.equal(cleared.evaluation.submittable, false);
+  assert.deepEqual(nosingView(p, nosingStep(p, b, { t: 'clearAll' })).grid, v.grid);
+});
+
+test('a note from the cat fills the start of the lock, and those slots stay', () => {
+  const { p, s, v } = find('medium', 'hints', (x) => x.phase === 'lock' && x.bonuses.note > 0);
+  assert.ok(v.messages.includes('The cat filled in the start of the lock for you.'));
+  assert.deepEqual(v.grid, lockNote(p.lock));
+  assert.ok(v.locked.length > 0 && usedNumbers(v.grid).length < usedNumbers(p.lock.way).length);
+  for (const slot of v.locked) {
+    assert.equal(nosingStep(p, s, { t: 'clear', slot }), s, 'a noted slot can not be cleared');
+  }
+  const more = fillUntilSubmittable(p, s);
+  assert.deepEqual(nosingView(p, nosingStep(p, more, { t: 'clearAll' })).grid, v.grid, 'clear all leaves the note');
+});
+
+test('an old save with combine or undo loses the lock moves and keeps the rest', () => {
+  const walk: NosingMove[] = [{ t: 'roll' }, { t: 'answer', value: 4 }];
+  const old = nosingUpgrade({ moves: [...walk, { t: 'combine', a: 0, b: 1, op: '+' }, { t: 'hint' }, { t: 'try' }], hints: 2 });
+  assert.deepEqual(old, { moves: walk, hints: 2 });
+  const undone = nosingUpgrade({ moves: [...walk, { t: 'hint' }, { t: 'undo' }, { t: 'roll' }], hints: 1, solved: 'revealed' });
+  assert.deepEqual(undone, { moves: [...walk, { t: 'hint' }], hints: 1, solved: 'revealed' });
+  // A save with nothing old comes back untouched, including a try on the new grid.
+  const fresh = { moves: [...walk, { t: 'try' }] as NosingMove[], hints: 0 };
+  assert.equal(nosingUpgrade(fresh), fresh);
+  // A finished game with old lock moves stays open, as revealed.
+  assert.equal(nosingUpgrade({ moves: [{ t: 'undo' }], hints: 0 }, true).solved, 'revealed');
+  // And it plays on: the upgraded save replays.
+  const p = make('easy', 2);
+  const v = nosingView(p, nosingUpgrade({ moves: [{ t: 'roll' }, { t: 'combine', a: 0, b: 1, op: '+' }], hints: 0 }));
+  assert.equal(v.turn, 2);
+});
+
+test('close enough: a near number opens the lock as won, with the way to show', () => {
+  const { p, s, v } = find('medium', 'hints', (x) => x.phase === 'lock' && x.bonuses.closeEnough > 0);
+  const ready = fillUntilSubmittable(p, s);
+  const value = nosingView(p, ready).evaluation.answer!;
+  const near: NosingPuzzle = { ...p, lock: { ...p.lock, target: value + 1 } };
+  if (!lockAccepts(near.lock, value, v.bonuses.closeEnough)) return; // too small to be within 10%
+  const after = nosingView(near, nosingStep(near, ready, { t: 'try' }));
   assert.equal(after.finished, 'won');
   assert.deepEqual(after.inspiration, p.lock.way);
 });
@@ -241,6 +418,7 @@ test('Solve puts the cat at the end, opens the lock and gives every clue', () =>
 for (const level of LEVELS) {
   test(`${level}: following hints always wins with every clue, and and always-wrong and random bots finish within the turn bounds`, () => {
     const lv = NOSING_LEVELS[level];
+    let lostFights = 0;
     for (let i = 0; i < 100; i++) {
       const share = 1 + (i % 7);
       const p = make(level, i, share);
@@ -248,18 +426,26 @@ for (const level of LEVELS) {
 
       const good = drive(p, 'hints');
       assert.equal(good.v.finished, 'won', `${p.seed}: hints win`);
+      assert.ok(good.sawDog, `${p.seed}: the hint bot meets the dog`);
+      assert.equal(good.dog, 'won', `${p.seed}: the hint bot wins the dog fight`);
       assert.deepEqual(good.v.found.slice().sort(), all, `${p.seed}: every clue found`);
       assert.ok(good.s.hints > 0);
 
       const bad = drive(p, 'wrong');
+      assert.ok(bad.sawDog, `${p.seed}: the always-wrong bot meets the dog`);
+      assert.ok(bad.dog, `${p.seed}: the fight ends`);
+      if (bad.dog === 'lost') lostFights++;
       assert.ok(bad.v.finished === 'revealed' || bad.v.finished === 'won', `${p.seed}: wrong bot finishes`);
       assert.deepEqual(bad.v.found.slice().sort(), all, `${p.seed}: every clue found even when wrong`);
       const mixed = drive(p, 'mixed');
+      assert.ok(mixed.sawDog && mixed.dog, `${p.seed}: the random bot meets the dog and the fight ends`);
       assert.ok(mixed.v.finished === 'revealed' || mixed.v.finished === 'won', `${p.seed}: mixed bot finishes`);
       for (const [name, run] of [['hints', good], ['wrong', bad], ['mixed', mixed]] as const) {
         const turns = run.v.turn - 1;
         assert.ok(turns <= lv.turns[1] && turns >= lv.turns[0], `${p.seed}: ${name} bot took ${turns} turns`);
       }
     }
+    console.log(`${level}: the always-wrong bot lost ${lostFights}/100 dog fights`);
+    assert.ok(lostFights >= 80, `the always-wrong bot loses the fight (${lostFights}/100)`);
   });
 }

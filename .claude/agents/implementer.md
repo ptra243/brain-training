@@ -18,6 +18,13 @@ have no Monitor tool and `sleep` is blocked, so never background a job and poll
 it. Write any script longer than a line to a file in the scratchpad; don't
 inline it with `node -e` or a heredoc.
 
-Reply with: files changed, the pass/fail lines from your last `npm run checks`
-(and e2e) after your final edit, anything you were unsure about.
-No code dumps. If the brief is ambiguous, say so instead of guessing.
+Before building, check the brief. If a gap or doubt would change what she sees
+or plays (game rules, balance, saves, which cases are generated), stop and hand
+back one question with a proposal instead of guessing. Where a design rests on
+a number (fight length, how often something happens), measure it with a quick
+prototype and report it before building on it. Small choices (names, layout
+details, copy wording within the brief's direction): make them and list them.
+
+Reply in 15 lines at most: files changed, the pass/fail lines from your last
+`npm run checks` (and e2e) after your final edit, choices you made, anything
+that looked off. No code dumps.

@@ -45,7 +45,8 @@ test.describe('nosing around', () => {
     await checkScreen(page, 'nosing: solved');
   });
 
-  test('play with the cat\'s hints: roll, answer, speed round, the lock', async ({ page }) => {
+  /** Plays a whole run with the cat's hints. `pad` also checks the question pad fits; `needDog` expects a dog fight on the way. */
+  async function playRun(page: Page, pad: boolean, needDog: boolean) {
     test.setTimeout(180_000);
     await openNosing(page);
 
@@ -55,14 +56,25 @@ test.describe('nosing around', () => {
     const speedStart = page.getByRole('button', { name: /^Start the \d+ seconds$/ });
     const tryNumber = page.getByRole('button', { name: /^Try this number/ });
     const unlocked = page.locator('section.unlocked');
+    const dogFight = page.locator('.dog-fight');
+    const dogResult = page.locator('.dog-result');
+    const playButton = dogFight.getByRole('button', { name: /^Play/ });
+    /** A button is fully on screen (780px tall) without scrolling. */
+    const inViewport = async (button: ReturnType<Page['locator']>, label: string) => {
+      await page.evaluate(() => window.scrollTo(0, 0));
+      const box = await button.boundingBox();
+      expect(box, label).not.toBeNull();
+      expect(box!.y + box!.height, `${label} inside 780px`).toBeLessThanOrEqual(780);
+    };
     const hintButton = page.getByRole('button', { name: /for a hint$/ });
     /** The pad's OK button is fully on screen without scrolling. */
     const padOnScreen = async (scope: string) => {
       await page.evaluate(() => window.scrollTo(0, 0));
       const box = await page.locator(scope).getByRole('button', { name: 'OK', exact: true }).boundingBox();
       expect(box, `${scope}: OK button`).not.toBeNull();
-      expect(box!.y + box!.height, `${scope}: OK inside 780px`).toBeLessThanOrEqual(780);
+      if (pad) expect(box!.y + box!.height, `${scope}: OK inside 780px`).toBeLessThanOrEqual(780);
     };
+    let sawDog = false;
     const checked = new Set<string>();
     const checkOnce = async (label: string) => {
       if (checked.has(label)) return;
@@ -71,7 +83,7 @@ test.describe('nosing around', () => {
     };
 
     for (let guard = 0; guard < 120; guard++) {
-      await roll.or(move).or(question).or(speedStart).or(tryNumber).or(unlocked).first().waitFor();
+      await roll.or(move).or(question).or(speedStart).or(tryNumber).or(dogFight).or(dogResult).or(unlocked).first().waitFor();
       if (await unlocked.isVisible()) break;
 
       if (await roll.isVisible()) {
@@ -91,6 +103,26 @@ test.describe('nosing around', () => {
         const answer = Number(/answer: (\d+)/.exec(note)?.[1]);
         expect(Number.isInteger(answer), note).toBe(true);
         await typeNumber(page, answer);
+      } else if (await dogResult.isVisible()) {
+        await checkOnce('nosing: dog result');
+        await dogResult.getByRole('button', { name: 'Continue' }).click();
+      } else if (await dogFight.isVisible()) {
+        sawDog = true;
+        await checkOnce('nosing: dog fight');
+        await inViewport(playButton, 'dog fight: Play');
+        // The cat's three hints: a question, then cards pushed into place.
+        await hintButton.click();
+        await expect(page.locator('.hint-note')).toContainText('sizes up your cards');
+        await inViewport(playButton, 'dog fight with a hint note: Play');
+        const mark = await page.locator('.nosing-dog-mark').boundingBox();
+        expect(mark, 'the dog mark is on the board strip').not.toBeNull();
+        expect(mark!.width, 'dog mark width').toBeGreaterThanOrEqual(8);
+        expect(mark!.height, 'dog mark height').toBeGreaterThanOrEqual(8);
+        await hintButton.click();
+        await hintButton.click();
+        await expect(playButton).toBeEnabled();
+        await checkOnce('nosing: dog fight with cards placed');
+        await playButton.click();
       } else if (await speedStart.isVisible()) {
         await checkOnce('nosing: speed round start');
         // Fake the clock from here so the 60 seconds pass at once.
@@ -102,17 +134,44 @@ test.describe('nosing around', () => {
         await page.clock.runFor(61_000);
       } else if (await tryNumber.isVisible()) {
         await checkOnce('nosing: lock');
-        // The cat's hints: first which two tiles, then it joins them for her.
-        for (let k = 0; k < 12 && !(await tryNumber.isEnabled()); k++) {
-          await hintButton.click();
-          await hintButton.click();
+        await inViewport(tryNumber, 'lock: Try');
+        // Tap a card, then a slot: it lands there. Tap the filled slot: it comes back.
+        const firstSlot = page.getByRole('button', { name: /^Row 1, first number, empty$/ });
+        if (await firstSlot.isVisible()) {
+          await page.getByRole('group', { name: 'Your numbers' }).getByRole('button').first().click();
+          await firstSlot.click();
+          const filled = page.getByRole('button', { name: /^Row 1, first number, \d+$/ });
+          await expect(filled).toBeVisible();
+          await checkOnce('nosing: lock with a card placed');
+          await filled.click();
+          await expect(firstSlot).toBeVisible();
+          await expect(page.getByRole('button', { name: 'Clear', exact: true })).toBeDisabled();
         }
+        // The cat's hints fill the grid with more and more of the way.
+        await hintButton.click();
+        await expect(page.locator('.hint-note')).toBeVisible();
+        await inViewport(tryNumber, 'lock with a hint note: Try');
+        await checkOnce('nosing: lock with a hint note');
+        for (let k = 0; k < 12 && !(await tryNumber.isEnabled()); k++) await hintButton.click();
         await checkOnce('nosing: lock with a number made');
         await tryNumber.click();
       }
     }
+    if (needDog) expect(sawDog, 'this seed reaches the dog').toBe(true);
     await expect(unlocked).toBeVisible();
     await expect(unlocked.getByRole('button', { name: 'Back to the casebook' })).toBeVisible();
     await checkScreen(page, 'nosing: won');
+  }
+
+  test('play with the cat hints: roll, answer, speed round, the lock', async ({ page }) => {
+    await playRun(page, true, false);
+  });
+
+  test.describe('a run that meets the dog', () => {
+    // A seed whose run lands on the dog's snake head (the pad check is left to the run above: this seed's questions are taller).
+    test.use({ seed: 10 });
+    test('the dog fight: hints drive it, the screen fits, Continue goes on', async ({ page }) => {
+      await playRun(page, false, true);
+    });
   });
 });

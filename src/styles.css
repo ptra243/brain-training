@@ -850,21 +850,77 @@ body.dev { background: #f2f1ec; color: #222; }
 .lock { display: grid; gap: 0.7rem; }
 .lock-target { font-family: var(--serif); font-size: 1.3rem; }
 .lock-target strong { font-size: 1.8rem; color: var(--pencil); }
-.lock-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
-.lock-tile {
-  min-height: 3rem; border: 2px solid var(--ink); border-radius: 0.35rem; cursor: pointer;
-  background: #fffcf3; color: var(--ink); font-family: var(--serif); font-size: 1.4rem; font-weight: 600; font-variant-numeric: tabular-nums;
+/* The number grid (lock, and the dog fight): six 44px slots a row, 4px apart, so a row is 284px and fits 328. */
+.number-grid { display: grid; gap: 0.7rem; }
+.grid-rows { display: grid; gap: 0.1rem; justify-content: center; }
+.grid-row { display: grid; }
+.grid-cells { display: grid; grid-template-columns: repeat(6, 44px); gap: 4px; }
+.grid-spacer { width: 44px; height: 44px; }
+.grid-caption {
+  margin: 0; min-height: 1.1rem; text-align: right; font-size: 0.85rem; line-height: 1.1rem;
+  color: var(--ink-soft); font-variant-numeric: tabular-nums;
 }
-.lock-tile.picked { background: var(--ink); color: var(--card); }
-.lock-tile.pointed, .secondary.pointed { box-shadow: 0 0 0 3px var(--brass); }
-.lock-tile.torch { opacity: 0.4; border-style: dashed; }
-.lock-tile:disabled { cursor: default; opacity: 0.7; }
-.lock-ops { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
-.lock-op {
-  min-height: 3rem; border: 2px solid var(--brass-deep); border-radius: 0.35rem; cursor: pointer;
-  background: var(--card); color: var(--brass-deep); font-size: 1.5rem; font-weight: 700;
+.grid-slot, .grid-card {
+  width: 44px; height: 44px; padding: 0; border-radius: 0.35rem; cursor: pointer;
+  font-family: var(--serif); font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums;
+  display: inline-flex; align-items: center; justify-content: center; overflow: hidden;
 }
-.lock-op:disabled { opacity: 0.35; cursor: default; }
+.grid-slot { border: 2px dashed var(--ink-soft); background: rgba(30, 42, 47, 0.06); color: var(--ink); }
+.grid-slot.filled { border-style: solid; border-color: var(--ink); background: #fffcf3; }
+.grid-slot.sign.filled { border-color: var(--brass-deep); background: var(--card); color: var(--brass-deep); font-size: 1.3rem; font-weight: 700; }
+.grid-slot.fits { border: 2px dashed var(--brass); background: rgba(200, 162, 76, 0.2); }
+.grid-slot.locked { background: var(--card-edge); border-style: solid; border-color: var(--ink-soft); color: var(--ink); opacity: 1; }
+.grid-slot.error { border-color: var(--pencil); border-style: solid; color: var(--pencil); background: #fffcf3; }
+.grid-slot:disabled { cursor: default; }
+.grid-hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.grid-card { border: 2px solid var(--ink); background: #fffcf3; color: var(--ink); }
+.grid-card.sign { border-color: var(--brass-deep); background: var(--card); color: var(--brass-deep); font-size: 1.4rem; font-weight: 700; }
+.grid-card.selected { background: var(--ink); color: var(--card); box-shadow: 0 0 0 3px var(--brass); }
+.grid-card.torch { opacity: 0.4; border-style: dashed; }
+.grid-card:disabled { opacity: 0.35; cursor: default; }
+.grid-card.selected.torch { opacity: 1; }
 .lock-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 0.5rem; }
 .lock-actions .primary:disabled, .lock-actions .secondary:disabled { opacity: 0.5; cursor: default; }
 .way ol { margin: 0.3rem 0 0; padding-left: 1.3rem; font-family: var(--serif); font-size: 1.1rem; line-height: 1.6; font-variant-numeric: tabular-nums; }
+
+/* The dog */
+.nosing-dog-mark ellipse, .nosing-dog-mark path { fill: var(--brass); stroke: var(--ink); stroke-width: 0.05; stroke-linejoin: round; }
+.nosing-dog-mark .nosing-dog-ear { fill: var(--brass-deep); }
+.nosing-dog-mark .nosing-dog-nose { fill: var(--ink); stroke: none; }
+.nosing-dog, .dog-fight, .dog-result { display: grid; gap: 0.6rem; }
+.dog-fight p, .dog-result p, .dog-result h2 { margin: 0; }
+.dog-top { display: flex; justify-content: space-between; gap: 0.5rem; }
+.dog-lives { display: flex; align-items: center; gap: 0.3rem; font-size: 0.85rem; color: var(--ink-soft); }
+.dog-lives .life { width: 0.8rem; height: 0.8rem; border-radius: 50%; border: 2px solid var(--brass-deep); box-sizing: border-box; }
+.dog-lives .life.on { background: var(--brass); }
+.dog-role { font-family: var(--serif); font-size: 1rem; line-height: 1.35; }
+.dog-play { min-width: 0; display: grid; gap: 0.1rem; padding: 0.4rem 0.6rem; border-radius: 0.35rem; background: rgba(30, 42, 47, 0.06); font-family: var(--serif); font-variant-numeric: tabular-nums; }
+.dog-play span:not(.dog-play-title) { display: block; white-space: nowrap; font-size: 0.95rem; }
+.dog-play-title { font-family: var(--sans); font-size: 0.8rem; color: var(--ink-soft); }
+.dog-last { font-size: 0.9rem; }
+.dog-result { text-align: center; }
+.tarot-card { display: grid; justify-items: center; align-content: center; gap: 0; line-height: 1; }
+.tarot-card svg { width: 22px; height: 22px; }
+.tarot-value { font-size: 1.3rem; font-weight: 700; }
+.dog-fight .grid-card:not(.sign) { height: 56px; }
+.dog-fight .grid-hand { gap: 4px; }
+.grid-caption.error { color: var(--pencil); }
+/* Number-grid cards: the logic grid's `.grid-card` fans out with negative margins; these must not overlap. */
+.number-grid .grid-card { margin: 0; padding: 0 0.3rem; flex: none; box-sizing: border-box; width: auto; min-width: 44px; overflow: visible; }
+.grid-slot.error, .grid-slot.sign.filled.error { border-color: var(--pencil); color: var(--pencil); }
+/* Lock and dog screens: tighter, so the grid, cards and buttons fit 780px without scrolling. */
+.nosing.tight { gap: 0.45rem; }
+.nosing.tight .card { padding: 0.65rem 0.75rem; }
+.nosing.tight .nosing-lock, .nosing.tight .lock, .nosing.tight .dog-fight, .nosing.tight .number-grid { gap: 0.4rem; }
+.nosing.tight .hint-bar { margin: 0; }
+/* The action buttons stay pinned to the bottom of the screen, whatever sits above them (a hint note, say). */
+.nosing.tight .lock-actions {
+  position: sticky; bottom: 0; z-index: 2; margin: 0 -0.75rem -0.65rem; padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom));
+  background: var(--card); border-top: 1px solid var(--card-edge); border-radius: 0 0 0.35rem 0.35rem;
+}
+.nosing.tight .grid-rows { gap: 0; }
+.lock-title { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+.small { font-size: 0.85rem; line-height: 1.3; }
+.nosing-note { margin: 0; font-size: 0.85rem; color: var(--on-baize-soft); }
+.nosing-question { padding: 0.65rem 0.75rem; gap: 0.4rem; }
+.nosing-question .hint-bar { margin: 0; }

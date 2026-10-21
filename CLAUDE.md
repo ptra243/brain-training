@@ -131,6 +131,16 @@ Long sessions re-read their whole context every turn, so keep them short.
   Keep in the main session: design decisions, generator tuning that needs
   experiments, ambiguous bugs, cross-cutting refactors.
   Say in one line which pieces you're delegating and which you're keeping.
+- **Keep briefs small.** One layer per brief (engine and checks, then UI and
+  e2e on a finished engine). Ask for reports of at most 15 lines. Brief tuning
+  as one sweep with a results table (every setting combination), not one
+  setting per round. A follow-up goes to a fresh agent with its own brief;
+  don't resume an agent past about 100k tokens or pile new work onto one
+  that's running.
+- **Split once the design is settled and the first piece lands.** Before
+  briefing the rest, suggest starting a session for it that reads the plan
+  doc, delegates to implementers itself and commits; this session keeps only
+  the design.
 - Keep design decisions, ambiguous bugs and cross-cutting refactors in the
   main session.
 - Keep command output small: run tests, builds and `check-cases` quietly
@@ -146,7 +156,7 @@ Long sessions re-read their whole context every turn, so keep them short.
   what goes in each; skip what's already in the repo) and the sessions to
   start (what each does, which docs it reads first, a one-line starting
   prompt). A `UserPromptSubmit` hook (`.claude/hooks/session-length.mjs`)
-  adds a reminder when the transcript passes 1.5 MB; it is a reminder, not
+  adds a reminder when the transcript passes 700 KB; it is a reminder, not
   a rule that replaces judging topic drift.
   Session ideas worth starting fresh live in `docs/next-sessions.md`, each
   with a `Last touched` date and a starting prompt; a `SessionStart` hook

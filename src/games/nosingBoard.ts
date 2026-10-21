@@ -328,6 +328,12 @@ function speedTierPositions(seed: string, pos: number, len: number): number[] {
  * spent after use). Other bonuses only shorten a run, and re-rolls are her
  * choice, so they are left out.
  */
+/** The snake head the dog waits on: one of the board's snakes, picked from the seed. */
+export function pickDogSquare(board: NosingBoard, seed: string): number {
+  const heads = board.squares.flatMap((sq, i) => (sq.kind === 'snake' ? [i] : []));
+  return new Rng(hashSeed(`${seed}-dog`)).pick(heads);
+}
+
 export function nosingBounds(board: NosingBoard, seed: string, level: NosingLevel): NosingBounds {
   const len = board.path.length;
   const rollSeed = nosingRollSeed(seed, board.attempt);
@@ -347,35 +353,60 @@ export function nosingBounds(board: NosingBoard, seed: string, level: NosingLeve
   });
   const has = (mask: number, b: number) => Math.floor(mask / b) % 2 === 1;
   const isQuestion = (k: SquareKind) => k !== 'plain' && k !== 'catFind';
+  // The dog stops the cat as it passes: any move onto or past the dog's square (while the dog is
+  // there) halts on it. A win carries on to where the move was going; a loss slides down the dog's
+  // snake. Either way the dog is gone (its square's bit is set). A fight takes no turn.
+  const dogAt = pickDogSquare(board, seed);
+  const dBit = bit.get(dogAt)!;
+  const slide = board.squares[dogAt].to!;
+  /** [position, mask, questions asked on the way (the dog)]. */
+  type Next = [number, number, number];
+  const move = (from: number, to: number, mask: number): Next[] =>
+    !has(mask, dBit) && from < dogAt && to >= dogAt ? [[to, mask + dBit, 1], [slide, mask + dBit, 1]] : [[to, mask, 0]];
+  /** What happens on landing at `p`: the places the cat may go on to, and whether it is asked a question. */
+  const landing = (p: number, mask: number): { next: Next[]; asks: boolean } => {
+    if (p === len - 1) return { next: [[p, mask, 0]], asks: false };
+    const sq = board.squares[p];
+    const b = bit.get(p);
+    const spent = b !== undefined && has(mask, b) && sq.kind !== 'snake';
+    const asks = isQuestion(sq.kind) && !spent && !(sq.kind === 'snake' && has(mask, b!));
+    const next: Next[] = [];
+    if (sq.kind === 'ladder') next.push(...move(p, answerDestination(sq, p, true, len), mask), [p, mask, 0]);
+    else if (sq.kind === 'snake') {
+      next.push([p, mask, 0]);
+      if (!has(mask, b!)) next.push([sq.to!, mask + b!, 0]);
+    } else if (spent) next.push([p, mask, 0]);
+    else if (sq.kind === 'catFind') {
+      if (sq.bonus === 'steps') next.push(...move(p, stepsFrom(p, len), mask + b!));
+      else next.push([p, mask, 0]);
+    } else if (sq.kind === 'speed') for (const np of speedAt.get(p)!) next.push(...move(p, np, mask + b!));
+    else {
+      // obstacle or search: wrong leaves it open, right may pay `steps` and spends it
+      next.push([p, mask, 0]);
+      if (sq.bonus === 'steps') next.push(...move(p, answerDestination(sq, p, true, len), mask + b!));
+    }
+    return { next, asks };
+  };
   const memo = new Map<string, [number, number, number]>();
   const go = (t: number, pos: number, mask: number): [number, number, number] => {
     const key = `${t},${pos},${mask}`;
     const hit = memo.get(key);
     if (hit) return hit;
     const p = Math.min(pos + roll(t), len - 1);
-    let out: [number, number, number];
-    if (p === len - 1) out = [t, t, 0];
-    else {
-      const sq = board.squares[p];
-      const b = bit.get(p);
-      const spent = b !== undefined && has(mask, b) && sq.kind !== 'snake';
-      const asks = isQuestion(sq.kind) && !spent && !(sq.kind === 'snake' && has(mask, b!));
-      const next: [number, number][] = [];
-      if (sq.kind === 'ladder') next.push([answerDestination(sq, p, true, len), mask], [p, mask]);
-      else if (sq.kind === 'snake') {
-        next.push([p, mask]);
-        if (!has(mask, b!)) next.push([answerDestination(sq, p, false, len), mask + b!]);
-      } else if (spent) next.push([p, mask]);
-      else if (sq.kind === 'catFind') next.push(sq.bonus === 'steps' ? [stepsFrom(p, len), mask + b!] : [p, mask]);
-      else if (sq.kind === 'speed') for (const np of speedAt.get(p)!) next.push([np, mask + b!]);
-      else {
-        // obstacle or search: wrong leaves it open, right may pay `steps` and spends it
-        next.push([p, mask]);
-        if (sq.bonus === 'steps') next.push([answerDestination(sq, p, true, len), mask + b!]);
-      }
-      const subs = next.map(([np, nm]): [number, number, number] => (np === len - 1 ? [t, t, 0] : go(t + 1, np, nm)));
-      out = [Math.min(...subs.map((s) => s[0])), Math.max(...subs.map((s) => s[1])), (asks ? 1 : 0) + Math.min(...subs.map((s) => s[2]))];
-    }
+    const branches: { next: Next[]; asks: boolean; extra: number }[] = [];
+    if (!has(mask, dBit) && pos < dogAt && p >= dogAt) {
+      const m2 = mask + dBit;
+      const won = landing(p, m2);
+      branches.push({ ...won, extra: 1 }, { next: [[slide, m2, 0]], asks: false, extra: 1 });
+    } else branches.push({ ...landing(p, mask), extra: 0 });
+    const tuples = branches.map((br): [number, number, number] => {
+      const subs = br.next.map(([np, nm, ex]): [number, number, number] => {
+        const r: [number, number, number] = np === len - 1 ? [t, t, 0] : go(t + 1, np, nm);
+        return [r[0], r[1], r[2] + ex];
+      });
+      return [Math.min(...subs.map((x) => x[0])), Math.max(...subs.map((x) => x[1])), br.extra + (br.asks ? 1 : 0) + Math.min(...subs.map((x) => x[2]))];
+    });
+    const out: [number, number, number] = [Math.min(...tuples.map((x) => x[0])), Math.max(...tuples.map((x) => x[1])), Math.min(...tuples.map((x) => x[2]))];
     memo.set(key, out);
     return out;
   };

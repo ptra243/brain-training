@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { nosingBonuses, nosingLadders, nosingSnakes } from '../../content/nosing.ts';
+import { nosingBonuses, nosingDog, nosingLadders, nosingSnakes } from '../../content/nosing.ts';
 import {
   nosingHint,
   nosingStep,
@@ -11,13 +11,13 @@ import {
   type NosingView,
 } from '../../games/nosing.ts';
 import { NOSING_LEVELS } from '../../games/nosingBoard.ts';
-import type { Op } from '../../games/lock.ts';
 import { HintButton, HintNote } from './Hints.tsx';
 import { NosingBoardView } from './NosingBoardView.tsx';
+import { NosingDog, NosingDogResult } from './NosingDog.tsx';
 import { NosingLock } from './NosingLock.tsx';
 import { NosingSpeed } from './NosingSpeed.tsx';
 import { NumberPad } from './NumberPad.tsx';
-import { PIPS, diceFaces, squareName, stepText, walkSteps } from './nosingUi.ts';
+import { PIPS, diceFaces, squareName, walkSteps } from './nosingUi.ts';
 import type { GameProps } from './types.ts';
 
 /**
@@ -33,6 +33,16 @@ import type { GameProps } from './types.ts';
  */
 export interface NosingScreenProps extends GameProps<NosingPuzzle, NosingState> {
   onFound: (clueIds: string[]) => void;
+}
+
+/** A view per saved state, so a state replayed once (the commit, then the render) is never replayed again. */
+const views = new WeakMap<NosingState, { puzzle: NosingPuzzle; view: NosingView }>();
+function viewOf(puzzle: NosingPuzzle, state: NosingState): NosingView {
+  const hit = views.get(state);
+  if (hit && hit.puzzle === puzzle) return hit.view;
+  const view = nosingView(puzzle, state);
+  views.set(state, { puzzle, view });
+  return view;
 }
 
 /** How long the cat takes over each square, in ms. */
@@ -64,26 +74,22 @@ function useWalk(steps: readonly number[]): { at: number; walking: boolean } {
   return { at: steps[shown] ?? 0, walking: shown < last };
 }
 
-function lockHintText(helper: string, h: Extract<NosingHint, { kind: 'lock' }>['hint'], tiles: NosingView['tiles']): string {
+function lockHintText(helper: string, h: Extract<NosingHint, { kind: 'lock' }>['hint']): string {
   switch (h.kind) {
-    case 'tiles':
-      return `${helper} pats the ${tiles[h.a]?.value ?? '?'} and the ${tiles[h.b]?.value ?? '?'}. Try joining those two.`;
-    case 'move':
-      return `${helper} joined them for you: ${stepText(h.step)}.`;
-    case 'way':
-      return `${helper} scratches out the whole way: ${h.steps.map(stepText).join(', then ')}.`;
+    case 'fill':
+      if (h.step === 0) return `${helper} filled in the start of the way for you. Carry on from there.`;
+      if (h.step === 1) return `${helper} filled in most of the way for you. One more bit to go.`;
+      return `${helper} filled in the whole way for you. That is the one to try.`;
     case 'submit':
       return `${helper} sits on the number you have made. That is the one to try.`;
-    case 'undo':
-      return `${helper} shakes their head at the last step. Try undoing it.`;
   }
 }
 
 export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChange, onFinish, onFound }: NosingScreenProps) {
-  const view = nosingView(puzzle, data);
+  const view = useMemo(() => viewOf(puzzle, data), [puzzle, data]);
   const [hint, setHint] = useState<NosingHint | null>(null);
-  const [pointed, setPointed] = useState<number[]>([]);
-  const [pointUndo, setPointUndo] = useState(false);
+  /** The fight's result card was dismissed at this many moves. */
+  const [seenEnd, setSeenEnd] = useState(-1);
 
   const jumps = useMemo(() => {
     const m = new Map<number, number>();
@@ -97,15 +103,13 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
 
   const clearHint = () => {
     setHint(null);
-    setPointed([]);
-    setPointUndo(false);
   };
 
   /** Save a new state; search clues unlock at once, and a lock that opens ends the game. */
   const commit = (next: NosingState) => {
     if (next === data) return;
     clearHint();
-    const v = nosingView(puzzle, next);
+    const v = viewOf(puzzle, next);
     if (v.finished) {
       onFinish(v.finished, next);
       return;
@@ -118,29 +122,17 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
   const askHint = () => {
     const res = nosingHint(puzzle, data);
     if (!res) return;
-    let next = res.state;
+    // A lock hint has already filled her grid: replaying the hint move does it.
     setHint(res.hint);
-    setPointed([]);
-    setPointUndo(false);
-    if (res.hint.kind === 'lock') {
-      const h = res.hint.hint;
-      if (h.kind === 'tiles') setPointed([h.a, h.b]);
-      else if (h.kind === 'submit') setPointed([view.tiles.length - 1]);
-      else if (h.kind === 'undo') setPointUndo(true);
-      else if (h.kind === 'move') {
-        // The cat makes this step for her.
-        const moved = nosingStep(puzzle, next, { t: 'combine', a: h.move.a, b: h.move.b, op: h.move.op });
-        if (moved !== next) next = moved;
-      }
-    }
-    onChange(next);
+    onChange(res.state);
   };
 
   const done = finished !== null || view.finished !== null;
+  /** The fight just ended and she has not pressed Continue. */
+  const showEnd = !!view.dog?.over && seenEnd !== data.moves.length;
   const level = NOSING_LEVELS[puzzle.level];
   const q = view.question;
   const held = (Object.keys(view.bonuses) as (keyof typeof view.bonuses)[]).filter((k) => view.bonuses[k] > 0);
-  const canUndo = view.phase === 'lock' && nosingStep(puzzle, data, { t: 'undo' }) !== data;
 
   const stake = () => {
     if (!q) return null;
@@ -164,12 +156,16 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
   const questionHint = hint?.kind === 'question' ? hint : null;
   const hintNote = (() => {
     if (!hint) return null;
+    if (hint.kind === 'dog') {
+      const h = hint.hint;
+      return `${helper} ${h.step === 0 ? nosingDog.hint[h.topic](!!h.possible) : nosingDog.hint.fill}`;
+    }
     if (hint.kind === 'question') {
       if (hint.step === 0) return `${helper} scratches out the first line: ${hint.text}`;
       if (hint.step === 1) return `${helper} paws at three numbers. One of them is right.`;
       return `${helper} taps out the answer: ${hint.answer}.`;
     }
-    return lockHintText(helper, hint.hint, view.tiles);
+    return lockHintText(helper, hint.hint);
   })();
   const hintBlock = (
     <div className="hint-bar">
@@ -184,13 +180,15 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
   );
 
   return (
-    <div className="nosing">
-      <NosingBoardView puzzle={puzzle} view={view} catAt={at} compact={!walking && !done && (!!q || !!view.speed)} />
+    <div className={`nosing ${view.phase === 'lock' || view.phase === 'dog' ? 'tight' : ''}`}>
+      <NosingBoardView puzzle={puzzle} view={view} catAt={at} compact={!walking && !done && (!!q || !!view.speed || view.phase === 'lock' || view.phase === 'dog')} />
 
       <p className="nosing-strip">
-        <span>
-          Turn {view.phase === 'open' ? view.turn - 1 : view.turn} · {squareName(at)} of {puzzle.board.path.length}
-        </span>
+        {view.phase !== 'lock' && view.phase !== 'dog' && (
+          <span>
+            Turn {view.phase === 'open' ? view.turn - 1 : view.turn} · {squareName(at)} of {puzzle.board.path.length}
+          </span>
+        )}
         <span>
           {held.length
             ? held.map((k) => `${nosingBonuses[k].name}${view.bonuses[k] > 1 ? ` ×${view.bonuses[k]}` : ''}`).join(', ')
@@ -198,7 +196,13 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
         </span>
       </p>
 
-      {view.messages.length > 0 && view.phase !== 'open' && (
+      {view.messages.length > 0 && view.phase === 'lock' && !view.dog && (
+        <p className="muted nosing-note" role="status">
+          {view.messages.join(' ')}
+        </p>
+      )}
+
+      {view.messages.length > 0 && view.phase !== 'open' && view.phase !== 'dog' && view.phase !== 'lock' && !view.dog && (
         <div className="nosing-messages card" role="status">
           {view.messages.map((m, i) => (
             <p key={i}>{m}</p>
@@ -215,7 +219,19 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
 
       {walking && <p className="game-message">The cat is on the move.</p>}
 
-      {!walking && !done && (view.phase === 'roll' || view.phase === 'rolled') && (
+      {!walking && !done && view.phase === 'dog' && view.dog && (
+        <div className="card nosing-dog">
+          <NosingDog view={view.dog} hints={hintBlock} onMove={play} />
+        </div>
+      )}
+
+      {!walking && !done && showEnd && view.dog && (
+        <div className="card nosing-dog">
+          <NosingDogResult view={view.dog} messages={view.messages} onContinue={() => setSeenEnd(data.moves.length)} />
+        </div>
+      )}
+
+      {!walking && !done && !showEnd && (view.phase === 'roll' || view.phase === 'rolled') && (
         <div className="card nosing-roll">
           <div className="dice" aria-label={view.phase === 'rolled' ? `You rolled ${view.pendingRoll}` : view.lastRoll ? `Last roll ${view.lastRoll}` : 'The dice'}>
             {diceFaces(level.dice, view.phase === 'rolled' ? view.pendingRoll! : (view.lastRoll ?? level.dice)).map((f, i) => (
@@ -242,7 +258,7 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
         </div>
       )}
 
-      {!walking && !done && q && (
+      {!walking && !done && !showEnd && q && (
         <div className="card nosing-question">
           {hintBlock}
           <p className="question-text">{q.q.text}</p>
@@ -260,7 +276,7 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
         </div>
       )}
 
-      {!walking && !done && view.speed && (
+      {!walking && !done && !showEnd && view.speed && (
         <div className="card nosing-speed">
           <NosingSpeed
             key={view.speed.square}
@@ -271,18 +287,16 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
         </div>
       )}
 
-      {(view.phase === 'lock' || view.phase === 'open') && !walking && (
+      {(view.phase === 'lock' || view.phase === 'open') && !walking && !showEnd && (
         <div className="card nosing-lock">
           <NosingLock
             puzzle={puzzle}
             view={view}
             open={done}
-            canUndo={canUndo}
-            pointed={pointed}
-            pointUndo={pointUndo}
             hints={hintBlock}
-            onCombine={(a, b, op: Op) => play({ t: 'combine', a, b, op })}
-            onUndo={() => play({ t: 'undo' })}
+            onPlace={(slot, card) => play({ t: 'place', slot, card })}
+            onClear={(slot) => play({ t: 'clear', slot })}
+            onClearAll={() => play({ t: 'clearAll' })}
             onTry={() => play({ t: 'try' })}
           />
         </div>
