@@ -45,7 +45,7 @@ the clues. It is the "long" minigame and can carry more clues than the others.
   trailing back (snake), which fades once used.
 - **Bonuses** (names are content): extra steps; a spare try at the lock; a torch (shows one number
   she won't need); a note from the cat (one free step of the lock's working); a re-roll (the new roll
-  still comes from the seed).
+  still comes from the seed); close enough (the lock accepts an answer within 10% more of the target).
 - Optional choice per question: pick one of two cards, a short sum or a harder one for a better bonus.
 
 ## The lock (last square)
@@ -54,6 +54,11 @@ the clues. It is the "long" minigame and can carry more clues than the others.
   name in the UI). What's locked is content, picked per case: a safe, a suspect's phone, a writing desk.
 - The generator checks that the target can be reached with **no bonuses**, so a bad run is harder, never
   impossible. Bonuses only make it easier.
+- **Close enough:** each of these bonuses widens what the lock accepts by 10% of the target, stacking,
+  capped at 30% (target 347: one bonus accepts 313–381). Her answer must use at least two numbers. When
+  she's close but not exact, the cat has a bout of inspiration first: it shows an exact way to reach the
+  target, step by step, ending on the real number. Only then does the lock open, since a lock needs the
+  exact number. That counts as `won`. Solve still shows the exact answer as `revealed`.
 - Opening it gives the main clue (1–2) plus any search clues still waiting. **Every clue is guaranteed**;
   right answers only get them sooner.
 
