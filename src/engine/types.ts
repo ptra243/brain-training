@@ -84,7 +84,7 @@ export type ClueType = ClueFact['type'];
  * interrogation on hard cases. What each kind is for lives in `gameKinds.ts`.
  */
 export type SceneKind = 'wordle' | 'crossword' | 'wordsearch';
-export type RotatingKind = 'cats' | 'sudoku' | 'interrogation' | 'board' | 'tarot';
+export type RotatingKind = 'cats' | 'sudoku' | 'interrogation' | 'board' | 'tarot' | 'nosing';
 export type GameKind = SceneKind | RotatingKind | 'finale';
 
 /** How a clue reaches her: free at the start, or as a minigame's reward. */
@@ -156,8 +156,14 @@ export interface TarotSpec extends GameBase {
   pairs: number;
 }
 
+/** Nosing around: a maths board game on the floor plan, ending at a lock. Play cases only; its `level` is always set. Built from `seed` (see `nosingSeed`). */
+export interface NosingSpec extends GameBase {
+  kind: 'nosing';
+  unlocksScene: false;
+}
+
 /** One minigame in a case. */
-export type GameSpec = SceneGameSpec | CatsSpec | SudokuSpec | InterrogationSpec | BoardSpec | TarotSpec;
+export type GameSpec = SceneGameSpec | CatsSpec | SudokuSpec | InterrogationSpec | BoardSpec | TarotSpec | NosingSpec;
 
 /** A word hidden by a scene game, and the scene sentence solving it reveals ("…by the bookcase in the Library."). */
 export interface SceneWord {

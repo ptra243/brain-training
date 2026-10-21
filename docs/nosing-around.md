@@ -119,9 +119,117 @@ must account for each encounter's worst case.
 - Every question's answer is a whole number in its level's range.
 - Every room has its search square; ladders and snakes only sit in rooms their content allows.
 
-## Open questions for the build session
+## Decided in the build session (2026-10-21)
 
-- Exact turn ranges and how many ladders/snakes per level (needs experiments).
-- Does it go in the rotation as a stand-in (like the board and tarot), and at what share?
-- Pick-your-card: in or out for the first build?
-- How the lock's six numbers and target scale per level.
+- **Where it appears:** a Play stand-in like tarot, on its own seed (`${seed}-nosing-game`, after the
+  tarot stand-in), `NOSING_SHARE = 0.2`, only for a slot whose share is 3 or more clues; it takes that
+  slot's clues. Pickable in Choose games as letter `N`, added at the end of `PICK_ORDER`; its level roll
+  goes last in `PLAY_ROLLED`. Not in presets or the campaign yet. Existing cases don't change.
+- **Clue split:** share 1 → lock 1 + search 0; 2 → 1 + 1; 3 → 1 + 2; 4 → 2 + 2; 5 → 2 + 3; 6 → 2 + 4; 7 → 2 + 5. Shares 1 and 2 only happen to a picked Nosing around; the Quick play stand-in needs a share of 3 or more. With 0 search clues every room's search square gives a bonus; the lock room is still a clue room (never the scene room), so `clueRooms` is the search-clue rooms plus the lock room.
+- **The path winds** (this replaces the row-by-row path above): a seeded self-avoiding walk over the
+  board's squares that visits every room and lingers in the clue rooms. One search square per search
+  clue, each in its own clue room; the lock is the last square, in a clue room. Clue rooms are never the
+  scene room. Rooms with no clue are passed through and get a search square that gives a bonus.
+- **First build:** plain questions and the speed round. Pick-your-card, the dog, estimate, scales and
+  pattern come later.
+- **Lock tiers** (all exact with no bonuses, checked by a solver; large = 25, 50, 75, 100):
+
+  | Level | Numbers | Target | Rule |
+  |---|---|---|---|
+  | Easy | six from 1–10 | 20–99 | reachable with 3 numbers or fewer |
+  | Medium | five from 1–10 + one large | 100–299 | |
+  | Hard | four from 1–10 + two large | 300–699 | the shortest exact way needs 4 numbers or more |
+
+## Board tuning (prototype, 2000 cases per level)
+
+The path is a randomised depth-first walk that fills the current room first (fewest onward moves
+first, random ties), then steps into a room not yet entered. It starts on an edge square, has a budget
+of 3000 steps, and must visit every room. The board takes up to 120 attempts (`-0`, `-1`, …). An
+attempt fails when the path fails, when the lock's room is the scene room, or when any check below
+fails. Every one of the 6000 cases built, at about 3.5ms each in Node.
+
+| Level | Squares | Dice | Path | Ladders (gain) | Snakes (drop) | Obstacles + speed rounds | Turns | Questions she meets |
+|---|---|---|---|---|---|---|---|---|
+| Easy | 1×1 | 1 | 28–33 | 2 (3–6) | 1 (3–6) | 5 + 1 | 6–10 | at least 3 |
+| Medium | 2×2 | 2 | 110–125 | 4 (6–12) | 3 (5–10) | 40 + 2 | 15–20 | at least 7 |
+| Hard | 2×2 | 2 | 105–120 | 4 (6–12) | 5 (6–12) | 40 + 2 | 15–20 | at least 7 |
+
+- One search square per room, plus a question square on every ladder foot and snake head. Ladder
+  tops, snake tails, the first square and the last square are plain squares.
+- **The turn and question checks are exact.** They search every mix of right and wrong answers, with
+  the rolls fixed by seed and turn: the fewest turns, the most turns and the fewest question squares
+  landed on. Bonuses (extra steps, a re-roll) only shorten a run, so they are left out of the upper
+  bound. Hard makes up its difficulty with harder questions and more snakes; its turns come out the same.
+- Prototype: `nosing-path.ts` in the session scratchpad. The implementer rebuilds it from this section.
+
+## Build spec
+
+Decisions for the first build, filling the gaps above. Code names are suggestions; keep them unless a
+better fit turns up in the code.
+
+### Modules
+
+| File | What it is |
+|---|---|
+| `src/games/mentalMaths.ts` | Question kinds per level: `question(seed, level, kind?)` returns `{ kind, text, answer, working: string[], choices: [number, number, number] }`. Choices hold the answer plus two near misses, shuffled by seed. `questionHint(q, step)`: step 0 gives the first line of working, step 1 the three choices, step 2 the answer. |
+| `src/content/nosingQuestions.ts` | Household wording per question kind, with placeholders (`{a}`, `{b}`), several per kind. |
+| `src/games/speedRound.ts` | `speedQuestions(seed, level)` gives 40 quick sums, `speedReward(level, right)` gives the tier reward, `SPEED_SECONDS = 60`. |
+| `src/games/lock.ts` | The lock: `buildLock(seed, level)`, `solveLock(numbers, target)` (exhaustive; returns the shortest exact way), `lockAccepts(lock, value, closeEnoughCount)`, `lockHint`. |
+| `src/games/nosingBoard.ts` | Board, path, ladders, snakes, square kinds, rolls and the exact bounds (`nosingBounds`). |
+| `src/content/nosing.ts` | Cat ladders and snakes, each with the room ids it may sit in (or "any"); bonus names and copy; lock objects; "the cat found something" lines; search lines. |
+| `src/games/nosing.ts` | The run: `nosingInitial()`, `nosingStep(puzzle, state, move)`, `nosingView(puzzle, state)`, `nosingSolve`, `nosingHint`. The state is only her moves; the view is replayed from them. |
+
+### Question kinds
+
+- **Easy:** add or subtract within 100, times tables up to 10×10, minutes on a clock (for example
+  "quarter past to ten to: how many minutes").
+- **Medium:** two-digit × one-digit, change from a bill, simple percentages (10%, 25%, 50% of a round
+  amount), 24-hour times (the gap in minutes, or 3pm as 15).
+- **Hard:** two- and three-step sums, fractions of amounts (3/4 of 120), times worked backwards
+  ("the train arrives at 14:10 after 85 minutes: when did it leave, as hhmm").
+- Every answer is a whole number from 0 to 9999. A clock answer is a number of minutes, or `hhmm` as
+  one number.
+
+### Squares and bonuses
+
+- **Kinds of square:** plain, ladder foot, snake head, obstacle, search (one per room), speed round,
+  cat find. Counts are in the tuning table. Cat finds: easy 2, medium and hard 6, on plain squares.
+- **Bonuses:** `steps` moves the cat 3 squares on; landing that way triggers nothing. `spareTry` adds
+  one lock try. `torch` shows one number that the stored way doesn't use (the stored way uses at most
+  5 numbers). `note` makes the first step of the stored way for her. `reroll` lets her swap a roll she
+  has just made, once; the new roll comes from `${seed}-reroll-${turn}`, and it is her choice, so it
+  sits outside the turn bounds. `closeEnough` widens the lock by 10% of the target, stacking, capped at 30%.
+- **Who gets which bonus:** each obstacle, cat find and non-clue search square gets its bonus from the
+  seed when the board is built, so she can see what's on offer before she answers. Speed round tiers
+  (right answers → reward): easy 4 → 1 bonus, 6 → 2, 9 → 2 plus `steps`; medium and hard 5 → 1,
+  8 → 2, 12 → 2 plus `steps`. Tier bonuses are drawn from the seed.
+- A snake's question shows where a slip would send the cat. Each snake triggers at most once and then
+  fades. A ladder taken stays drawn.
+
+### The lock
+
+- She builds a number in steps: pick two of the tiles she has, then + − × ÷. The result becomes a new
+  tile, and the two she used are spent. Only whole, positive results are allowed (÷ only when it
+  divides exactly; − only when the result is above 0). "Undo" takes back a step. "Try this number"
+  submits the newest tile, which must be built from at least two numbers.
+- She has 3 tries, plus one for each `spareTry`. A wrong try costs one; an exact or close-enough
+  try opens the lock. With close enough, the cat's bout of inspiration plays the stored exact way
+  first, and that is `won`. If she runs out of tries, the cat shows the way and the lock opens as
+  `revealed`, so she is never stuck.
+- `lockHint`: step 0 says which two tiles to combine first, step 1 makes that step for her, step 2
+  shows the whole way. Following hints always opens the lock.
+
+### Clues
+
+- The game's clues split as in "Clue split". Search clues go to the clue rooms in path order. A
+  search clue unlocks the moment she answers its square right; otherwise it waits for the lock.
+  Opening the lock gives the lock clues plus every waiting clue.
+- Solve (in-app `Dialog`) moves the cat to the end, opens the lock, gives every clue and is recorded
+  as `revealed`. A run won using hints is still `won`. Save the hint count.
+
+### Saved data
+
+Her moves in order: `{ t: 'roll' }`, `{ t: 'reroll' }`, `{ t: 'answer', value }`,
+`{ t: 'speed', right }`, lock steps `{ t: 'combine', a, b, op }`, `{ t: 'undo' }`, `{ t: 'try' }`,
+plus `hints` and `solved?: 'revealed'`. If she reloads in the middle of a speed round, the round starts
+again with the same questions.

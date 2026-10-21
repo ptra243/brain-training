@@ -4,9 +4,11 @@ import { canLocate, plainText, wordClue } from './wording.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { allHoldings, allRoomings, countMatching } from './search.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
-import { BOARD_SHARE, CLUE_SOURCE, PLAY_GAMES_MAX, PLAY_GAMES_MIN, ROTATION, SCENE_GAMES, TAROT_SHARE } from './gameKinds.ts';
+import { BOARD_SHARE, CLUE_SOURCE, PLAY_GAMES_MAX, PLAY_GAMES_MIN, NOSING_SHARE, ROTATION, SCENE_GAMES, TAROT_SHARE } from './gameKinds.ts';
 import { tarotClueCards, tarotPairsFor } from './tarotCards.ts';
 import { boardPuzzle } from './caseBoard.ts';
+import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
+import { buildNosing, nosingSeed } from '../games/nosing.ts';
 import type { Case, Clue, ClueDelivery, ClueFact, ClueType, Content, Difficulty, GameKind, GameSpec, Interrogation, RotatingKind, SceneKind, Solution, CampaignRound } from './types.ts';
 import { buildInterrogation, type CaseFacts } from './interrogation.ts';
 import { PRESETS, caseSettings, clueShares, gameLevel, levelsKey, playShares, type CaseLevels, type CaseSettings, type ClueShares } from './settings.ts';
@@ -83,13 +85,15 @@ export function buildPlayCase(
   // 3 to 5 games (more if the clues need them), drawn on a seed of their own;
   // a game that can't take its share is swapped for the next one drawn.
   type Name = SceneKind | RotatingKind;
-  const all: Name[] = picks ? [...SCENE_GAMES, ...ROTATION, 'board', 'tarot'] : [...SCENE_GAMES, ...ROTATION, 'board'];
+  const drawable: Name[] = picks ? [...SCENE_GAMES, ...ROTATION, 'board', 'tarot'] : [...SCENE_GAMES, ...ROTATION, 'board'];
+  // Nosing around is only ever a chosen game here (never drawn), so it joins `all` after the shuffle's list.
+  const all: Name[] = picks ? [...drawable, 'nosing'] : drawable;
   const mine = new Set<Name>(picks as Name[] | undefined);
   const fail = (what: string): never => {
     throw new Error(`Case ${code}: ${what}`);
   };
   const pickRng = new Rng(hashSeed(`${seed}-play-games`));
-  const drawn = pickRng.shuffle(all);
+  const drawn = pickRng.shuffle(drawable);
   const atLeast = Math.ceil((shuffled.length - (settings.finale ? 2 : 0)) / settings.maxPerGame);
   const count = Math.min(all.length, Math.max(atLeast, PLAY_GAMES_MIN + pickRng.int(PLAY_GAMES_MAX - PLAY_GAMES_MIN + 1)));
   let chosen = new Set(drawn.slice(0, count));
@@ -184,6 +188,8 @@ export function buildPlayCase(
         without('tarot');
         continue;
       }
+      const nosingAt = rotating.indexOf('nosing');
+      if (nosingAt >= 0 && !nosingFits(layout, nosingAt, 1)) fail('the nosing game cannot take its clues');
       layout.picked = { tarotPairs: pairs };
     }
     return assemble(layout);
@@ -233,8 +239,10 @@ export function assemble(o: Layout): Case {
   const slot = o.words || o.picked ? -1 : boardSlot(o);
   // Play only: tarot match may stand in for one of the drawn games, on its own seed, after the board.
   const tarot = o.picked ? { slot: -1, pairs: o.picked.tarotPairs } : o.words ? tarotSlot(o) : null;
+  // Then Nosing around, on its own seed, never on the board's or tarot's slot.
+  const nosing = o.words && !o.picked ? nosingSlot(o, [slot, tarot?.slot ?? -1]) : -1;
   const wordKinds: SceneKind[] = o.words?.map((w) => w.kind) ?? [];
-  const swap = <K extends string>(k: K, i: number) => (i === slot ? ('board' as const) : tarot && i === tarot.slot ? ('tarot' as const) : k);
+  const swap = <K extends string>(k: K, i: number) => (i === slot ? ('board' as const) : tarot && i === tarot.slot ? ('tarot' as const) : i === nosing ? ('nosing' as const) : k);
   const rotating = o.rotating.map(swap);
   const kinds = o.kinds.map(swap);
   const { suspects, rooms, items, solution, murdererIndex, ctx } = o.truth;
@@ -346,6 +354,7 @@ export function assemble(o: Layout): Case {
       if (kind === 'cats') return { kind, ...base, size: settings.catSize, ...(settings.catEasy && { easy: true }) };
       if (kind === 'board') return { kind, ...base };
       if (kind === 'tarot') return { kind, ...base, pairs: tarot!.pairs };
+      if (kind === 'nosing') return { kind, ...base };
       if (kind === 'sudoku')
         return {
           kind,
@@ -412,6 +421,44 @@ function tarotSlot(o: Layout): { slot: number; pairs: number } {
   const slot = pick.int(o.rotating.length);
   const pairs = tarotPairsAt(o, slot);
   return pairs === null ? none : { slot, pairs };
+}
+
+/**
+ * Which drawn Play game Nosing around stands in for, or -1. Decided on a seed
+ * of its own, after tarot's, so a case that keeps its games is the same as
+ * before; never on a slot in `taken` (the board's and tarot's) or a drawn
+ * board game, and only when that game holds 3 or more clues and the board builds.
+ */
+function nosingSlot(o: Layout, taken: number[]): number {
+  const pick = new Rng(hashSeed(`${o.seed}-nosing-game`));
+  if (!o.rotating.length || pick.next() >= NOSING_SHARE) return -1;
+  const slot = pick.int(o.rotating.length);
+  if (taken.includes(slot) || o.rotating[slot] === 'board') return -1;
+  return nosingFits(o, slot, 3) ? slot : -1;
+}
+
+/** Whether the rotating game at `slot` can be Nosing around: `minShare` or more clues (3 for the Quick play stand-in, 1 for a picked game) and a board that builds. */
+function nosingFits(o: Layout, slot: number, minShare: number): boolean {
+  const level = gameLevel(o.levels, 'nosing');
+  const words = o.words?.length ?? 0;
+  const share = o.shares.games[words + slot];
+  if (!level || share < minShare) return false;
+  const at = o.shares.games.slice(0, words + slot).reduce((a, b) => a + b, o.shares.free);
+  const { solution, murdererIndex } = o.truth;
+  try {
+    buildNosing({
+      house: o.content.house,
+      seed: nosingSeed(hashSeed(`${o.seed}-nosing`)),
+      level,
+      sceneRoom: solution.room[murdererIndex],
+      clues: Array.from({ length: share }, (_, i) => `c${at + i + 1}`),
+      ladders: nosingLadders,
+      snakes: nosingSnakes,
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** How many pairs tarot match gets for the rotating game at `slot`, or null when its clues name too many cards. */

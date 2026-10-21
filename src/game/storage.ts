@@ -33,8 +33,8 @@ export interface QuickSave {
 }
 
 // Bumped when Play cases change, so a saved one isn't replayed against a different case.
-// 2: Play cases draw 3 to 5 games and share clues by level.
-const PLAY_VERSION = 3;
+// 2: Play cases draw 3 to 5 games and share clues by level. 4: Nosing around joins Play (a level roll for every Play code).
+const PLAY_VERSION = 4;
 
 export function loadQuick(): QuickSave | null {
   const saved = read<QuickSave>('quick');

@@ -87,6 +87,12 @@
   seeded draw, and extras may be swapped or dropped. Tarot is a real chosen
   game here (`tarotPairsAt` for its own slot, `Layout.picked`), never the
   random stand-in, which only plain Play cases use.
+  **Nosing around** (`NOSING_SHARE` 0.2, `nosingSlot`, seed `<seed>-nosing-game`)
+  stands in for a Play game after tarot's stand-in, never on the board's or
+  tarot's slot, only when that slot holds 3 or more clues and its board builds;
+  a picked nosing (letter `N`) only needs 1 or more clues (`nosingFits` `minShare`
+  3 for the stand-in, 1 picked) and a board that builds, else the suffix fails. Its level roll is last in `PLAY_ROLLED`. Not in presets, campaigns or
+  wide rounds.
 - **A case name is its code in words** ("The Black Dahlia Scandal at
   Ashcombe": the code's number as a descriptor, a cat or flower word and a
   place, then the kind word for its levels), so either replays the case

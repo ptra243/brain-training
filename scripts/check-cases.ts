@@ -19,6 +19,10 @@ import { sceneCrossword, sceneWordSearch } from '../src/game/sceneGames.ts';
 import { Rng, hashSeed } from '../src/engine/rng.ts';
 import { TAROT_MAX_PAIRS, tarotClueCards } from '../src/engine/tarotCards.ts';
 import { JOKER, buildTarot, flip, resolveTurn, tarotHint, tarotInitial, tarotSolved } from '../src/games/tarot.ts';
+import { nosingLadders, nosingSnakes } from '../src/content/nosing.ts';
+import { buildNosing, nosingSeed, nosingSplit, type NosingPuzzle } from '../src/games/nosing.ts';
+import { NOSING_LEVELS, nosingBounds } from '../src/games/nosingBoard.ts';
+import { solveLock } from '../src/games/lock.ts';
 import { countCatSolutions, generateCats, solvableBySimpleSteps } from '../src/games/cats.ts';
 import { solutionAt } from '../src/games/crossword.ts';
 import { everyWordOnce, leftovers } from '../src/games/wordsearch.ts';
@@ -44,6 +48,62 @@ function timed(make: () => Board | null): Board | null {
 const packs = (b: Board) => boardSolvable(b, Object.fromEntries(Object.entries(b.truth).map(([id, t]) => [id, t.cells])));
 
 const tarotChecked: Record<string, number> = { easy: 0, medium: 0, hard: 0, none: 0 };
+const nosingChecked: Record<string, number> = { easy: 0, medium: 0, hard: 0, none: 0 };
+
+/** Everything that makes a Nosing around puzzle unfair. */
+function nosingProblems(p: NosingPuzzle, sceneRoom: string, clueCount: number): string[] {
+  const out: string[] = [];
+  const lv = NOSING_LEVELS[p.level];
+  const { board, lock } = p;
+  const len = board.path.length;
+  // The board: the exact turn and question bounds sit inside the level's ranges.
+  const b = nosingBounds(board, p.seed, p.level);
+  if (b.minTurns < lv.turns[0] || b.maxTurns > lv.turns[1]) out.push(`nosing turns ${b.minTurns}-${b.maxTurns} outside ${lv.turns.join('-')}`);
+  if (b.minQuestions < lv.minQuestions) out.push(`nosing has only ${b.minQuestions} questions`);
+  if (len < lv.len[0] || len > lv.len[1]) out.push(`nosing path of ${len} squares`);
+  // The lock meets its tier, and is exact with no bonuses.
+  const tier = { easy: { lo: 20, hi: 99 }, medium: { lo: 100, hi: 299 }, hard: { lo: 300, hi: 699 } }[p.level];
+  if (lock.numbers.length !== 6) out.push(`nosing lock has ${lock.numbers.length} numbers`);
+  if (lock.target < tier.lo || lock.target > tier.hi) out.push(`nosing lock target ${lock.target}`);
+  const way = solveLock(lock.numbers, lock.target);
+  if (!way) out.push('nosing lock has no exact way');
+  else {
+    if (p.level === 'easy' && way.length > 2) out.push('nosing easy lock needs more than 3 numbers');
+    if (p.level === 'hard' && way.length < 3) out.push('nosing hard lock needs fewer than 4 numbers');
+    if (way[way.length - 1].result !== lock.target) out.push('nosing lock way misses the target');
+  }
+  // Questions: whole numbers from 0 to 9999, the answer among the choices.
+  for (const [i, q] of Object.entries(p.questions)) {
+    if (!Number.isInteger(q.answer) || q.answer < 0 || q.answer > 9999) out.push(`nosing question ${i} answers ${q.answer}`);
+    if (!q.choices.includes(q.answer) || new Set(q.choices).size !== 3) out.push(`nosing question ${i} has bad choices`);
+  }
+  for (const [i, list] of Object.entries(p.speed)) {
+    if (list.some((q) => !Number.isInteger(q.answer) || q.answer < 0 || q.answer > 9999)) out.push(`nosing speed round ${i} has a bad answer`);
+  }
+  board.squares.forEach((sq, i) => {
+    if ((sq.kind === 'ladder' || sq.kind === 'snake' || sq.kind === 'obstacle' || sq.kind === 'search') && !p.questions[i]) out.push(`nosing square ${i} has no question`);
+    if (sq.kind === 'speed' && !p.speed[i]) out.push(`nosing square ${i} has no speed round`);
+    if (sq.kind === 'ladder' || sq.kind === 'snake') {
+      const c = (sq.kind === 'ladder' ? nosingLadders : nosingSnakes).find((x) => x.id === sq.contentId);
+      if (!c) out.push(`nosing ${sq.kind} ${i} has no content`);
+      else if (c.rooms !== 'any' && !c.rooms.includes(board.roomOf[i])) out.push(`nosing ${sq.kind} ${c.id} sits in ${board.roomOf[i]}`);
+    }
+  });
+  // One search square in every room; the clue squares match the split; the lock is in a clue room, never the scene room.
+  const rooms = new Set(p.house.rooms.map((r) => r.id));
+  const searchRooms = board.squares.flatMap((sq, i) => (sq.kind === 'search' ? [board.roomOf[i]] : []));
+  if (searchRooms.length !== rooms.size || new Set(searchRooms).size !== rooms.size || searchRooms.some((r) => !rooms.has(r))) out.push('nosing: not one search square in every room');
+  const idx = board.squares.flatMap((sq) => (sq.kind === 'search' && sq.clueIndex != null ? [sq.clueIndex] : [])).sort();
+  const split = nosingSplit(clueCount);
+  if (idx.length !== split.search || idx.some((v, k) => v !== k)) out.push(`nosing has ${idx.length} clue squares for ${split.search} search clues`);
+  if (p.searchClues.length !== split.search || p.lockClues.length !== split.lock) out.push('nosing clue split is wrong');
+  const lockRoom = board.roomOf[len - 1];
+  if (lockRoom === sceneRoom) out.push('nosing lock is in the scene room');
+  if (!board.clueRooms.includes(lockRoom)) out.push('nosing lock room is not a clue room');
+  if (board.clueRooms.includes(sceneRoom)) out.push('nosing has a clue in the scene room');
+  nosingChecked[p.level]++;
+  return out;
+}
 
 /** Turn the hinted card (or a fresh one), then its partner if seen: the board must finish. */
 function tarotHintsWin(board: readonly string[], seed: number): boolean {
@@ -163,6 +223,20 @@ function puzzleProblems(c: Case): string[] {
     if (board.length !== g.pairs * 2 + 1 || board.filter((id) => id === JOKER).length !== 1) out.push('tarot board has the wrong size');
     for (const id of reward) if (board.filter((b) => b === id).length !== 2) out.push('tarot board is missing a reward card');
     if (!tarotHintsWin(board, g.seed)) out.push("following the cat's hints does not win tarot");
+  }
+  // Nosing around: the board, lock and questions are fair.
+  for (const g of c.games.filter((g) => g.kind === 'nosing')) {
+    if (!g.level) {
+      out.push('nosing has no level');
+      continue;
+    }
+    if (g.clues.length < 1 || g.clues.length > 7) out.push(`nosing holds ${g.clues.length} clues`);
+    try {
+      const p = buildNosing({ house: content.house, seed: nosingSeed(g.seed), level: g.level, sceneRoom: c.sceneRoom, clues: g.clues.slice(), ladders: nosingLadders, snakes: nosingSnakes });
+      out.push(...nosingProblems(p, c.sceneRoom, g.clues.length));
+    } catch (e) {
+      out.push(`nosing does not build: ${(e as Error).message}`);
+    }
   }
   // Case board puzzle: builds for its clues, and its answer packs.
   for (const g of c.games.filter((g) => g.kind === 'board')) {
@@ -323,6 +397,52 @@ for (const d of DIFFICULTIES) {
   }
 }
 console.log(`Tarot match: easy ${tarotChecked.easy}, medium ${tarotChecked.medium}, hard ${tarotChecked.hard} cases checked (${tarotCodes} extra Play codes scanned)`);
+
+// Nosing around: keep drawing Play codes until every level has a few cases, then force every scene room at every level.
+const NOSING_WANT = 5;
+let nosingCodes = 0;
+for (let i = 5000; i < 9000 && DIFFICULTIES.some((d) => nosingChecked[d] < NOSING_WANT); i++) {
+  const ref: PlayRef = { mode: 'play', code: codeFor(i * 1_215_773) };
+  nosingCodes++;
+  try {
+    const c = caseFor(content, ref);
+    if (!c.games.some((g) => g.kind === 'nosing')) continue;
+    for (const p of problems(c)) {
+      failures++;
+      console.log(`  FAIL play ${caseCode(ref)}: ${p}`);
+    }
+  } catch (err) {
+    failures++;
+    console.log(`  FAIL play ${caseCode(ref)}: ${(err as Error).message}`);
+  }
+}
+for (const d of DIFFICULTIES) {
+  if (nosingChecked[d] < NOSING_WANT) {
+    failures++;
+    console.log(`  FAIL nosing: only ${nosingChecked[d]} ${d} cases in ${nosingCodes} Play codes`);
+  }
+}
+const inCases = { ...nosingChecked };
+let forced = 0;
+for (const level of DIFFICULTIES) {
+  for (const [r, room] of content.house.rooms.entries()) {
+    for (const share of FULL ? [3, 4, 5, 6, 7] : [3 + (r % 5)]) {
+      forced++;
+      const seed = `check-${level}-${room.id}-${share}`;
+      try {
+        const p = buildNosing({ house: content.house, seed, level, sceneRoom: room.id, clues: Array.from({ length: share }, (_, k) => `c${k + 1}`), ladders: nosingLadders, snakes: nosingSnakes });
+        for (const m of nosingProblems(p, room.id, share)) {
+          failures++;
+          console.log(`  FAIL nosing ${seed}: ${m}`);
+        }
+      } catch (err) {
+        failures++;
+        console.log(`  FAIL nosing ${seed}: ${(err as Error).message}`);
+      }
+    }
+  }
+}
+console.log(`Nosing around: easy ${inCases.easy}, medium ${inCases.medium}, hard ${inCases.hard} Play cases checked (${nosingCodes} extra Play codes scanned), plus ${forced} forced boards (every scene room at every level)`);
 
 // Campaigns: every path of wrong accusations, each round fair for any puzzles she picks.
 const PER_DIFFICULTY = FULL ? 3 : 1;

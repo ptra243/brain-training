@@ -38,12 +38,12 @@ export interface PlayRef {
   games?: PickedGame[];
 }
 
-/** Games she can pick: the scene word games and the rotating ones, board and tarot included. */
-export type PickedGame = 'wordle' | 'crossword' | 'wordsearch' | 'cats' | 'sudoku' | 'interrogation' | 'board' | 'tarot';
+/** Games she can pick: the scene word games and the rotating ones, board, tarot and Nosing around included. */
+export type PickedGame = 'wordle' | 'crossword' | 'wordsearch' | 'cats' | 'sudoku' | 'interrogation' | 'board' | 'tarot' | 'nosing';
 
 /** The fixed order a picked case stores and writes its games in. */
-export const PICK_ORDER: readonly PickedGame[] = ['wordle', 'crossword', 'wordsearch', 'cats', 'sudoku', 'interrogation', 'board', 'tarot'];
-const PICK_LETTER: Record<PickedGame, string> = { wordle: 'W', crossword: 'C', wordsearch: 'F', cats: 'K', sudoku: 'S', interrogation: 'I', board: 'B', tarot: 'T' };
+export const PICK_ORDER: readonly PickedGame[] = ['wordle', 'crossword', 'wordsearch', 'cats', 'sudoku', 'interrogation', 'board', 'tarot', 'nosing'];
+const PICK_LETTER: Record<PickedGame, string> = { wordle: 'W', crossword: 'C', wordsearch: 'F', cats: 'K', sudoku: 'S', interrogation: 'I', board: 'B', tarot: 'T', nosing: 'N' };
 export const PICK_MIN = 3;
 /** Picked games in canonical order, without repeats. */
 export const pickedInOrder = (games: readonly PickedGame[]): PickedGame[] => PICK_ORDER.filter((g) => games.includes(g));
@@ -81,13 +81,13 @@ export const quickLevels = (ref: QuickRef): CaseLevels => ({
 });
 
 /** Games that roll a difficulty in a Play case, in rolling order. */
-const PLAY_ROLLED: readonly GameKind[] = ['cats', 'sudoku', 'interrogation', 'board', 'wordsearch', 'crossword', 'tarot'];
+const PLAY_ROLLED: readonly GameKind[] = ['cats', 'sudoku', 'interrogation', 'board', 'wordsearch', 'crossword', 'tarot', 'nosing'];
 
 /**
  * The levels a Play code rolls, from a seed of its own, in this fixed order
  * (plain independent rolls): logic difficulty (easy 1 : medium 2 : hard 1),
  * guests (7 one time in 4, else 4 or 5 evenly), then one difficulty per game.
- * The crossword's and then tarot's rolls were appended last (appending keeps earlier rolls the
+ * The crossword's, then tarot's and then Nosing around's rolls were appended last (appending keeps earlier rolls the
  * same); the wordle has none. Games without a roll
  * fall back to `minigames`.
  */

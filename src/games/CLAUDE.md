@@ -45,3 +45,16 @@ Pure puzzle logic, no React. Components live in `src/game/games/`.
   obscure words: use it only to accept guesses. It's committed, fetched on
   demand and precached for offline; until it loads any guess is accepted.
   Every room object must be in it (tested).
+- **Nosing around** (`nosing.ts` on `nosingBoard.ts`, `mentalMaths.ts`,
+  `speedRound.ts`, `lock.ts`; design in `docs/nosing-around.md`): a maths board
+  game on the floor plan, a Play-only stand-in for any game holding 3 or more
+  clues (a picked one may hold 1 or 2: `nosingSplit` gives the lock 1 and the
+  search squares the rest, so share 1 has no search clue). The saved state is only her moves (`{ moves, hints, solved? }`);
+  `nosingView` replays them, `nosingStep` validates and appends, and rolls come
+  from `rollFor(nosingRollSeed(seed, board.attempt), level, turn)`. Search
+  clues unlock when their square is answered right (`onFound`); the rest, and
+  any search square she never landed on, come with the lock, so every clue is
+  guaranteed. Hints are `nosingHint` (question ladder, then `lockHint`), never in
+  the speed round. The exact turn bounds model ladders, snakes and the `steps` bonus (shared helpers in `nosingBoard.ts`), so every run, however she answers, takes `NOSING_LEVELS[level].turns`. Tests drive bots that follow hints, are always wrong, and answer at random,
+  over 100 seeds per level; `check-cases` covers every
+  scene room at every level.

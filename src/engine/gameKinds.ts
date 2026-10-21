@@ -24,6 +24,14 @@ export const BOARD_SHARE = 0.35;
  */
 export const TAROT_SHARE = 0.25;
 
+/**
+ * How often Nosing around stands in for one of a Play case's drawn games, on a
+ * seed of its own after the draw, the board and the tarot stand-ins, so Play
+ * cases that keep their games are the same as before. Only for a game that
+ * holds 3 or more clues, and when the board builds.
+ */
+export const NOSING_SHARE = 0.2;
+
 /** How clues read from each source: the cats find evidence, everyone else gives testimony. */
 export const CLUE_SOURCE: Record<ClueDelivery, ClueSource> = {
   given: 'testimony',
@@ -36,6 +44,7 @@ export const CLUE_SOURCE: Record<ClueDelivery, ClueSource> = {
   wordsearch: 'testimony',
   board: 'testimony',
   tarot: 'testimony',
+  nosing: 'testimony',
 };
 
 export const isSceneGame = (g: GameSpec): g is SceneGameSpec => g.unlocksScene;

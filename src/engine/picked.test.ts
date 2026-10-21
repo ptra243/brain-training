@@ -11,7 +11,7 @@ test('a picked case code round-trips, forgiving case, spaces and order', () => {
   const r = ref('K7QF2', ['wordle', 'crossword', 'cats']);
   assert.equal(caseCode(r), 'K7QF2+WCK');
   for (const typed of ['K7QF2+WCK', 'k7qf2+wck', ' K7QF2 + K C W ', 'K7QF2+KWC']) assert.deepEqual(parseCaseCode(typed), r, typed);
-  assert.equal(caseCode(ref('K7QF2', [...PICK_ORDER])), 'K7QF2+WCFKSIBT');
+  assert.equal(caseCode(ref('K7QF2', [...PICK_ORDER])), 'K7QF2+WCFKSIBTN');
   for (const bad of ['K7QF2+WC', 'K7QF2+WCC', 'K7QF2+WCX', 'K7QF2+', 'K7QF2+wc1', 'K7QO2+WCK', 'K7QF2WCK', 'K7QF2-WCK']) assert.equal(parseCaseCode(bad), null, bad);
   // Never confused with a Quick start code or a plain Play code.
   assert.deepEqual(parseCaseCode('K7QF2-MNB'), { mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal', cast: 'big' });
@@ -62,5 +62,5 @@ test('every combination of three or more games builds, with every picked game in
       for (const g of c.games) if (g.kind !== 'finale') assert.ok(g.clues.length >= 1 && g.clues.length <= 7, `${g.kind} has ${g.clues.length} clues`);
     }
   }
-  assert.equal(combos, 219);
+  assert.equal(combos, 466);
 });

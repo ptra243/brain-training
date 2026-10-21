@@ -10,9 +10,11 @@ import { boardPuzzle } from '../../engine/caseBoard.ts';
 import { caseFacts, interrogationEvidence } from '../../engine/caseFacts.ts';
 import { disproves } from '../../engine/interrogation.ts';
 import { Rng } from '../../engine/rng.ts';
-import type { BoardSpec, Case, CatsSpec, GameKind, GameSpec, Interrogation, InterrogationSpec, SceneGameSpec, SudokuSpec, TarotSpec } from '../../engine/types.ts';
+import type { BoardSpec, Case, CatsSpec, GameKind, GameSpec, Interrogation, InterrogationSpec, NosingSpec, SceneGameSpec, SudokuSpec, TarotSpec } from '../../engine/types.ts';
 import { tarotClueCards } from '../../engine/tarotCards.ts';
 import { generateCats, type CatPuzzle } from '../../games/cats.ts';
+import { nosingLadders, nosingSnakes } from '../../content/nosing.ts';
+import { buildNosing, nosingInitial, nosingSeed, nosingSolve, type NosingPuzzle, type NosingState } from '../../games/nosing.ts';
 import { buildTarot, tarotInitial, tarotRevealAll, type TarotState } from '../../games/tarot.ts';
 import type { CrosswordPuzzle } from '../../games/crossword.ts';
 import { foundLocations, generateSudoku, locationSquares, type LocationSquares, type SudokuPuzzle } from '../../games/sudoku.ts';
@@ -25,6 +27,7 @@ import { CatsGame } from './CatsGame.tsx';
 import { CrosswordGame } from './CrosswordGame.tsx';
 import { InterrogationGame } from './InterrogationGame.tsx';
 import { SudokuGame } from './SudokuGame.tsx';
+import { NosingGame } from './NosingGame.tsx';
 import { TarotGame, type TarotPuzzle } from './TarotGame.tsx';
 import { WordleGame } from './WordleGame.tsx';
 import { WordSearchGame } from './WordSearchGame.tsx';
@@ -255,6 +258,37 @@ export const GAMES: Record<GameKind, GameEntry> = {
       return {
         solved: () => tarotRevealAll(puzzle.board, data),
         view: <TarotGame puzzle={puzzle} data={data} {...common(a)} />,
+      };
+    },
+  }),
+  nosing: game<NosingSpec, NosingPuzzle>({
+    name: 'Nosing around',
+    blurb: 'Follow the cat round the house, with sums on the way.',
+    build: (c, spec) =>
+      buildNosing({
+        house: content.house,
+        seed: nosingSeed(spec.seed),
+        level: spec.level!,
+        sceneRoom: c.sceneRoom,
+        clues: spec.clues.slice(),
+        ladders: nosingLadders,
+        snakes: nosingSnakes,
+      }),
+    play(puzzle, a) {
+      const data = (a.saved as NosingState | undefined) ?? nosingInitial();
+      return {
+        solved: () => nosingSolve(puzzle, data),
+        view: (
+          <NosingGame
+            puzzle={puzzle}
+            data={data}
+            // Search clues unlock the moment they are found, like sudoku's statements.
+            onFound={(clues) => {
+              if (clues.length) a.dispatch({ type: 'found', clues });
+            }}
+            {...common(a)}
+          />
+        ),
       };
     },
   }),
