@@ -134,3 +134,18 @@ test.describe('exploring a campaign round', () => {
     await checkScreen(page, 'midnight map');
   });
 });
+
+// The murder room changes with the seed; an edge room once pushed the body mark off the plan.
+for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+  test.describe(`the explore map with seed ${seed}`, () => {
+    test.use({ seed });
+    test('fits the screen, body mark inside the plan', async ({ page }) => {
+      await startCampaign(page);
+      const frame = await page.locator('.floorplan-frame.explore').boundingBox();
+      const mark = await page.locator('.floorplan-frame.explore .body-mark').boundingBox();
+      expect(frame && mark).toBeTruthy();
+      expect(mark!.x + mark!.width).toBeLessThanOrEqual(frame!.x + frame!.width);
+      await checkScreen(page, `explore map, seed ${seed}`);
+    });
+  });
+}

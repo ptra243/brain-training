@@ -872,6 +872,8 @@ body.dev { background: #f2f1ec; color: #222; }
 /* ---------- Exploring a campaign round ---------- */
 /* Rooms are tapped, so a square must stay at least 44px wide: the frame gives up its padding for it. */
 .floorplan-frame.explore { padding: 0.15rem; }
+/* Rooms are narrow here: the body mark goes under the room name so it never runs past the plan. */
+.floorplan-frame.explore .body-mark { display: block; }
 .tile-hit {
   position: absolute; inset: 0; z-index: 1; padding: 0; border: 0; background: transparent; cursor: pointer;
 }
@@ -917,4 +919,4 @@ body.dev { background: #f2f1ec; color: #222; }
   .time-card { animation: time-fade 1.5s ease-out both; }
 }
 @keyframes time-fade { from { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } to { opacity: 0.2; } }
-.midnight-note { font-weight: 600; color: var(--pencil); }
+.midnight-note { font-weight: 600; color: var(--on-baize); }
