@@ -1,8 +1,10 @@
 # Next sessions
 
 Ideas for sessions to start fresh with `/clear` (or another terminal). Each has its own
-`Last touched` date. A `SessionStart` hook (`.claude/hooks/stale-sessions.mjs`) tells Claude to
-mention any entry untouched for 14 days or more and ask whether to keep, update or drop it.
+`Last touched` date. A `SessionStart` hook (`.claude/hooks/stale-sessions.mjs`) shows these as a
+numbered menu when a session starts (or after `/clear`): reply "start 3" and Claude runs that entry's
+starting prompt. It also tells Claude to mention any entry untouched for 14 days or more and ask
+whether to keep, update or drop it. Each `## Session:` heading is its menu line, so keep it short.
 
 Keeping an entry current: when you work on one, or when its handoff docs change, update its
 `Last touched` line (`YYYY-MM-DD`). Delete an entry once its session is done.
@@ -27,32 +29,23 @@ Starting prompt:
 Read docs/theme-draft.md, fix the lines that break rules 2 and 3, audit the neutral lines against borrowing roles, then draft the six extra cards and the missing card + object threads.
 ```
 
-## Session: Tangent threads and Talk/Play flow
-Last touched: 2026-10-20
-Reads first: `docs/theme-draft.md` (the "Model" and "Follow-up threads" sections), `docs/tell-me-again.md`,
-and the Murder Mystery Mode doc (link in `CLAUDE.md`) for how she travels the house.
-Goal: settle the open questions (unprompted versus "Anything else?", threads per suspect, Play after
-Talk in one visit, side characters, the `visit` trigger), then write an implementer brief for the set
-roll, the saved stage per character, the triggers and the Talk screen. Dump and diff existing cases
-before and after (rule 10). Also settle:
-- Is the borrowed card rolled once per suspect per case (proposed: yes, one secondary for the night, so
-  a suspect sounds like one person) or per line? The draft's 60 to 70% home weight doesn't say.
-- Show the stage as a few pips per suspect (how much of their story she has heard). That is the
-  "relationship meter": it only goes up, and it behaves the same for the killer (rule 5).
-- Explore hostile to warm as the arc: some suspects start cold, and each beat she hears softens them
-  ("You again?" then "Fine, sit down." then a confidence). She wins them round; the meter never drops.
-- Explore hostility changing the minigame, never the clue: a hostile suspect's puzzle is a bit harder
-  or has a twist (the dog won't go near them, so hints help less). Same true clue on a win, Solve still
-  works. Never "won't talk until you do X" unless there's always another way (she can never get stuck).
+## Session: Talk and threads, build
+Last touched: 2026-10-21
+Reads first: `docs/talk-threads.md` (settled design and the implementer brief), `src/game/CLAUDE.md`,
+`src/engine/CLAUDE.md`, `e2e/CLAUDE.md`.
+Goal: hand part A of the brief to the implementer (content shape with placeholder lines, `sets.ts`,
+`talk.ts`, `Progress.talk`, the Talk section on the suspect sheet, check-cases), then check with
+`npm test`, `npm run check-cases`, `npm run e2e` and a `browser-check` look at 360px. Cases must not
+change. Part B waits for the Theme content session.
 Starting prompt:
 ```
-Read the Model and Follow-up threads sections of docs/theme-draft.md and the Murder Mystery Mode doc, then help me settle the open questions and write an implementer brief.
+Read docs/talk-threads.md, hand part A to the implementer, then check the results with the tests, check-cases and e2e.
 ```
 
 ## Session: Relationships between characters
 Last touched: 2026-10-20
 Reads first: `docs/theme-draft.md` (Follow-up threads, Model), the cast and who-knows-whom map from
-"The cast" session. Best after "Tangent threads and Talk/Play flow" settles the trigger list.
+"The cast" session. The trigger list is settled in `docs/talk-threads.md`.
 Goal: make characters react to each other, without anything depending on the killer (rule 5). Explore:
 - Card pairs: tarot pairs (Emperor and Empress, Magician and High Priestess, Devil and Lovers) open a
   thread between the two people holding them ("{other} won't look at me tonight").
@@ -141,31 +134,6 @@ Starting prompt:
 Read the "Hunting the weapon" item in the What's Left doc and docs/next-sessions.md, help me design the shortlist puzzle and the either-or clues, then write an implementer brief.
 ```
 
-## Session: Sudoku touch targets and small performance wins
-Last touched: 2026-10-21
-Reads first: `docs/code-review-followups.md` sections 1 and 3, `e2e/CLAUDE.md`.
-Goal: the sudoku pad buttons reach 44 px (then remove its `test.fail` in `e2e/games.spec.ts`);
-`stillPossible` stops rerunning on every move; the `#dev` inspector is lazy-loaded; `words.txt` is
-trimmed to the lengths the games use. All well defined: brief the implementer, check with
-`npm run e2e`. Cases must not change.
-Starting prompt:
-```
-Read docs/code-review-followups.md sections 1 and 3, then hand each item to the implementer and check the results with npm run e2e.
-```
-
-## Session: Board UI refactor (CaseBoard and map dragging)
-Last touched: 2026-10-21
-Reads first: `docs/code-review-followups.md` section 2, `src/game/CLAUDE.md` (Touch, Map, Case board UI),
-`e2e/CLAUDE.md`.
-Goal: split `CaseBoard.tsx` (drag hook, one reducer for undo, toast and flags), share one pointer-drag
-hook with `MapPanel.tsx`, and decide on the React Compiler by profiling a drag before and after. First
-add an e2e touch-drag test for the case board so behaviour is pinned. Cross-cutting: design here,
-then delegate the pieces.
-Starting prompt:
-```
-Read docs/code-review-followups.md section 2, add an e2e drag test for the case board, then design the drag hook and reducer split with me before delegating.
-```
-
 ## Session: Validate saved data
 Last touched: 2026-10-21
 Reads first: `docs/code-review-followups.md` section 4, `src/game/storage.ts`, `src/game/games/saveData.ts`.
@@ -214,4 +182,27 @@ without getting her stuck, the hint ladder, and whether it joins the case rotati
 Starting prompt:
 ```
 Read the dog encounter in docs/nosing-around.md and help me decide whether to grow it into its own card-battle minigame: rules, levels, losing without getting stuck, hints.
+```
+
+## Session: Target or another word game (exploratory)
+Last touched: 2026-10-21
+Reads first: `src/games/CLAUDE.md`, `scripts/build-words.ts`, `src/games/dictionary.ts` and
+`src/game/games/WordleGame.tsx` (how the guess list is fetched).
+Goal: design, then build, a Target-style game (a 3×3 grid around one 9-letter word, find 4+ letter
+words that use the centre letter), or another word game if that fits better. Proposed approach:
+- Two lists. Guesses are checked against a big list: `build-words.ts` also writes
+  `public/words-4-9.txt` (the old 4–9 filter on `word-list`) and Wordle keeps its 5-letter file.
+  The puzzle is built from a common-word list generated from SCOWL tiers (`wordlist-english`
+  on npm; install it on the owner's machine), 4–9 letters, no proper nouns, plus a small blocklist.
+  It is committed to `src/content/` and lazily imported by the game.
+- The seed 9-letter word comes from the most common tiers only, and never a room, suspect or item name.
+- Goals, the Solve answer and the cat's hints come from the common list. A guess that's only in the big
+  list counts as a bonus word, not toward the goals.
+- Editing the common list changes cases: bump the storage prefix in `src/game/storage.ts`, and add a
+  golden test (one seed, its word and goal counts).
+Settle first: Target or another game, goal levels, what the clue reward is, and whether it joins the
+case rotation.
+Starting prompt:
+```
+Read the "Target or another word game" entry in docs/next-sessions.md and help me design the game: confirm Target or pick another, settle goals, hints and the clue reward, then plan the two word lists.
 ```
