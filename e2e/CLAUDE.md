@@ -6,7 +6,10 @@
   on failure (`test-results/`). Each run starts its own server on a free
   port (`scripts/free-port.ts`; `E2E_PORT` overrides), so runs in different
   folders or worktrees can overlap. In the same folder, give each its own
-  `--output` so they don't clear each other's `test-results/`.
+  `--output test-results/<name>` so they don't clear each other's results.
+  Keep it under `test-results/`: the next plain run wipes it there, so
+  results never pile up (so don't start a plain run while a named one is
+  going).
 - **Deterministic cases.** Import `test` from `fixtures.ts`: it replaces
   `crypto.getRandomValues` with a seeded sequence (`test.use({ seed })`,
   default 12345), so "New case" and campaigns build the same case every

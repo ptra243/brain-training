@@ -3,6 +3,6 @@ dist
 dev-dist
 *.local
 .DS_Store
-test-results/
+test-results*/
 playwright-report/
 blob-report/
