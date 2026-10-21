@@ -123,3 +123,11 @@ test('move sets the room she is in, only a room in play', () => {
   assert.equal(reduce(c, emptyProgress(), { type: 'move', room }).at, room);
   assert.equal(reduce(c, emptyProgress(), { type: 'move', room: 'nowhere' }).at, undefined);
 });
+
+test('no object is named with a word any puzzle of the round hides', () => {
+  for (const c of all) {
+    const text = JSON.stringify(c.games).toUpperCase();
+    for (const room of Object.values(roomContents(content, houseDetails, c)))
+      for (const o of room.objects) assert.ok(!text.includes(o.label.replace(/^The /, '').toUpperCase()), `${c.code}: ${o.label}`);
+  }
+});

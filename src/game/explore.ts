@@ -45,10 +45,12 @@ export function roomContents(content: Content, details: readonly string[], c: Ca
   const rng = new Rng(hashSeed(`${c.seed}-explore-objects`));
   const order = rng.shuffle(c.rooms);
   const taken = new Set<string>();
+  // Puzzle answers come from these same word lists: never label an object with a word any puzzle hides.
+  const puzzleText = JSON.stringify(c.games).toUpperCase();
   roundPuzzles(c).objects.forEach((g, i) => {
     const room = order[i % order.length];
     const room_ = house.get(room);
-    const words = room_ ? [...room_.objects, ...room_.things] : [];
+    const words = (room_ ? [...room_.objects, ...room_.things] : []).filter((w) => !puzzleText.includes(w.toUpperCase()));
     const fresh = words.filter((w) => !taken.has(w));
     const word = rng.pick(fresh.length ? fresh : words);
     taken.add(word);
