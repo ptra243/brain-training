@@ -8,6 +8,7 @@ import { isInterrogation, isSceneGame } from '../engine/gameKinds.ts';
 import type { Case, Clue, GameKind, GameSpec } from '../engine/types.ts';
 import type { GridHintState } from './gridHints.ts';
 import { roomName } from './names.ts';
+import { isInterrogationData } from './saveGuards.ts';
 import { readyBeats, setsFor } from './talk.ts';
 
 export type Mark = 'x' | 'o';
@@ -361,7 +362,8 @@ export function visibleClues(c: Case, p: Progress): Clue[] {
   const out = c.clues.filter((clue) => unlocked.has(clue.id));
   for (const g of c.games) {
     if (!isInterrogation(g) || !gameDone(p, g.kind)) continue;
-    const data = p.games[g.kind]?.data as InterrogationData | undefined;
+    const saved = p.games[g.kind]?.data;
+    const data = isInterrogationData(saved) ? saved : undefined;
     out.push(...g.interrogation.cards);
     for (const q of g.interrogation.questions) if (!q.lie && data?.asked.includes(q.id)) out.push(q.answer);
   }

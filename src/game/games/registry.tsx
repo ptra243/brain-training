@@ -14,15 +14,27 @@ import type { BoardSpec, Case, CatsSpec, GameKind, GameSpec, Interrogation, Inte
 import { tarotClueCards } from '../../engine/tarotCards.ts';
 import { generateCats, type CatPuzzle } from '../../games/cats.ts';
 import { nosingLadders, nosingSnakes } from '../../content/nosing.ts';
-import { buildNosing, nosingInitial, nosingSeed, nosingSolve, type NosingPuzzle, type NosingState } from '../../games/nosing.ts';
-import { buildTarot, tarotInitial, tarotRevealAll, type TarotState } from '../../games/tarot.ts';
+import { buildNosing, nosingInitial, nosingSeed, nosingSolve, type NosingPuzzle } from '../../games/nosing.ts';
+import { buildTarot, tarotInitial, tarotRevealAll } from '../../games/tarot.ts';
 import type { CrosswordPuzzle } from '../../games/crossword.ts';
 import { foundLocations, generateSudoku, locationSquares, type LocationSquares, type SudokuPuzzle } from '../../games/sudoku.ts';
 import type { WordSearchPuzzle } from '../../games/wordsearch.ts';
-import { CaseBoard, type BoardSave } from '../board/CaseBoard.tsx';
+import { CaseBoard } from '../board/CaseBoard.tsx';
 import { boardInitial, boardSolvedSave } from '../board/boardSave.ts';
 import { sceneCrossword, sceneWordSearch } from '../sceneGames.ts';
-import type { Action, InterrogationData, Progress } from '../state.ts';
+import {
+  isBoardSave,
+  isCatsData,
+  isCrosswordData,
+  isInterrogationData,
+  isNosingState,
+  isSudokuData,
+  isTarotState,
+  isWordSearchData,
+  isWordleData,
+  type Guard,
+} from '../saveGuards.ts';
+import type { Action, Progress } from '../state.ts';
 import { CatsGame } from './CatsGame.tsx';
 import { CrosswordGame } from './CrosswordGame.tsx';
 import { InterrogationGame } from './InterrogationGame.tsx';
@@ -43,11 +55,7 @@ import {
   wordSearchSolved,
   wordleInitial,
   wordleSolved,
-  type CatsData,
-  type CrosswordData,
   type SudokuData,
-  type WordSearchData,
-  type WordleData,
 } from './saveData.ts';
 import type { WordlePuzzle } from './WordleGame.tsx';
 
@@ -87,6 +95,13 @@ interface Game<S extends GameSpec, P> {
 export type GameEntry = Game<GameSpec, unknown>;
 const game = <S extends GameSpec, P>(g: Game<S, P>): GameEntry => g;
 
+/**
+ * Her saved moves if they pass the game's guard. Otherwise that game starts over,
+ * or, if it is already finished, shows its answer (a bad save never hides the clues).
+ */
+const savedOr = <T,>(a: PlayArgs, is: Guard<T>, initial: () => T, solved: () => T): T =>
+  is(a.saved) ? a.saved : a.finished === null ? initial() : solved();
+
 /** The props every game component takes besides its puzzle and data. */
 const common = ({ finished, helper, onChange, onFinish }: PlayArgs) => ({ finished, helper, onChange, onFinish });
 
@@ -100,7 +115,7 @@ const questioning = (name: string, blurb: string) =>
     titles: { won: 'The confession', revealed: 'They told you anyway' },
     build: (_c, spec) => spec.interrogation,
     play(puzzle, a) {
-      const data = (a.saved as InterrogationData | undefined) ?? interrogationInitial();
+      const data = savedOr(a, isInterrogationData, interrogationInitial, interrogationInitial);
       const cf = caseFacts(content.house, a.c);
       return {
         solved: () => ({ ...data, caught: false }),
@@ -129,7 +144,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
       c.sceneGiven ? { answer: spec.scene.answer } : { answer: c.sceneClue.wordle.answer, teaser: c.sceneClue.wordle.teaser },
     play: (puzzle, a) => ({
       solved: () => wordleSolved(puzzle),
-      view: <WordleGame puzzle={puzzle} data={(a.saved as WordleData | undefined) ?? wordleInitial()} {...common(a)} />,
+      view: <WordleGame puzzle={puzzle} data={savedOr(a, isWordleData, wordleInitial, () => wordleSolved(puzzle))} {...common(a)} />,
     }),
   }),
   crossword: game<SceneGameSpec, CrosswordPuzzle>({
@@ -138,7 +153,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
     build: (_c, spec) => sceneCrossword(spec),
     play: (puzzle, a) => ({
       solved: () => crosswordSolved(puzzle),
-      view: <CrosswordGame puzzle={puzzle} data={(a.saved as CrosswordData | undefined) ?? crosswordInitial()} {...common(a)} />,
+      view: <CrosswordGame puzzle={puzzle} data={savedOr(a, isCrosswordData, crosswordInitial, () => crosswordSolved(puzzle))} {...common(a)} />,
     }),
   }),
   wordsearch: game<SceneGameSpec, WordSearchPuzzle>({
@@ -147,7 +162,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
     build: (c, spec) => sceneWordSearch(c, spec),
     play: (puzzle, a) => ({
       solved: () => wordSearchSolved(puzzle),
-      view: <WordSearchGame puzzle={puzzle} data={(a.saved as WordSearchData | undefined) ?? wordSearchInitial()} {...common(a)} />,
+      view: <WordSearchGame puzzle={puzzle} data={savedOr(a, isWordSearchData, wordSearchInitial, () => wordSearchSolved(puzzle))} {...common(a)} />,
     }),
   }),
   cats: game<CatsSpec, CatPuzzle>({
@@ -156,7 +171,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
     build: (_c, spec) => generateCats(spec.size, new Rng(spec.seed), spec.easy),
     play: (puzzle, a) => ({
       solved: () => catsSolvedData(puzzle),
-      view: <CatsGame puzzle={puzzle} data={(a.saved as CatsData | undefined) ?? catsInitial()} {...common(a)} />,
+      view: <CatsGame puzzle={puzzle} data={savedOr(a, isCatsData, catsInitial, () => catsSolvedData(puzzle))} {...common(a)} />,
     }),
   }),
   sudoku: game<SudokuSpec, { puzzle: SudokuPuzzle; squares: Record<string, LocationSquares>; finish: string[] }>({
@@ -170,7 +185,9 @@ export const GAMES: Record<GameKind, GameEntry> = {
       return { puzzle, squares, finish: spec.clues.filter((id) => !(id in squares)) };
     },
     play({ puzzle, squares, finish }, a) {
-      const data = (a.saved as SudokuData | undefined) ?? sudokuInitial(puzzle);
+      // A grid of the wrong size is as bad as a malformed one.
+      const fits = (v: unknown): v is SudokuData => isSudokuData(v) && v.grid.length === puzzle.givens.length;
+      const data = savedOr(a, fits, () => sudokuInitial(puzzle), () => sudokuSolvedData(puzzle));
       // A statement unlocks the moment both its squares are right, even mid-game.
       const check = (d: SudokuData) => {
         const ids = foundLocations(puzzle, squares, d.grid);
@@ -227,7 +244,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
             board={board}
             level={level}
             c={a.c}
-            save={(a.saved as BoardSave | undefined) ?? boardInitial()}
+            save={savedOr(a, isBoardSave, boardInitial, () => boardSolvedSave(board, level))}
             onChange={a.onChange}
             finished={a.finished !== null}
             helper={a.helper}
@@ -254,7 +271,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
       return { board: buildTarot(deck, { reward, other }, spec.pairs, new Rng(spec.seed)), seed: spec.seed };
     },
     play: (puzzle, a) => {
-      const data = (a.saved as TarotState | undefined) ?? tarotInitial();
+      const data = savedOr(a, isTarotState, tarotInitial, () => tarotRevealAll(puzzle.board, tarotInitial()));
       return {
         solved: () => tarotRevealAll(puzzle.board, data),
         view: <TarotGame puzzle={puzzle} data={data} {...common(a)} />,
@@ -275,7 +292,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
         snakes: nosingSnakes,
       }),
     play(puzzle, a) {
-      const data = (a.saved as NosingState | undefined) ?? nosingInitial();
+      const data = savedOr(a, isNosingState, nosingInitial, () => nosingSolve(puzzle, nosingInitial()));
       return {
         solved: () => nosingSolve(puzzle, data),
         view: (

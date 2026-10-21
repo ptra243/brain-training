@@ -32,19 +32,8 @@ Starting prompt:
 Read "Next build" in docs/nosing-around.md, settle its open items with me, then split the number grid, the lock on the grid and the dog fight into implementer briefs.
 ```
 
-## Session: Validate saved data
-Last touched: 2026-10-21
-Reads first: `docs/code-review-followups.md` section 4, `src/game/storage.ts`, `src/game/games/saveData.ts`.
-Goal: saves are checked, not cast. A bad game record resets that game only; a bad field falls back to
-its empty value. Decide Valibot or hand-written guards (Valibot needs installing on the owner's
-machine), then delegate. Add node tests with malformed saves.
-Starting prompt:
-```
-Read docs/code-review-followups.md section 4, help me pick Valibot or hand-written guards, then write an implementer brief with tests for malformed saves.
-```
-
 ## Session: Exploration mode, phase 1
-Last touched: 2026-10-21
+Last touched: 2026-10-22
 Reads first: `docs/exploration-mode.md` (settled design), `src/game/CLAUDE.md`, `e2e/CLAUDE.md`, then
 `CampaignView.tsx`, `Casebook.tsx`, `SuspectSheet.tsx` and `MapPanel.tsx`.
 Goal: build-order step 1. In campaign rounds the map becomes the main screen: her marker, exclamation
@@ -68,6 +57,21 @@ pieces 2 to 4. If exploration phase 1 lands first, the questioning plays before 
 Starting prompt:
 ```
 Read docs/face-to-face.md, build piece 1 (wrong weapon ends the round) here, then brief the implementer on pieces 2 to 4.
+```
+
+## Session: Portraits, parametric faceted cast
+Last touched: 2026-10-22
+Reads first: `docs/portraits.md` (settled style and open items), the mockup canvas it links (the
+three-quarter board's SVG is the reference drawing), `docs/theme-draft.md` ("Guest pool"), and the
+person screen in `docs/exploration-mode.md`.
+Goal: settle the three open items (which cast, portrait versus tarot card art, where mood comes from),
+then design the parts model (base figure, per-guest hair, headwear, costume, accent and background in
+`src/content/`, mood tint overlay) here. Hand the drawing code, the React component and the per-guest
+content to the implementer. Check the cards, the 52px and 32px counters and the large view at 360px
+through `browser-check`.
+Starting prompt:
+```
+Read docs/portraits.md, settle its open items with me, design the parametric parts model, then brief the implementer on the portrait component and the guest parts.
 ```
 
 ## Session: Theme content, tarot cast and line pools
