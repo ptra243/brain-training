@@ -9,28 +9,12 @@ whether to keep, update or drop it. Each `## Session:` heading is its menu line,
 Keeping an entry current: when you work on one, or when its handoff docs change, update its
 `Last touched` line (`YYYY-MM-DD`). Delete an entry once its session is done.
 
-The list is ordered like a project backlog, roughly by what to pick up next: easy wins and
-important fixes at the top, planned builds in the middle, exploratory and design work at the
-bottom. Put a new entry where it fits in that order, not just at the end.
-
-## Session: Merge Nosing around (after Talk lands)
-Last touched: 2026-10-21
-Reads first: `docs/nosing-around.md` on the branch (design, tuning, build spec), then
-`git log main..nosing-around` and `git diff main...nosing-around --stat`.
-Goal: the game is built and committed on branch `nosing-around` (worktree
-`.claude/worktrees/nosing-around`, one commit; `npm run checks`, e2e 27/27 and `check-cases:full` all
-passed there). Wait until the Talk and threads work is committed on `main`. Then, in the worktree:
-bring `main` in (likely conflicts: `src/engine/types.ts`, `scripts/check-cases.ts`, `src/styles.css`,
-`src/game/storage.ts`, `src/engine/golden.json`; if Talk also changed golden or bumped a prefix, re-run
-`npm run update-golden` after merging and check that only intended entries moved). Re-run
-`npm run checks` and `npm run e2e`, then `check-cases:full` in the background. Merge into `main`, push,
-and check the deploy (`gh run list --limit 1`, then `gh run watch <id> --exit-status`). Afterwards remove
-the worktree and branch, and delete this entry. Open items to check on the phone: the board shrinks
-to a 3.5rem strip during questions (small), and the fullest question screen fits with only ~6px spare.
-Starting prompt:
-```
-Talk has landed: merge the nosing-around branch into main (sync, re-run checks, e2e and check-cases:full, push, check the deploy), following its entry in docs/next-sessions.md.
-```
+The list is a ranked backlog: the first entry is the next thing to do. Rank in tiers: (1) finished
+work waiting to merge or ship, and anything that blocks other entries; (2) fixes and small wins;
+(3) planned builds with a settled design; (4) design work; (5) exploratory ideas. Within a tier, put
+first whatever unblocks other entries. **Re-rank an entry whenever you add it, rewrite it, or its
+status changes** (built, blocked, unblocked, done): move it to its place, don't edit it where it
+stands. A blocked entry keeps its rank and names its blocker in the heading.
 
 ## Session: Validate saved data
 Last touched: 2026-10-21

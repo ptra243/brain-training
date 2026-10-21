@@ -233,3 +233,8 @@ Her moves in order: `{ t: 'roll' }`, `{ t: 'reroll' }`, `{ t: 'answer', value }`
 `{ t: 'speed', right }`, lock steps `{ t: 'combine', a, b, op }`, `{ t: 'undo' }`, `{ t: 'try' }`,
 plus `hints` and `solved?: 'revealed'`. If she reloads in the middle of a speed round, the round starts
 again with the same questions.
+
+## To check on the phone
+
+- The board shrinks to a 3.5rem strip during questions; check it still reads.
+- The fullest question screen fits 360 × 780 with only about 6px to spare.
