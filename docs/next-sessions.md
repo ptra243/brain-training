@@ -9,6 +9,67 @@ whether to keep, update or drop it. Each `## Session:` heading is its menu line,
 Keeping an entry current: when you work on one, or when its handoff docs change, update its
 `Last touched` line (`YYYY-MM-DD`). Delete an entry once its session is done.
 
+The list is ordered like a project backlog, roughly by what to pick up next: easy wins and
+important fixes at the top, planned builds in the middle, exploratory and design work at the
+bottom. Put a new entry where it fits in that order, not just at the end.
+
+## Session: Merge Nosing around (after Talk lands)
+Last touched: 2026-10-21
+Reads first: `docs/nosing-around.md` on the branch (design, tuning, build spec), then
+`git log main..nosing-around` and `git diff main...nosing-around --stat`.
+Goal: the game is built and committed on branch `nosing-around` (worktree
+`.claude/worktrees/nosing-around`, one commit; `npm run checks`, e2e 27/27 and `check-cases:full` all
+passed there). Wait until the Talk and threads work is committed on `main`. Then, in the worktree:
+bring `main` in (likely conflicts: `src/engine/types.ts`, `scripts/check-cases.ts`, `src/styles.css`,
+`src/game/storage.ts`, `src/engine/golden.json`; if Talk also changed golden or bumped a prefix, re-run
+`npm run update-golden` after merging and check that only intended entries moved). Re-run
+`npm run checks` and `npm run e2e`, then `check-cases:full` in the background. Merge into `main`, push,
+and check the deploy (`gh run list --limit 1`, then `gh run watch <id> --exit-status`). Afterwards remove
+the worktree and branch, and delete this entry. Open items to check on the phone: the board shrinks
+to a 3.5rem strip during questions (small), and the fullest question screen fits with only ~6px spare.
+Starting prompt:
+```
+Talk has landed: merge the nosing-around branch into main (sync, re-run checks, e2e and check-cases:full, push, check the deploy), following its entry in docs/next-sessions.md.
+```
+
+## Session: Validate saved data
+Last touched: 2026-10-21
+Reads first: `docs/code-review-followups.md` section 4, `src/game/storage.ts`, `src/game/games/saveData.ts`.
+Goal: saves are checked, not cast. A bad game record resets that game only; a bad field falls back to
+its empty value. Decide Valibot or hand-written guards (Valibot needs installing on the owner's
+machine), then delegate. Add node tests with malformed saves.
+Starting prompt:
+```
+Read docs/code-review-followups.md section 4, help me pick Valibot or hand-written guards, then write an implementer brief with tests for malformed saves.
+```
+
+## Session: Exploration mode, phase 1
+Last touched: 2026-10-21
+Reads first: `docs/exploration-mode.md` (settled design), `src/game/CLAUDE.md`, `e2e/CLAUDE.md`, then
+`CampaignView.tsx`, `Casebook.tsx`, `SuspectSheet.tsx` and `MapPanel.tsx`.
+Goal: build-order step 1. In campaign rounds the map becomes the main screen: her marker, exclamation
+marks on rooms with puzzles, a room list (things, puzzles, guests), the person screen with portrait and
+talk, the time header ("10:30 (2 games left)") and card, one guess any time with the warning, and the
+midnight lock. Quick play stays untouched; no case changes, no storage bump. Then the next-murder scene
+(step 2) as its own small session.
+Starting prompt:
+```
+Read docs/exploration-mode.md, write the implementer brief for build-order step 1 (exploration in campaign rounds), and hand it off.
+```
+
+## Session: Face to face, questioning the accused
+Last touched: 2026-10-21
+Reads first: `docs/face-to-face.md` (settled design), `src/engine/CLAUDE.md` (campaign, interrogations),
+`src/game/CLAUDE.md`, then `src/engine/interrogation.ts`, `src/engine/campaign.ts`, `src/game/campaign.ts`.
+Goal: in campaigns, accusing opens the finale questioning with the accused (only the killer lies), with
+rotating closing lines; a wrong weapon now ends the round and a seeded innocent non-decoy is the next
+body. Rounds that never hit the new path stay the same. Do piece 1 (the wrong-weapon rule) here, delegate
+pieces 2 to 4. If exploration phase 1 lands first, the questioning plays before its next-murder scene.
+Starting prompt:
+```
+Read docs/face-to-face.md, build piece 1 (wrong weapon ends the round) here, then brief the implementer on pieces 2 to 4.
+```
+
 ## Session: Theme content, tarot cast and line pools
 Last touched: 2026-10-20
 Reads first: `docs/theme-draft.md`. Best after "The cast", which fixes the roles.
@@ -29,17 +90,35 @@ Starting prompt:
 Read docs/theme-draft.md, fix the lines that break rules 2 and 3, audit the neutral lines against borrowing roles, then draft the six extra cards and the missing card + object threads.
 ```
 
-## Session: Talk and threads, build
+## Session: Talk and threads, part B
 Last touched: 2026-10-21
 Reads first: `docs/talk-threads.md` (settled design and the implementer brief), `src/game/CLAUDE.md`,
 `src/engine/CLAUDE.md`, `e2e/CLAUDE.md`.
-Goal: hand part A of the brief to the implementer (content shape with placeholder lines, `sets.ts`,
-`talk.ts`, `Progress.talk`, the Talk section on the suspect sheet, check-cases), then check with
-`npm test`, `npm run check-cases`, `npm run e2e` and a `browser-check` look at 360px. Cases must not
-change. Part B waits for the Theme content session.
+Part A is built (2026-10-21, placeholder lines in `src/content/talk.ts`). Start this after the Theme
+content session has written the real lines.
+Goal: part B of the brief. A cold suspect's questioning game is built one level harder (from their
+mood at case start; in campaigns the mood moves per round), tangents inside minigame answers, and the
+`object` trigger. This changes cases: storage prefix bump and `npm run update-golden` in the same commit.
 Starting prompt:
 ```
-Read docs/talk-threads.md, hand part A to the implementer, then check the results with the tests, check-cases and e2e.
+Read docs/talk-threads.md part B, settle how mood maps to the harder questioning with me, then hand it to the implementer.
+```
+
+## Session: Confidant arcs and case framing
+Last touched: 2026-10-21
+Reads first: `docs/theme-draft.md` (Guest pool, draft cast, Extension: Confidants) and
+`docs/talk-threads.md`. Content first; code after.
+Goal: write the campaign's story content for the 10-guest pool:
+- A 5-chapter backstory arc per guest, 3 beats each (about 150 lines). About the past, never tonight
+  (rule 1), and true whoever turns out to be the killer (rule 5).
+- Victim openings: 2 or 3 lines per guest on why they mattered to the house.
+- Endings: one pool per card for after the solve, with `{victim}` filled in.
+- Lines for the three new guests (Elder heir, Younger heir, Detective) and the Butler's reworded lines.
+Then code: chapters in the campaign thread slot, ranks saved as her moves, and the named first victim
+(the 8th guest in `campaignCast`).
+Starting prompt:
+```
+Read the Guest pool and Confidants sections of docs/theme-draft.md, then help me write the 5-chapter arcs, victim openings and endings.
 ```
 
 ## Session: Relationships between characters
@@ -69,42 +148,6 @@ Goal: make characters react to each other, without anything depending on the kil
 Starting prompt:
 ```
 Read the "Relationships between characters" entry in docs/next-sessions.md and docs/theme-draft.md, then help me design card-pair and shared-card threads and the heard trigger.
-```
-
-## Session: Side missions (exploratory)
-Last touched: 2026-10-20
-Reads first: the side characters from "The cast" session, `docs/theme-draft.md` (Model), and the
-Murder Mystery Mode doc (link in `CLAUDE.md`). Low priority; needs the cast and threads first.
-Goal: decide whether optional side stories with the side characters are worth building (a lost item,
-the dog/cat, a servant's secret). Rules: always optional, never block the case (she can never get stuck),
-pay out story or cosmetics (card art, the dog), never clues. Settle what a side mission is made of
-(a minigame plus thread beats?), where it starts, and how it's saved.
-Starting prompt:
-```
-Read the "Side missions" entry in docs/next-sessions.md, then help me decide whether side missions are worth building and what one would look like.
-```
-
-## Session: The killer lies, in hard mode (exploratory)
-Last touched: 2026-10-20
-Reads first: `src/engine/CLAUDE.md` (one solution, own seed stream, interrogations, campaign),
-`src/engine/clues.ts`, `src/engine/solver.ts`, `src/engine/search.ts`, `src/engine/wording.ts`.
-Low priority: only if hard cases feel too easy.
-Idea: a new optional hard logic level where everyone tells the truth except the killer, and everything
-the killer says is false. She reasons "if the Butler did it, their story is false; does that still fit?"
-It's the one form of casebook lie that stays fair. Lies inside a minigame (the interrogation) already exist
-and are unaffected; outside this level, "every clue is true" stays.
-Explore and settle:
-- Clue model: testimony becomes a claim ("the Butler says X"), evidence stays fact. How the casebook
-  shows claims; whether "a witness never vouches for themselves" still holds or the lie replaces it.
-- Solver: try each suspect as the killer with their claims negated; exactly one suspect must fit, with
-  a minimal clue set. Cost for 7 guests (already needs `search.ts`).
-- Fairness: the killer must make at least one claim she can prove false, so she never has to guess.
-- Scope at first: no case board, no campaign; how map and grid hints treat claims.
-- New level on its own seed stream, after the existing draw; presets, campaigns and the golden
-  snapshot stay unchanged. `check-cases` covers the new level.
-Starting prompt:
-```
-Read "The killer lies" entry in docs/next-sessions.md and src/engine/CLAUDE.md, then help me decide whether it's worth building and sketch the clue model and solver change.
 ```
 
 ## Session: Two-storey houses, picked per case
@@ -143,54 +186,20 @@ Starting prompt:
 Read the "Hunting the weapon" item in the What's Left doc and docs/next-sessions.md, help me design the shortlist puzzle and the either-or clues, then write an implementer brief.
 ```
 
-## Session: Validate saved data
+## Session: Grid cases (Murdoku-style), build
 Last touched: 2026-10-21
-Reads first: `docs/code-review-followups.md` section 4, `src/game/storage.ts`, `src/game/games/saveData.ts`.
-Goal: saves are checked, not cast. A bad game record resets that game only; a bad field falls back to
-its empty value. Decide Valibot or hand-written guards (Valibot needs installing on the owner's
-machine), then delegate. Add node tests with malformed saves.
+Reads first: the "Grid cases — Build Plan" doc
+(https://claude.ai/artifact/Vkrc5ipo8cJ91ofWiUbmAj; read it with the Claude Docs reader),
+`src/engine/CLAUDE.md`, `src/engine/house.ts`, `src/engine/types.ts`.
+Goal: a new grid case mode beside the current one. An N×N floor plan generated per case, one person
+per row and column, rooms shared, and the killer is the only other person in the victim's room.
+Minigames unlock the clues. Steps 1 and 3 of the plan (the map generator, clue selection and tuning)
+stay in the main session; the rest go to the implementer. Existing cases must not change (no prefix
+bump; the grid gets its own save key and golden snapshot). Settle the plan's open questions with the
+owner first, ideally from screenshots of her game.
 Starting prompt:
 ```
-Read docs/code-review-followups.md section 4, help me pick Valibot or hand-written guards, then write an implementer brief with tests for malformed saves.
-```
-
-## Session: Property tests for the engine (exploratory)
-Last touched: 2026-10-21
-Reads first: `docs/code-review-followups.md` section 5, `src/engine/CLAUDE.md`, `scripts/check-cases.ts`.
-Goal: decide whether fast-check adds anything beyond `check-cases`. If yes, add a capped property test
-for one invariant (every clue is true) and see whether it finds anything.
-Starting prompt:
-```
-Read docs/code-review-followups.md section 5 and scripts/check-cases.ts, then try one fast-check property test for "every clue is true" and tell me if it's worth keeping.
-```
-
-## Session: Nosing around (maths board game), build
-Last touched: 2026-10-21
-Reads first: `docs/nosing-around.md` (the full design), `src/games/CLAUDE.md`, `src/engine/CLAUDE.md`
-(how a new game joins on its own seed stream), `src/engine/house.ts`, and `src/games/tarot.ts` with
-`TAROT_SHARE` in `gameKinds.ts` as the most recent example of adding a game.
-Goal: build the snakes-and-ladders maths game on the floor plan. Keep in the main session: settling
-the open questions at the end of the design doc, and tuning board size, ladders and snakes per level
-by experiment until the turn ranges hold. Then delegate to `implementer`: the pure board/question/lock
-logic with hints and tests (`src/games/`), the content lists (question templates, ladders, snakes,
-bonuses, locks), the `check-cases` checks, and the screen with its number pad. Existing cases must
-not change (golden snapshot).
-Starting prompt:
-```
-Read docs/nosing-around.md, settle its open questions with me, then tune the board generator per level until the check-cases turn ranges hold before delegating the rest.
-```
-
-## Session: The dog card battle as its own game (exploratory)
-Last touched: 2026-10-21
-Reads first: `docs/nosing-around.md` (the "Encounters" section, the dog). Best after Nosing around is
-built, so the encounter module exists to grow from.
-Goal: decide whether the dog encounter becomes a full minigame: a longer duel with deck building
-between fights (Slay the Spire style), seeded decks and dog rolls, attack = largest number from her
-hand, defend = meet or beat the dog's roll, exact = an extra card. Settle levels, how a loss works
-without getting her stuck, the hint ladder, and whether it joins the case rotation.
-Starting prompt:
-```
-Read the dog encounter in docs/nosing-around.md and help me decide whether to grow it into its own card-battle minigame: rules, levels, losing without getting stuck, hints.
+Read the Grid cases build plan doc, go through its open questions with me, then start step 1: grid types and the per-case map generator in src/engine/grid/.
 ```
 
 ## Session: Target or another word game (exploratory)
@@ -216,19 +225,61 @@ Starting prompt:
 Read the "Target or another word game" entry in docs/next-sessions.md and help me design the game: confirm Target or pick another, settle goals, hints and the clue reward, then plan the two word lists.
 ```
 
-## Session: Confidant arcs and case framing
+## Session: The dog card battle as its own game (exploratory)
 Last touched: 2026-10-21
-Reads first: `docs/theme-draft.md` (Guest pool, draft cast, Extension: Confidants) and
-`docs/talk-threads.md`. Content first; code after.
-Goal: write the campaign's story content for the 10-guest pool:
-- A 5-chapter backstory arc per guest, 3 beats each (about 150 lines). About the past, never tonight
-  (rule 1), and true whoever turns out to be the killer (rule 5).
-- Victim openings: 2 or 3 lines per guest on why they mattered to the house.
-- Endings: one pool per card for after the solve, with `{victim}` filled in.
-- Lines for the three new guests (Elder heir, Younger heir, Detective) and the Butler's reworded lines.
-Then code: chapters in the campaign thread slot, ranks saved as her moves, and the named first victim
-(the 8th guest in `campaignCast`).
+Reads first: `docs/nosing-around.md` (the "Encounters" section, the dog). Best after Nosing around is
+built, so the encounter module exists to grow from.
+Goal: decide whether the dog encounter becomes a full minigame: a longer duel with deck building
+between fights (Slay the Spire style), seeded decks and dog rolls, attack = largest number from her
+hand, defend = meet or beat the dog's roll, exact = an extra card. Settle levels, how a loss works
+without getting her stuck, the hint ladder, and whether it joins the case rotation.
 Starting prompt:
 ```
-Read the Guest pool and Confidants sections of docs/theme-draft.md, then help me write the 5-chapter arcs, victim openings and endings.
+Read the dog encounter in docs/nosing-around.md and help me decide whether to grow it into its own card-battle minigame: rules, levels, losing without getting stuck, hints.
+```
+
+## Session: Side missions (exploratory)
+Last touched: 2026-10-20
+Reads first: the side characters from "The cast" session, `docs/theme-draft.md` (Model), and the
+Murder Mystery Mode doc (link in `CLAUDE.md`). Low priority; needs the cast and threads first.
+Goal: decide whether optional side stories with the side characters are worth building (a lost item,
+the dog/cat, a servant's secret). Rules: always optional, never block the case (she can never get stuck),
+pay out story or cosmetics (card art, the dog), never clues. Settle what a side mission is made of
+(a minigame plus thread beats?), where it starts, and how it's saved.
+Starting prompt:
+```
+Read the "Side missions" entry in docs/next-sessions.md, then help me decide whether side missions are worth building and what one would look like.
+```
+
+## Session: Property tests for the engine (exploratory)
+Last touched: 2026-10-21
+Reads first: `docs/code-review-followups.md` section 5, `src/engine/CLAUDE.md`, `scripts/check-cases.ts`.
+Goal: decide whether fast-check adds anything beyond `check-cases`. If yes, add a capped property test
+for one invariant (every clue is true) and see whether it finds anything.
+Starting prompt:
+```
+Read docs/code-review-followups.md section 5 and scripts/check-cases.ts, then try one fast-check property test for "every clue is true" and tell me if it's worth keeping.
+```
+
+## Session: The killer lies, in hard mode (exploratory)
+Last touched: 2026-10-20
+Reads first: `src/engine/CLAUDE.md` (one solution, own seed stream, interrogations, campaign),
+`src/engine/clues.ts`, `src/engine/solver.ts`, `src/engine/search.ts`, `src/engine/wording.ts`.
+Low priority: only if hard cases feel too easy.
+Idea: a new optional hard logic level where everyone tells the truth except the killer, and everything
+the killer says is false. She reasons "if the Butler did it, their story is false; does that still fit?"
+It's the one form of casebook lie that stays fair. Lies inside a minigame (the interrogation) already exist
+and are unaffected; outside this level, "every clue is true" stays.
+Explore and settle:
+- Clue model: testimony becomes a claim ("the Butler says X"), evidence stays fact. How the casebook
+  shows claims; whether "a witness never vouches for themselves" still holds or the lie replaces it.
+- Solver: try each suspect as the killer with their claims negated; exactly one suspect must fit, with
+  a minimal clue set. Cost for 7 guests (already needs `search.ts`).
+- Fairness: the killer must make at least one claim she can prove false, so she never has to guess.
+- Scope at first: no case board, no campaign; how map and grid hints treat claims.
+- New level on its own seed stream, after the existing draw; presets, campaigns and the golden
+  snapshot stay unchanged. `check-cases` covers the new level.
+Starting prompt:
+```
+Read "The killer lies" entry in docs/next-sessions.md and src/engine/CLAUDE.md, then help me decide whether it's worth building and sketch the clue model and solver change.
 ```

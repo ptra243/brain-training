@@ -150,6 +150,18 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
             dispatch={dispatch}
             onAccused={() => select('accuse')}
             pawedSquare={hintNote ? progress.gridHints?.target : undefined}
+            onQuestion={
+              readOnly
+                ? undefined
+                : (kind) => {
+                    // A campaign round limits puzzles: she picks them on the Clues tab.
+                    if (gate && !gate.picked.includes(kind)) select('clues');
+                    else {
+                      setPlaying(kind);
+                      window.scrollTo(0, 0);
+                    }
+                  }
+            }
           />
         )}
         {tab === 'grid' && (

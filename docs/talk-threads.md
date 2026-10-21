@@ -1,11 +1,12 @@
 # Talk and threads: settled design and implementer brief
 
-Status: designed 2026-10-21, not built. Settles the open questions in `docs/theme-draft.md` ("Model" and
+Status: designed 2026-10-21; part A built 2026-10-21 with placeholder lines (`src/content/talk.ts`). Settles the open questions in `docs/theme-draft.md` ("Model" and
 "Follow-up threads"). The real lines and threads are written in the "Theme content" session; this build uses
 a few placeholder lines so it runs.
 
 ## Settled
-- **She doesn't move around the house.** Games open from the casebook and a tap on a counter opens its
+- **She doesn't move around the house.** (Reversed 2026-10-21 by `docs/exploration-mode.md`: she walks the
+  house before midnight and talk opens from a person in her room; `visit` comes back then.) Games open from the casebook and a tap on a counter opens its
   sheet, so the `visit` trigger is dropped. The triggers left are `ask`, `object` and `talk`.
 - **Talk lives on the suspect sheet** (`SuspectSheet.tsx`, opened by a short tap on a counter). It shows the
   greeting, the meter, the beats she has heard, an "Anything else?" button, and "Question them" when that
@@ -31,6 +32,14 @@ a few placeholder lines so it runs.
 - **Hostility makes the questioning harder** (part B below): a cold suspect's questioning game is built one
   level harder (hard stays hard), fixed at case start so a puzzle she has started never changes.
 - **Side characters**: later. The set model allows them; none are added now.
+- **All games done in small cases** (settled while building): in a 3-game Play case a guest with no games
+  about them reaches only 2 beats, so a 3-beat thread finishes once the case is solved. Kept on purpose;
+  `check-cases` asks for at least min(2, thread length) ready with all games done.
+- **Campaigns keep one voice all night**: the sets are seeded from the campaign, so card, reading, thread and
+  lines stay the same every round. Mood is a level (0 = coldest, top = warm; the greeting steps). It starts
+  cold if reversed, else warm, and at rounds 2 and 3 it stays (50%) or moves one step warmer or colder (25%
+  each), rolled per guest from the campaign seed, round number and guest id only (`moodFor`). Random for now; story reasons may come later.
+  Beats heard still count per round.
 
 ## Implementer brief, part A (build now)
 Cases must not change: the sets live outside `Case` and roll on their own stream. Check with `npm test`
