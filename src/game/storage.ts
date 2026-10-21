@@ -57,7 +57,11 @@ export function loadCampaign(): CampaignSave | null {
   return {
     ...saved,
     victims: saved.victims ?? [],
-    rounds: saved.rounds.map((p) => ({ ...emptyProgress(), ...p })),
+    rounds: saved.rounds.map((p) => {
+      const progress: Progress = { ...emptyProgress(), ...p };
+      if (typeof progress.at !== 'string') delete progress.at; // the room she is in: optional, must be text
+      return progress;
+    }),
     picked: saved.rounds.map((_, i) => saved.picked?.[i] ?? []),
     outcome: saved.outcome ?? 'playing',
   };

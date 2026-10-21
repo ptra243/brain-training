@@ -7,6 +7,7 @@
 import { isInterrogation, isSceneGame } from '../engine/gameKinds.ts';
 import type { Case, Clue, GameKind, GameSpec } from '../engine/types.ts';
 import type { GridHintState } from './gridHints.ts';
+import { roomName } from './names.ts';
 import { readyBeats, setsFor } from './talk.ts';
 
 export type Mark = 'x' | 'o';
@@ -47,6 +48,8 @@ export interface Progress {
   endBoard?: { key: string; save: unknown };
   /** Beats she has heard from each guest (`talk.ts`). Optional so older saves load. */
   talk?: Record<string, number>;
+  /** The room she is in (exploration rounds); the scene room until she moves. Optional so older saves load. */
+  at?: string;
 }
 
 export const emptyProgress = (): Progress => ({ marks: {}, used: [], accusations: [], solved: false, games: {}, found: [] });
@@ -82,6 +85,7 @@ export type Action =
   | { type: 'grid-hint'; hints: GridHintState }
   | { type: 'end-board'; key: string; save: unknown }
   | { type: 'talk-hear'; suspect: string }
+  | { type: 'move'; room: string }
   | { type: 'reset' };
 
 function clearTicks(marks: Record<string, Mark>, kind: GridKind, row: string | null, col: string | null, c: Case) {
@@ -205,6 +209,8 @@ export function reduce(c: Case, p: Progress, action: Action): Progress {
       if (heard >= readyBeats(c, p, action.suspect, thread.length)) return p;
       return { ...p, talk: { ...p.talk, [action.suspect]: heard + 1 } };
     }
+    case 'move':
+      return c.rooms.includes(action.room) && p.at !== action.room ? { ...p, at: action.room } : p;
     case 'reset':
       return emptyProgress();
   }
@@ -233,7 +239,7 @@ export function unlockedClueIds(c: Case, p: Progress): Set<string> {
   return ids;
 }
 
-export const sceneUnlocked = (c: Case, p: Progress) => c.sceneGiven === true || c.games.some((g) => g.unlocksScene && gameDone(p, g.kind));
+export const sceneUnlocked = (c: Case, p: Progress) => c.sceneGiven === true || c.explore === true || c.games.some((g) => g.unlocksScene && gameDone(p, g.kind));
 
 /** Puzzles done out of the case's total, counting the scene word games as one. */
 export function puzzlesDone(c: Case, p: Progress): { done: number; total: number } {
@@ -250,6 +256,7 @@ export function puzzlesDone(c: Case, p: Progress): { done: number; total: number
 export const SCENE_TEASER = 'The body was found by the …';
 export function sceneText(c: Case, p: Progress): string | null {
   if (c.sceneGiven) return c.sceneClue.text;
+  if (c.explore) return `The body was found in the ${roomName(c.sceneRoom)}.`;
   const done = c.games.filter(isSceneGame).find((g) => gameDone(p, g.kind));
   return done ? done.scene.text : null;
 }

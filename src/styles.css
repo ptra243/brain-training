@@ -868,3 +868,53 @@ body.dev { background: #f2f1ec; color: #222; }
 .lock-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 0.5rem; }
 .lock-actions .primary:disabled, .lock-actions .secondary:disabled { opacity: 0.5; cursor: default; }
 .way ol { margin: 0.3rem 0 0; padding-left: 1.3rem; font-family: var(--serif); font-size: 1.1rem; line-height: 1.6; font-variant-numeric: tabular-nums; }
+
+/* ---------- Exploring a campaign round ---------- */
+/* Rooms are tapped, so a square must stay at least 44px wide: the frame gives up its padding for it. */
+.floorplan-frame.explore { padding: 0.15rem; }
+.tile-hit {
+  position: absolute; inset: 0; z-index: 1; padding: 0; border: 0; background: transparent; cursor: pointer;
+}
+.tile-hit:disabled { cursor: default; }
+.tile-hit:focus-visible { outline: 3px solid var(--brass); outline-offset: -3px; }
+.tile.here { filter: brightness(1.07); }
+.you-marker {
+  position: absolute; z-index: 3; transform: translate(-50%, -50%); pointer-events: none;
+  width: 2.2rem; height: 2.2rem; border-radius: 50%; display: grid; place-items: center;
+  background: var(--ink); color: var(--card); border: 3px solid var(--brass);
+  box-shadow: 0 2px 0 var(--brass-deep), 0 3px 6px rgba(0, 0, 0, 0.35);
+  font-family: var(--serif); font-size: 0.72rem; font-weight: 700;
+}
+.todo-mark {
+  position: absolute; z-index: 3; transform: translate(-50%, -50%) rotate(-8deg); pointer-events: none;
+  width: 1.4rem; height: 1.4rem; border-radius: 50%; display: grid; place-items: center;
+  background: var(--pencil); color: var(--card); border: 2px solid var(--card);
+  font-family: var(--serif); font-size: 1rem; font-weight: 900; line-height: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .you-marker { transition: top 0.4s ease, left 0.4s ease; }
+}
+.room-list h2 { margin-bottom: 0.3rem; }
+.room-list h3 { margin: 0.7rem 0 0.35rem; font-family: var(--serif); font-size: 0.95rem; color: var(--ink-soft); }
+.room-list.greyed { opacity: 0.5; }
+.puzzle-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+.puzzle-row:disabled { cursor: default; }
+.puzzle-row.person-row {
+  grid-template-columns: auto 1fr auto; grid-template-areas: 'badge name action' 'badge reward action';
+}
+.person-row .counter { grid-area: badge; }
+.portrait {
+  width: 4rem; height: 5rem; border-radius: 0.4rem; display: grid; place-items: center; flex: none;
+  background: var(--counter); color: #fbf7ea; border: 3px solid var(--brass);
+  box-shadow: 0 2px 0 var(--brass-deep), 0 3px 6px rgba(0, 0, 0, 0.3);
+  font-family: var(--serif); font-size: 1.6rem; font-weight: 700;
+}
+.time-card { text-align: center; padding: 0.4rem 0; }
+.time-card h2 { font-size: 2.4rem; margin: 0; letter-spacing: 0.02em; }
+.time-card p { margin: 0.2rem 0 0; font-family: var(--serif); font-size: 1.05rem; color: var(--ink-soft); }
+@media (prefers-reduced-motion: no-preference) {
+  .time-card { animation: time-fade 1.5s ease-out both; }
+}
+@keyframes time-fade { from { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } to { opacity: 0.2; } }
+.midnight-note { font-weight: 600; color: var(--pencil); }

@@ -1,8 +1,11 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { AccusePanel } from './AccusePanel.tsx';
 import { ClueDrawer } from './ClueDrawer.tsx';
 import { CluesPanel, type PuzzleGate } from './CluesPanel.tsx';
+import { Dialog } from './Dialog.tsx';
 import { EndBoardPanel } from './EndBoardPanel.tsx';
+import { ExploreMap } from './ExploreMap.tsx';
+import { atMidnight, clockLine, clockTime, gamesLeft } from './explore.ts';
 import { GridPanel } from './GridPanel.tsx';
 import { MapPanel } from './MapPanel.tsx';
 import { GameScreen } from './games/GameScreen.tsx';
@@ -22,6 +25,8 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'board', label: 'Jigsaw' },
   { id: 'accuse', label: 'Accuse' },
 ];
+/** Exploring a campaign round: the map comes first. */
+const EXPLORE_ORDER: Tab[] = ['map', 'clues', 'grid', 'board', 'accuse'];
 
 interface Props {
   c: Case;
@@ -45,8 +50,26 @@ interface Props {
 
 /** One case: clues, map, grid and accusation. Remount it (key) for another case. */
 export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, subtitle, banner, gate, accuse, readOnly, endBoard }: Props) {
-  const [tab, setTab] = useState<Tab>('clues');
+  const exploring = c.explore === true;
+  // Midnight: no more walking or puzzles, and she must name someone. Only while the round can still end.
+  const midnight = exploring && !readOnly && !progress.solved && atMidnight(c, progress);
+  // An exploring round opens on the map, or on the Accuse tab if she comes back to it at midnight.
+  const [tab, setTab] = useState<Tab>(exploring ? (midnight ? 'accuse' : 'map') : 'clues');
   const [playing, setPlaying] = useState<GameKind | null>(null);
+  // Where she opened the game from, and whether it was already finished (then the clock doesn't move).
+  const [opened, setOpened] = useState<{ tab: Tab; done: boolean }>({ tab: 'clues', done: false });
+  // The new time, shown for a moment after a puzzle is finished.
+  const [timeCard, setTimeCard] = useState(false);
+  useEffect(() => {
+    if (!timeCard) return;
+    const id = window.setTimeout(() => setTimeCard(false), 1500);
+    return () => window.clearTimeout(id);
+  }, [timeCard]);
+  const play = (kind: GameKind) => {
+    setOpened({ tab, done: gameDone(progress, kind) });
+    setPlaying(kind);
+    window.scrollTo(0, 0);
+  };
   // Clues from the game she just finished, marked on the Clues tab.
   const [fresh, setFresh] = useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -96,9 +119,15 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
           progress={progress}
           dispatch={dispatch}
           onBack={() => {
-            setFresh(gameDone(progress, game.kind) ? [...game.clues] : []);
+            const done = gameDone(progress, game.kind);
+            setFresh(done ? [...game.clues] : []);
             setPlaying(null);
-            setTab('clues');
+            if (exploring && !readOnly) {
+              const justFinished = done && !opened.done;
+              setTimeCard(justFinished);
+              // The clues she just earned are on the Clues tab; at midnight the Accuse tab opens, once.
+              setTab(justFinished ? (atMidnight(c, progress) && !progress.solved ? 'accuse' : 'clues') : opened.tab);
+            } else setTab('clues');
             window.scrollTo(0, 0);
           }}
         />
@@ -106,7 +135,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
     );
   }
 
-  const drawer = tab === 'map' || tab === 'grid';
+  const drawer = tab === 'grid' || (tab === 'map' && !exploring);
 
   return (
     <div className={`casebook ${drawer ? (drawerOpen ? 'with-drawer open' : 'with-drawer') : ''}`}>
@@ -116,7 +145,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
         </button>
         <div className="case-title">
           <h1>{title ?? `Case ${c.code}`}</h1>
-          <p>{subtitle ?? `${DIFFICULTY_LABEL[c.difficulty]}, ${c.suspects.length} suspects${progress.solved ? ', solved' : ''}`}</p>
+          <p>{(exploring && !readOnly ? clockLine(c, progress) : subtitle) ?? `${DIFFICULTY_LABEL[c.difficulty]}, ${c.suspects.length} suspects${progress.solved ? ', solved' : ''}`}</p>
         </div>
         {drawer && !readOnly ? <HintButton helper={helper} onAsk={askHint} /> : <span aria-hidden="true" />}
       </header>
@@ -135,15 +164,15 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
             progress={progress}
             dispatch={dispatch}
             gate={gate}
-            readOnly={readOnly}
+            readOnly={readOnly || midnight}
             fresh={fresh}
-            onPlay={(kind) => {
-              setPlaying(kind);
-              window.scrollTo(0, 0);
-            }}
+            onPlay={play}
           />
         )}
-        {tab === 'map' && (
+        {tab === 'map' && exploring && (
+          <ExploreMap c={c} progress={progress} dispatch={dispatch} gate={readOnly ? undefined : gate} readOnly={readOnly} locked={midnight} onPlay={play} />
+        )}
+        {tab === 'map' && !exploring && (
           <MapPanel
             c={c}
             progress={progress}
@@ -156,10 +185,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
                 : (kind) => {
                     // A campaign round limits puzzles: she picks them on the Clues tab.
                     if (gate && !gate.picked.includes(kind)) select('clues');
-                    else {
-                      setPlaying(kind);
-                      window.scrollTo(0, 0);
-                    }
+                    else play(kind);
                   }
             }
           />
@@ -198,13 +224,24 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
           />
         )}
         <nav className="tabbar" aria-label="Casebook">
-          {TABS.filter((t) => (c.sceneGiven ? true : endBoard ? t.id !== 'grid' : t.id !== 'board')).map((t) => (
-            <button key={t.id} aria-current={tab === t.id ? 'page' : undefined} onClick={() => select(t.id)}>
-              {t.label}
-            </button>
-          ))}
+          {(exploring ? EXPLORE_ORDER.map((id) => TABS.find((t) => t.id === id)!) : TABS)
+            .filter((t) => (c.sceneGiven ? true : endBoard ? t.id !== 'grid' : t.id !== 'board'))
+            .map((t) => (
+              <button key={t.id} aria-current={tab === t.id ? 'page' : undefined} onClick={() => select(t.id)}>
+                {t.label}
+              </button>
+            ))}
         </nav>
       </div>
+
+      {timeCard && (
+        <Dialog placement="center" labelId="time-title" onClose={() => setTimeCard(false)}>
+          <div className="time-card">
+            <h2 id="time-title">{clockTime(c, progress)}</h2>
+            <p>{gamesLeft(c, progress) ? `${gamesLeft(c, progress)} game${gamesLeft(c, progress) === 1 ? '' : 's'} left` : "Time's up"}</p>
+          </div>
+        </Dialog>
+      )}
     </div>
   );
 }
