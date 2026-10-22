@@ -366,8 +366,8 @@ Reads first: "Why sessions ran long" below, the "Token budget" section of `CLAUD
 `.claude/agents/implementer.md`, `.claude/hooks/session-length.mjs`.
 When: every few weeks, or once "Why sessions ran long" has three or more new lines since the last review.
 Goal: look for causes that repeat, and change a rule only for those; a cause seen once stays a note.
-Check whether the 1 MB reminder fires at the right moment (it was 700 KB briefly; tune it with
-`SESSION_REMIND_BYTES`). Compare the token totals the dated lines quote, not just their causes. Use the `explain-usage` skill on a session only if a cause is unclear. Mark the
+Check whether the 250k-token reminder fires at the right moment (it was a 1 MB transcript size
+until 2026-10-23; tune it with `SESSION_REMIND_TOKENS`). Compare the token totals the dated lines quote, not just their causes. Use the `explain-usage` skill on a session only if a cause is unclear. Mark the
 lines you reviewed with the date.
 Starting prompt:
 ```

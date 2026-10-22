@@ -125,7 +125,12 @@ Long sessions re-read their whole context every turn, so keep them short.
   design decisions for a task are settled, and before writing the code, stop
   and list the pieces. Hand each well-defined piece to the `implementer`
   agent (Sonnet, never `general`) with a full brief (files, behaviour, how to
-  test); it starts with no context. Any change to more than two code files
+  test); it starts with no context. Claude Code reads `model: sonnet` from
+  `.claude/agents/implementer.md`; leave that line as it is. In Cursor, pass
+  one of the following on the sub-session instead of inheriting this chat:
+  Composer 2.5 for a mechanical brief (CSS, copy, content lists, test
+  updates), or Grok 4.7 with Fast off when the brief touches the generator,
+  seeds, or saves. Any change to more than two code files
   (`.ts`, `.tsx`, `.css`, tests; not `.md`), anything you can describe in a few
   sentences, and any bug fix with a known cause goes to it. Edit directly only
   for one-line tweaks, for docs, or while you're still working out the design.
@@ -179,7 +184,8 @@ Long sessions re-read their whole context every turn, so keep them short.
   what goes in each; skip what's already in the repo) and the sessions to
   start (what each does, which docs it reads first, a one-line starting
   prompt). A `UserPromptSubmit` hook (`.claude/hooks/session-length.mjs`)
-  adds a reminder when the transcript passes 1 MB; it is a reminder, not
+  adds a reminder when the context passes 250k tokens (the ~80k base of
+  tools and system prompt included); it is a reminder, not
   a rule that replaces judging topic drift.
   Session ideas worth starting fresh live in `docs/next-sessions.md`, each
   with a `Last touched` date and a starting prompt; a `SessionStart` hook
