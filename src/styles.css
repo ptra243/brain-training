@@ -180,7 +180,7 @@ h1, h2 { font-family: var(--serif); font-weight: 600; margin: 0; }
 .legend { margin: 0; font-size: 0.8rem; color: var(--on-baize-soft); }
 
 /* ---------- Logic grid (one staircase: rooms | weapons across, suspects then weapons down) ---------- */
-.grid-card { margin: 0 -0.6rem; padding: 0.6rem 0.4rem 0.7rem; }
+.logic-grid-card { margin: 0 -0.6rem; padding: 0.6rem 0.4rem 0.7rem; }
 .logic-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .logic-grid th { font-weight: 600; font-size: 0.72rem; color: var(--ink); }
 .logic-grid thead th { vertical-align: bottom; padding: 0 0 0.35rem; }
@@ -918,7 +918,7 @@ body.dev { background: #f2f1ec; color: #222; }
 .dog-fight .grid-card:not(.sign) { height: 56px; }
 .dog-fight .grid-hand { gap: 4px; }
 .grid-caption.error { color: var(--pencil); }
-/* Number-grid cards: the logic grid's `.grid-card` fans out with negative margins; these must not overlap. */
+/* Number-grid cards widen to fit two-digit numbers. */
 .number-grid .grid-card { margin: 0; padding: 0 0.3rem; flex: none; box-sizing: border-box; width: auto; min-width: 44px; overflow: visible; }
 .grid-slot.error, .grid-slot.sign.filled.error { border-color: var(--pencil); color: var(--pencil); }
 /* The slot that joins a row to the rows above: round, with a brass tint, so it reads differently from number and operator slots. */

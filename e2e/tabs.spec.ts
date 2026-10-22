@@ -18,3 +18,11 @@ for (const tab of ['Clues', 'Map', 'Grid', 'Jigsaw', 'Accuse']) {
     await checkScreen(page, tab);
   });
 }
+
+test('the logic grid fills the screen width and shows every square', async ({ page }) => {
+  await newCase(page);
+  await openTab(page, 'Grid');
+  const box = await page.locator('table.logic-grid').boundingBox();
+  expect(box?.width ?? 0).toBeGreaterThan(300);
+  await expect(page.locator('table.logic-grid button.mark').last()).toBeInViewport();
+});

@@ -70,7 +70,7 @@ export function GridPanel({ c, progress, dispatch, focus, onFocus, pawedSquare }
           : 'A tick rules out the rest of its row and column.'}{' '}
         Tap a name to see its clues.
       </p>
-      <article className="card grid-card">
+      <article className="card logic-grid-card">
         <table className="logic-grid">
           <thead>
             <tr>
