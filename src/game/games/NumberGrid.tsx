@@ -85,7 +85,7 @@ export function NumberGrid({ hand, fill, evaluation, locked, disabled = false, t
     return (
       <button
         key={`${slot.row}${slot.kind}${(slot as { i?: number }).i ?? ''}`}
-        className={`grid-slot ${slot.kind === 'num' ? 'num' : 'sign'} ${filled ? 'filled' : ''} ${isLocked(slot) ? 'locked' : ''} ${isError(slot) ? 'error' : ''} ${fits(slot) ? 'fits' : ''}`}
+        className={`grid-slot ${slot.kind === 'num' ? 'num' : 'sign'} ${slot.kind === 'rowOp' ? 'join' : ''} ${filled ? 'filled' : ''} ${isLocked(slot) ? 'locked' : ''} ${isError(slot) ? 'error' : ''} ${fits(slot) ? 'fits' : ''}`}
         aria-label={isLocked(slot) ? `${label}, filled in by the cat` : isError(slot) ? `${label}, does not work` : label}
         disabled={disabled || isLocked(slot)}
         onClick={() => tapSlot(slot)}

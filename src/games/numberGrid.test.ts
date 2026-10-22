@@ -46,6 +46,36 @@ function build(...cards: [Slot, number | OpRef][]): GridFill {
 
 const palette = (numbers: number[]): Hand => ({ numbers, ops: 'palette' });
 
+test('a row may sit in the right-hand boxes: 11 + 13, then + 8 + 2 gives 34', () => {
+  const hand = palette([11, 13, 8, 2]);
+  const fill = build(
+    [num(0, 1), 0], [op(0, 1), '+'], [num(0, 2), 1],
+    [rowOp(1), '+'], [num(1, 1), 2], [op(1, 1), '+'], [num(1, 2), 3],
+  );
+  const ev = evaluateGrid(hand, fill);
+  assert.equal(ev.rows[0].value, 24);
+  assert.equal(ev.rows[1].value, 10);
+  assert.equal(ev.answer, 34);
+  assert.ok(ev.submittable);
+  assert.equal(gridText(hand, fill), '11 + 13 = 24; + 8 + 2 = 10 → 34');
+});
+
+test('a row in the middle two-number run works; gaps, end ops and stray ops do not', () => {
+  const hand = palette([5, 3, 2]);
+  const mid = build([num(0, 0), 0], [op(0, 0), '+'], [num(0, 1), 1]);
+  assert.equal(evaluateGrid(hand, mid).answer, 8);
+  const gap = build([num(0, 0), 0], [num(0, 2), 1]);
+  assert.equal(evaluateGrid(hand, gap).answer, null);
+  const endOp = build([num(0, 1), 0], [op(0, 1), '+']);
+  assert.equal(evaluateGrid(hand, endOp).answer, null);
+  const startOp = build([op(0, 0), '+'], [num(0, 1), 0], [op(0, 1), '+'], [num(0, 2), 1]);
+  assert.equal(evaluateGrid(hand, startOp).answer, null);
+  const stray = build([num(0, 1), 0], [op(0, 1), '+'], [num(0, 2), 1], [op(0, 0), '+']);
+  assert.equal(evaluateGrid(hand, stray).answer, null);
+  for (const f of [gap, endOp, startOp, stray]) assert.ok(!evaluateGrid(hand, f).submittable);
+  assert.ok(gridText(hand, gap).includes('_'));
+});
+
 test('precedence inside a row: 7 + 3 x 2 = 13', () => {
   const hand = palette([7, 3, 2]);
   const fill = build([num(0, 0), 0], [op(0, 0), '+'], [num(0, 1), 1], [op(0, 1), '*'], [num(0, 2), 2]);
@@ -131,7 +161,7 @@ test('incomplete grids give null and no errors', () => {
   const cases: GridFill[] = [
     emptyFill(),
     build([num(0, 0), 0], [op(0, 0), '+']), // trailing op
-    build([num(0, 1), 1]), // gap
+    build([num(0, 0), 0], [num(0, 2), 1]), // gap inside the run
     build([num(0, 0), 0], [num(0, 1), 1]), // two numbers, no op
     build([num(0, 0), 0], [op(0, 0), '+'], [num(0, 1), 1], [num(0, 2), 2]), // missing second op
     build([num(1, 0), 1], [rowOp(1), '+']), // used row below an empty row

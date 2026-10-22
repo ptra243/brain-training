@@ -17,6 +17,8 @@ export const LEVEL_KINDS: Record<Level, readonly QuestionKind[]> = {
 
 export interface Question {
   kind: QuestionKind;
+  /** Index of the wording in the kind's pool. */
+  wording: number;
   text: string;
   answer: number;
   /** 2 to 3 short lines; the last ends on the answer. */
@@ -160,15 +162,22 @@ function missesFor(answer: number, near: number[], rng: Rng): [number, number] {
   return [pool[0], pool[1]];
 }
 
-/** One question. Without `kind`, one is drawn from the level's kinds. */
-export function question(seed: string, level: Level, kind?: QuestionKind): Question {
+/** Every (kind, wording index) pair a level can ask, in a fixed order. */
+export function wordingPairs(level: Level): { kind: QuestionKind; wording: number }[] {
+  return LEVEL_KINDS[level].flatMap((kind) => nosingQuestions[kind].map((_, wording) => ({ kind, wording })));
+}
+
+/** One question. Without `kind`, one is drawn from the level's kinds; without `wording`, a wording is drawn from the kind's pool. */
+export function question(seed: string, level: Level, kind?: QuestionKind, wording?: number): Question {
   const rng = new Rng(hashSeed(`${seed}-maths-${level}`));
   const chosen = kind ?? rng.pick(LEVEL_KINDS[level]);
   const draft = DRAFTS[chosen](rng);
-  const text = fill(rng.pick(nosingQuestions[chosen]), draft);
+  const pool = nosingQuestions[chosen];
+  const w = wording ?? rng.pick(pool.map((_, i) => i));
+  const text = fill(pool[w], draft);
   const misses = missesFor(draft.answer, draft.near ?? [], rng);
   const choices = rng.shuffle([draft.answer, ...misses]) as [number, number, number];
-  return { kind: chosen, text, answer: draft.answer, working: draft.working, choices };
+  return { kind: chosen, wording: w, text, answer: draft.answer, working: draft.working, choices };
 }
 
 /** Cat hints: 0 the first line of working, 1 the choices, 2 the answer. */

@@ -20,7 +20,7 @@ import {
   type NosingBoard,
   type NosingLevel,
 } from './nosingBoard.ts';
-import { question, questionHint, type Question } from './mentalMaths.ts';
+import { question, questionHint, wordingPairs, type Question } from './mentalMaths.ts';
 import { buildDogFight, dogApply, dogSimView, dogStart, type DogFight, type DogHint, type DogSim, type DogView } from './dogFight.ts';
 import { SPEED_COUNT, SPEED_SECONDS, speedQuestions, speedReward, type SpeedQuestion } from './speedRound.ts';
 import { buildLock, lockAccepts, lockHand, lockHint, lockNote, lockWindow, type Lock, type LockHint, type Op } from './lock.ts';
@@ -93,13 +93,26 @@ export function buildNosing(o: BuildNosingOptions): NosingPuzzle {
   const board = buildNosingBoard({ house, level, seed, sceneRoom, searchClues: split.search, ladders, snakes });
   const questions: Record<number, Question> = {};
   const speed: Record<number, SpeedQuestion[]> = {};
-  board.squares.forEach((sq, i) => {
-    if (sq.kind === 'ladder' || sq.kind === 'snake' || sq.kind === 'obstacle' || sq.kind === 'search') questions[i] = question(`${seed}-q-${i}`, level);
-    else if (sq.kind === 'speed') speed[i] = speedQuestions(`${seed}-speed-${i}`, level);
-  });
   // One dog per run, on a snake head picked from the seed; the dog replaces that snake's question.
   const dogSquare = pickDogSquare(board, seed);
-  delete questions[dogSquare];
+  // Wordings come from a seeded shuffled deck, so none repeats until the deck is used up; then a fresh deck.
+  const pairs = wordingPairs(level);
+  let deck: typeof pairs = [];
+  let decks = 0;
+  const deal = () => {
+    if (deck.length === 0) {
+      deck = new Rng(hashSeed(decks === 0 ? `${seed}-questions` : `${seed}-questions-${decks}`)).shuffle(pairs);
+      decks++;
+    }
+    return deck.pop()!;
+  };
+  board.squares.forEach((sq, i) => {
+    if (sq.kind === 'ladder' || sq.kind === 'snake' || sq.kind === 'obstacle' || sq.kind === 'search') {
+      if (i === dogSquare) return;
+      const p = deal();
+      questions[i] = question(`${seed}-q-${i}`, level, p.kind, p.wording);
+    } else if (sq.kind === 'speed') speed[i] = speedQuestions(`${seed}-speed-${i}`, level);
+  });
   const lockObject = new Rng(hashSeed(`${seed}-object`)).pick(nosingLockObjects);
   return {
     seed,

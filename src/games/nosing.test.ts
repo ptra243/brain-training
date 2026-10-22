@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { rerollFor, rollFor, nosingRollSeed, type NosingLevel } from './nosingBoard.ts';
 import { lockAccepts, lockNote } from './lock.ts';
+import { wordingPairs } from './mentalMaths.ts';
 import { usedNumbers } from './numberGrid.ts';
 import {
   nosingHint,
@@ -23,6 +24,20 @@ import { LEVELS, botSeed, dogSquareSeed, drive, fillUntilSubmittable, make, type
 // in scripts/check-cases.ts; here a few fixed seeds per level catch a broken rule.
 const BOT_SEEDS = [0, 1, 2, 3, 4, 5, 6]; // seven seeds cover every clue share (1 + i % 7)
 const DOG_SEEDS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+test('question wordings are dealt from a deck: none repeats until the deck is used up', () => {
+  for (const level of LEVELS) {
+    const deckSize = wordingPairs(level).length;
+    for (const i of [0, 1, 2, 3, 4]) {
+      const p = make(level, i);
+      const keys = Object.keys(p.questions).map(Number).sort((a, b) => a - b).map((k) => `${p.questions[k].kind}:${p.questions[k].wording}`);
+      for (let s = 0; s < keys.length; s += deckSize) {
+        const chunk = keys.slice(s, s + deckSize);
+        assert.equal(new Set(chunk).size, chunk.length, `${level} seed ${i}: a wording repeats within one deck`);
+      }
+    }
+  }
+});
 
 test('nosing split of the game clues', () => {
   assert.deepEqual([1, 2, 3, 4, 5, 6, 7].map(nosingSplit), [

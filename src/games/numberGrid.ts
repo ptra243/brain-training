@@ -202,6 +202,29 @@ export interface GridEval {
   submittable: boolean;
 }
 
+/** A row's cells in order: num, op, num, op, num (null when empty). */
+function rowCells(row: GridRow): (number | OpRef | null)[] {
+  return [row.nums[0], row.ops[0], row.nums[1], row.ops[1], row.nums[2]];
+}
+
+/**
+ * The cell positions (0-4, evens are numbers) of the row's filled run, when the
+ * filled cells are contiguous and start and end on a number; otherwise null.
+ */
+function rowRun(row: GridRow): { lo: number; hi: number } | null {
+  const cells = rowCells(row);
+  let lo = -1;
+  let hi = -1;
+  cells.forEach((c, i) => {
+    if (c === null) return;
+    if (lo < 0) lo = i;
+    hi = i;
+  });
+  if (lo < 0 || lo % 2 || hi % 2) return null;
+  for (let i = lo; i <= hi; i++) if (cells[i] === null) return null;
+  return { lo, hi };
+}
+
 export function evaluateGrid(hand: Hand, fill: GridFill): GridEval {
   const rows: RowEval[] = [];
   const errors: Slot[] = [];
@@ -223,19 +246,18 @@ export function evaluateGrid(hand: Hand, fill: GridFill): GridEval {
     lastUsed = r;
     if (sawEmpty) incomplete = true;
 
-    // The row: a filled prefix of numbers with an op between each, and nothing else.
-    let k = 0;
-    while (k < ROW_NUMBERS && row.nums[k] !== null) k++;
-    let shaped = k >= 1 && row.nums.slice(k).every((n) => n === null);
-    if (shaped) for (let i = 0; i < 2; i++) if ((row.ops[i] !== null) !== i < k - 1) shaped = false;
+    // The row: its filled cells form one run `num (op num)*` anywhere in the row.
+    const run = rowRun(row);
     let value: number | null = null;
-    if (shaped) {
-      const vals = row.nums.slice(0, k).map((n) => resolveNum(hand, n));
-      const ops = row.ops.slice(0, k - 1).map((o) => resolveOp(hand, o));
+    if (run) {
+      const first = run.lo / 2;
+      const last = run.hi / 2;
+      const vals = row.nums.slice(first, last + 1).map((n) => resolveNum(hand, n));
+      const ops = row.ops.slice(first, last).map((o) => resolveOp(hand, o));
       if (!vals.includes(null) && !ops.includes(null)) {
         const res = evalRow(vals as number[], ops as Op[]);
         value = res.value;
-        if (res.bad !== null) errors.push({ row: r, kind: 'op', i: res.bad as 0 | 1 });
+        if (res.bad !== null) errors.push({ row: r, kind: 'op', i: (first + res.bad) as 0 | 1 });
       }
     }
 
@@ -282,13 +304,22 @@ export function gridLines(hand: Hand, fill: GridFill): string[] {
       const op = resolveOp(hand, row.rowOp);
       parts.push(op ? GLYPH[op] : '_');
     }
-    for (let i = 0; i < ROW_NUMBERS; i++) {
-      const n = resolveNum(hand, row.nums[i]);
-      const o = i < 2 ? resolveOp(hand, row.ops[i]) : null;
-      if (i > 0 && n === null && row.ops[i - 1] === null) break;
-      parts.push(n === null ? '_' : String(n));
-      if (i < 2 && (o !== null || row.nums[i + 1] !== null)) parts.push(o ? GLYPH[o] : '_');
-      else break;
+    // From the first to the last filled cell; a hole, or an op at either end, shows as "_".
+    const cells = rowCells(row);
+    const filled = cells.map((c, i) => (c === null ? -1 : i)).filter((i) => i >= 0);
+    if (filled.length === 0) parts.push('_');
+    else {
+      const lo = filled[0] % 2 ? filled[0] - 1 : filled[0];
+      const hi = filled[filled.length - 1] % 2 ? filled[filled.length - 1] + 1 : filled[filled.length - 1];
+      for (let c = lo; c <= hi; c++) {
+        if (c % 2 === 0) {
+          const n = resolveNum(hand, row.nums[c / 2]);
+          parts.push(n === null ? '_' : String(n));
+        } else {
+          const o = resolveOp(hand, row.ops[(c - 1) / 2]);
+          parts.push(o ? GLYPH[o] : '_');
+        }
+      }
     }
     let line = parts.join(' ');
     const { value, total } = ev.rows[r];

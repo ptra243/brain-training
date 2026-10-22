@@ -8,7 +8,8 @@ import { PLAY_VERSION, sanitizeCampaign, sanitizeQuick } from './saveGuards.ts';
 import type { Progress } from './state.ts';
 
 // v5: the case board puzzle stands in for a game in some cases, which changes those cases.
-const PREFIX = 'brain-training:v5:';
+// v6: Nosing around deals its question wordings from a shuffled deck, which changes those puzzles.
+const PREFIX = 'brain-training:v6:';
 
 function read(key: string): unknown {
   try {
