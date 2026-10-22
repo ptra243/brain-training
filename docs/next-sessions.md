@@ -17,24 +17,6 @@ status changes** (built, blocked, unblocked, done): move it to its place, don't 
 stands. A blocked entry keeps its rank and names its blocker in the heading.
 
 
-## Session: Nosing around: Purr-diction and the Move step
-Last touched: 2026-10-22
-Reads first: `.claude/handoff/nosing-board-polish.md` (decisions, "UI spec", the engine and "UI part 1"
-review notes), then the roll card in `src/game/games/NosingGame.tsx` and `NosingBoardView.tsx`.
-Goal: the last piece of the board polish. The engine (every roll stops in phase `rolled`,
-`nosingLanding`, back 2 on a wrong obstacle, 80–90 square boards) and UI part 1 (icons, key, tap a
-square, encounter card, dice tumble) are committed. Left: draw the Purr-diction ghost cat on the
-landing square while `rolled`, the "You rolled 7 · The cat will land on: A question, square 23" line,
-then Move (and Re-roll with the bonus). One implementer brief, then `npm run e2e` (UI part 1 was
-committed without its own e2e run, so this run covers both). Also in the brief: export the engine's
-`searchLine` so the UI's `searchReason` copy stops duplicating it, and swap `spentSquares` (a replay)
-for a spent list on the view. Then a
-`browser-check` look pass at 360px, then commit and delete the handoff file.
-Starting prompt:
-```
-Read .claude/handoff/nosing-board-polish.md, brief the implementer on Purr-diction on the board and the Move step, review and commit.
-```
-
 ## Session: Exploration mode, the next-murder scene
 Last touched: 2026-10-22
 Reads first: `docs/exploration-mode.md` ("The next murder" and the build order), `src/game/CLAUDE.md`,

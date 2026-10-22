@@ -228,6 +228,8 @@ export interface NosingView {
   /** Path indexes of snake heads and ladder feet already used. */
   usedSnakes: number[];
   takenLadders: number[];
+  /** Question, search, speed and cat-find squares used up (a right answer, a played speed round, a cat find landed on). A wrong answer does not spend one. */
+  spent: number[];
   /** Bonuses held (`reroll` is used up when swapped; `steps` is never held, it applies at once). */
   bonuses: Record<BonusKind, number>;
   /** Clue ids found so far, in order found. */
@@ -428,7 +430,8 @@ function moveCat(p: NosingPuzzle, sim: Sim, roll: number): void {
   if (sim.phase !== 'dog') land(p, sim);
 }
 
-function searchLine(p: NosingPuzzle, pos: number): string {
+/** The line for a search square, worded the same when she finds the clue and on its encounter card. */
+export function searchLine(p: NosingPuzzle, pos: number): string {
   const room = p.house.rooms.find((r) => r.id === p.board.roomOf[pos]);
   const rng = new Rng(hashSeed(`${p.seed}-line-${pos}`));
   const line = rng.pick(nosingSearchLines);
@@ -733,6 +736,7 @@ export function nosingView(p: NosingPuzzle, state: NosingState): NosingView {
     trail: sim.trail.slice(),
     usedSnakes: [...sim.usedSnakes],
     takenLadders: [...sim.takenLadders],
+    spent: [...sim.spent],
     bonuses: { ...sim.bonuses },
     found: sim.found.slice(),
     waiting: sim.waiting.slice(),

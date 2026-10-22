@@ -2,10 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../../content/index.ts';
 import { nosingLadders, nosingObstacleLines, nosingSnakes } from '../../content/nosing.ts';
-import { buildNosing, nosingInitial, nosingStep, nosingView } from '../../games/nosing.ts';
+import { buildNosing, nosingInitial, nosingStep, nosingView, searchLine } from '../../games/nosing.ts';
 import { emptyFill, place } from '../../games/numberGrid.ts';
 import { hasClearable, rowCaption, slotLabel } from './numberGridUi.ts';
-import { diceFaces, distanceWords, markKinds, markLine, nearestMark, obstacleReason, padPress, padValue, pawTrail, roomSquares, searchReason, spentSquares, squareCentre, wallLines, walkSteps, woolPath } from './nosingUi.ts';
+import { diceFaces, distanceWords, landingLine, markKinds, markLine, nearestMark, obstacleReason, padPress, padValue, pawTrail, roomSquares, squareCentre, wallLines, walkSteps, woolPath } from './nosingUi.ts';
 
 const puzzle = (level: 'easy' | 'medium' | 'hard') =>
   buildNosing({ house: content.house, seed: `ui-${level}`, level, sceneRoom: content.house.rooms[0].id, clues: ['a', 'b', 'c', 'd'], ladders: nosingLadders, snakes: nosingSnakes });
@@ -124,6 +124,11 @@ test('a tap picks the nearest marked square and ignores plain ones', () => {
   assert.equal(nearestMark([{ x: 0, y: 0 }], [null], { x: 0, y: 0 }), null);
 });
 
+test('the roll line names the roll and where the cat will land', () => {
+  assert.equal(landingLine(7, 'A question', 22), 'You rolled 7 · The cat will land on: A question, square 23');
+  assert.equal(landingLine(3, 'Nothing', 4), 'You rolled 3 · The cat will land on: Nothing, square 5');
+});
+
 test('encounter lines are content, seeded by the square, and name no one', () => {
   const p = puzzle('medium');
   assert.equal(obstacleReason('s', 7), obstacleReason('s', 7));
@@ -141,27 +146,31 @@ test('encounter lines are content, seeded by the square, and name no one', () =>
     for (const n of names) assert.ok(!new RegExp(String.raw`\b${n}s?\b`, 'i').test(line), `${line} names ${n}`);
   }
   const sq = p.board.squares.findIndex((s) => s.kind === 'search');
-  assert.ok(searchReason(p.seed, sq, p.board.roomOf, p.house).startsWith('The cat'));
+  assert.ok(searchLine(p, sq).startsWith('The cat'));
 });
 
-test('spent squares come from her moves: right answers, played speed rounds and cat finds', () => {
+test('view.spent: right answers and played speed rounds are in it, wrong answers are not', () => {
   const p = puzzle('easy');
   let state = nosingInitial();
   let view = nosingView(p, state);
-  assert.equal(spentSquares(p, state, view).size, 0);
+  assert.deepEqual(view.spent, []);
   const wrong = new Set<number>();
   const right = new Set<number>();
+  const played = new Set<number>();
   for (let guard = 0; guard < 120 && view.phase !== 'lock' && view.phase !== 'dog' && view.phase !== 'open'; guard++) {
     if (view.phase === 'question') {
       const ok = view.question!.square % 2 === 0;
       (ok ? right : wrong).add(view.question!.square);
       const q = view.question!;
       state = nosingStep(p, state, { t: 'answer', value: ok ? q.q.answer : q.q.answer + 1 });
-    } else if (view.phase === 'speed') state = nosingStep(p, state, { t: 'speed', right: 3 });
-    else state = nosingStep(p, state, { t: 'roll' });
+    } else if (view.phase === 'speed') {
+      played.add(view.speed!.square);
+      state = nosingStep(p, state, { t: 'speed', right: 3 });
+    } else state = nosingStep(p, state, { t: 'roll' });
     view = nosingView(p, state);
   }
-  const spent = spentSquares(p, state, view);
+  const spent = new Set(view.spent);
+  for (const i of played) assert.ok(spent.has(i), `speed square ${i} played`);
   for (const i of spent) assert.ok(['obstacle', 'search', 'speed', 'catFind'].includes(p.board.squares[i].kind));
   for (const i of right) if (['obstacle', 'search'].includes(p.board.squares[i].kind)) assert.ok(spent.has(i), `square ${i} answered right`);
   for (const i of wrong) if (['obstacle', 'search'].includes(p.board.squares[i].kind)) assert.ok(!spent.has(i), `square ${i} answered wrong`);

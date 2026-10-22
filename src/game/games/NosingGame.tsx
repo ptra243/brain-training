@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { nosingBonuses, nosingDog, nosingLadders, nosingObstacleStakeWrong, nosingSnakes } from '../../content/nosing.ts';
 import {
   nosingHint,
+  nosingLanding,
   nosingStep,
+  searchLine,
   nosingView,
   type NosingHint,
   type NosingMove,
@@ -18,7 +20,7 @@ import { NosingKey } from './NosingKey.tsx';
 import { NosingLock } from './NosingLock.tsx';
 import { NosingSpeed } from './NosingSpeed.tsx';
 import { NumberPad } from './NumberPad.tsx';
-import { MARK_LABELS, PIPS, diceFaces, markKinds, markLine, obstacleReason, searchReason, spentSquares, squareName, walkSteps } from './nosingUi.ts';
+import { MARK_LABELS, PIPS, diceFaces, markKinds, landingLine, markLine, obstacleReason, squareName, walkSteps } from './nosingUi.ts';
 import type { GameProps } from './types.ts';
 
 /**
@@ -106,7 +108,7 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
   const steps = useMemo(() => walkSteps(view.trail, jumps), [view.trail, jumps]);
   const { at, walking } = useWalk(steps);
 
-  const spent = useMemo(() => spentSquares(puzzle, data, view), [puzzle, data, view]);
+  const spent = useMemo(() => new Set(view.spent), [view.spent]);
   const kinds = useMemo(() => markKinds(puzzle.board, puzzle.dogSquare, view.usedSnakes), [puzzle, view.usedSnakes]);
   const moveCount = data.moves.reduce((n, m) => n + (m.t === 'hint' ? 0 : 1), 0);
 
@@ -168,7 +170,7 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
     if (q.kind === 'search') {
       const b = q.bonus ? nosingBonuses[q.bonus] : null;
       return {
-        reason: searchReason(puzzle.seed, q.square, puzzle.board.roomOf, puzzle.house),
+        reason: searchLine(puzzle, q.square),
         right: q.clueId ? 'Get it right and it finds a clue now.' : b ? `Get it right to win: ${b.name.toLowerCase()}. ${b.copy}` : 'Get it right and the cat finds something.',
         wrong: q.clueId ? 'Get it wrong and the clue waits for you at the lock.' : 'Get it wrong and the cat moves on.',
         button: 'Start',
@@ -192,6 +194,9 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
     const named = kind === 'ladder' ? nosingLadders.find((l) => l.id === sq.contentId) : kind === 'snake' ? nosingSnakes.find((l) => l.id === sq.contentId) : null;
     return markLine(named ? `${MARK_LABELS[kind]}: ${named.name.toLowerCase()}` : MARK_LABELS[kind], picked, at);
   })();
+  const land = nosingLanding(puzzle, view);
+  const landKind = land === null ? null : kinds[land];
+  const rollLine = land === null ? '' : landingLine(view.pendingRoll!, landKind ? MARK_LABELS[landKind] : 'Nothing', land);
   const showKey = !walking && !done && !showEnd && (view.phase === 'roll' || view.phase === 'rolled' || atEncounter);
 
   const questionHint = hint?.kind === 'question' ? hint : null;
@@ -283,7 +288,7 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
           </div>
           {view.phase === 'rolled' ? (
             <>
-              <p className="muted">You rolled {view.pendingRoll}.</p>
+              <p className="muted">{rollLine}</p>
               <div className="nosing-buttons">
                 <button className="primary" onClick={() => play({ t: 'roll' })}>
                   Move

@@ -142,7 +142,19 @@ test('an obstacle: a wrong answer sends the cat back two squares, not below the 
     assert.equal(wrong.phase, 'roll', 'the square it backs onto does not trigger');
     assert.ok(wrong.messages.includes('The cat backs off two squares.'));
     assert.equal(wrong.bonuses.reroll, v.bonuses.reroll, 'no bonus for a wrong answer');
+    assert.ok(!wrong.spent.includes(at), 'a wrong answer does not spend the obstacle');
+    const right = nosingView(p, nosingStep(p, s, { t: 'answer', value: v.question!.q.answer }));
+    assert.ok(right.spent.includes(at), 'a right answer spends it');
   }
+});
+
+test('view.spent: empty at the start; a right search answer spends the square, a wrong one does not', () => {
+  const p = make('medium', 0);
+  assert.deepEqual(nosingView(p, nosingInitial()).spent, []);
+  const { p: sp, s, v } = find('medium', 'hints', (x) => x.question?.kind === 'search');
+  const at = v.question!.square;
+  assert.ok(!nosingView(sp, nosingStep(sp, s, { t: 'answer', value: v.question!.q.answer + 1 })).spent.includes(at));
+  assert.ok(nosingView(sp, nosingStep(sp, s, { t: 'answer', value: v.question!.q.answer })).spent.includes(at));
 });
 
 test('every roll stops first (rolled), and nosingLanding says where the cat would stop', () => {

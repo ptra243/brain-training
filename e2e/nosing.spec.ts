@@ -43,6 +43,8 @@ const playToQuestion = async (page: Page) => {
       await checkScreen(page, 'nosing: roll');
       await roll.click();
     } else {
+      await expect(page.locator('.nosing-roll')).toContainText(/You rolled \d+ · The cat will land on: .+, square \d+/);
+      await expect(page.locator('.nosing-purr')).toHaveCount(1);
       await checkScreen(page, 'nosing: rolled');
       await move.click();
     }

@@ -1,10 +1,9 @@
 // Small pure helpers for the Nosing around screen: board geometry, the cat's
 // walk, the number pad, dice faces and the lock's wording. No React.
 
-import { nosingObstacleLines, nosingSearchLines } from '../../content/nosing.ts';
+import { nosingObstacleLines } from '../../content/nosing.ts';
 import { Rng, hashSeed } from '../../engine/rng.ts';
 import type { House } from '../../engine/types.ts';
-import { nosingView, type NosingPuzzle, type NosingState, type NosingView } from '../../games/nosing.ts';
 import type { NosingBoard } from '../../games/nosingBoard.ts';
 import type { Op } from '../../games/lock.ts';
 
@@ -220,31 +219,12 @@ export function markLine(label: string, square: number, cat: number): string {
   return `${label}, ${squareName(square)}. ${distanceWords(cat, square)}.`;
 }
 
-/** The line for a search square, as the engine words it when she finds the clue (same seed, same line). */
-export function searchReason(seed: string, square: number, roomOf: readonly (string | null)[], house: House): string {
-  const room = house.rooms.find((r) => r.id === roomOf[square]);
-  const rng = new Rng(hashSeed(`${seed}-line-${square}`));
-  const line = rng.pick(nosingSearchLines);
-  return line.replace('{thing}', room && room.things.length ? rng.pick(room.things).toLowerCase() : 'furniture');
-}
-
 /**
- * The question, speed and cat-find squares she has used up (drawn faded). The view does not list them, so
- * they come from her moves: a right answer on a plain question or search, a played speed round, a visited cat find.
+ * The roll card's one line: the roll, and what is on the square the cat would land on
+ * (`label` is the mark's name, or "Nothing" for a plain square).
  */
-export function spentSquares(p: NosingPuzzle, state: NosingState, view: NosingView): Set<number> {
-  const out = new Set<number>();
-  state.moves.forEach((m, k) => {
-    if (m.t !== 'answer' && m.t !== 'speed') return;
-    const before = nosingView(p, { ...state, moves: state.moves.slice(0, k) });
-    if (m.t === 'speed') {
-      if (before.speed) out.add(before.speed.square);
-    } else if (before.question && (before.question.kind === 'obstacle' || before.question.kind === 'search') && m.value === before.question.q.answer) {
-      out.add(before.question.square);
-    }
-  });
-  for (const i of view.trail) if (p.board.squares[i].kind === 'catFind') out.add(i);
-  return out;
+export function landingLine(roll: number, label: string, land: number): string {
+  return `You rolled ${roll} · The cat will land on: ${label}, ${squareName(land)}`;
 }
 
 /** The reason line of a plain question square, seeded by the square. */

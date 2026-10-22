@@ -1,5 +1,5 @@
 import { useMemo, type MouseEvent } from 'react';
-import type { NosingPuzzle, NosingView } from '../../games/nosing.ts';
+import { nosingLanding, type NosingPuzzle, type NosingView } from '../../games/nosing.ts';
 import { MarkIcon, Paw } from './NosingIcons.tsx';
 import { markKinds, nearestMark, pawTrail, roomSquares, squareCentre, wallLines, woolPath } from './nosingUi.ts';
 
@@ -32,6 +32,8 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false, spent, s
   const cat = centres[catAt];
   const kinds = useMemo(() => markKinds(board, puzzle.dogSquare, view.usedSnakes), [board, puzzle.dogSquare, view.usedSnakes]);
 
+  const landing = view.phase === 'rolled' ? nosingLanding(puzzle, view) : null;
+
   const tap = (e: MouseEvent<SVGSVGElement>) => {
     const svg = e.currentTarget;
     const m = svg.getScreenCTM();
@@ -45,7 +47,7 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false, spent, s
       className={`nosing-board ${compact ? 'compact' : ''}`}
       viewBox={`-0.5 -0.5 ${board.width + 1} ${board.height + 1}`}
       role="img"
-      aria-label={`The floor plan as a board. The cat is on square ${catAt + 1} of ${board.path.length}.`}
+      aria-label={`The floor plan as a board. The cat is on square ${catAt + 1} of ${board.path.length}.${landing !== null ? ` Purr-diction: it will land on square ${landing + 1}.` : ''}`}
       onClick={tap}
     >
       <defs>
@@ -121,6 +123,12 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false, spent, s
 
       {selected !== null && centres[selected] && (
         <circle className="nosing-picked" cx={centres[selected].x} cy={centres[selected].y} r={0.36 * unit} />
+      )}
+
+      {landing !== null && (
+        <g className="nosing-purr" transform={`translate(${centres[landing].x} ${centres[landing].y}) scale(${unit})`}>
+          <MarkIcon kind="purr" />
+        </g>
       )}
 
       <g className="nosing-cat" transform={`translate(${cat.x} ${cat.y}) scale(${unit})`}>
