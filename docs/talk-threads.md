@@ -9,9 +9,9 @@ a few placeholder lines so it runs.
   house before midnight and talk opens from a person in her room; `visit` comes back then.) Games open from the casebook and a tap on a counter opens its
   sheet, so the `visit` trigger is dropped. The triggers left are `ask`, `object` and `talk`.
 - **Talk lives on the suspect sheet** (`SuspectSheet.tsx`, opened by a short tap on a counter). It shows the
-  greeting, the meter, the beats she has heard, an "Anything else?" button, and "Question them" when that
+  greeting, the meter, the beats she has heard, a question button ("Tell me about yourself", then "Go on…"), and "Question them" when that
   suspect's questioning game is in the case and not finished. Talk and Play sit in one place.
-- **Beats come behind "Anything else?"** Each tap plays the next ready beat. Inside a minigame (later), a
+- **Beats come behind her question** ("Tell me about yourself", then "Go on…"). Each tap plays the next ready beat. Inside a minigame (later), a
   ready beat comes along unprompted as the tangent, at most one per answer.
 - **When beats are ready** (only uses games she has finished, won or revealed):
   `ready = min(beats, 1 + about + floor(other / 2))`, where `about` counts her finished games that are about
@@ -27,7 +27,7 @@ a few placeholder lines so it runs.
 - **The meter** is a row of pips on the sheet: beats heard out of the thread's length. It only goes up and
   works the same for everyone, killer included.
 - **Hostile to warm**: a suspect whose reading is reversed starts cold. The greeting is picked by beats heard:
-  cold suspects warm up a step per beat ("You again?", then "Fine, sit down.", then a warm one); warm ones
+  cold suspects warm up a step per beat ("Make it quick.", then "Fine, sit down.", then a warm one; the first greeting is for meeting them, never "again"); warm ones
   stay warm. Copy only; the meter never drops.
 - **Hostility makes the questioning harder** (part B below): a cold suspect's questioning game is built one
   level harder (hard stays hard), fixed at case start so a puzzle she has started never changes.
@@ -66,7 +66,7 @@ Cases must not change: the sets live outside `Case` and roll on their own stream
    load). Action `{ type: 'talk-hear'; suspect }` raises it by one, never past `readyBeats`. Reducer test.
    Saved through the existing guarded storage; no prefix bump.
 5. **UI** (`SuspectSheet.tsx`, styles in `src/styles.css`): under the clues, a Talk section with the
-   greeting, pips (heard out of thread length), the heard beats as a short log, "Anything else?" (only when
+   greeting, pips (heard out of thread length), the heard beats as a short log, her question (only when
    a beat is ready; otherwise "Nothing more to say yet."), and "Question them" when their questioning game is
    in the case and unfinished (opens it the way the casebook does). Sentence case, from her point of view.
    Touch targets at least 44px; no sideways scroll at 360px. Add an e2e flow: open a counter, tap "Anything

@@ -594,7 +594,7 @@ today: knife, rope, candlestick, wrench (the stories go in content, keyed by obj
 ## Cold greetings (hostile reading)
 Cold follows the reversed roll (`docs/talk-threads.md`, "Hostile to warm"), so there is no new roll; the warm
 greetings stay as they are. Curt, rude, never a lie, never about tonight's facts, never aimed at a named or
-specific person.
+specific person. Greetings are ordered by beats heard and the first one greets her on meeting them, so it never says "again" (no "You again?" at 0 heard).
 - "Ask someone else. Or don't."
 - "Make it quick."
 - "Oh. It's you."

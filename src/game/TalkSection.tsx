@@ -18,7 +18,7 @@ interface Props {
   idleLine?: string;
 }
 
-/** What a guest says: greeting, pips, "Anything else?", the log of what she has heard, and "Question them". */
+/** What a guest says: greeting, pips, her question ("Tell me about yourself", then "Go on…"), the log of what she has heard, and "Question them". */
 export function TalkSection({ c, progress, dispatch, suspect, onQuestion, idleLine }: Props) {
   const set = useMemo(() => setsFor(c)[suspect], [c, suspect]);
   const heard = progress.talk?.[suspect] ?? 0;
@@ -45,7 +45,7 @@ export function TalkSection({ c, progress, dispatch, suspect, onQuestion, idleLi
       )}
       {more && ready > heard && (
         <button className="secondary" onClick={() => dispatch({ type: 'talk-hear', suspect })}>
-          Anything else?
+          {heard === 0 ? 'Tell me about yourself' : 'Go on…'}
         </button>
       )}
       {(!more || ready <= heard) && (idleLine ?? (more ? 'Nothing more to say yet.' : '')) && (

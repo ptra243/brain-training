@@ -155,7 +155,7 @@ export const talk: TalkContent = {
     },
   },
   greetings: {
-    cold: ['You again?', 'Fine, sit down.'],
-    warm: ['Hello again.', 'Good to see you.', 'Come in, come in.'],
+    cold: ['Make it quick.', 'Fine, sit down.'],
+    warm: ['Oh, hello. Do sit down.', 'Back again? Good.', 'Come in, come in.'],
   },
 };

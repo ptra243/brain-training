@@ -66,7 +66,7 @@ test.describe('exploring a campaign round', () => {
     const person = page.getByRole('dialog');
     await expect(person.locator('.portrait')).toBeVisible();
     const talk = person.getByRole('region', { name: 'Talk' });
-    await talk.getByRole('button', { name: 'Anything else?' }).click();
+    await talk.getByRole('button', { name: 'Tell me about yourself' }).click();
     await expect(talk.locator('.talk-log li')).toHaveCount(1);
     await expect(talk.getByText('Nothing more to say for now.')).toBeVisible();
     await checkScreen(page, 'person screen');
