@@ -16,6 +16,17 @@
   run, and clears localStorage once per tab (a reload keeps her save). No
   app hooks; go through the real UI. Wait on roles and text, never sleeps:
   case building may become async.
+- **Reaching deep into a game.** Test flows by tapping through them. To start
+  a test partway through a long game (the nosing speed round, dog fight or
+  lock), open the game through the UI, then rewrite her save with moves the
+  engine's hint bot made and reload (`nosingSaves.ts`). The save is built on
+  every run with the app's own format and engine, never a committed file, so
+  it can't go stale.
+- **Speed.** Tests run fully parallel (any test may run on any worker, in any
+  order; never rely on another test's state) with reduced motion, so the
+  app skips its walk and reveal animations. A test about an animation itself
+  sets `test.use({ reducedMotion: 'no-preference' })`. Keep each test under
+  about 6 s: one long test sets the wall time of the whole run.
 - **Every screen gets `checkScreen(page, label)`** (`rules.ts`): no sideways
   scroll and every visible button, link and input at least 44×44. Exceptions
   go only in its `EXCEPTIONS` list, each with a reason; the grid cells at 5

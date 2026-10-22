@@ -1,35 +1,31 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures.ts';
 import { checkScreen } from './rules.ts';
-
-/** Home -> Choose games (Nosing around ticked) -> Start -> Clues -> Get a clue -> Nosing around. */
-async function openNosing(page: Page) {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Choose games' }).click();
-  await expect(page.getByRole('heading', { name: 'Choose games', level: 1 })).toBeVisible();
-  const rows = page.locator('button.pick-row');
-  const nosing = rows.filter({ hasText: 'Nosing around' });
-  if ((await nosing.getAttribute('aria-pressed')) !== 'true') await nosing.click();
-  // Three games at least: add others until there are enough.
-  for (const name of ['Wordle', 'Crossword', 'Word search', 'Sudoku']) {
-    if ((await rows.and(page.locator('[aria-pressed="true"]')).count()) >= 3) break;
-    const row = rows.filter({ hasText: name });
-    if ((await row.getAttribute('aria-pressed')) !== 'true') await row.click();
-  }
-  await page.getByRole('button', { name: 'Start', exact: true }).click();
-  await expect(page.getByRole('navigation', { name: 'Casebook' })).toBeVisible();
-  await page.getByRole('navigation', { name: 'Casebook' }).getByRole('button', { name: 'Clues' }).click();
-  await page.getByRole('button', { name: 'Get a clue' }).click();
-  const dialog = page.getByRole('dialog', { name: 'Pick a game' });
-  await dialog.locator('button.puzzle-row:not(.locked):not(.done)', { hasText: 'Nosing around' }).first().click();
-  await expect(page.getByRole('heading', { name: 'Nosing around', level: 1 })).toBeVisible();
-}
+import { openNosing, openNosingAt } from './nosingSaves.ts';
 
 const typeNumber = async (page: Page, n: number) => {
   const pad = page.locator('.numpad').first();
   for (const d of String(n)) await pad.getByRole('button', { name: d, exact: true }).click();
   await pad.getByRole('button', { name: 'OK', exact: true }).click();
 };
+
+/** A button is fully on screen (780px tall) without scrolling. */
+const inViewport = async (page: Page, button: ReturnType<Page['locator']>, label: string) => {
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const box = await button.boundingBox();
+  expect(box, label).not.toBeNull();
+  expect(box!.y + box!.height, `${label} inside 780px`).toBeLessThanOrEqual(780);
+};
+
+/** The pad's OK button is fully on screen without scrolling. */
+const padOnScreen = async (page: Page, scope: string) => {
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const box = await page.locator(scope).getByRole('button', { name: 'OK', exact: true }).boundingBox();
+  expect(box, `${scope}: OK button`).not.toBeNull();
+  expect(box!.y + box!.height, `${scope}: OK inside 780px`).toBeLessThanOrEqual(780);
+};
+
+const hintButton = (page: Page) => page.getByRole('button', { name: /for a hint$/ });
 
 test.describe('nosing around', () => {
   test('Solve opens the lock, shows the way and unlocks the clues', async ({ page }) => {
@@ -45,133 +41,137 @@ test.describe('nosing around', () => {
     await checkScreen(page, 'nosing: solved');
   });
 
-  /** Plays a whole run with the cat's hints. `pad` also checks the question pad fits; `needDog` expects a dog fight on the way. */
-  async function playRun(page: Page, pad: boolean, needDog: boolean) {
-    test.setTimeout(180_000);
+  test('roll, move, then a question with the cat\'s three hints', async ({ page }) => {
     await openNosing(page);
-
     const roll = page.getByRole('button', { name: 'Roll', exact: true });
     const move = page.getByRole('button', { name: 'Move', exact: true });
     const question = page.locator('.nosing-question');
+
+    // Roll and move until a square asks a question (a ladder or snake square may come first).
+    for (let guard = 0; guard < 12; guard++) {
+      await roll.or(move).or(question).first().waitFor();
+      if (await question.isVisible()) break;
+      if (await roll.isVisible()) {
+        await checkScreen(page, 'nosing: roll');
+        await roll.click();
+      } else await move.click();
+    }
+    await expect(question).toBeVisible();
+
+    // Ask the cat three times: the working, three choices, the answer.
+    await hintButton(page).click();
+    await hintButton(page).click();
+    await expect(page.getByRole('group', { name: "The cat's three choices" })).toBeVisible();
+    await checkScreen(page, 'nosing: question with choices');
+    await padOnScreen(page, '.nosing-question');
+    await hintButton(page).click();
+    const note = await page.locator('.hint-note').innerText();
+    const answer = Number(/answer: (\d+)/.exec(note)?.[1]);
+    expect(Number.isInteger(answer), note).toBe(true);
+    await typeNumber(page, answer);
+    await expect(question).toBeHidden();
+    await expect(roll.or(move).first()).toBeVisible();
+  });
+
+  // Seed 12345's hint run has no speed square; seed 4's does.
+  test.describe('a run with a speed round', () => {
+  test.use({ seed: 4 });
+  test('the speed round: the screen fits and the 60 seconds end the round', async ({ page }) => {
+    await openNosingAt(page, 'speed');
     const speedStart = page.getByRole('button', { name: /^Start the \d+ seconds$/ });
+    await expect(speedStart).toBeVisible();
+    await checkScreen(page, 'nosing: speed round start');
+    // Fake the clock from here so the 60 seconds pass at once.
+    await page.clock.install();
+    await speedStart.click();
+    await expect(page.getByRole('timer')).toBeVisible();
+    await checkScreen(page, 'nosing: speed round');
+    await padOnScreen(page, '.nosing-speed');
+    await page.clock.runFor(61_000);
+    await expect(page.getByRole('timer')).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Roll', exact: true })).toBeVisible();
+  });
+  });
+
+  test('the lock: place and clear a card, hints build the number, Try wins', async ({ page }) => {
+    await openNosingAt(page, 'lock');
     const tryNumber = page.getByRole('button', { name: /^Try this number/ });
     const unlocked = page.locator('section.unlocked');
-    const dogFight = page.locator('.dog-fight');
-    const dogResult = page.locator('.dog-result');
-    const playButton = dogFight.getByRole('button', { name: /^Play/ });
-    /** A button is fully on screen (780px tall) without scrolling. */
-    const inViewport = async (button: ReturnType<Page['locator']>, label: string) => {
-      await page.evaluate(() => window.scrollTo(0, 0));
-      const box = await button.boundingBox();
-      expect(box, label).not.toBeNull();
-      expect(box!.y + box!.height, `${label} inside 780px`).toBeLessThanOrEqual(780);
-    };
-    const hintButton = page.getByRole('button', { name: /for a hint$/ });
-    /** The pad's OK button is fully on screen without scrolling. */
-    const padOnScreen = async (scope: string) => {
-      await page.evaluate(() => window.scrollTo(0, 0));
-      const box = await page.locator(scope).getByRole('button', { name: 'OK', exact: true }).boundingBox();
-      expect(box, `${scope}: OK button`).not.toBeNull();
-      if (pad) expect(box!.y + box!.height, `${scope}: OK inside 780px`).toBeLessThanOrEqual(780);
-    };
-    let sawDog = false;
-    const checked = new Set<string>();
-    const checkOnce = async (label: string) => {
-      if (checked.has(label)) return;
-      checked.add(label);
-      await checkScreen(page, label);
-    };
-
-    for (let guard = 0; guard < 120; guard++) {
-      await roll.or(move).or(question).or(speedStart).or(tryNumber).or(dogFight).or(dogResult).or(unlocked).first().waitFor();
+    await expect(tryNumber).toBeVisible();
+    await checkScreen(page, 'nosing: lock');
+    await inViewport(page, tryNumber, 'lock: Try');
+    // Tap a card, then a slot: it lands there. Tap the filled slot: it comes back.
+    // A cat's note bonus may already have filled the first boxes; those stay (their buttons are disabled).
+    const firstSlot = page.getByRole('button', { name: /number, empty$/ }).first();
+    await expect(firstSlot).toBeVisible();
+    const emptyName = (await firstSlot.getAttribute('aria-label'))!;
+    const slotName = emptyName.replace(/, empty$/, '');
+    const byCat = page.getByRole('button', { name: /, filled in by the cat$/ });
+    if ((await byCat.count()) > 0) await expect(byCat.first()).toBeDisabled();
+    await page.getByRole('group', { name: 'Your numbers' }).getByRole('button', { name: /^\d+$/ }).first().click();
+    await firstSlot.click();
+    const filled = page.getByRole('button', { name: new RegExp(`^${slotName}, \\d+$`) });
+    await expect(filled).toBeVisible();
+    await checkScreen(page, 'nosing: lock with a card placed');
+    await filled.click();
+    await expect(page.getByRole('button', { name: emptyName, exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Clear', exact: true })).toBeDisabled();
+    // The cat's hints fill the grid with more and more of the way.
+    await hintButton(page).click();
+    await expect(page.locator('.hint-note')).toBeVisible();
+    await inViewport(page, tryNumber, 'lock with a hint note: Try');
+    await checkScreen(page, 'nosing: lock with a hint note');
+    for (let k = 0; k < 12 && !(await tryNumber.isEnabled()); k++) await hintButton(page).click();
+    await checkScreen(page, 'nosing: lock with a number made');
+    await tryNumber.click();
+    // The first number she can make may miss the target: more hints bring it closer, then try again.
+    for (let attempt = 0; attempt < 3 && !(await unlocked.isVisible()); attempt++) {
+      await tryNumber.or(unlocked).first().waitFor();
       if (await unlocked.isVisible()) break;
-
-      if (await roll.isVisible()) {
-        await checkOnce('nosing: roll');
-        await roll.click();
-      } else if (await move.isVisible()) {
-        await move.click();
-      } else if (await question.isVisible()) {
-        // Ask the cat three times: the working, three choices, the answer.
-        await hintButton.click();
-        await hintButton.click();
-        await expect(page.getByRole('group', { name: "The cat's three choices" })).toBeVisible();
-        await checkOnce('nosing: question with choices');
-        await padOnScreen('.nosing-question');
-        await hintButton.click();
-        const note = await page.locator('.hint-note').innerText();
-        const answer = Number(/answer: (\d+)/.exec(note)?.[1]);
-        expect(Number.isInteger(answer), note).toBe(true);
-        await typeNumber(page, answer);
-      } else if (await dogResult.isVisible()) {
-        await checkOnce('nosing: dog result');
-        await dogResult.getByRole('button', { name: 'Continue' }).click();
-      } else if (await dogFight.isVisible()) {
-        sawDog = true;
-        await checkOnce('nosing: dog fight');
-        await inViewport(playButton, 'dog fight: Play');
-        // The cat's three hints: a question, then cards pushed into place.
-        await hintButton.click();
-        await expect(page.locator('.hint-note')).toContainText('sizes up your cards');
-        await inViewport(playButton, 'dog fight with a hint note: Play');
-        const mark = await page.locator('.nosing-dog-mark').boundingBox();
-        expect(mark, 'the dog mark is on the board strip').not.toBeNull();
-        expect(mark!.width, 'dog mark width').toBeGreaterThanOrEqual(8);
-        expect(mark!.height, 'dog mark height').toBeGreaterThanOrEqual(8);
-        await hintButton.click();
-        await hintButton.click();
-        await expect(playButton).toBeEnabled();
-        await checkOnce('nosing: dog fight with cards placed');
-        await playButton.click();
-      } else if (await speedStart.isVisible()) {
-        await checkOnce('nosing: speed round start');
-        // Fake the clock from here so the 60 seconds pass at once.
-        await page.clock.install();
-        await speedStart.click();
-        await expect(page.getByRole('timer')).toBeVisible();
-        await checkOnce('nosing: speed round');
-        await padOnScreen('.nosing-speed');
-        await page.clock.runFor(61_000);
-      } else if (await tryNumber.isVisible()) {
-        await checkOnce('nosing: lock');
-        await inViewport(tryNumber, 'lock: Try');
-        // Tap a card, then a slot: it lands there. Tap the filled slot: it comes back.
-        const firstSlot = page.getByRole('button', { name: /^Row 1, first number, empty$/ });
-        if (await firstSlot.isVisible()) {
-          await page.getByRole('group', { name: 'Your numbers' }).getByRole('button').first().click();
-          await firstSlot.click();
-          const filled = page.getByRole('button', { name: /^Row 1, first number, \d+$/ });
-          await expect(filled).toBeVisible();
-          await checkOnce('nosing: lock with a card placed');
-          await filled.click();
-          await expect(firstSlot).toBeVisible();
-          await expect(page.getByRole('button', { name: 'Clear', exact: true })).toBeDisabled();
-        }
-        // The cat's hints fill the grid with more and more of the way.
-        await hintButton.click();
-        await expect(page.locator('.hint-note')).toBeVisible();
-        await inViewport(tryNumber, 'lock with a hint note: Try');
-        await checkOnce('nosing: lock with a hint note');
-        for (let k = 0; k < 12 && !(await tryNumber.isEnabled()); k++) await hintButton.click();
-        await checkOnce('nosing: lock with a number made');
-        await tryNumber.click();
-      }
+      for (let k = 0; k < 12 && !(await tryNumber.isEnabled()); k++) await hintButton(page).click();
+      await tryNumber.click();
     }
-    if (needDog) expect(sawDog, 'this seed reaches the dog').toBe(true);
     await expect(unlocked).toBeVisible();
     await expect(unlocked.getByRole('button', { name: 'Back to the casebook' })).toBeVisible();
     await checkScreen(page, 'nosing: won');
-  }
-
-  test('play with the cat hints: roll, answer, speed round, the lock', async ({ page }) => {
-    await playRun(page, true, false);
   });
 
   test.describe('a run that meets the dog', () => {
-    // A seed whose run lands on the dog's snake head (the pad check is left to the run above: this seed's questions are taller).
+    // A seed whose run lands on the dog's snake head.
     test.use({ seed: 10 });
     test('the dog fight: hints drive it, the screen fits, Continue goes on', async ({ page }) => {
-      await playRun(page, false, true);
+      await openNosingAt(page, 'dog');
+      const dogFight = page.locator('.dog-fight');
+      const dogResult = page.locator('.dog-result');
+      const playButton = dogFight.getByRole('button', { name: /^Play/ });
+      await expect(dogFight).toBeVisible();
+      await checkScreen(page, 'nosing: dog fight');
+      await inViewport(page, playButton, 'dog fight: Play');
+      // The cat's three hints: a question, then cards pushed into place.
+      await hintButton(page).click();
+      await expect(page.locator('.hint-note')).toContainText('sizes up your cards');
+      await inViewport(page, playButton, 'dog fight with a hint note: Play');
+      const mark = await page.locator('.nosing-dog-mark').boundingBox();
+      expect(mark, 'the dog mark is on the board strip').not.toBeNull();
+      expect(mark!.width, 'dog mark width').toBeGreaterThanOrEqual(8);
+      expect(mark!.height, 'dog mark height').toBeGreaterThanOrEqual(8);
+      await hintButton(page).click();
+      await hintButton(page).click();
+      await expect(playButton).toBeEnabled();
+      await checkScreen(page, 'nosing: dog fight with cards placed');
+      await playButton.click();
+      // The fight goes on, a round at a time, until a side is out of lives.
+      const idlePlay = dogFight.getByRole('button', { name: /^Play/, disabled: true });
+      for (let round = 0; round < 8; round++) {
+        await dogResult.or(idlePlay).first().waitFor();
+        if (await dogResult.isVisible()) break;
+        for (let k = 0; k < 3 && !(await playButton.isEnabled()); k++) await hintButton(page).click();
+        await playButton.click();
+      }
+      await expect(dogResult).toBeVisible();
+      await checkScreen(page, 'nosing: dog result');
+      await dogResult.getByRole('button', { name: 'Continue' }).click();
+      await expect(dogResult).toBeHidden();
     });
   });
 });

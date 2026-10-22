@@ -223,26 +223,6 @@ Starting prompt:
 Read the "Faster word game builders" entry in docs/next-sessions.md, profile crossword buildBoard and word search findPlacement, and propose a faster version that builds identical grids before writing code.
 ```
 
-## Session: Faster e2e from saved state (exploratory)
-Last touched: 2026-10-22
-Reads first: `e2e/CLAUDE.md`, `e2e/fixtures.ts`, `playwright.config.*`, `src/game/storage.ts` (save
-format and prefix).
-Problem: `npm run e2e` takes about 82 s, the slowest of the checks. Every test starts from cleared
-storage and taps through the real UI to reach its screen, so most tests rebuild a case and replay
-moves before checking anything.
-Idea: a fixture that writes a save into localStorage with `addInitScript` (the way `fixtures.ts`
-already seeds `crypto`) and opens straight onto the screen under test: a save file, not an app hook.
-Keep a few tap-through tests for the flows themselves. Saves could be captured from a real run
-rather than hand-written, so a storage prefix bump or save-format change regenerates them instead
-of breaking them silently. Open: whether this fits the "go through the real UI" rule (likely needs
-the rule reworded to cover reaching a screen vs testing a flow).
-Not measured yet: how the 82 s splits between server start, case building, tapping through and
-the checks themselves; the gain may be small if server start or building dominates.
-Starting prompt:
-```
-Read the "Faster e2e from saved state" entry in docs/next-sessions.md, time the e2e run per spec and per test (and server start), find where the time goes, and propose a design before writing code.
-```
-
 ## Session: Target or another word game (exploratory)
 Last touched: 2026-10-21
 Reads first: `src/games/CLAUDE.md`, `scripts/build-words.ts`, `src/games/dictionary.ts` and

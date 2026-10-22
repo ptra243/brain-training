@@ -11,6 +11,7 @@ export default defineConfig({
   testDir: 'e2e',
   testMatch: '**/*.spec.ts',
   outputDir: 'test-results',
+  fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['line']] : 'line',
   // CI tests the build it deploys (deploy.yml runs `npm run build` first);
@@ -32,6 +33,7 @@ export default defineConfig({
     hasTouch: true,
     isMobile: true,
     deviceScaleFactor: 3,
+    reducedMotion: 'reduce',
   },
   projects: [{ name: 'phone' }],
 });
