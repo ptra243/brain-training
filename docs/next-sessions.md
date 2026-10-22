@@ -263,14 +263,16 @@ later `.tarot-card svg { 22px }` rule shrank every Tarot match card's art. A sca
 Decided: CSS Modules (built into Vite, no new dependency), adopted gradually. Tailwind and
 CSS-in-JS were ruled out as too big a move from the CSS-variable look. Shared pieces stay global in
 `styles.css`: colour and type variables, buttons, hint notes, `Dialog`, layout. Each game's own styles
-move to a `<Game>.module.css` next to its component and are used as `styles.x`. Start with Tarot match
-and the dog fight, then move the other games one at a time.
+move to a `<Game>.module.css` next to its component and are used as `styles.x`.
+Done (commit 7909bba): Tarot match and the dog fight, plus the rule in `src/game/CLAUDE.md` and `e2e/CLAUDE.md`.
+Copy `TarotGame.module.css` / `NosingDog.module.css` as the pattern. Next: move the other games one at a
+time (Wordle, crossword, word search, cat puzzle, sudoku, then the rest), one or two per commit.
 Watch: e2e uses about 33 class selectors (`locator('.x')`). Scoped names break them, so move those
 to roles, labels or `data-testid`. Check each moved screen at 360px (`browser-check`). Add the rule
 "new game styles go in a CSS module" to `src/game/CLAUDE.md`.
 Starting prompt:
 ```
-Read the "CSS Modules for game styles" entry in docs/next-sessions.md, then move Tarot match and the dog fight to CSS modules as the first step, with e2e and a 360px look check.
+Read the "CSS Modules for game styles" entry in docs/next-sessions.md, then move the next games (Wordle, crossword, word search) to CSS modules, following TarotGame.module.css. Delegate each to the implementer, then run e2e and a 360px look check.
 ```
 
 ## Session: Target or another word game (exploratory)
