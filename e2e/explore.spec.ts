@@ -130,6 +130,27 @@ test.describe('exploring a campaign round', () => {
     await expect(page.getByRole('dialog')).toHaveCount(0);
   });
 
+  test('a wrong accusation shows the next-murder scene; a tap goes on to round 2', async ({ page }) => {
+    await startCampaign(page);
+    await openTab(page, 'Accuse');
+    // With the fixture's seed the first guest is not the killer.
+    await page.getByRole('group', { name: 'Who' }).getByRole('button').first().click();
+    await page.getByRole('group', { name: 'With what' }).getByRole('button').first().click();
+    await page.getByRole('button', { name: 'Make the accusation' }).click();
+    await page.getByRole('dialog', { name: 'Guess now?' }).getByRole('button', { name: /guess/i }).click();
+
+    const scene = page.getByRole('dialog', { name: /wasn't the killer$/ });
+    await expect(scene).toBeVisible();
+    await expect(scene.getByText(/^Later that night, .* is found dead\./)).toBeVisible();
+    await checkScreen(page, 'next-murder scene');
+
+    // Tap the picture, not the button.
+    await scene.locator('svg.storm').click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.getByRole('navigation', { name: 'Rounds' }).getByRole('button').nth(1)).toHaveAttribute('aria-pressed', 'true');
+    await expect(timeLine(page)).toHaveText(/^9:00 /);
+  });
+
   test('at midnight the Accuse tab opens and the map and puzzles stop', async ({ page }) => {
     test.setTimeout(120_000);
     await startCampaign(page);

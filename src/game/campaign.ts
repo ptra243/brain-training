@@ -3,7 +3,7 @@
 // budget, and how it ended. Rounds are rebuilt from the campaign ref and the
 // victims before them; only her moves are saved.
 
-import { ROUNDS, campaignRound, roundSuspects, type CampaignRef } from '../engine/campaign.ts';
+import { ROUNDS, campaignRound, roundSuspects, walkedFreeVictim, type CampaignRef } from '../engine/campaign.ts';
 import type { Case, Content, GameKind } from '../engine/types.ts';
 import { emptyProgress, sceneUnlocked, unlockedClueIds, type Progress } from './state.ts';
 
@@ -33,10 +33,11 @@ export type Verdict = 'caught' | 'wrong-weapon' | 'next-body' | 'escaped';
 /**
  * Her moves in the current round changed. If she just made an accusation,
  * work out what it did: the killer and weapon end it; the killer with the
- * wrong weapon costs nothing; anyone else is the next body, and after the
- * last round the killer gets away.
+ * wrong weapon walks free and a seeded innocent guest is the next body;
+ * anyone else she named is the next body; and after the last round the
+ * killer gets away.
  */
-export function updateRound(save: CampaignSave, c: Case, progress: Progress): { save: CampaignSave; verdict?: Verdict } {
+export function updateRound(content: Content, save: CampaignSave, c: Case, progress: Progress): { save: CampaignSave; verdict?: Verdict } {
   const i = currentRound(save);
   const before = save.rounds[i];
   const rounds = save.rounds.map((p, k) => (k === i ? progress : p));
@@ -45,12 +46,12 @@ export function updateRound(save: CampaignSave, c: Case, progress: Progress): { 
 
   const last = progress.accusations.at(-1)!;
   if (last.suspect === c.murderer && last.item === c.weapon) return { save: { ...updated, outcome: 'caught' }, verdict: 'caught' };
-  if (last.suspect === c.murderer) return { save: updated, verdict: 'wrong-weapon' };
-  const victims = [...save.victims, last.suspect];
+  const walked = last.suspect === c.murderer;
+  const victims = [...save.victims, walked ? walkedFreeVictim(content, save.ref, c) : last.suspect];
   if (victims.length >= ROUNDS) return { save: { ...updated, victims, outcome: 'escaped' }, verdict: 'escaped' };
   return {
     save: { ...updated, victims, rounds: [...rounds, emptyProgress()], picked: [...save.picked, []] },
-    verdict: 'next-body',
+    verdict: walked ? 'wrong-weapon' : 'next-body',
   };
 }
 

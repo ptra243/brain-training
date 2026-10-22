@@ -9,7 +9,7 @@ interface Props {
   progress: Progress;
   dispatch: (a: Action) => void;
   onNextCase: () => void;
-  /** Campaign: a wrong person is the next body; the right person with the wrong weapon costs nothing. */
+  /** Campaign: a wrong person is the next body; the right person with the wrong weapon lets them walk free and an innocent is the next body. */
   campaign?: boolean;
   /** Who she may accuse (the campaign's "only possible killers" option). Default: everyone. */
   suspects?: readonly string[];
@@ -103,7 +103,7 @@ export function AccusePanel({ c, progress, dispatch, onNextCase, campaign, suspe
       )}
       <p className="hint">
         {campaign
-          ? "Name the murderer and the weapon. Name the wrong person and they'll be the next body. The right person with the wrong weapon costs nothing."
+          ? "Name the murderer and the weapon. Name the wrong person and they'll be the next body. The right person with the wrong weapon costs a round too: with nothing to hold them on, someone else dies."
           : "Name the murderer and the weapon. You'll hear how many you got right, but not which."}
         {!campaign && ' You can also accuse straight from the map.'}
       </p>
@@ -146,7 +146,7 @@ export function AccusePanel({ c, progress, dispatch, onNextCase, campaign, suspe
         <article className="card result" aria-live="polite">
           <h2>
             {campaign
-              ? 'Right person, wrong weapon. Try another weapon: it costs nothing.'
+              ? 'Right person, wrong weapon.'
               : last.correct === 0
                 ? 'Neither of those was right.'
                 : `${last.correct} of ${ACCUSATION_PARTS} right. Keep digging.`}

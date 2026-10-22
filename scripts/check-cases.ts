@@ -9,7 +9,7 @@
 // every picked combination. Quick uses the same seeds as the start of a full run.
 import { content } from '../src/content/index.ts';
 import { caseContext, caseFacts, caseSpace, interrogationEvidence } from '../src/engine/caseFacts.ts';
-import { campaignCast, campaignRound, roundBudget, roundProblems, type CampaignRef } from '../src/engine/campaign.ts';
+import { campaignCast, campaignRound, roundBudget, roundProblems, roundSuspects, walkedFreeVictim, type CampaignRef } from '../src/engine/campaign.ts';
 import { PICK_ORDER, caseCode, caseFor, codeFor, pickedInOrder, type Cast, type PlayRef, type QuickRef } from '../src/engine/caseRef.ts';
 import { generateCase } from '../src/engine/generate.ts';
 import { boardPuzzle, endBoard } from '../src/engine/caseBoard.ts';
@@ -37,6 +37,7 @@ import { CROSSWORD_SIZE, solutionAt } from '../src/games/crossword.ts';
 import { LEVELS as NOSING_LEVELS_LIST, botSeed as nosingBotSeed, dogSquareSeed as nosingDogSquareSeed } from '../src/games/nosingSweeps.ts';
 import { BOARD_SEEDS, boardSeed as nosingBoardSeed } from '../src/games/nosingBoardSweeps.ts';
 import { LEVELS as DOG_LEVELS, challengeSeed as dogChallengeSeed, dogPlaysSeed, doubleSeed as dogDoubleSeed, hintBotSeed as dogHintBotSeed, redealSeed as dogRedealSeed, smallestBotSeed as dogSmallestBotSeed } from '../src/games/dogFightSweeps.ts';
+import { faceSeed, type FaceStats } from '../src/game/faceSweeps.ts';
 import { compareSearch, FACT_TYPES as SEARCH_FACT_TYPES } from '../src/engine/searchSweeps.ts';
 import { LOCK_LEVELS, LOCK_SEEDS, lockHintSeed, lockPrefixSeed, lockTierSeed } from '../src/games/lockSweeps.ts';
 import { CROSSWORD_SIZES, crosswordSeed as crosswordGridSeed, roomThings, sceneCaseSeed } from '../src/game/sceneGamesSweeps.ts';
@@ -633,10 +634,21 @@ for (const perPuzzle of [3, 2, 1] as const) for (const difficulty of DIFFICULTIE
         }
         if (c.campaign!.last) return;
         // She may accuse anyone alive; a wrong guess makes them the next body. Quick follows the first one only.
+        let firstWrong: string | undefined;
         for (const s of c.suspects) {
           if (s === cast.killer) continue;
           walk([...victims, s]);
+          firstWrong ??= s;
           if (!FULL) break;
+        }
+        // The killer with the wrong weapon walks free and a seeded innocent non-decoy dies: quick walks that path too.
+        const walked = walkedFreeVictim(content, ref, c);
+        const decoys = roundSuspects(content, c, c.clues.map((cl) => cl.fact));
+        if (walked === cast.killer || !c.suspects.includes(walked) || (!c.campaign!.last && decoys.includes(walked))) {
+          failures++;
+          console.log(`  FAIL ${where}: walked-free victim ${walked} is the killer, not alive or a decoy`);
+        } else if (!FULL && walked !== firstWrong) {
+          walk([...victims, walked]);
         }
       } catch (err) {
         failures++;
@@ -844,6 +856,14 @@ section('scene games');
   console.log(`Word builders vs oracle: ${crosswords} crosswords and ${searches} word searches match the old builders`);
 }
 section('builders vs oracle');
+
+// Face to face (src/game/faceSweeps.ts): the test keeps seeds 0-2.
+{
+  const stats: FaceStats = { killers: 0, cracks: 0, innocents: 0 };
+  for (const seed of seedsOf(3, 60, 10)) holds('face to face', `face to face seed ${seed}`, () => faceSeed(seed, stats));
+  console.log(`Face to face: ${stats.killers} killer and ${stats.innocents} innocent questionings fair (${stats.cracks} killers crack: no clue catches a lie)`);
+}
+section('face to face');
 
 console.log(`Talk: ${talkChecked.guests} guests have a thread; ${talkChecked.short} still have a beat waiting for the solved case once every game is done`);
 console.log(`Case boards:${boards.puzzles} puzzles and ${boards.ends} end boards built (slowest ${boards.slowest.toFixed(0)} ms)`);

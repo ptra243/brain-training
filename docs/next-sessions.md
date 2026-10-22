@@ -17,23 +17,8 @@ status changes** (built, blocked, unblocked, done): move it to its place, don't 
 stands. A blocked entry keeps its rank and names its blocker in the heading.
 
 
-## Session: Exploration mode, the next-murder scene
-Last touched: 2026-10-22
-Reads first: `docs/exploration-mode.md` ("The next murder" and the build order), `src/game/CLAUDE.md`,
-`e2e/CLAUDE.md`, then `CampaignView.tsx` (the "next-body" notice it replaces).
-Goal: build-order step 2. Step 1 (exploring campaign rounds: `explore.ts`, `ExploreMap.tsx`, the clock,
-midnight lock) is merged. Now the full-screen scene between rounds after a wrong guess: window with rain,
-a lightning bolt, the room lit by the flash, a clock at twelve, a jagged speech bubble screaming. SVG and
-CSS only; only the bolt and flash animate, at most 3 flashes a second, a still picture with reduced
-motion. Tap to continue into the next round. Small: one implementer brief, e2e for the tap-through, a
-`browser-check` look pass.
-Starting prompt:
-```
-Read docs/exploration-mode.md, write the implementer brief for build-order step 2 (the next-murder scene), and hand it off.
-```
-
 ## Session: Face to face, questioning the accused
-Last touched: 2026-10-21
+Last touched: 2026-10-23
 Reads first: `docs/face-to-face.md` (settled design), `src/engine/CLAUDE.md` (campaign, interrogations),
 `src/game/CLAUDE.md`, then `src/engine/interrogation.ts`, `src/engine/campaign.ts`, `src/game/campaign.ts`.
 Goal: in campaigns, accusing opens the finale questioning with the accused (only the killer lies), with
@@ -152,7 +137,7 @@ Read the Guest pool and Confidants sections of docs/theme-draft.md, then help me
 ```
 
 ## Session: Campaign opening, meeting the guests
-Last touched: 2026-10-22
+Last touched: 2026-10-23
 Reads first: `docs/talk-threads.md` (Talk, beats, mood), `docs/theme-draft.md` (Confidants, opening and
 ending), `src/engine/campaign.ts` (free clues per round).
 Idea (owner, 2026-10-22): a skippable first phase of a campaign where she talks to every guest once and
@@ -164,10 +149,13 @@ so far as a short story summary, in case she forgot or skipped the opening.
   clue must not depend on the killer (rule 5), and a witness never vouches for themselves.
 - No lie for now: every clue stays true. The owner's "2 truths and a lie" waits for "The killer lies"
   (exploratory, below), which settles how a lie can stay fair.
-- Decide: what skipping costs (proposed: nothing; the free clues land in the casebook as today, only the
-  beats are missed); one beat per guest or a full first chapter; where the beat review sits (the Talk log
-  on the sheet already lists heard beats; a summary line per thread is content); later rounds' free clues;
-  quick play untouched.
+- Decided (owner, 2026-10-23): skipping costs nothing in clues (the free clues land in the casebook as
+  today) but shows a summary of what she missed (how many clues she got, which guests she didn't talk to);
+  one beat per guest; quick play untouched; later rounds' free clues stay as today (only round 1 gets the
+  opening scene).
+- Beat review, both places: (A) a short "so far" line per guest at the top of their Talk sheet (the Talk log
+  there already lists heard beats; the summary line per thread is content), and (B) a "Story so far" page in
+  the casebook with every guest's line in one place.
 Starting prompt:
 ```
 Read the "Campaign opening" entry in docs/next-sessions.md and its reads-first docs, then propose the opening flow: how round 1's free clues become conversations, skipping, and the beat review.

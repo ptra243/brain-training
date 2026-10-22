@@ -3,8 +3,8 @@ import { useEffect, useEffectEvent, useRef, type ReactNode } from 'react';
 interface Props {
   children: ReactNode;
   onClose: () => void;
-  /** 'sheet' slides up from the bottom; 'center' sits mid-screen. */
-  placement?: 'sheet' | 'center';
+  /** 'sheet' slides up from the bottom; 'center' sits mid-screen; 'scene' fills the screen and a tap anywhere closes it. */
+  placement?: 'sheet' | 'center' | 'scene';
   /** Id of the heading inside `children` that names the dialog. */
   labelId: string;
 }
@@ -32,10 +32,11 @@ export function Dialog({ children, onClose, placement = 'sheet', labelId }: Prop
     <div
       className={`sheet-backdrop at-${placement}`}
       onPointerDown={(e) => {
-        downOnBackdrop.current = e.target === e.currentTarget;
+        downOnBackdrop.current = placement === 'scene' || e.target === e.currentTarget;
       }}
       onClick={(e) => {
-        if (downOnBackdrop.current && e.target === e.currentTarget) onClose();
+        // A scene closes on any tap that began inside it (the late click of the tap that opened it has no pointerdown).
+        if (downOnBackdrop.current && (placement === 'scene' || e.target === e.currentTarget)) onClose();
         downOnBackdrop.current = false;
       }}
     >

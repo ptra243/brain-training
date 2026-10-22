@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
-import { ROUNDS, campaignCast, type CampaignRef } from '../engine/campaign.ts';
+import { ROUNDS, campaignCast, roundSuspects, type CampaignRef } from '../engine/campaign.ts';
 import { codeFor } from '../engine/caseRef.ts';
 import { canPlay, currentRound, newCampaign, pick, puzzlesLeft, roundCase, stillPossible, updateRound, type CampaignSave } from './campaign.ts';
 import { reduce, type Action } from './state.ts';
@@ -13,7 +13,7 @@ const innocents = cast.suspects.filter((s) => s !== cast.killer);
 /** Play an action in the current round and let the campaign react. */
 function act(save: CampaignSave, action: Action) {
   const c = roundCase(content, save, currentRound(save));
-  return updateRound(save, c, reduce(c, save.rounds[currentRound(save)], action));
+  return updateRound(content, save, c, reduce(c, save.rounds[currentRound(save)], action));
 }
 
 test('a wrong person is the next body; the killer gets away after the last round', () => {
@@ -29,17 +29,41 @@ test('a wrong person is the next body; the killer gets away after the last round
   assert.equal(save.rounds.length, ROUNDS, 'no round after the last');
 });
 
-test('the right person with the wrong weapon costs nothing; both right catches them', () => {
+test('the right person with the wrong weapon ends the round: a seeded innocent non-decoy is the next body', () => {
   const save = newCampaign(ref);
   const c = roundCase(content, save, 0);
   const wrongWeapon = c.items.find((i) => i !== c.weapon)!;
   const { save: tried, verdict } = act(save, { type: 'accuse', suspect: c.murderer, item: wrongWeapon });
   assert.equal(verdict, 'wrong-weapon');
-  assert.equal(tried.victims.length, 0);
   assert.equal(tried.outcome, 'playing');
-  const { save: done, verdict: caught } = act(tried, { type: 'accuse', suspect: c.murderer, item: c.weapon });
+  assert.equal(tried.victims.length, 1);
+  assert.equal(tried.rounds.length, 2, 'a new round starts');
+  const body = tried.victims[0];
+  assert.notEqual(body, cast.killer);
+  assert.ok(c.suspects.includes(body));
+  const possible = roundSuspects(content, c, c.clues.map((cl) => cl.fact));
+  assert.ok(!possible.includes(body), 'never a decoy');
+  assert.equal(act(save, { type: 'accuse', suspect: c.murderer, item: wrongWeapon }).save.victims[0], body, 'same body every time');
+  // The round after it is the same one a wrong guess at that body would lead to.
+  const next = roundCase(content, tried, 1);
+  assert.equal(next.victim, body);
+  assert.ok(!next.suspects.includes(body));
+  const { save: done, verdict: caught } = act(tried, { type: 'accuse', suspect: next.murderer, item: next.weapon });
   assert.equal(caught, 'caught');
   assert.equal(done.outcome, 'caught');
+});
+
+test('wrong weapons use up the three accusations: the killer escapes', () => {
+  let save = newCampaign(ref);
+  for (let round = 0; round < ROUNDS; round++) {
+    const c = roundCase(content, save, round);
+    const wrongWeapon = c.items.find((i) => i !== c.weapon)!;
+    const { save: next, verdict } = act(save, { type: 'accuse', suspect: c.murderer, item: wrongWeapon });
+    assert.equal(verdict, round < ROUNDS - 1 ? 'wrong-weapon' : 'escaped');
+    save = next;
+  }
+  assert.equal(save.outcome, 'escaped');
+  assert.equal(new Set(save.victims).size, ROUNDS, 'three different bodies');
 });
 
 test('the budget: puzzles she picks count, word games are always free', () => {

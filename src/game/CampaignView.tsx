@@ -8,10 +8,11 @@ import { Casebook } from './Casebook.tsx';
 import { Dialog } from './Dialog.tsx';
 import { atMidnight } from './explore.ts';
 import { DIFFICULTY_LABEL, ROUND_TIMES } from './labels.ts';
-import { itemName, suspectName } from './names.ts';
+import { itemName, suspectName, victimLine } from './names.ts';
 import { currentRound, pick, puzzlesLeft, stillPossible, updateRound, type CampaignSave, type Verdict } from './campaign.ts';
 import { generate } from './caseClient.ts';
 import { roundsKey } from './caseJobs.ts';
+import { NextMurderScene } from './NextMurderScene.tsx';
 import { Shuffling } from './Shuffling.tsx';
 import { reduce, unlockedClueIds, type Action, type Progress } from './state.ts';
 
@@ -59,32 +60,25 @@ export function CampaignView({ save, onSave, onHome }: Props) {
     <>
       {ready ? <CampaignRounds save={save} cases={ready} onSave={onSave} onHome={onHome} setNotice={setNotice} /> : <Shuffling />}
 
-      {notice === 'next-body' && victim && guests && (
-        <Dialog placement="center" labelId="next-body-title" onClose={() => setNotice(null)}>
-          <h2 id="next-body-title">{suspectName(victim, guests)} wasn't the killer</h2>
-          <p className="dialog-text">
-            Later that night, {midSentence(suspectName(victim, guests))} is found dead. The killer is still among the guests, and
-            {ROUNDS - save.victims.length === 1 ? ' this is your last chance.' : ` you have ${ROUNDS - save.victims.length} accusations left.`}
-          </p>
-          <div className="dialog-actions single">
-            <button
-              data-autofocus
-              className="primary"
-              onClick={() => {
-                setNotice(null);
-                window.scrollTo(0, 0);
-              }}
-            >
-              On to {ROUND_TIMES[now].toLowerCase()}
-            </button>
-          </div>
-        </Dialog>
+      {(notice === 'next-body' || notice === 'wrong-weapon') && victim && guests && (
+        <NextMurderScene
+          heading={notice === 'wrong-weapon' ? 'Wrong weapon, and the killer walks free' : `${suspectName(victim, guests)} wasn't the killer`}
+          nextTime={ROUND_TIMES[now].toLowerCase()}
+          onContinue={() => {
+            setNotice(null);
+            window.scrollTo(0, 0);
+          }}
+        >
+          {notice === 'wrong-weapon' && 'You named the killer, but with the wrong weapon you could not hold them. '}
+          Later that night, {midSentence(suspectName(victim, guests))} is found dead. The killer is still among the guests, and
+          {ROUNDS - save.victims.length === 1 ? ' this is your last chance.' : ` you have ${ROUNDS - save.victims.length} accusations left.`}
+        </NextMurderScene>
       )}
       {notice === 'escaped' && victim && lastCase && guests && (
         <Dialog placement="center" labelId="escaped-title" onClose={() => setNotice(null)}>
           <h2 id="escaped-title">The killer got away</h2>
           <p className="dialog-text">
-            {suspectName(victim, guests)} wasn't the killer either. By dawn, {midSentence(suspectName(killer, guests))} was gone, with the{' '}
+            {suspectName(victim, guests)} was the third body. By dawn, {midSentence(suspectName(killer, guests))} was gone, with the{' '}
             {itemName(lastCase.weapon)}.
           </p>
           <div className="dialog-actions single">
@@ -122,9 +116,9 @@ function CampaignRounds({ save, cases: built, onSave, onHome, setNotice }: Round
 
   const onProgress = (update: (p: Progress) => Progress) => {
     if (readOnly) return;
-    const { save: next, verdict } = updateRound(save, cases[now], update(save.rounds[now]));
+    const { save: next, verdict } = updateRound(content, save, cases[now], update(save.rounds[now]));
     onSave(next);
-    if (verdict === 'next-body' || verdict === 'escaped') setNotice(verdict);
+    if (verdict === 'next-body' || verdict === 'wrong-weapon' || verdict === 'escaped') setNotice(verdict);
   };
   const dispatch = (a: Action) => onProgress((p) => reduce(c, p, a));
 
@@ -164,14 +158,23 @@ function CampaignRounds({ save, cases: built, onSave, onHome, setNotice }: Round
       ))}
     </nav>
   );
+  const banner = (
+    <>
+      {tabs}
+      <p className="case-victim round-victim">{victimLine(c)}</p>
+    </>
+  );
 
   const killer = campaignCast(content, save.ref).killer;
+  const walkedFree = !isNow && save.rounds[viewing].accusations.at(-1)?.suspect === killer;
   const accuse = !isNow ? (
     <section className="panel">
       <article className="card verdict">
-        <h2>{ROUND_TIMES[viewing]}: the wrong person</h2>
+        <h2>{ROUND_TIMES[viewing]}: {walkedFree ? 'the wrong weapon' : 'the wrong person'}</h2>
         <p className="verdict-line">
-          You accused {midSentence(suspectName(save.victims[viewing], c.guests))}. They weren't the killer, and they were the next body.
+          {walkedFree
+            ? `You named ${midSentence(suspectName(killer, c.guests))} but the wrong weapon. With nothing to hold them on, they walked free, and ${midSentence(suspectName(save.victims[viewing], c.guests))} was the next body.`
+            : `You accused ${midSentence(suspectName(save.victims[viewing], c.guests))}. They weren't the killer, and they were the next body.`}
         </p>
       </article>
     </section>
@@ -213,7 +216,7 @@ function CampaignRounds({ save, cases: built, onSave, onHome, setNotice }: Round
       onNewCase={onHome}
       title={ROUND_TIMES[viewing]}
       subtitle={`Round ${viewing + 1} of ${ROUNDS} · ${DIFFICULTY_LABEL[save.ref.difficulty]}${save.ref.perPuzzle ? `, ${save.ref.perPuzzle} clue${save.ref.perPuzzle === 1 ? '' : 's'} a puzzle` : ''}, ${c.suspects.length} guests${isNow && save.outcome === 'caught' ? ', solved' : ''}`}
-      banner={tabs}
+      banner={banner}
       gate={
         isNow && save.outcome === 'playing' && c.campaign
           ? { budget: c.campaign.budget, left: puzzlesLeft(save, c), picked: save.picked[now], onPick: (kind) => onSave(pick(save, c, kind)) }

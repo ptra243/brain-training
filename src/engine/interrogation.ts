@@ -124,10 +124,16 @@ function selfContained(cf: CaseFacts, hard: boolean, rng: Rng): Setup {
 }
 
 /** Finale: find a lie that her clues disprove only in combination, preferring pairs. */
-function finaleSetup(cf: CaseFacts, evidence: readonly ClueFact[], rng: Rng): Setup | null {
+function finaleSetup(cf: CaseFacts, evidence: readonly ClueFact[], rng: Rng, noWeaponLies = false): Setup | null {
   const space = spaceOf(cf);
   const lies = rng.shuffle(
-    allStatements(cf).filter((f) => !f.type.startsWith('suspects-') && !isTrue(cf, f) && !evidence.some((e) => sameFact(e, f))),
+    allStatements(cf).filter(
+      (f) =>
+        !f.type.startsWith('suspects-') &&
+        !(noWeaponLies && (f.type === 'suspect-item' || f.type === 'suspect-not-item')) &&
+        !isTrue(cf, f) &&
+        !evidence.some((e) => sameFact(e, f)),
+    ),
   );
   let fallback: Setup | null = null;
   for (const lie of lies.slice(0, 60)) {
@@ -161,6 +167,14 @@ export interface BuildOptions {
   caseClues?: readonly Clue[];
   /** Avoid giving away true answers the case already states. */
   known?: readonly ClueFact[];
+  /** The guest in the chair, instead of a seeded pick (the accused always answers). */
+  speaker?: string;
+  /** An innocent's questioning: only true answers, nothing to catch. */
+  noLie?: boolean;
+  /** Finale only: never use a lie about who held a weapon. */
+  noWeaponLies?: boolean;
+  /** Finale only: when none of her clues disproves any lie, return `cracks: true` with no lie (the killer confesses) instead of throwing. */
+  crackIfUncaught?: boolean;
 }
 
 export function buildInterrogation(o: BuildOptions): Interrogation {
@@ -168,25 +182,28 @@ export function buildInterrogation(o: BuildOptions): Interrogation {
   const finale = delivery === 'finale';
   const evidenceFacts = finale ? (o.caseClues ?? []).map((c) => c.fact) : [];
 
-  const setup = finale ? finaleSetup(cf, evidenceFacts, rng) : selfContained(cf, o.hard, rng);
-  if (!setup) throw new Error('No lie can be caught with these clues');
+  // With `noLie` (or a crack) there is nothing to catch: every answer is true.
+  const found = o.noLie ? null : finale ? finaleSetup(cf, evidenceFacts, rng, o.noWeaponLies) : selfContained(cf, o.hard, rng);
+  const cracks = !o.noLie && !found && !!o.crackIfUncaught;
+  if (!o.noLie && !found && !cracks) throw new Error('No lie can be caught with these clues');
+  const setup: Setup | null = found;
 
   // Whoever is in the chair talks about the lie's subject or someone else.
-  const subject = 'suspect' in setup.lie ? setup.lie.suspect : null;
-  const suspect = subject && rng.next() < 0.5 ? subject : rng.pick(cf.suspects);
+  const subject = setup && 'suspect' in setup.lie ? setup.lie.suspect : null;
+  const suspect = o.speaker ?? (subject && rng.next() < 0.5 ? subject : rng.pick(cf.suspects));
 
   const word = (fact: ClueFact, source: ClueSource, id: string, speaker?: string): Clue => {
     const w = wordClue(fact, source, content, cf.suspects, rng, false, speaker);
     return { id, fact, delivery, source, speaker: w.speaker, body: w.body, text: plainText(w, content) };
   };
 
-  const cards = setup.cards.map((f, k) => word(f, 'evidence', `${idPrefix}e${k + 1}`));
-  const proof = finale ? setup.proof.map((k) => o.caseClues![k].id) : setup.proof.map((k) => cards[k].id);
+  const cards = (setup?.cards ?? []).map((f, k) => word(f, 'evidence', `${idPrefix}e${k + 1}`));
+  const proof = !setup ? [] : finale ? setup.proof.map((k) => o.caseClues![k].id) : setup.proof.map((k) => cards[k].id);
 
   // Seven true answers: a couple about the same people and things as the lie
   // (they sound checkable but aren't the lie), the rest about anything.
-  const near = new Set(Object.values(setup.lie).flat().filter((v): v is string => typeof v === 'string'));
-  const taken = [...setup.cards, ...evidenceFacts, ...(o.known ?? [])];
+  const near = new Set(Object.values(setup?.lie ?? {}).flat().filter((v): v is string => typeof v === 'string'));
+  const taken = [...(setup?.cards ?? []), ...evidenceFacts, ...(o.known ?? [])];
   const truths = rng.shuffle(
     allStatements(cf).filter(
       (f) =>
@@ -198,11 +215,12 @@ export function buildInterrogation(o: BuildOptions): Interrogation {
         (!('suspects' in f) || f.suspects.includes(suspect)),
     ),
   );
-  const asked = new Set<string>([questionFor(setup.lie, suspect, content)]);
+  const asked = new Set<string>(setup ? [questionFor(setup.lie, suspect, content)] : []);
+  const cap = setup ? 7 : 8;
   const answers: ClueFact[] = [];
   const add = (f: ClueFact) => {
     const q = questionFor(f, suspect, content);
-    if (asked.has(q) || answers.length >= 7) return;
+    if (asked.has(q) || answers.length >= cap) return;
     asked.add(q);
     answers.push(f);
   };
@@ -210,7 +228,7 @@ export function buildInterrogation(o: BuildOptions): Interrogation {
   for (const f of truths) add(f);
 
   const questions: Question[] = rng
-    .shuffle([...answers.map((f) => ({ f, lie: false })), { f: setup.lie, lie: true }])
+    .shuffle([...answers.map((f) => ({ f, lie: false })), ...(setup ? [{ f: setup.lie, lie: true }] : [])])
     .map(({ f, lie }, k) => ({
       id: `${idPrefix}q${k + 1}`,
       ask: questionFor(f, suspect, content),
@@ -226,5 +244,6 @@ export function buildInterrogation(o: BuildOptions): Interrogation {
     proof,
     maxQuestions: finale ? 6 : 5,
     strikes: 3,
+    ...(cracks && { cracks: true }),
   };
 }

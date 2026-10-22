@@ -1,7 +1,7 @@
 # Exploration mode: settled design and build plan
 
 Status: designed 2026-10-21; step 1 (exploring campaign rounds) built and merged 2026-10-22; step 2
-(the next-murder scene) next. Reverses "She doesn't move around the house" in
+(the next-murder scene, `NextMurderScene.tsx`) built 2026-10-23. Reverses "She doesn't move around the house" in
 `docs/talk-threads.md`: she is the detective, walking the house between murders. Bigger generated houses
 are shelved (see Later).
 
@@ -88,5 +88,6 @@ proving rounds stay fair (still 2 or 3 suspects at midnight) and not trivial.
    with portrait and "nothing more to say", moving, the time header and card, accuse any time with the
    warning, the midnight lock, Map first. Pure `roomContents(c, round)` in TS with tests; React stays
    thin. e2e for the flow at 360 px.
-2. **The next-murder scene** (SVG and CSS only) between rounds.
+2. **The next-murder scene** (SVG and CSS only) between rounds. Done: `NextMurderScene.tsx` on `Dialog`
+   `placement="scene"` (a tap anywhere continues).
 3. Later: bigger houses, sightings as clues, walking through doors, `visit`-triggered beats, talk part B.

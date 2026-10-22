@@ -229,6 +229,8 @@ export interface Interrogation {
   proof: readonly string[];
   maxQuestions: number;
   strikes: number;
+  /** Face to face only: none of her clues catches any lie, so the killer confesses and no question is a lie. */
+  cracks?: boolean;
 }
 
 /**

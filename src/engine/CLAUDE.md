@@ -53,7 +53,10 @@
   from the campaign and the victims before it. Round 1's victim is the next
   guest after the seated seven in that same shuffle (`seating[CAST]`). A wrong
   person becomes the next body; after the third the killer escapes; the right
-  person with the wrong weapon costs nothing. A guest with `alone: { kin, name }`
+  person with the wrong weapon ends the round too: the killer walks free and
+  `walkedFreeVictim` picks a seeded innocent who is not a decoy (not one of
+  the guests all the round's clues still allow) as the next body. The victim
+  list holds the real bodies, so rounds rebuild from it as before. A guest with `alone: { kin, name }`
   is called `name` when no other id in `Case.guests` shares `kin` (both heirs,
   so a lone heir is "The Heir"). The victim counts as present. A campaign's
   `guests` is the whole cast plus the first victim, and it stays the same every

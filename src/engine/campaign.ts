@@ -1,7 +1,9 @@
 // The campaign: one long mystery. 7 guests, one killer, up to 3 rounds. Each
 // round is a body at a later time of night (a case of its own, with rooms
 // shared and the killer alone at the scene). A wrong accusation means the
-// accused is the next body; after the third the killer gets away.
+// accused is the next body; the killer with the wrong weapon walks free and a
+// seeded innocent non-decoy is the next body (`walkedFreeVictim`); after the
+// third body the killer gets away.
 //
 // Fairness, every round: she plays any `budget` of the round's 3 puzzles.
 // - Before the last round, 1 or 2 innocent decoys are chosen. The free clues
@@ -431,6 +433,22 @@ function choose<T>(list: readonly T[], size: number): T[][] {
 /** Who could be the killer from these clues of a round, once she knows the scene. */
 export function roundSuspects(content: Content, c: Case, facts: readonly ClueFact[]): string[] {
   return possibleKillers(caseSpace(c), facts, caseContext(content.house, c), c.sceneRoom);
+}
+
+/**
+ * The next body when she names the killer but the wrong weapon: with nothing to hold them on, the killer
+ * walks free and an innocent guest dies instead. A seeded pick among the guests who are not the killer and
+ * not a decoy (anyone all of the round's clues still allow as the killer), so the death always rules
+ * someone out. Same campaign, same victims, same body.
+ */
+export function walkedFreeVictim(content: Content, ref: CampaignRef, c: Case): string {
+  const round = c.campaign;
+  if (!round) throw new Error('not a campaign round');
+  const possible = new Set(roundSuspects(content, c, c.clues.map((cl) => cl.fact)));
+  const innocent = c.suspects.filter((s) => s !== c.murderer);
+  const open = innocent.filter((s) => !possible.has(s));
+  const rng = new Rng(hashSeed(`${seedText(ref)}-round-${round.round}-${round.victims.join('-')}-walked`));
+  return rng.pick(open.length ? open : innocent);
 }
 
 /**

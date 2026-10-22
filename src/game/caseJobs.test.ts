@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
-import type { CampaignRef } from '../engine/campaign.ts';
+import { campaignRound, type CampaignRef } from '../engine/campaign.ts';
 import { caseFor, codeFor, newPickCase, newPlayCase, newQuickCase, type CaseRef } from '../engine/caseRef.ts';
 import { newCampaign, roundCase } from './campaign.ts';
 import { roundsKey, runCaseJob } from './caseJobs.ts';
@@ -52,4 +52,18 @@ test('a campaign job sets perPuzzle only when it is 1 or 2', () => {
   assert.equal(two.save.ref.perPuzzle, 2);
   const three = runCaseJob(content, { kind: 'campaign-new', difficulty: 'easy', possibleOnly: false, endBoard: false, perPuzzle: 3 }, seq(4242));
   assert.ok(!('perPuzzle' in three.save.ref));
+});
+
+test('face job: same inputs, same questioning, and it survives structuredClone', () => {
+  const ref: CampaignRef = { mode: 'campaign', code: codeFor(31_337), difficulty: 'medium' };
+  const c = campaignRound(content, ref, []);
+  const job = { kind: 'face', ref, victims: [], accused: c.murderer, found: c.clues.map((cl) => cl.id) } as const;
+  const a = runCaseJob(content, { ...job, victims: [], found: [...job.found] }, seq(1));
+  assert.deepStrictEqual(runCaseJob(content, { ...job, victims: [], found: [...job.found] }, seq(9)), a);
+  assert.equal(a.suspect, c.murderer);
+  assert.deepStrictEqual(structuredClone(a), a);
+  const other = c.suspects.find((s) => s !== c.murderer)!;
+  const innocent = runCaseJob(content, { ...job, victims: [], found: [...job.found], accused: other }, seq(1));
+  assert.equal(innocent.suspect, other);
+  assert.equal(innocent.questions.length, 8);
 });
