@@ -33,8 +33,8 @@ export interface NosingLevelSpec {
 
 export const NOSING_LEVELS: Readonly<Record<NosingLevel, NosingLevelSpec>> = {
   easy: { n: 1, dice: 1, len: [28, 33], ladders: 2, ladderGain: [3, 6], snakes: 1, snakeDrop: [3, 6], turns: [6, 10], obstacles: 5, speed: 1, catFinds: 2, minQuestions: 3 },
-  medium: { n: 2, dice: 2, len: [110, 125], ladders: 4, ladderGain: [6, 12], snakes: 3, snakeDrop: [5, 10], turns: [15, 20], obstacles: 40, speed: 2, catFinds: 6, minQuestions: 7 },
-  hard: { n: 2, dice: 2, len: [105, 120], ladders: 4, ladderGain: [6, 12], snakes: 5, snakeDrop: [6, 12], turns: [15, 20], obstacles: 40, speed: 2, catFinds: 6, minQuestions: 7 },
+  medium: { n: 2, dice: 2, len: [80, 90], ladders: 3, ladderGain: [5, 9], snakes: 2, snakeDrop: [4, 8], turns: [10, 16], obstacles: 25, speed: 2, catFinds: 4, minQuestions: 3 },
+  hard: { n: 2, dice: 2, len: [80, 90], ladders: 3, ladderGain: [5, 9], snakes: 4, snakeDrop: [5, 9], turns: [10, 16], obstacles: 25, speed: 2, catFinds: 4, minQuestions: 3 },
 };
 
 export type SquareKind = 'plain' | 'ladder' | 'snake' | 'obstacle' | 'search' | 'speed' | 'catFind';
@@ -79,7 +79,7 @@ export interface NosingBoardOptions {
   snakes: readonly JumpContent[];
 }
 
-export const NOSING_ATTEMPTS = 120;
+export const NOSING_ATTEMPTS = 600;
 const DFS_BUDGET = 3000;
 
 interface Grid {
@@ -292,6 +292,12 @@ export const STEPS_BONUS = 3;
 /** Where the `steps` bonus puts the cat (no square is triggered there). */
 export const stepsFrom = (pos: number, len: number): number => Math.min(pos + STEPS_BONUS, len - 1);
 
+/** Squares a wrong answer on a plain obstacle sends the cat back. */
+export const OBSTACLE_BACK = 2;
+
+/** Where a wrong obstacle answer leaves the cat (not below the first square; no square is triggered there). */
+export const obstacleBack = (pos: number): number => Math.max(pos - OBSTACLE_BACK, 0);
+
 /**
  * Where the cat stands after answering a ladder, snake, obstacle or search
  * square: a right ladder climbs, a wrong snake slips, a right `steps` prize
@@ -381,8 +387,9 @@ export function nosingBounds(board: NosingBoard, seed: string, level: NosingLeve
       else next.push([p, mask, 0]);
     } else if (sq.kind === 'speed') for (const np of speedAt.get(p)!) next.push(...move(p, np, mask + b!));
     else {
-      // obstacle or search: wrong leaves it open, right may pay `steps` and spends it
-      next.push([p, mask, 0]);
+      // obstacle: wrong sends the cat back (it stays open). Right may pay `steps` and spends it.
+      next.push([p, mask, 0]); // (a right answer with no `steps` prize leaves the cat here too)
+      if (sq.kind === 'obstacle') next.push([obstacleBack(p), mask, 0]);
       if (sq.bonus === 'steps') next.push(...move(p, answerDestination(sq, p, true, len), mask + b!));
     }
     return { next, asks };

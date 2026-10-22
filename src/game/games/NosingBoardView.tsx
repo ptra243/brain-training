@@ -1,6 +1,7 @@
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, type MouseEvent } from 'react';
 import type { NosingPuzzle, NosingView } from '../../games/nosing.ts';
-import { pawTrail, roomSquares, squareCentre, wallLines, woolPath } from './nosingUi.ts';
+import { MarkIcon, Paw } from './NosingIcons.tsx';
+import { markKinds, nearestMark, pawTrail, roomSquares, squareCentre, wallLines, woolPath } from './nosingUi.ts';
 
 interface Props {
   puzzle: NosingPuzzle;
@@ -9,12 +10,18 @@ interface Props {
   catAt: number;
   /** Shown as a short strip, to leave room for a question and the number pad. */
   compact?: boolean;
+  /** Obstacle, search, speed and cat-find squares already used: drawn faded. */
+  spent?: ReadonlySet<number>;
+  /** The marked square she tapped, ringed. */
+  selected?: number | null;
+  /** A tap on the board: the nearest marked square, or null when it has none. */
+  onPick?: (square: number | null) => void;
 }
 
 const pts = (a: { x: number; y: number }[]) => a.map((p) => `${p.x},${p.y}`).join(' ');
 
 /** The floor plan cut into the board's squares, with the path, ladders, snakes, marks and the cat. */
-export function NosingBoardView({ puzzle, view, catAt, compact = false }: Props) {
+export function NosingBoardView({ puzzle, view, catAt, compact = false, spent, selected = null, onPick }: Props) {
   const { board, house } = puzzle;
   const last = board.path.length - 1;
   const unit = board.n === 1 ? 1.5 : 1; // marks are drawn a little bigger when squares are big
@@ -23,6 +30,15 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false }: Props)
   const centres = useMemo(() => board.path.map((_, i) => squareCentre(board, i)), [board]);
   const tint = (id: string | null) => house.rooms.find((r) => r.id === id)?.tint;
   const cat = centres[catAt];
+  const kinds = useMemo(() => markKinds(board, puzzle.dogSquare, view.usedSnakes), [board, puzzle.dogSquare, view.usedSnakes]);
+
+  const tap = (e: MouseEvent<SVGSVGElement>) => {
+    const svg = e.currentTarget;
+    const m = svg.getScreenCTM();
+    if (!m || !onPick) return;
+    const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+    onPick(nearestMark(centres, kinds, { x: pt.x, y: pt.y }));
+  };
 
   return (
     <svg
@@ -30,14 +46,11 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false }: Props)
       viewBox={`-0.5 -0.5 ${board.width + 1} ${board.height + 1}`}
       role="img"
       aria-label={`The floor plan as a board. The cat is on square ${catAt + 1} of ${board.path.length}.`}
+      onClick={tap}
     >
       <defs>
         <g id="nosing-paw">
-          <ellipse cx="0" cy="0.14" rx="0.17" ry="0.14" />
-          <ellipse cx="-0.2" cy="-0.06" rx="0.07" ry="0.09" />
-          <ellipse cx="-0.07" cy="-0.2" rx="0.07" ry="0.1" />
-          <ellipse cx="0.07" cy="-0.2" rx="0.07" ry="0.1" />
-          <ellipse cx="0.2" cy="-0.06" rx="0.07" ry="0.09" />
+          <Paw />
         </g>
       </defs>
       {rooms.map(
@@ -50,30 +63,14 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false }: Props)
       <polyline className="nosing-path" points={pts(centres)} />
 
       {board.squares.map((sq, i) => {
+        const kind = sq.kind === 'obstacle' || sq.kind === 'search' || sq.kind === 'speed' || sq.kind === 'catFind' ? sq.kind : null;
+        if (!kind) return null;
         const c = centres[i];
-        const mark = (shape: string, body: ReactNode) => (
-          <g key={i} className={`nosing-mark ${shape}`} transform={`translate(${c.x} ${c.y}) scale(${unit})`}>
-            {body}
+        return (
+          <g key={i} className={`nosing-mark ${spent?.has(i) ? 'spent' : ''}`} transform={`translate(${c.x} ${c.y}) scale(${unit * 1.1})`}>
+            <MarkIcon kind={kind} />
           </g>
         );
-        switch (sq.kind) {
-          case 'obstacle':
-            return mark('obstacle', <rect x="-0.14" y="-0.14" width="0.28" height="0.28" transform="rotate(45)" />);
-          case 'search':
-            return mark(
-              'search',
-              <>
-                <circle cx="-0.03" cy="-0.03" r="0.15" />
-                <line x1="0.08" y1="0.08" x2="0.22" y2="0.22" />
-              </>,
-            );
-          case 'speed':
-            return mark('speed', <path d="M-0.15 -0.18 H0.15 L0 0 L0.15 0.18 H-0.15 L0 0 Z" />);
-          case 'catFind':
-            return mark('catfind', <path d="M0 -0.2 L0.06 -0.06 L0.2 0 L0.06 0.06 L0 0.2 L-0.06 0.06 L-0.2 0 L-0.06 -0.06 Z" />);
-          default:
-            return null;
-        }
       })}
 
       {board.squares.map((sq, i) => {
@@ -86,7 +83,10 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false }: Props)
             {pawTrail(a, b, 0.9 * unit).map((p, k) => (
               <use key={k} href="#nosing-paw" transform={`translate(${p.x} ${p.y}) rotate(${p.angle}) scale(${unit})`} />
             ))}
-            <circle className="nosing-foot" cx={a.x} cy={a.y} r={0.2 * unit} />
+            <circle className="nosing-foot" cx={a.x} cy={a.y} r={0.26 * unit} />
+            <g transform={`translate(${a.x} ${a.y}) scale(${unit * 1.1})`}>
+              <MarkIcon kind="ladder" />
+            </g>
           </g>
         );
       })}
@@ -99,32 +99,32 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false }: Props)
         return (
           <g key={`s${i}`} className={`nosing-snake ${used ? 'used' : ''}`}>
             <path d={woolPath(a, b)} />
-            <circle className="nosing-wool" cx={a.x} cy={a.y} r={0.2 * unit} />
+            <g transform={`translate(${a.x} ${a.y}) scale(${unit * 1.1})`}>
+              <MarkIcon kind="snake" />
+            </g>
             {i === puzzle.dogSquare && !used && (
               <g className="nosing-dog-mark" transform={`translate(${a.x} ${a.y - (compact ? 0.1 : 0.3) * unit}) scale(${(compact ? 7 : 1.2) * unit})`}>
                 <title>A dog is waiting here</title>
-                <path className="nosing-dog-ear" d="M-0.2 -0.14 L-0.3 0.04 L-0.14 0 Z M0.2 -0.14 L0.3 0.04 L0.14 0 Z" />
-                <ellipse rx="0.18" ry="0.16" />
-                <ellipse className="nosing-dog-nose" cx="0" cy="0.05" rx="0.06" ry="0.04" />
+                <MarkIcon kind="dog" />
               </g>
             )}
           </g>
         );
       })}
 
-      <g className="nosing-door">
-        <rect x={centres[0].x - 0.14 * unit} y={centres[0].y - 0.2 * unit} width={0.28 * unit} height={0.4 * unit} rx="0.04" />
+      <g transform={`translate(${centres[0].x} ${centres[0].y}) scale(${unit * 1.1})`}>
+        <MarkIcon kind="door" />
       </g>
-      <g className="nosing-lock" transform={`translate(${centres[last].x} ${centres[last].y}) scale(${unit})`}>
-        <path d="M-0.12 -0.04 V-0.12 A0.12 0.12 0 0 1 0.12 -0.12 V-0.04" />
-        <rect x="-0.18" y="-0.05" width="0.36" height="0.26" rx="0.04" />
+      <g transform={`translate(${centres[last].x} ${centres[last].y}) scale(${unit * 1.1})`}>
+        <MarkIcon kind="lock" />
       </g>
 
+      {selected !== null && centres[selected] && (
+        <circle className="nosing-picked" cx={centres[selected].x} cy={centres[selected].y} r={0.36 * unit} />
+      )}
+
       <g className="nosing-cat" transform={`translate(${cat.x} ${cat.y}) scale(${unit})`}>
-        <path className="nosing-ear" d="M-0.27 -0.16 L-0.21 -0.4 L-0.06 -0.27 Z M0.27 -0.16 L0.21 -0.4 L0.06 -0.27 Z" />
-        <circle r="0.3" />
-        <circle className="nosing-eye" cx="-0.1" cy="-0.04" r="0.04" />
-        <circle className="nosing-eye" cx="0.1" cy="-0.04" r="0.04" />
+        <MarkIcon kind="cat" />
       </g>
     </svg>
   );

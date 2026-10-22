@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../../content/index.ts';
-import { nosingLadders, nosingSnakes } from '../../content/nosing.ts';
-import { buildNosing, nosingInitial, nosingView } from '../../games/nosing.ts';
+import { nosingLadders, nosingObstacleLines, nosingSnakes } from '../../content/nosing.ts';
+import { buildNosing, nosingInitial, nosingStep, nosingView } from '../../games/nosing.ts';
 import { emptyFill, place } from '../../games/numberGrid.ts';
 import { hasClearable, rowCaption, slotLabel } from './numberGridUi.ts';
-import { diceFaces, padPress, padValue, pawTrail, roomSquares, squareCentre, wallLines, walkSteps, woolPath } from './nosingUi.ts';
+import { diceFaces, distanceWords, markKinds, markLine, nearestMark, obstacleReason, padPress, padValue, pawTrail, roomSquares, searchReason, spentSquares, squareCentre, wallLines, walkSteps, woolPath } from './nosingUi.ts';
 
 const puzzle = (level: 'easy' | 'medium' | 'hard') =>
   buildNosing({ house: content.house, seed: `ui-${level}`, level, sceneRoom: content.house.rooms[0].id, clues: ['a', 'b', 'c', 'd'], ladders: nosingLadders, snakes: nosingSnakes });
@@ -92,4 +92,77 @@ test('the lock view starts with an empty grid and the palette hand', () => {
   assert.equal(v.hand.numbers.length, 6);
   assert.equal(v.hand.ops, 'palette');
   assert.deepEqual(v.locked, []);
+});
+
+test('distance words say here, ahead and back with the right plural', () => {
+  assert.equal(distanceWords(5, 5), 'Here');
+  assert.equal(distanceWords(5, 6), '1 square ahead');
+  assert.equal(distanceWords(5, 12), '7 squares ahead');
+  assert.equal(distanceWords(9, 8), '1 square back');
+  assert.equal(distanceWords(9, 2), '7 squares back');
+  assert.equal(markLine('A question', 22, 17), 'A question, square 23. 5 squares ahead.');
+});
+
+test('a tap picks the nearest marked square and ignores plain ones', () => {
+  for (const level of ['easy', 'medium', 'hard'] as const) {
+    const p = puzzle(level);
+    const kinds = markKinds(p.board, p.dogSquare, []);
+    const centres = p.board.path.map((_, i) => squareCentre(p.board, i));
+    assert.equal(kinds[0], 'door');
+    assert.equal(kinds[kinds.length - 1], 'lock');
+    assert.equal(kinds[p.dogSquare], 'dog');
+    assert.equal(markKinds(p.board, p.dogSquare, [p.dogSquare])[p.dogSquare], 'snake');
+    kinds.forEach((k, i) => assert.equal(k === null, p.board.squares[i].kind === 'plain' && i !== 0 && i !== kinds.length - 1));
+    // Tapping the centre of a marked square picks it; the centre of a plain one picks a marked neighbour.
+    centres.forEach((c, i) => {
+      const hit = nearestMark(centres, kinds, c);
+      assert.notEqual(hit, null);
+      assert.ok(kinds[hit!]);
+      if (kinds[i]) assert.equal(hit, i);
+    });
+  }
+  assert.equal(nearestMark([{ x: 0, y: 0 }], [null], { x: 0, y: 0 }), null);
+});
+
+test('encounter lines are content, seeded by the square, and name no one', () => {
+  const p = puzzle('medium');
+  assert.equal(obstacleReason('s', 7), obstacleReason('s', 7));
+  const seen = new Set<string>();
+  for (let sq = 0; sq < 80; sq++) {
+    const line = obstacleReason('seed', sq);
+    assert.ok(nosingObstacleLines.includes(line));
+    seen.add(line);
+  }
+  assert.ok(seen.size > 6);
+  assert.ok(nosingObstacleLines.length >= 14);
+  const names = [...content.house.rooms.flatMap((r) => [r.name, ...r.things, ...r.objects]), ...content.suspects.map((s) => s.name), ...content.items.map((i) => i.name)];
+  for (const line of nosingObstacleLines) {
+    assert.ok(/^[A-Z]/.test(line));
+    for (const n of names) assert.ok(!new RegExp(String.raw`\b${n}s?\b`, 'i').test(line), `${line} names ${n}`);
+  }
+  const sq = p.board.squares.findIndex((s) => s.kind === 'search');
+  assert.ok(searchReason(p.seed, sq, p.board.roomOf, p.house).startsWith('The cat'));
+});
+
+test('spent squares come from her moves: right answers, played speed rounds and cat finds', () => {
+  const p = puzzle('easy');
+  let state = nosingInitial();
+  let view = nosingView(p, state);
+  assert.equal(spentSquares(p, state, view).size, 0);
+  const wrong = new Set<number>();
+  const right = new Set<number>();
+  for (let guard = 0; guard < 120 && view.phase !== 'lock' && view.phase !== 'dog' && view.phase !== 'open'; guard++) {
+    if (view.phase === 'question') {
+      const ok = view.question!.square % 2 === 0;
+      (ok ? right : wrong).add(view.question!.square);
+      const q = view.question!;
+      state = nosingStep(p, state, { t: 'answer', value: ok ? q.q.answer : q.q.answer + 1 });
+    } else if (view.phase === 'speed') state = nosingStep(p, state, { t: 'speed', right: 3 });
+    else state = nosingStep(p, state, { t: 'roll' });
+    view = nosingView(p, state);
+  }
+  const spent = spentSquares(p, state, view);
+  for (const i of spent) assert.ok(['obstacle', 'search', 'speed', 'catFind'].includes(p.board.squares[i].kind));
+  for (const i of right) if (['obstacle', 'search'].includes(p.board.squares[i].kind)) assert.ok(spent.has(i), `square ${i} answered right`);
+  for (const i of wrong) if (['obstacle', 'search'].includes(p.board.squares[i].kind)) assert.ok(!spent.has(i), `square ${i} answered wrong`);
 });

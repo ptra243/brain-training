@@ -17,6 +17,24 @@ status changes** (built, blocked, unblocked, done): move it to its place, don't 
 stands. A blocked entry keeps its rank and names its blocker in the heading.
 
 
+## Session: Nosing around: Purr-diction and the Move step
+Last touched: 2026-10-22
+Reads first: `.claude/handoff/nosing-board-polish.md` (decisions, "UI spec", the engine and "UI part 1"
+review notes), then the roll card in `src/game/games/NosingGame.tsx` and `NosingBoardView.tsx`.
+Goal: the last piece of the board polish. The engine (every roll stops in phase `rolled`,
+`nosingLanding`, back 2 on a wrong obstacle, 80–90 square boards) and UI part 1 (icons, key, tap a
+square, encounter card, dice tumble) are committed. Left: draw the Purr-diction ghost cat on the
+landing square while `rolled`, the "You rolled 7 · The cat will land on: A question, square 23" line,
+then Move (and Re-roll with the bonus). One implementer brief, then `npm run e2e` (UI part 1 was
+committed without its own e2e run, so this run covers both). Also in the brief: export the engine's
+`searchLine` so the UI's `searchReason` copy stops duplicating it, and swap `spentSquares` (a replay)
+for a spent list on the view. Then a
+`browser-check` look pass at 360px, then commit and delete the handoff file.
+Starting prompt:
+```
+Read .claude/handoff/nosing-board-polish.md, brief the implementer on Purr-diction on the board and the Move step, review and commit.
+```
+
 ## Session: Nosing around: fill-in-the-blank speed round
 Last touched: 2026-10-22
 Reads first: `docs/nosing-around.md` ("Speed round: fill in the blank", "Settled (2026-10-22)"), then
@@ -64,6 +82,9 @@ Last touched: 2026-10-22
 Reads first: `docs/portraits.md` (settled style and open items), the mockup canvas it links (the
 three-quarter board's SVG is the reference drawing), `docs/theme-draft.md` ("Guest pool"), and the
 person screen in `docs/exploration-mode.md`.
+The player and the cat are drawn and settled ("The player and the cat" in `docs/portraits.md`); the
+canvas read is large, so read only the one board you need (`project/Main.dc.html` or
+`project/PlayerCat.dc.html`).
 Goal: settle the three open items (which cast, portrait versus tarot card art, where mood comes from),
 then design the parts model (base figure, per-guest hair, headwear, costume, accent and background in
 `src/content/`, mood tint overlay) here. Hand the drawing code, the React component and the per-guest
@@ -316,8 +337,8 @@ Reads first: "Why sessions ran long" below, the "Token budget" section of `CLAUD
 `.claude/agents/implementer.md`, `.claude/hooks/session-length.mjs`.
 When: every few weeks, or once "Why sessions ran long" has three or more new lines since the last review.
 Goal: look for causes that repeat, and change a rule only for those; a cause seen once stays a note.
-Check whether the 700 KB reminder fires at the right moment (raise it toward 1 MB if it fires during
-short, focused work). Use the `explain-usage` skill on a session only if a cause is unclear. Mark the
+Check whether the 1 MB reminder fires at the right moment (it was 700 KB briefly; tune it with
+`SESSION_REMIND_BYTES`). Compare the token totals the dated lines quote, not just their causes. Use the `explain-usage` skill on a session only if a cause is unclear. Mark the
 lines you reviewed with the date.
 Starting prompt:
 ```
@@ -333,3 +354,12 @@ it). Not a menu entry; the review session above reads it.
   engine and UI, the dog tuning took three rounds instead of one sweep, and follow-ups were piled onto
   a 200k-token agent. Rules added: small briefs, measure first, split after the first piece lands,
   reminder lowered to 700 KB.
+- 2026-10-22, Faster e2e from saved state: the timing experiments (five full runs and a trace) and
+  the review of the agent's work ran in the main session instead of a fresh one.
+- 2026-10-22, Portraits (player and cat mockups): reading the Design canvas (its type instructions
+  and the full reference board) filled about 90k of a 111k context before any drawing; two drawing
+  rounds. Totals: 14 replies, 1.2M read from cache, 56k written, 13k output, transcript 1.1 MB.
+- 2026-10-22, Nosing board polish (icons, key, encounter card, shorter boards): the board code was
+  read in the main session before the design questions, and two implementer hand-backs were reviewed
+  here on one task. Totals: main 22 replies, 2.1M read from cache, 60k written, 14k output, context
+  115k; subagents (2) 60 replies, 4.4M read from cache, 165k written; transcript 1.0 MB.

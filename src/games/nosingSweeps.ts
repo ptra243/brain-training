@@ -107,11 +107,12 @@ export function fillUntilSubmittable(p: NosingPuzzle, s: NosingState): NosingSta
   return s;
 }
 
-export function drive(p: NosingPuzzle, policy: Policy, stop?: (v: NosingView) => boolean): { s: NosingState; v: NosingView; dog: 'won' | 'lost' | null; sawDog: boolean } {
+/** `salt` changes what the random ('mixed') bot does, so a caller can look for a run that reaches some phase. */
+export function drive(p: NosingPuzzle, policy: Policy, stop?: (v: NosingView) => boolean, salt = ''): { s: NosingState; v: NosingView; dog: 'won' | 'lost' | null; sawDog: boolean } {
   let s = nosingInitial();
   let dog: 'won' | 'lost' | null = null;
   let sawDog = false;
-  const rng = new Rng(hashSeed(`${p.seed}-bot`));
+  const rng = new Rng(hashSeed(`${p.seed}-bot${salt}`));
   for (let n = 0; n < 2000; n++) {
     const v = nosingView(p, s);
     for (const m of v.messages) assert.ok(!/\b[A-Z]{3,}\b/.test(m), `${p.seed}: all-caps word in "${m}"`);

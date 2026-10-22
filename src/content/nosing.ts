@@ -147,6 +147,32 @@ export const nosingLockObjects: readonly NosingLockObject[] = [
   { id: 'trunk', name: 'a travelling trunk', description: 'a travelling trunk with a brass combination lock' },
 ];
 
+/** A wrong answer on a plain obstacle. */
+export const nosingObstacleBackLine = 'The cat backs off two squares.';
+
+/** The encounter card's "wrong" line for a plain question square. */
+export const nosingObstacleStakeWrong = 'Get it wrong and the cat backs off 2 squares.';
+
+/** Why a plain question square blocks the way (the encounter card). Never name a guest, room or weapon. */
+export const nosingObstacleLines: readonly string[] = [
+  "A stack of unopened post blocks the way. The cat can't pass until you sort it.",
+  'A tray of tiny cups is balanced on the floor. The cat will not step past until you work out the bill.',
+  'The rug has rolled itself into a tube across the path. Count the tassels to unroll it.',
+  'A basket of knitting has spilled everywhere. The cat is tangled until you add it up.',
+  'A tall timepiece has stopped, and it is blocking the way. Sort out the sum and it starts again.',
+  'A pile of cushions has slid across the path. You need the right number to shift them.',
+  'A row of walking sticks leans in the way. The cat needs a number to tiptoe round them.',
+  'A trunk has been left in the way, and its lock wants a number.',
+  'A tower of old magazines is about to topple. Get the sum right to steady it.',
+  'A bowl of apples has rolled out over the floor. The cat must count them to get through.',
+  'A draught has slammed the door half shut. Work out the sum to nudge it open.',
+  'A stack of saucers waits by the door. The cat will not pass until they are counted.',
+  'A coil of twine lies across the path. Solve the sum and the cat can step over it.',
+  'A bundle of tapers has been dropped, and the cat is wary. Count them up to carry on.',
+  'A line of muddy boots blocks the way. Find the number and the cat can slip past.',
+  'A little gate has swung shut across the path. It opens only for the right answer.',
+];
+
 /** "The cat found something": free bonus squares. */
 export const nosingCatFindLines: readonly string[] = [
   'The cat found something shiny under a cushion.',

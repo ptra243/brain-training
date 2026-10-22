@@ -1,7 +1,10 @@
 // Small pure helpers for the Nosing around screen: board geometry, the cat's
 // walk, the number pad, dice faces and the lock's wording. No React.
 
+import { nosingObstacleLines, nosingSearchLines } from '../../content/nosing.ts';
+import { Rng, hashSeed } from '../../engine/rng.ts';
 import type { House } from '../../engine/types.ts';
+import { nosingView, type NosingPuzzle, type NosingState, type NosingView } from '../../games/nosing.ts';
 import type { NosingBoard } from '../../games/nosingBoard.ts';
 import type { Op } from '../../games/lock.ts';
 
@@ -154,6 +157,99 @@ export function diceFaces(dice: number, total: number): number[] {
   const a = Math.min(6, Math.ceil(total / 2));
   const b = Math.min(6, Math.max(1, total - a));
   return [a, b];
+}
+
+// --- Marks: the key, tapping a square, the encounter card ---
+
+export type MarkKind = 'obstacle' | 'search' | 'speed' | 'catFind' | 'ladder' | 'snake' | 'dog' | 'door' | 'lock' | 'cat' | 'purr';
+
+/** Short names for the key and the tap line, in the key's order. */
+export const MARK_LABELS: Readonly<Record<MarkKind, string>> = {
+  obstacle: 'A question',
+  search: 'Search for a clue',
+  speed: 'Speed round',
+  catFind: 'Something the cat found',
+  ladder: 'Shortcut',
+  snake: 'Setback',
+  dog: 'The dog',
+  door: 'Front door',
+  lock: 'The lock',
+  cat: 'The cat',
+  purr: 'Purr-diction: where the cat will land',
+};
+
+export const MARK_ORDER: readonly MarkKind[] = ['obstacle', 'search', 'speed', 'catFind', 'ladder', 'snake', 'dog', 'door', 'lock', 'cat', 'purr'];
+
+/** The mark of every path index (null for a plain square). The dog replaces its snake head until it is gone. */
+export function markKinds(board: NosingBoard, dogSquare: number, usedSnakes: readonly number[]): (MarkKind | null)[] {
+  const last = board.path.length - 1;
+  return board.squares.map((sq, i) => {
+    if (i === 0) return 'door';
+    if (i === last) return 'lock';
+    if (sq.kind === 'plain') return null;
+    if (sq.kind === 'snake' && i === dogSquare && !usedSnakes.includes(i)) return 'dog';
+    return sq.kind;
+  });
+}
+
+/** The marked square closest to a tap (board units), or null when the board has none. Plain squares are ignored. */
+export function nearestMark(centres: readonly Point[], kinds: readonly (MarkKind | null)[], at: Point): number | null {
+  let best: number | null = null;
+  let bestD = Infinity;
+  centres.forEach((c, i) => {
+    if (!kinds[i]) return;
+    const d = (c.x - at.x) ** 2 + (c.y - at.y) ** 2;
+    if (d < bestD) {
+      bestD = d;
+      best = i;
+    }
+  });
+  return best;
+}
+
+/** "Here", "1 square ahead", "4 squares back". */
+export function distanceWords(from: number, to: number): string {
+  const d = to - from;
+  if (d === 0) return 'Here';
+  const n = Math.abs(d);
+  return `${n} ${n === 1 ? 'square' : 'squares'} ${d > 0 ? 'ahead' : 'back'}`;
+}
+
+/** The line under the board after a tap: what it is, its square, and how far from the cat. */
+export function markLine(label: string, square: number, cat: number): string {
+  return `${label}, ${squareName(square)}. ${distanceWords(cat, square)}.`;
+}
+
+/** The line for a search square, as the engine words it when she finds the clue (same seed, same line). */
+export function searchReason(seed: string, square: number, roomOf: readonly (string | null)[], house: House): string {
+  const room = house.rooms.find((r) => r.id === roomOf[square]);
+  const rng = new Rng(hashSeed(`${seed}-line-${square}`));
+  const line = rng.pick(nosingSearchLines);
+  return line.replace('{thing}', room && room.things.length ? rng.pick(room.things).toLowerCase() : 'furniture');
+}
+
+/**
+ * The question, speed and cat-find squares she has used up (drawn faded). The view does not list them, so
+ * they come from her moves: a right answer on a plain question or search, a played speed round, a visited cat find.
+ */
+export function spentSquares(p: NosingPuzzle, state: NosingState, view: NosingView): Set<number> {
+  const out = new Set<number>();
+  state.moves.forEach((m, k) => {
+    if (m.t !== 'answer' && m.t !== 'speed') return;
+    const before = nosingView(p, { ...state, moves: state.moves.slice(0, k) });
+    if (m.t === 'speed') {
+      if (before.speed) out.add(before.speed.square);
+    } else if (before.question && (before.question.kind === 'obstacle' || before.question.kind === 'search') && m.value === before.question.q.answer) {
+      out.add(before.question.square);
+    }
+  });
+  for (const i of view.trail) if (p.board.squares[i].kind === 'catFind') out.add(i);
+  return out;
+}
+
+/** The reason line of a plain question square, seeded by the square. */
+export function obstacleReason(seed: string, square: number): string {
+  return new Rng(hashSeed(`${seed}-obstacle-${square}`)).pick(nosingObstacleLines);
 }
 
 // --- Wording ---

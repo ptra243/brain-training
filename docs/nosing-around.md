@@ -22,8 +22,10 @@ the clues. It is the "long" minigame and can carry more clues than the others.
 
 1. She rolls. The roll comes from the game's seed plus the turn number, so a reload can't re-roll and
    the same case always plays the same rolls.
-2. The cat moves. Passing over a square does nothing; landing on it triggers it.
-3. If it's a question square, she answers on an in-app number pad (never the phone keyboard). On a wrong
+2. The roll always stops first (the cat has not moved), so the screen can show the square the cat
+   would land on. She taps Move to go. A re-roll bonus, if she holds one, can swap the roll here.
+3. The cat moves. Passing over a square does nothing; landing on it triggers it.
+4. If it's a question square, she answers on an in-app number pad (never the phone keyboard). On a wrong
    answer the cat shows the working.
 
 ## Squares
@@ -32,7 +34,7 @@ the clues. It is the "long" minigame and can carry more clues than the others.
 |---|---|---|
 | Ladder foot (obstacle) | The cat takes the shortcut forward | Walks on, no loss |
 | Snake head (obstacle) | Stays put | Slides back; the obstacle is cleared for the rest of the run |
-| Plain obstacle | A bonus for the lock | Walks on, no bonus |
+| Plain obstacle | A bonus for the lock | Back 2 squares (not below the first); the square it lands on does not trigger, and the obstacle stays open |
 | Search (one per room) | Finds a clue now | The clue waits for the lock |
 | "The cat found something" | A free bonus, no question | (no question) |
 | Plain | Nothing | |
@@ -110,7 +112,7 @@ must account for each encounter's worst case.
 
 ## Checks for `check-cases`
 
-- Every level: a run takes a sensible number of turns (e.g. 6–10 easy, 15–20 medium and hard), even
+- Every level: a run takes a sensible number of turns (6–10 easy, 10–16 medium and hard), even
   when every snake is answered wrong (worst case = sum of snake lengths), and passes at least a set
   number of question squares.
 - Every lock target is reachable with no bonuses.
@@ -142,15 +144,15 @@ must account for each encounter's worst case.
 
 The path is a randomised depth-first walk that fills the current room first (fewest onward moves
 first, random ties), then steps into a room not yet entered. It starts on an edge square, has a budget
-of 3000 steps, and must visit every room. The board takes up to 120 attempts (`-0`, `-1`, …). An
+of 3000 steps, and must visit every room. The board takes up to 600 attempts (`-0`, `-1`, …). An
 attempt fails when the path fails, when the lock's room is the scene room, or when any check below
 fails. Every one of the 6000 cases built, at about 3.5ms each in Node.
 
 | Level | Squares | Dice | Path | Ladders (gain) | Snakes (drop) | Obstacles + speed rounds | Turns | Questions she meets |
 |---|---|---|---|---|---|---|---|---|
 | Easy | 1×1 | 1 | 28–33 | 2 (3–6) | 1 (3–6) | 5 + 1 | 6–10 | at least 3 |
-| Medium | 2×2 | 2 | 110–125 | 4 (6–12) | 3 (5–10) | 40 + 2 | 15–20 | at least 7 |
-| Hard | 2×2 | 2 | 105–120 | 4 (6–12) | 5 (6–12) | 40 + 2 | 15–20 | at least 7 |
+| Medium | 2×2 | 2 | 80–90 | 3 (5–9) | 2 (4–8) | 25 + 2 (4 cat finds) | 10–16 | at least 3 |
+| Hard | 2×2 | 2 | 80–90 | 3 (5–9) | 4 (5–9) | 25 + 2 (4 cat finds) | 10–16 | at least 3 |
 
 - One search square per room, plus a question square on every ladder foot and snake head. Ladder
   tops, snake tails, the first square and the last square are plain squares.
@@ -229,7 +231,7 @@ better fit turns up in the code.
 
 ### Saved data
 
-Her moves in order: `{ t: 'roll' }`, `{ t: 'reroll' }`, `{ t: 'answer', value }`,
+Her moves in order: `{ t: 'roll' }` (the first roll of a turn stops; the second moves), `{ t: 'reroll' }`, `{ t: 'answer', value }`,
 `{ t: 'speed', right }`, lock steps `{ t: 'combine', a, b, op }`, `{ t: 'undo' }`, `{ t: 'try' }`,
 plus `hints` and `solved?: 'revealed'`. If she reloads in the middle of a speed round, the round starts
 again with the same questions.

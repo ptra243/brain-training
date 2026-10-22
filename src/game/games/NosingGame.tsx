@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { nosingBonuses, nosingDog, nosingLadders, nosingSnakes } from '../../content/nosing.ts';
+import { nosingBonuses, nosingDog, nosingLadders, nosingObstacleStakeWrong, nosingSnakes } from '../../content/nosing.ts';
 import {
   nosingHint,
   nosingStep,
@@ -14,10 +14,11 @@ import { NOSING_LEVELS } from '../../games/nosingBoard.ts';
 import { HintButton, HintNote } from './Hints.tsx';
 import { NosingBoardView } from './NosingBoardView.tsx';
 import { NosingDog, NosingDogResult } from './NosingDog.tsx';
+import { NosingKey } from './NosingKey.tsx';
 import { NosingLock } from './NosingLock.tsx';
 import { NosingSpeed } from './NosingSpeed.tsx';
 import { NumberPad } from './NumberPad.tsx';
-import { PIPS, diceFaces, squareName, walkSteps } from './nosingUi.ts';
+import { MARK_LABELS, PIPS, diceFaces, markKinds, markLine, obstacleReason, searchReason, spentSquares, squareName, walkSteps } from './nosingUi.ts';
 import type { GameProps } from './types.ts';
 
 /**
@@ -90,6 +91,10 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
   const [hint, setHint] = useState<NosingHint | null>(null);
   /** The fight's result card was dismissed at this many moves. */
   const [seenEnd, setSeenEnd] = useState(-1);
+  /** The encounter card was tapped at this many moves (hints not counted); not saved, so a reload shows the card again. */
+  const [started, setStarted] = useState(-1);
+  /** The marked square she tapped on the board. */
+  const [picked, setPicked] = useState<number | null>(null);
 
   const jumps = useMemo(() => {
     const m = new Map<number, number>();
@@ -100,6 +105,10 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
   }, [puzzle]);
   const steps = useMemo(() => walkSteps(view.trail, jumps), [view.trail, jumps]);
   const { at, walking } = useWalk(steps);
+
+  const spent = useMemo(() => spentSquares(puzzle, data, view), [puzzle, data, view]);
+  const kinds = useMemo(() => markKinds(puzzle.board, puzzle.dogSquare, view.usedSnakes), [puzzle, view.usedSnakes]);
+  const moveCount = data.moves.reduce((n, m) => n + (m.t === 'hint' ? 0 : 1), 0);
 
   const clearHint = () => {
     setHint(null);
@@ -134,24 +143,56 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
   const q = view.question;
   const held = (Object.keys(view.bonuses) as (keyof typeof view.bonuses)[]).filter((k) => view.bonuses[k] > 0);
 
-  const stake = () => {
+  /** The encounter card's lines: why the square asks a question, and what is at stake. */
+  const encounter = () => {
     if (!q) return null;
     const sq = puzzle.board.squares[q.square];
     if (q.kind === 'snake') {
       const snake = nosingSnakes.find((s) => s.id === sq.contentId);
-      return `A slip here sends the cat back to ${squareName(q.slipTo!)}${snake ? ` (${snake.name.toLowerCase()})` : ''}.`;
+      return {
+        reason: `Watch out: ${snake ? snake.name.toLowerCase() : 'a slip'}.`,
+        right: 'Get it right and the cat keeps its footing.',
+        wrong: `Get it wrong and the cat slides back to ${squareName(q.slipTo!)}.`,
+        button: 'Evade!',
+      };
     }
     if (q.kind === 'ladder') {
       const ladder = nosingLadders.find((l) => l.id === sq.contentId);
-      return `Get it right and the cat takes a shortcut to ${squareName(q.climbTo!)}${ladder ? ` (${ladder.name.toLowerCase()})` : ''}. Get it wrong and it walks on.`;
+      return {
+        reason: `A shortcut: ${ladder ? ladder.name.toLowerCase() : 'a way ahead'}.`,
+        right: `Get it right and the cat takes the shortcut to ${squareName(q.climbTo!)}.`,
+        wrong: 'Get it wrong and it walks on.',
+        button: 'Jump!',
+      };
     }
-    if (q.clueId) return 'The cat is sniffing about. Get it right and it finds a clue now. Get it wrong and the clue waits for you at the lock.';
-    if (q.bonus) {
-      const b = nosingBonuses[q.bonus];
-      return `Get it right to win: ${b.name.toLowerCase()}. ${b.copy}`;
+    if (q.kind === 'search') {
+      const b = q.bonus ? nosingBonuses[q.bonus] : null;
+      return {
+        reason: searchReason(puzzle.seed, q.square, puzzle.board.roomOf, puzzle.house),
+        right: q.clueId ? 'Get it right and it finds a clue now.' : b ? `Get it right to win: ${b.name.toLowerCase()}. ${b.copy}` : 'Get it right and the cat finds something.',
+        wrong: q.clueId ? 'Get it wrong and the clue waits for you at the lock.' : 'Get it wrong and the cat moves on.',
+        button: 'Start',
+      };
     }
-    return null;
+    const b = q.bonus ? nosingBonuses[q.bonus] : null;
+    return {
+      reason: obstacleReason(puzzle.seed, q.square),
+      right: b ? `Get it right to win: ${b.name.toLowerCase()}. ${b.copy}` : 'Get it right and the cat passes.',
+      wrong: nosingObstacleStakeWrong,
+      button: 'Start',
+    };
   };
+  const card = encounter();
+  const atEncounter = !!q && started !== moveCount;
+
+  const pickInfo = (() => {
+    if (picked === null || !kinds[picked]) return null;
+    const sq = puzzle.board.squares[picked];
+    const kind = kinds[picked]!;
+    const named = kind === 'ladder' ? nosingLadders.find((l) => l.id === sq.contentId) : kind === 'snake' ? nosingSnakes.find((l) => l.id === sq.contentId) : null;
+    return markLine(named ? `${MARK_LABELS[kind]}: ${named.name.toLowerCase()}` : MARK_LABELS[kind], picked, at);
+  })();
+  const showKey = !walking && !done && !showEnd && (view.phase === 'roll' || view.phase === 'rolled' || atEncounter);
 
   const questionHint = hint?.kind === 'question' ? hint : null;
   const hintNote = (() => {
@@ -181,7 +222,9 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
 
   return (
     <div className={`nosing ${view.phase === 'lock' || view.phase === 'dog' ? 'tight' : ''}`}>
-      <NosingBoardView puzzle={puzzle} view={view} catAt={at} compact={!walking && !done && (!!q || !!view.speed || view.phase === 'lock' || view.phase === 'dog')} />
+      <NosingBoardView puzzle={puzzle} view={view} catAt={at} spent={spent} selected={picked} onPick={(sq) => setPicked(sq === null || sq === picked ? null : sq)} compact={!walking && !done && (!!q || !!view.speed || view.phase === 'lock' || view.phase === 'dog')} />
+
+      {showKey && <NosingKey info={pickInfo} />}
 
       <p className="nosing-strip">
         {view.phase !== 'lock' && view.phase !== 'dog' && (
@@ -233,7 +276,7 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
 
       {!walking && !done && !showEnd && (view.phase === 'roll' || view.phase === 'rolled') && (
         <div className="card nosing-roll">
-          <div className="dice" aria-label={view.phase === 'rolled' ? `You rolled ${view.pendingRoll}` : view.lastRoll ? `Last roll ${view.lastRoll}` : 'The dice'}>
+          <div key={`${moveCount}-${view.pendingRoll}`} className={view.phase === 'rolled' ? 'dice tumble' : 'dice'} aria-label={view.phase === 'rolled' ? `You rolled ${view.pendingRoll}` : view.lastRoll ? `Last roll ${view.lastRoll}` : 'The dice'}>
             {diceFaces(level.dice, view.phase === 'rolled' ? view.pendingRoll! : (view.lastRoll ?? level.dice)).map((f, i) => (
               <Die key={i} face={f} />
             ))}
@@ -245,9 +288,11 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
                 <button className="primary" onClick={() => play({ t: 'roll' })}>
                   Move
                 </button>
-                <button className="secondary" onClick={() => play({ t: 'reroll' })}>
-                  Re-roll (bonus)
-                </button>
+                {view.bonuses.reroll > 0 && (
+                  <button className="secondary" onClick={() => play({ t: 'reroll' })}>
+                    Re-roll (bonus)
+                  </button>
+                )}
               </div>
             </>
           ) : (
@@ -258,11 +303,21 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
         </div>
       )}
 
-      {!walking && !done && !showEnd && q && (
+      {!walking && !done && !showEnd && q && card && atEncounter && (
+        <div className="card nosing-encounter">
+          <p className="question-text">{card.reason}</p>
+          <p className="stake">{card.right}</p>
+          <p className="stake">{card.wrong}</p>
+          <button className="primary" onClick={() => setStarted(moveCount)}>
+            {card.button}
+          </button>
+        </div>
+      )}
+
+      {!walking && !done && !showEnd && q && !atEncounter && (
         <div className="card nosing-question">
           {hintBlock}
           <p className="question-text">{q.q.text}</p>
-          {stake() && <p className="stake">{stake()}</p>}
           {questionHint && questionHint.choices && (
             <div className="choices" role="group" aria-label="The cat's three choices">
               {questionHint.choices.map((c) => (

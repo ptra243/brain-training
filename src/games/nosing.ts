@@ -4,7 +4,7 @@
 
 import { Rng, hashSeed } from '../engine/rng.ts';
 import type { House } from '../engine/types.ts';
-import { nosingBonuses, nosingCatFindLines, nosingDog, nosingLockObjects, nosingSearchLines, type NosingJump, type NosingLockObject } from '../content/nosing.ts';
+import { nosingBonuses, nosingCatFindLines, nosingDog, nosingObstacleBackLine, nosingLockObjects, nosingSearchLines, type NosingJump, type NosingLockObject } from '../content/nosing.ts';
 import {
   BONUS_KINDS,
   buildNosingBoard,
@@ -14,6 +14,7 @@ import {
   rollFor,
   STEPS_BONUS,
   answerDestination,
+  obstacleBack,
   speedBonusDraw,
   stepsFrom,
   type BonusKind,
@@ -470,6 +471,11 @@ function answer(p: NosingPuzzle, sim: Sim, value: number): void {
       if (right) {
         sim.spent.add(at);
         gain(p, sim, sq.bonus!);
+      } else {
+        // Back two squares (not below the start); the square it lands on does not trigger, and the obstacle stays open.
+        sim.pos = obstacleBack(at);
+        sim.trail.push(sim.pos);
+        sim.messages.push(nosingObstacleBackLine);
       }
       break;
     default: {
@@ -563,11 +569,10 @@ function act(p: NosingPuzzle, sim: Sim, move: NosingMove): boolean {
         moveCat(p, sim, sim.pendingRoll!);
       } else {
         const r = rollFor(nosingRollSeed(p.seed, p.board.attempt), p.level, sim.turn);
-        if (sim.bonuses.reroll > 0) {
-          sim.lastRoll = r;
-          sim.pendingRoll = r;
-          sim.phase = 'rolled';
-        } else moveCat(p, sim, r);
+        // Always stop after rolling, so the UI can show where the cat would land before it moves.
+        sim.lastRoll = r;
+        sim.pendingRoll = r;
+        sim.phase = 'rolled';
       }
       break;
     }
@@ -749,6 +754,17 @@ export function nosingView(p: NosingPuzzle, state: NosingState): NosingView {
     messages: sim.messages.slice(),
     working: sim.working,
   };
+}
+
+/**
+ * In `rolled`: the path index the cat would stop on if it moved with the pending roll
+ * (the dog may stop it early). Null when there is no pending roll. The square is not triggered here.
+ */
+export function nosingLanding(p: NosingPuzzle, view: NosingView): number | null {
+  if (view.phase !== 'rolled' || view.pendingRoll == null) return null;
+  const to = Math.min(view.pos + view.pendingRoll, lastOf(p));
+  const d = p.dogSquare;
+  return !view.usedSnakes.includes(d) && view.pos < d && to >= d ? d : to;
 }
 
 /** One move. An illegal move gives back the same state. */

@@ -7,6 +7,7 @@ import { usedNumbers } from './numberGrid.ts';
 import {
   nosingHint,
   nosingInitial,
+  nosingLanding,
   nosingSolve,
   nosingSplit,
   nosingStep,
@@ -132,6 +133,47 @@ test('an obstacle bonus: steps move the cat on at once, capped at the last squar
   assert.equal(after.bonuses.steps, 0);
 });
 
+test('an obstacle: a wrong answer sends the cat back two squares, not below the start, and it asks again', () => {
+  for (const level of LEVELS) {
+    const { p, s, v } = find(level, 'hints', (x) => x.question?.kind === 'obstacle');
+    const at = v.question!.square;
+    const wrong = nosingView(p, nosingStep(p, s, { t: 'answer', value: v.question!.q.answer + 1 }));
+    assert.equal(wrong.pos, Math.max(at - 2, 0));
+    assert.equal(wrong.phase, 'roll', 'the square it backs onto does not trigger');
+    assert.ok(wrong.messages.includes('The cat backs off two squares.'));
+    assert.equal(wrong.bonuses.reroll, v.bonuses.reroll, 'no bonus for a wrong answer');
+  }
+});
+
+test('every roll stops first (rolled), and nosingLanding says where the cat would stop', () => {
+  for (const level of LEVELS) {
+    const p = make(level, 2);
+    const rolled = nosingView(p, nosingStep(p, nosingInitial(), { t: 'roll' }));
+    assert.equal(rolled.phase, 'rolled');
+    assert.equal(rolled.pos, 0);
+    assert.equal(rolled.bonuses.reroll, 0);
+    assert.equal(nosingStep(p, nosingStep(p, nosingInitial(), { t: 'roll' }), { t: 'reroll' }).moves.length, 1, 'no re-roll without the bonus');
+    assert.equal(nosingLanding(p, nosingView(p, nosingInitial())), null);
+  }
+  // On turn k of a hint-following run, the landing is where Move puts the cat (the dog and the end included).
+  for (const level of LEVELS) {
+    const p = make(level, 4);
+    for (let k = 1; k <= 12; k++) {
+      const { s, v } = drive(p, 'hints', (x) => x.phase === 'rolled' && x.turn === k);
+      if (v.finished || v.phase !== 'rolled') break;
+      const land = nosingLanding(p, v)!;
+      const after = nosingView(p, nosingStep(p, s, { t: 'roll' }));
+      assert.equal(after.trail[after.trail.length - 1], land, `${p.seed} turn ${k}: landing`);
+      assert.ok(land <= p.board.path.length - 1);
+    }
+  }
+  // The dog stops a move that reaches or passes its square.
+  const p = make('medium', 1);
+  const view = { ...nosingView(p, nosingInitial()), phase: 'rolled' as const, pos: p.dogSquare - 1, pendingRoll: 5 };
+  assert.equal(nosingLanding(p, view), p.dogSquare);
+  assert.equal(nosingLanding(p, { ...view, usedSnakes: [p.dogSquare] }), p.dogSquare + 4);
+});
+
 test('reroll is held: the roll waits, and a swap uses the reroll roll', () => {
   const { p, s, v } = find('medium', 'hints', (x) => x.phase === 'roll' && x.bonuses.reroll > 0);
   const rolled = nosingView(p, nosingStep(p, s, { t: 'roll' }));
@@ -212,16 +254,21 @@ test('the dog fight: landing starts it, a win keeps the cat and pays two bonuses
     );
     assert.equal(won.v.messages[0], 'The dog runs off.');
     assert.ok(won.v.messages.length >= 3, `${gained}`);
-    // The result stays until the next roll, which clears it.
-    const next = nosingView(p, nosingStep(p, won.s, { t: 'roll' }));
-    assert.equal(next.dog, null);
-    assert.ok(next.usedSnakes.includes(p.dogSquare));
+    // The result stays until the next move, which clears it. The cat may have been carried onto a question,
+    // a speed round or the lock, so the next move depends on where it stands.
+    const onward: NosingMove | null =
+      won.v.phase === 'question' ? { t: 'answer', value: won.v.question!.q.answer } : won.v.phase === 'speed' ? { t: 'speed', right: 0 } : won.v.phase === 'lock' ? null : { t: 'roll' };
+    if (onward) {
+      const next = nosingView(p, nosingStep(p, won.s, onward));
+      assert.equal(next.dog, null);
+      assert.ok(next.usedSnakes.includes(p.dogSquare));
+    }
 
     const slid = drive(p, 'wrong', (x) => !!x.dog?.over);
     if (slid.v.dog?.over === 'lost') {
       const sq = p.board.squares[p.dogSquare];
       assert.equal(slid.v.pos, sq.to);
-      assert.deepEqual(slid.v.usedSnakes, [p.dogSquare]);
+      assert.ok(slid.v.usedSnakes.includes(p.dogSquare), "an earlier wrong snake answer may also be used");
       assert.equal(slid.v.phase, 'roll');
       assert.ok(slid.v.messages[0].startsWith('The dog chases the cat'));
     }
@@ -279,7 +326,7 @@ test('an old save with combine or undo loses the lock moves and keeps the rest',
   assert.equal(nosingUpgrade({ moves: [{ t: 'undo' }], hints: 0 }, true).solved, 'revealed');
   // And it plays on: the upgraded save replays.
   const p = make('easy', 2);
-  const v = nosingView(p, nosingUpgrade({ moves: [{ t: 'roll' }, { t: 'combine', a: 0, b: 1, op: '+' }], hints: 0 }));
+  const v = nosingView(p, nosingUpgrade({ moves: [{ t: 'roll' }, { t: 'roll' }, { t: 'combine', a: 0, b: 1, op: '+' }], hints: 0 }));
   assert.equal(v.turn, 2);
 });
 

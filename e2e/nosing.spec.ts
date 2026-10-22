@@ -46,16 +46,28 @@ test.describe('nosing around', () => {
     const roll = page.getByRole('button', { name: 'Roll', exact: true });
     const move = page.getByRole('button', { name: 'Move', exact: true });
     const question = page.locator('.nosing-question');
+    const encounter = page.locator('.nosing-encounter');
 
     // Roll and move until a square asks a question (a ladder or snake square may come first).
     for (let guard = 0; guard < 12; guard++) {
-      await roll.or(move).or(question).first().waitFor();
-      if (await question.isVisible()) break;
+      await roll.or(move).or(encounter).first().waitFor();
+      if (await encounter.isVisible()) break;
       if (await roll.isVisible()) {
         await checkScreen(page, 'nosing: roll');
         await roll.click();
-      } else await move.click();
+      } else {
+        await checkScreen(page, 'nosing: rolled');
+        await move.click();
+      }
     }
+    // The encounter card comes first: the reason, what is at stake, then one button. No sum yet.
+    await expect(encounter).toBeVisible();
+    await expect(question).toBeHidden();
+    await expect(page.locator('.numpad')).toHaveCount(0);
+    await expect(encounter.locator('.stake')).toHaveCount(2);
+    await checkScreen(page, 'nosing: encounter card');
+    await encounter.getByRole('button', { name: /^(Start|Evade!|Jump!)$/ }).click();
+    await expect(encounter).toBeHidden();
     await expect(question).toBeVisible();
 
     // Ask the cat three times: the working, three choices, the answer.
@@ -73,9 +85,27 @@ test.describe('nosing around', () => {
     await expect(roll.or(move).first()).toBeVisible();
   });
 
-  // Seed 12345's hint run has no speed square; seed 4's does.
+  test('the key opens, and tapping a mark says what it is and how far', async ({ page }) => {
+    await openNosing(page);
+    const key = page.getByRole('button', { name: 'Key', exact: true });
+    await expect(key).toBeVisible();
+    const list = page.getByRole('list', { name: 'What the icons mean' });
+    await expect(list).toBeHidden();
+    await key.click();
+    await expect(list.getByRole('listitem')).toHaveCount(11);
+    await expect(list).toContainText('Purr-diction: where the cat will land');
+    await checkScreen(page, 'nosing: key open');
+    await key.click();
+    await expect(list).toBeHidden();
+    // Tap the board: the nearest marked square is named under it.
+    await page.locator('.nosing-board').click({ position: { x: 180, y: 120 } });
+    await expect(page.locator('.nosing-info')).toContainText(/, square \d+\. (Here|\d+ squares? (ahead|back))\./);
+    await checkScreen(page, 'nosing: tapped a square');
+  });
+
+  // Seed 12345's hint run has no speed square; seed 1's case has a run that reaches one.
   test.describe('a run with a speed round', () => {
-  test.use({ seed: 4 });
+  test.use({ seed: 1 });
   test('the speed round: the screen fits and the 60 seconds end the round', async ({ page }) => {
     await openNosingAt(page, 'speed');
     const speedStart = page.getByRole('button', { name: /^Start the \d+ seconds$/ });

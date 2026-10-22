@@ -60,8 +60,10 @@ export async function openNosingAt(page: Page, phase: Exclude<NosingPhase, 'open
     ladders: nosingLadders,
     snakes: nosingSnakes,
   });
-  const run = drive(puzzle, 'hints', (v) => v.phase === phase);
-  if (run.v.phase !== phase) throw new Error(`the hint bot never reaches '${phase}' (seed ${spec.seed}); it ended ${run.v.finished}`);
+  // A short board can jump over a speed square or the dog with right answers: try the hint bot, then random bots.
+  let run = drive(puzzle, 'hints', (v) => v.phase === phase);
+  for (let salt = 0; run.v.phase !== phase && salt < 100; salt++) run = drive(puzzle, 'mixed', (v) => v.phase === phase, String(salt));
+  if (run.v.phase !== phase) throw new Error(`no bot reaches '${phase}' (seed ${spec.seed})`);
 
   save.progress.games.nosing = { status: 'playing', data: run.s };
   await page.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: raw!.key, value: JSON.stringify(save) });
