@@ -314,13 +314,13 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
       {walking && <p className="game-message">The cat is on the move.</p>}
 
       {!walking && !done && view.phase === 'dog' && view.dog && (
-        <div className="card nosing-dog">
+        <div className="card">
           <NosingDog view={view.dog} hints={hintBlock} onMove={play} />
         </div>
       )}
 
       {!walking && !done && showEnd && view.dog && (
-        <div className="card nosing-dog">
+        <div className="card">
           <NosingDogResult view={view.dog} messages={view.messages} onContinue={() => setSeenEnd(data.moves.length)} />
         </div>
       )}

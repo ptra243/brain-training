@@ -7,6 +7,15 @@
   switch on the kind of game anywhere else. Use `isSceneGame` /
   `isInterrogation` to narrow a `GameSpec`, not optional fields.
 
+- **Game styles go in a CSS module.** A game's own styles live in
+  `<Game>.module.css` next to its component and are used as `styles.x`, so a
+  class in one game can't restyle another (the dog fight's `.tarot-card svg`
+  once shrank every Tarot card). Shared pieces stay global in `styles.css`:
+  colour and type variables, buttons, hint notes, `Dialog`, layout, and
+  classes two games use (`.grid-*`, `.number-grid`). To style a global class
+  from a module, write `:global(.x)` inside a rule scoped by a local class.
+  e2e can't use scoped names: give the element a `data-testid` or find it by
+  role or label. Older games still in `styles.css` move over one at a time.
 - **Names follow the dinner.** `suspectName(id, c.guests)` and
   `suspectInitials(id, c.guests)` (`names.ts`, via `guestName`). A lone heir is
   "The Heir" when the other heir is not in `c.guests`; the victim counts as

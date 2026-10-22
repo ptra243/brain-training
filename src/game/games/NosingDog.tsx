@@ -8,6 +8,7 @@ import type { NosingMove } from '../../games/nosing.ts';
 import { gridLines, type Hand, type OpRef, type Slot } from '../../games/numberGrid.ts';
 import { NumberGrid } from './NumberGrid.tsx';
 import { hasClearable } from './numberGridUi.ts';
+import styles from './NosingDog.module.css';
 
 /** The line about the turn just played, from the view's `last` data. */
 function lastLine(last: DogTurnResult): string {
@@ -43,10 +44,10 @@ function challengeLine(c: DogChallenge, dog: number): string {
 
 function Lives({ label, left, total }: { label: string; left: number; total: number }) {
   return (
-    <div className="dog-lives" role="img" aria-label={`${label}: ${left} of ${total} lives`}>
+    <div className={styles.lives} role="img" aria-label={`${label}: ${left} of ${total} lives`}>
       <span>{label}</span>
       {Array.from({ length: total }, (_, i) => (
-        <span key={i} className={`life ${i < left ? 'on' : ''}`} aria-hidden="true" />
+        <span key={i} className={`${styles.life} ${i < left ? styles.on : ''}`} aria-hidden="true" />
       ))}
     </div>
   );
@@ -79,34 +80,42 @@ export function NosingDog({ view, hints, onMove }: Props) {
     const card = view.numbers[index];
     const art = tarotArt(card.id);
     return (
-      <span className="dog-card-face">
+      <span className={styles.cardFace}>
         <svg viewBox="0 0 40 40" aria-hidden="true">
           <path d={art.path} fill={art.colour} />
         </svg>
-        <span className="dog-card-value">{value}</span>
+        <span className={styles.cardValue}>{value}</span>
       </span>
     );
   };
 
   return (
-    <div className="dog-fight">
-      <div className="dog-top">
+    <div className={styles.fight} data-testid="dog-fight">
+      <div className={styles.top}>
         <Lives label={nosingDog.catLives} left={view.catLives} total={CAT_LIVES} />
         <Lives label={nosingDog.dogLives} left={view.dogLives} total={DOG_LIVES} />
       </div>
-      <p className="dog-role">{view.role === 'attack' ? nosingDog.attack(view.dog.value) : nosingDog.defend(view.dog.value)}</p>
-      {view.last && <p className="dog-last muted">{lastLine(view.last)}</p>}
-      <div className="dog-play" aria-label={nosingDog.dogPlays}>
-        <span className="dog-play-title">{nosingDog.dogPlays}</span>
+      <p className={styles.role}>{view.role === 'attack' ? nosingDog.attack(view.dog.value) : nosingDog.defend(view.dog.value)}</p>
+      {view.last && (
+        <p className={`${styles.last} muted`} data-testid="dog-last">
+          {lastLine(view.last)}
+        </p>
+      )}
+      <div className={styles.play} aria-label={nosingDog.dogPlays}>
+        <span className={styles.playTitle}>{nosingDog.dogPlays}</span>
         {dogLines.map((line, i) => (
           <span key={i}>{line}</span>
         ))}
       </div>
-      {view.role === 'attack' && view.challenge && <p className="dog-challenge">{challengeLine(view.challenge, view.dog.value)}</p>}
+      {view.role === 'attack' && view.challenge && (
+        <p className={styles.challenge} data-testid="dog-challenge">
+          {challengeLine(view.challenge, view.dog.value)}
+        </p>
+      )}
       {hints}
       {picking ? (
-        <div className="number-grid dog-pick">
-          <p className="muted dog-pick-hint">{nosingDog.swap.pickHint}</p>
+        <div className={`number-grid ${styles.pick}`}>
+          <p className={`muted ${styles.pickHint}`}>{nosingDog.swap.pickHint}</p>
           <div className="grid-hand" role="group" aria-label="Pick cards to swap">
             {view.numbers.map((c, i) => (
               <button
@@ -149,7 +158,7 @@ export function NosingDog({ view, hints, onMove }: Props) {
       />
       )}
       {picking ? (
-        <div className="lock-actions swap-actions">
+        <div className={`lock-actions ${styles.swapActions}`}>
           <button className="secondary" onClick={stopPicking}>
             {nosingDog.swap.cancel}
           </button>
@@ -160,7 +169,7 @@ export function NosingDog({ view, hints, onMove }: Props) {
       ) : (
         <>
           {view.swapAvailable && (
-            <button className="secondary swap-button" onClick={() => setPicking(true)}>
+            <button className={`secondary ${styles.swapButton}`} onClick={() => setPicking(true)}>
               {nosingDog.swap.button}
             </button>
           )}
@@ -204,7 +213,7 @@ export function NosingDog({ view, hints, onMove }: Props) {
 export function NosingDogResult({ view, messages, onContinue }: { view: DogView; messages: string[]; onContinue: () => void }) {
   const won = view.over === 'won';
   return (
-    <div className="dog-result" role="status">
+    <div className={styles.result} data-testid="dog-result" role="status">
       <h2>{won ? nosingDog.endTitleWon : nosingDog.endTitleLost}</h2>
       {view.last && <p className="muted">{lastLine(view.last)}</p>}
       {messages.filter((m) => m !== nosingDog.win).map((m, i) => (

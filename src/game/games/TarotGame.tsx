@@ -13,6 +13,7 @@ import {
   type TarotState,
 } from '../../games/tarot.ts';
 import { HintButton, HintNote } from './Hints.tsx';
+import styles from './TarotGame.module.css';
 import type { GameProps } from './types.ts';
 
 export interface TarotPuzzle {
@@ -36,18 +37,18 @@ const LOOK_MS = 900;
 
 function CardBack() {
   return (
-    <svg className="tarot-back" viewBox="0 0 30 40" preserveAspectRatio="none" aria-hidden="true">
+    <svg className={styles.back} viewBox="0 0 30 40" preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <pattern id="tarot-back-pattern" width="6" height="6" patternUnits="userSpaceOnUse">
-          <path d="M3 0.6L5.4 3L3 5.4L0.6 3Z" className="tarot-back-diamond" />
-          <circle cx="0" cy="0" r="0.7" className="tarot-back-dot" />
-          <circle cx="6" cy="6" r="0.7" className="tarot-back-dot" />
+          <path d="M3 0.6L5.4 3L3 5.4L0.6 3Z" className={styles.backDiamond} />
+          <circle cx="0" cy="0" r="0.7" className={styles.backDot} />
+          <circle cx="6" cy="6" r="0.7" className={styles.backDot} />
         </pattern>
       </defs>
-      <rect x="0" y="0" width="30" height="40" className="tarot-back-field" />
-      <rect x="2" y="2" width="26" height="36" rx="1.5" className="tarot-back-frame" />
+      <rect x="0" y="0" width="30" height="40" className={styles.backField} />
+      <rect x="2" y="2" width="26" height="36" rx="1.5" className={styles.backFrame} />
       <rect x="4" y="4" width="22" height="32" fill="url(#tarot-back-pattern)" />
-      <rect x="4" y="4" width="22" height="32" className="tarot-back-inner" />
+      <rect x="4" y="4" width="22" height="32" className={styles.backInner} />
     </svg>
   );
 }
@@ -55,7 +56,7 @@ function CardBack() {
 function CardFace({ id }: { id: string }) {
   const art = id === JOKER ? TAROT_JOKER_ART : tarotArt(id);
   return (
-    <svg className="tarot-symbol" viewBox="0 0 40 40" aria-hidden="true">
+    <svg className={styles.symbol} viewBox="0 0 40 40" aria-hidden="true">
       <path d={art.path} fill={art.colour} fillRule="evenodd" stroke="rgba(30, 42, 47, 0.7)" strokeWidth="1" strokeLinejoin="round" />
     </svg>
   );
@@ -105,16 +106,16 @@ export function TarotGame({ puzzle, data, finished, helper = 'The cat', onChange
   };
 
   return (
-    <div className="tarot">
+    <div>
       <p className="hint dark">
         Turn two cards over to find a pair. A match stays face up; a miss turns back, and it costs you nothing. Find the joker for a free card: it leaves the table and turns one card face up. Find that card's partner to match it.
       </p>
       {!finished && (
         <div className="hint-bar">
-          <div className="tarot-tools">
+          <div className={styles.tools}>
             {data.jokerGone !== null && (
               <button
-                className={`hint-button joker-button ${data.peek !== null ? 'lit' : ''}`}
+                className={`hint-button ${styles.jokerButton} ${data.peek !== null ? styles.lit : ''}`}
                 aria-label={data.peek !== null ? 'Joker: you have a free peek card up' : 'Joker: waiting for a card to match'}
                 title={JOKER_TEXT}
                 onClick={() => {
@@ -140,10 +141,10 @@ export function TarotGame({ puzzle, data, finished, helper = 'The cat', onChange
           {note && <HintNote text={note} onClose={() => setNote(null)} />}
         </div>
       )}
-      <div className="tarot-board" role="group" aria-label="Tarot cards">
+      <div className={styles.board} role="group" aria-label="Tarot cards">
         {board.map((id, i) => {
           // The joker has left the table: keep its place so the other cards don't move.
-          if (data.jokerGone === i) return <span key={i} className="tarot-card gone" aria-hidden="true" />;
+          if (data.jokerGone === i) return <span key={i} className={`${styles.card} ${styles.gone}`} aria-hidden="true" />;
           const up = !!finished || isFaceUp(data, i);
           const matched = data.matched.includes(i);
           const peeking = data.peek === i && !matched;
@@ -154,26 +155,26 @@ export function TarotGame({ puzzle, data, finished, helper = 'The cat', onChange
           return (
             <button
               key={i}
-              className={`tarot-card ${up ? 'up' : ''} ${matched ? 'matched' : ''} ${peeking ? 'peek' : ''}`}
+              className={`${styles.card} ${up ? styles.up : ''} ${matched ? styles.matched : ''} ${peeking ? styles.peek : ''}`}
               aria-label={label}
               aria-disabled={peeking ? 'true' : undefined}
               onClick={() => tap(i)}
             >
-              <span className="tarot-inner">
-                <span className="tarot-side tarot-down">
+              <span className={styles.inner}>
+                <span className={`${styles.side} ${styles.down}`}>
                   <CardBack />
                   {showGhost && (
-                    <span className="tarot-ghost">
+                    <span className={styles.ghost}>
                       <CardFace id={id} />
                     </span>
                   )}
                 </span>
-                <span className="tarot-side tarot-front">
+                <span className={`${styles.side} ${styles.front}`}>
                   <CardFace id={id} />
                 </span>
               </span>
               {peeking && (
-                <span className="tarot-tag" aria-hidden="true">
+                <span className={styles.tag} aria-hidden="true">
                   Free
                 </span>
               )}
