@@ -206,6 +206,14 @@ export const nosingCatFindLines: readonly string[] = [
   'The cat pawed a small thing out from a gap in the wall.',
 ];
 
+/** A square where nothing happens: shown in a short pop-up after the cat lands. */
+export const nosingEmptyLines: readonly string[] = [
+  'Nothing here. The cat sniffs the rug and moves on.',
+  'Nothing to find. The cat gives the corner a quick look.',
+  'Just bare floor. The cat shrugs and carries on.',
+  'Nothing here. The cat sits for a moment, then stands up again.',
+];
+
 /** Search lines for a room's search square. `{thing}` is one of that room's `things`. */
 export const nosingSearchLines: readonly string[] = [
   'The cat sniffs behind the {thing}.',

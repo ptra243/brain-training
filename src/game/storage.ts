@@ -66,6 +66,11 @@ export function loadPicks(): PickedGame[] {
 
 export const savePicks = (games: readonly PickedGame[]) => write('picks', games);
 
+/** Nosing around's "Auto-roll" switch, remembered per device (off until she turns it on). */
+export const loadAutoRoll = (): boolean => read('autoRoll') === true;
+
+export const saveAutoRoll = (on: boolean) => write('autoRoll', on);
+
 /** Forget the Quick start case, the campaign and where she was (the error screen's way out of a bad save). */
 export function clearSaves() {
   try {

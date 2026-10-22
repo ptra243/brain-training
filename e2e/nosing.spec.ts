@@ -35,10 +35,16 @@ const playToQuestion = async (page: Page) => {
   const roll = page.getByRole('button', { name: 'Roll', exact: true });
   const move = page.getByRole('button', { name: 'Move', exact: true });
   const question = page.locator('.nosing-question');
-  const encounter = page.locator('.nosing-encounter');
+  const encounter = page.locator('.nosing-encounter').filter({ hasText: /Get it/ });
+  const carryOn = page.getByRole('button', { name: 'Carry on', exact: true });
   for (let guard = 0; guard < 12; guard++) {
-    await roll.or(move).or(encounter).first().waitFor();
+    await roll.or(move).or(encounter).or(carryOn).first().waitFor();
     if (await encounter.isVisible()) break;
+    if (await carryOn.isVisible()) {
+      await checkScreen(page, 'nosing: empty square pop-up');
+      await carryOn.click();
+      continue;
+    }
     if (await roll.isVisible()) {
       await checkScreen(page, 'nosing: roll');
       await roll.click();
@@ -65,6 +71,24 @@ test.describe('nosing around', () => {
     await expect(page.getByRole('button', { name: 'Roll', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Solve', exact: true })).toHaveCount(0);
     await checkScreen(page, 'nosing: first roll');
+  });
+
+  test('auto-roll rolls and moves by itself, and the landing pop-up closes after 3 seconds', async ({ page }) => {
+    await openNosing(page);
+    const toggle = page.getByRole('switch', { name: /^Auto-roll/ });
+    await expect(toggle).toHaveAttribute('aria-checked', 'false');
+    await checkScreen(page, 'nosing: auto-roll off');
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-checked', 'true');
+    await checkScreen(page, 'nosing: auto-roll on');
+    // No taps on Roll or Move: the cat lands and a pop-up appears.
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible({ timeout: 6000 });
+    await checkScreen(page, 'nosing: landing pop-up');
+    // Nobody taps it: it goes by itself within 3 seconds or so.
+    await expect(dialog).toBeHidden({ timeout: 4500 });
+    // The switch is remembered on the device.
+    expect(await page.evaluate(() => Object.entries(localStorage).filter(([k]) => k.endsWith(':autoRoll')).map(([, v]) => v))).toEqual(['true']);
   });
 
   test('Solve on a question answers only that step; the game goes on', async ({ page }) => {

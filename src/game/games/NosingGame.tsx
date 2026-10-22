@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import { nosingBonuses, nosingDog, nosingLadders, nosingObstacleStakeWrong, nosingSnakes } from '../../content/nosing.ts';
+import { useEffect, useEffectEvent, useMemo, useState, type ReactNode } from 'react';
+import { Dialog } from '../Dialog.tsx';
+import { loadAutoRoll, saveAutoRoll } from '../storage.ts';
+import { nosingBonuses, nosingEmptyLines,nosingDog, nosingLadders, nosingObstacleStakeWrong, nosingSnakes } from '../../content/nosing.ts';
 import {
   nosingHint,
   nosingLanding,
@@ -51,7 +53,28 @@ function viewOf(puzzle: NosingPuzzle, state: NosingState): NosingView {
 /** How long the cat takes over each square, in ms. */
 const WALK_MS = 170;
 
-const reducedMotion = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+/** How long a landing pop-up stays before it closes itself. */
+const LANDING_MS = 3000;
+/** Auto-roll pauses: before a roll, before a roll after messages she may read, and on the dice before the move. */
+const AUTO_ROLL_MS = 600;
+const AUTO_READ_MS = 2500;
+const AUTO_MOVE_MS = 1200;
+
+/** A centred pop-up that closes itself after `LANDING_MS` (or earlier through its button, Escape or the backdrop). */
+function TimedDialog({ children, onClose, labelId }: { children: ReactNode; onClose: () => void; labelId: string }) {
+  const close = useEffectEvent(() => onClose());
+  useEffect(() => {
+    const t = setTimeout(() => close(), LANDING_MS);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <Dialog placement="center" labelId={labelId} onClose={onClose}>
+      {children}
+    </Dialog>
+  );
+}
+
+const reducedMotion =() => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 function Die({ face }: { face: number }) {
   return (
@@ -97,6 +120,9 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
   const [seenEnd, setSeenEnd] = useState(-1);
   /** The encounter card was tapped at this many moves (hints not counted); not saved, so a reload shows the card again. */
   const [started, setStarted] = useState(-1);
+  /** The "nothing here" pop-up was closed at this many moves; not saved. */
+  const [seenEmpty, setSeenEmpty] = useState(-1);
+  const [autoRoll, setAutoRoll] = useState(loadAutoRoll);
   /** The marked square she tapped on the board. */
   const [picked, setPicked] = useState<number | null>(null);
 
@@ -188,6 +214,24 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
   };
   const card = encounter();
   const atEncounter = !!q && started !== moveCount;
+
+  // Nothing happened on the square she just landed on: say so, once per move.
+  const lastMove = [...data.moves].reverse().find((m) => m.t !== 'hint');
+  const land0 = steps[steps.length - 1] ?? 0;
+  const atEmpty =
+    !walking && !done && !showEnd && !q && !view.speed && view.phase === 'roll' && view.messages.length === 0 && (lastMove?.t === 'roll' || lastMove?.t === 'reroll') && seenEmpty !== moveCount;
+
+  // Auto-roll: roll, and move after a pause, unless something is waiting for her.
+  const autoPhase = view.phase === 'roll' || view.phase === 'rolled';
+  const holdsReroll = view.bonuses.reroll > 0;
+  const autoWaits = !autoRoll || !autoPhase || walking || done || showEnd || !!q || !!view.speed || atEmpty || (view.phase === 'rolled' && holdsReroll);
+  const autoDelay = view.phase === 'rolled' ? AUTO_MOVE_MS : view.messages.length > 0 ? AUTO_READ_MS : AUTO_ROLL_MS;
+  const autoPlay = useEffectEvent(() => play({ t: 'roll' }));
+  useEffect(() => {
+    if (autoWaits) return;
+    const t = setTimeout(() => autoPlay(), autoDelay);
+    return () => clearTimeout(t);
+  }, [autoWaits, autoDelay, view.phase, moveCount]);
 
   const pickInfo = (() => {
     if (picked === null || !kinds[picked]) return null;
@@ -288,6 +332,17 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
               <Die key={i} face={f} />
             ))}
           </div>
+          <button
+            className="secondary auto-roll"
+            role="switch"
+            aria-checked={autoRoll}
+            onClick={() => {
+              saveAutoRoll(!autoRoll);
+              setAutoRoll(!autoRoll);
+            }}
+          >
+            Auto-roll: {autoRoll ? 'on' : 'off'}
+          </button>
           {view.phase === 'rolled' ? (
             <>
               <p className="muted">{rollLine}</p>
@@ -311,14 +366,31 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
       )}
 
       {!walking && !done && !showEnd && q && card && atEncounter && (
-        <div className="card nosing-encounter">
-          <p className="question-text">{card.reason}</p>
-          <p className="stake">{card.right}</p>
-          <p className="stake">{card.wrong}</p>
-          <button className="primary" onClick={() => setStarted(moveCount)}>
-            {card.button}
-          </button>
-        </div>
+        <TimedDialog onClose={() => setStarted(moveCount)} labelId="nosing-landing-title">
+          <div className="nosing-encounter">
+            <p id="nosing-landing-title" className="question-text">
+              {card.reason}
+            </p>
+            <p className="stake">{card.right}</p>
+            <p className="stake">{card.wrong}</p>
+            <button className="primary" onClick={() => setStarted(moveCount)}>
+              {card.button}
+            </button>
+          </div>
+        </TimedDialog>
+      )}
+
+      {atEmpty && (
+        <TimedDialog onClose={() => setSeenEmpty(moveCount)} labelId="nosing-landing-title">
+          <div className="nosing-encounter">
+            <p id="nosing-landing-title" className="question-text">
+              {nosingEmptyLines[land0 % nosingEmptyLines.length]}
+            </p>
+            <button className="primary" onClick={() => setSeenEmpty(moveCount)}>
+              Carry on
+            </button>
+          </div>
+        </TimedDialog>
       )}
 
       {!walking && !done && !showEnd && q && !atEncounter && (
