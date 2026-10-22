@@ -44,11 +44,11 @@ export function NosingDog({ view, hints, onMove }: Props) {
     const card = view.numbers[index];
     const art = tarotArt(card.id);
     return (
-      <span className="tarot-card">
+      <span className="dog-card-face">
         <svg viewBox="0 0 40 40" aria-hidden="true">
           <path d={art.path} fill={art.colour} />
         </svg>
-        <span className="tarot-value">{value}</span>
+        <span className="dog-card-value">{value}</span>
       </span>
     );
   };
