@@ -206,26 +206,21 @@ Starting prompt:
 Read the Grid cases build plan doc, go through its open questions with me, then start step 1: grid types and the per-case map generator in src/engine/grid/.
 ```
 
-## Session: A faster case solver (constraint propagation)
+## Session: Faster word game builders
 Last touched: 2026-10-22
-Reads first: `src/engine/search.ts` (`countMatching`, `anyMatching`), `src/engine/clues.ts`, the
-golden test (`src/engine/golden*.test.ts`), the root `CLAUDE.md` rule "Don't change existing cases".
-Measured 2026-10-22 (CPU profile of quick `check-cases`): the solver is about 39 % of the run
-(`fill` 21 s self, `countMatching` 39 s inclusive of 100 s). Almost none of it is the final
-uniqueness check. It comes from the generator (`generate.ts` minimising clues, `interrogation.ts`
-picking proofs) and case boards (`caseBoard.ts`). Next were crossword `buildBoard` (17 s self) and
-word search `findPlacement` (10 s).
-Idea: keep a suspect × room and suspect × weapon possibility grid, let each clue cross out cells,
-propagate (singletons, used columns) and branch only on the smallest domain. It must return the
-same counts, so cases stay identical (golden test and a before/after dump prove it). Relational
-clues (next to, either room, adjacent, alone) need their own propagators; fall back to checking
-them on complete answers if needed. A propagation-only pass could also grade "solvable by simple
-steps", as the cat puzzles do.
-Check timings now: `npm test` about 18 s, quick `check-cases` about 45 s, `npm run checks` about
-64 s in parallel, e2e about 82 s, full `check-cases` about 8 min.
+Reads first: `src/games/crossword.ts` (`buildBoard`, `at`, `crossings`), `src/games/wordsearch.ts`
+(`findPlacement`, `tryLayout`), `src/games/CLAUDE.md`, the root `CLAUDE.md` rule "Don't change
+existing cases".
+Measured 2026-10-22 after the propagation solver landed (CPU profile of quick `check-cases`, 38 s
+before the solver): crossword `buildBoard` 6.0 s self plus `at` 1.0 s and `crossings` 0.6 s, word
+search `findPlacement` 3.3 s and `tryLayout` 0.9 s; "word games" work is about 12 s. The slowest test
+file is now `src/game/sceneGames.test.ts` (4 s, almost all `buildBoard`).
+Constraint: these are seeded, so a faster version must consume the `Rng` exactly as now and build the
+same grids. Prove it the way the solver did: keep the old builder as an oracle in a sweep, the golden
+test, and a before/after case-hash dump (the solver's dump script compared 326 fresh cases).
 Starting prompt:
 ```
-Read the "A faster case solver" entry in docs/next-sessions.md, profile countMatching's callers, and propose a propagation design (and how we prove the counts are unchanged) before writing code.
+Read the "Faster word game builders" entry in docs/next-sessions.md, profile crossword buildBoard and word search findPlacement, and propose a faster version that builds identical grids before writing code.
 ```
 
 ## Session: Target or another word game (exploratory)

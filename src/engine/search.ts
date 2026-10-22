@@ -1,8 +1,12 @@
 // A solver that searches instead of listing every answer. A classic case has
 // at most 14,400 possible answers and `solver.ts` simply tries them all; with
 // 7 guests sharing 5 rooms and holding 5 weapons there are about 200 million,
-// so here rooms and then weapon holders are filled in one at a time, and each
-// clue is checked as soon as everything it mentions has been filled in.
+// so this keeps, for every guest, the rooms still possible and, for every
+// weapon, the guests who could still hold it. Clues shrink those sets as soon
+// as they can (a pruning step only ever removes what no answer could use), the
+// search fills in the tightest one next, and every complete answer is still
+// checked against every clue, so a clue without a pruning step is just checked
+// at the end. `searchOracle.ts` keeps the old exhaustive search to compare.
 
 import { compileClue, type ClueContext } from './clues.ts';
 import type { ClueFact, Solution } from './types.ts';
@@ -15,13 +19,21 @@ export interface Space {
   shared: boolean;
 }
 
-/** Ids a fact talks about. */
-function named(fact: ClueFact): string[] {
-  const out: string[] = [];
-  if ('suspect' in fact) out.push(fact.suspect);
-  if ('suspects' in fact) out.push(...fact.suspects);
-  if ('item' in fact) out.push(fact.item);
-  return out;
+const bitCount = (x: number) => {
+  let c = 0;
+  for (; x !== 0; x &= x - 1) c++;
+  return c;
+};
+const lowBit = (x: number) => x & -x;
+const bitIndex = (single: number) => 31 - Math.clz32(single);
+const isSingle = (x: number) => x !== 0 && (x & (x - 1)) === 0;
+
+/** Two guests' rooms: for each room of one, the rooms of the other that fit. */
+interface Pair {
+  a: number;
+  b: number;
+  ab: Int32Array;
+  ba: Int32Array;
 }
 
 /**
@@ -39,88 +51,263 @@ export function countMatching(
   const { suspects, rooms, items, shared } = space;
   const n = suspects.length;
   const m = items.length;
+  const R = rooms.length;
+  if (n > 30 || R > 30) throw new Error('search: too many guests or rooms for a bitmask');
+  const allRooms = R === 0 ? 0 : (1 << R) - 1;
+  const allHolders = n === 0 ? 0 : (1 << n) - 1;
+  const V = n + m; // variables: guests' rooms 0..n-1, then each weapon's holder
 
-  // Fill in the people and weapons the facts talk about first, so a
-  // contradiction shows up before the search branches on everyone else.
-  const talkedAbout = new Set(facts.flatMap(named));
-  const first = <T>(list: readonly T[], key: (x: T) => string) => [
-    ...list.filter((x) => talkedAbout.has(key(x))),
-    ...list.filter((x) => !talkedAbout.has(key(x))),
-  ];
-  const suspectOrder = first(suspects.map((_, i) => i), (i) => suspects[i]);
-  const itemOrder = first(items, (w) => w);
-  const roomStep = new Array<number>(n);
-  suspectOrder.forEach((s, k) => (roomStep[s] = k));
-  const itemStep = new Map(itemOrder.map((w, k) => [w, n + k]));
-  const lastStep = n + m - 1;
-  const at = (id: string) => roomStep[suspects.indexOf(id)];
+  // Every complete answer is checked against all of these.
+  const tests = [...facts.map((f) => compileClue(f, ctx)), ...extra];
 
-  // The step after which each fact can be checked. Unfilled rooms read as
-  // undefined and unfilled hands as null, so "alone" and "empty-handed" can
-  // be checked at every step from the first that could break them.
-  const checks: ((sol: Solution) => boolean)[][] = Array.from({ length: n + m }, () => []);
+  const dom0 = new Int32Array(V);
+  for (let s = 0; s < n; s++) dom0[s] = allRooms;
+  for (let j = 0; j < m; j++) dom0[n + j] = allHolders;
+
+  const sIdx = (id: string) => suspects.indexOf(id);
+  const iIdx = (id: string) => items.indexOf(id);
+  const roomBit = (id: string) => {
+    let mask = 0;
+    for (let r = 0; r < R; r++) if (rooms[r] === id) mask |= 1 << r;
+    return mask;
+  };
+  const adj = (a: string, b: string) => ctx.adjacency.get(a)?.has(b) ?? false;
+
+  const itemAllow = new Int32Array(m).fill(allRooms); // rooms a weapon may be in
+  const pairs: Pair[] = [];
+  const alone: number[] = [];
+  let dead = false;
+
+  const pairOf = (a: number, b: number, fits: (ra: string, rb: string) => boolean) => {
+    const ab = new Int32Array(R);
+    const ba = new Int32Array(R);
+    for (let x = 0; x < R; x++) {
+      for (let y = 0; y < R; y++) {
+        if (!fits(rooms[x], rooms[y])) continue;
+        ab[x] |= 1 << y;
+        ba[y] |= 1 << x;
+      }
+    }
+    pairs.push({ a, b, ab, ba });
+  };
+
   for (const fact of facts) {
-    let step: number;
     switch (fact.type) {
-      case 'suspect-alone': {
-        const test = compileClue(fact, ctx);
-        for (let k = at(fact.suspect); k < n; k++) checks[k].push(test);
-        continue;
+      case 'suspect-room': {
+        const s = sIdx(fact.suspect);
+        if (s >= 0) dom0[s] &= roomBit(fact.room);
+        break;
+      }
+      case 'suspect-not-room': {
+        const s = sIdx(fact.suspect);
+        if (s >= 0) dom0[s] &= ~roomBit(fact.room);
+        break;
+      }
+      case 'suspect-either-room': {
+        const s = sIdx(fact.suspect);
+        if (s >= 0) dom0[s] &= roomBit(fact.rooms[0]) | roomBit(fact.rooms[1]);
+        break;
+      }
+      case 'suspect-next-to-room': {
+        const s = sIdx(fact.suspect);
+        if (s < 0) break;
+        let mask = 0;
+        for (let r = 0; r < R; r++) if (rooms[r] !== fact.room && adj(rooms[r], fact.room)) mask |= 1 << r;
+        dom0[s] &= mask;
+        break;
+      }
+      case 'suspect-item': {
+        const s = sIdx(fact.suspect);
+        const j = iIdx(fact.item);
+        if (j < 0) dead = true; // nobody holds a weapon that isn't in play
+        else if (s >= 0) dom0[n + j] &= 1 << s;
+        break;
+      }
+      case 'suspect-not-item': {
+        const s = sIdx(fact.suspect);
+        const j = iIdx(fact.item);
+        if (s >= 0 && j >= 0) dom0[n + j] &= ~(1 << s);
+        break;
       }
       case 'suspect-empty-handed': {
-        const test = compileClue(fact, ctx);
-        for (let k = n; k <= lastStep; k++) checks[k].push(test);
-        continue;
-      }
-      case 'suspect-item':
-      case 'suspect-not-item':
-      case 'item-room':
-      case 'item-not-room':
-        step = itemStep.get(fact.item) ?? lastStep;
+        const s = sIdx(fact.suspect);
+        if (s >= 0) for (let j = 0; j < m; j++) dom0[n + j] &= ~(1 << s);
         break;
-      default:
-        step = 'suspects' in fact ? Math.max(at(fact.suspects[0]), at(fact.suspects[1])) : at(fact.suspect);
+      }
+      case 'item-room': {
+        const j = iIdx(fact.item);
+        if (j >= 0) itemAllow[j] &= roomBit(fact.room);
+        break;
+      }
+      case 'item-not-room': {
+        const j = iIdx(fact.item);
+        if (j >= 0) itemAllow[j] &= ~roomBit(fact.room);
+        break;
+      }
+      case 'suspects-together':
+      case 'suspects-apart':
+      case 'suspects-adjacent':
+      case 'suspects-not-adjacent': {
+        const a = sIdx(fact.suspects[0]);
+        const b = sIdx(fact.suspects[1]);
+        if (a < 0 || b < 0) break;
+        if (fact.type === 'suspects-together') pairOf(a, b, (x, y) => x === y);
+        else if (fact.type === 'suspects-apart') pairOf(a, b, (x, y) => x !== y);
+        else if (fact.type === 'suspects-adjacent') pairOf(a, b, adj);
+        else pairOf(a, b, (x, y) => !adj(x, y));
+        break;
+      }
+      case 'suspect-alone': {
+        const s = sIdx(fact.suspect);
+        if (s >= 0) alone.push(s);
+        break;
+      }
     }
-    checks[step].push(compileClue(fact, ctx));
   }
-  checks[lastStep].push(...extra);
+  if (dead) return 0;
 
-  const room: string[] = new Array(n).fill(undefined);
-  const item: (string | null)[] = new Array(n).fill(null);
+  const itemsWithRoom: number[] = [];
+  for (let j = 0; j < m; j++) if (itemAllow[j] !== allRooms) itemsWithRoom.push(j);
+
+  /** Shrinks the sets to a fixpoint. False when some set empties (no answer). */
+  const propagate = (d: Int32Array): boolean => {
+    for (let v = 0; v < V; v++) if (d[v] === 0) return false;
+    let changed = true;
+    while (changed) {
+      changed = false;
+      // Own room for everyone when rooms aren't shared.
+      if (!shared) {
+        for (let v = 0; v < n; v++) {
+          if (!isSingle(d[v])) continue;
+          const bit = d[v];
+          for (let o = 0; o < n; o++) {
+            if (o === v || (d[o] & bit) === 0) continue;
+            d[o] &= ~bit;
+            if (d[o] === 0) return false;
+            changed = true;
+          }
+        }
+      }
+      // A guest holds at most one weapon.
+      for (let v = n; v < V; v++) {
+        if (!isSingle(d[v])) continue;
+        const bit = d[v];
+        for (let o = n; o < V; o++) {
+          if (o === v || (d[o] & bit) === 0) continue;
+          d[o] &= ~bit;
+          if (d[o] === 0) return false;
+          changed = true;
+        }
+      }
+      // A weapon in a room: its holder must be able to be there.
+      for (let k = 0; k < itemsWithRoom.length; k++) {
+        const j = itemsWithRoom[k];
+        const allow = itemAllow[j];
+        let holders = d[n + j];
+        for (let rest = holders; rest !== 0; rest &= rest - 1) {
+          const s = bitIndex(lowBit(rest));
+          if ((d[s] & allow) === 0) holders &= ~(1 << s);
+        }
+        if (holders !== d[n + j]) {
+          if (holders === 0) return false;
+          d[n + j] = holders;
+          changed = true;
+        }
+        if (isSingle(holders)) {
+          const s = bitIndex(holders);
+          const rs = d[s] & allow;
+          if (rs !== d[s]) {
+            if (rs === 0) return false;
+            d[s] = rs;
+            changed = true;
+          }
+        }
+      }
+      // Pairs of guests.
+      for (let k = 0; k < pairs.length; k++) {
+        const { a, b, ab, ba } = pairs[k];
+        const da = d[a];
+        const db = d[b];
+        let na = 0;
+        for (let rest = da; rest !== 0; rest &= rest - 1) {
+          const lb = lowBit(rest);
+          if ((ab[bitIndex(lb)] & db) !== 0) na |= lb;
+        }
+        if (na === 0) return false;
+        d[a] = na;
+        let nb = 0;
+        for (let rest = db; rest !== 0; rest &= rest - 1) {
+          const lb = lowBit(rest);
+          if ((ba[bitIndex(lb)] & na) !== 0) nb |= lb;
+        }
+        if (nb === 0) return false;
+        d[b] = nb;
+        if (na !== da || nb !== db) changed = true;
+      }
+      // Alone: nobody else in a fixed guest's room, and not in anyone else's fixed room.
+      for (let k = 0; k < alone.length; k++) {
+        const s = alone[k];
+        if (isSingle(d[s])) {
+          const bit = d[s];
+          for (let o = 0; o < n; o++) {
+            if (o === s || (d[o] & bit) === 0) continue;
+            d[o] &= ~bit;
+            if (d[o] === 0) return false;
+            changed = true;
+          }
+        }
+        for (let o = 0; o < n; o++) {
+          if (o === s || !isSingle(d[o]) || (d[s] & d[o]) === 0) continue;
+          d[s] &= ~d[o];
+          if (d[s] === 0) return false;
+          changed = true;
+        }
+      }
+    }
+    return true;
+  };
+
+  // One set of domains per depth, so undoing is just going back up.
+  const levels = Array.from({ length: V + 1 }, () => new Int32Array(V));
+  const room: string[] = new Array(n);
+  const item: (string | null)[] = new Array(n);
   const sol: Solution = { room, item };
-  const taken = new Set<string>();
   let count = 0;
 
-  const fill = (k: number) => {
-    if (count > limit) return;
-    if (k === n + m) {
+  const search = (depth: number) => {
+    const d = levels[depth];
+    // The tightest unfixed variable next.
+    let best = -1;
+    let bestSize = 99;
+    for (let v = 0; v < V; v++) {
+      if (isSingle(d[v])) continue;
+      const size = bitCount(d[v]);
+      if (size < bestSize) {
+        bestSize = size;
+        best = v;
+      }
+    }
+    if (best < 0) {
+      for (let s = 0; s < n; s++) {
+        room[s] = rooms[bitIndex(d[s])];
+        item[s] = null;
+      }
+      for (let j = 0; j < m; j++) item[bitIndex(d[n + j])] = items[j];
+      for (let t = 0; t < tests.length; t++) if (!tests[t](sol)) return;
       count++;
       return;
     }
-    const ok = () => checks[k].every((t) => t(sol));
-    if (k < n) {
-      const s = suspectOrder[k];
-      for (const r of rooms) {
-        if (!shared && taken.has(r)) continue;
-        room[s] = r;
-        if (!shared) taken.add(r);
-        if (ok()) fill(k + 1);
-        taken.delete(r);
-        if (count > limit) break;
-      }
-      room[s] = undefined as unknown as string;
-    } else {
-      const w = itemOrder[k - n];
-      for (let s = 0; s < n; s++) {
-        if (item[s] !== null) continue;
-        item[s] = w;
-        if (ok()) fill(k + 1);
-        item[s] = null;
-        if (count > limit) return;
-      }
+    const next = levels[depth + 1];
+    for (let rest = d[best]; rest !== 0; rest &= rest - 1) {
+      next.set(d);
+      next[best] = lowBit(rest);
+      if (propagate(next)) search(depth + 1);
+      if (count > limit) return;
     }
   };
-  fill(0);
+
+  levels[0].set(dom0);
+  if (propagate(levels[0])) search(0);
   return count;
 }
 

@@ -37,6 +37,7 @@ import { CROSSWORD_SIZE, solutionAt } from '../src/games/crossword.ts';
 import { LEVELS as NOSING_LEVELS_LIST, botSeed as nosingBotSeed, dogSquareSeed as nosingDogSquareSeed } from '../src/games/nosingSweeps.ts';
 import { BOARD_SEEDS, boardSeed as nosingBoardSeed } from '../src/games/nosingBoardSweeps.ts';
 import { LEVELS as DOG_LEVELS, dogPlaysSeed, doubleSeed as dogDoubleSeed, hintBotSeed as dogHintBotSeed, redealSeed as dogRedealSeed, smallestBotSeed as dogSmallestBotSeed } from '../src/games/dogFightSweeps.ts';
+import { compareSearch, FACT_TYPES as SEARCH_FACT_TYPES } from '../src/engine/searchSweeps.ts';
 import { LOCK_LEVELS, LOCK_SEEDS, lockHintSeed, lockPrefixSeed, lockTierSeed } from '../src/games/lockSweeps.ts';
 import { CROSSWORD_SIZES, crosswordSeed as crosswordGridSeed, roomThings, sceneCaseSeed } from '../src/game/sceneGamesSweeps.ts';
 import { everyWordOnce, leftovers } from '../src/games/wordsearch.ts';
@@ -670,6 +671,20 @@ function bound(ok: boolean, what: string) {
   failures++;
   console.log(`  FAIL ${what}`);
 }
+
+// Fast search against the old exhaustive one on random small cases (search.test.ts keeps seeds 0-29).
+{
+  const r = holds('search vs oracle', 'search vs oracle', () => compareSearch(seedsOf(30, 3000, 150)));
+  if (r.ok) {
+    for (const m of r.value.mismatches.slice(0, 5)) {
+      failures++;
+      console.log(`  FAIL search vs oracle: ${m}`);
+    }
+    bound(SEARCH_FACT_TYPES.every((t) => (r.value.types.get(t) ?? 0) > 0), 'search vs oracle: some fact type never came up');
+    console.log(`Search vs old search: ${r.value.instances} random cases, ${r.value.comparisons} counts agree (${r.value.none} no answer, ${r.value.one} one, ${r.value.many} several; fast ${(r.value.fastMs / 1000).toFixed(1)}s, old ${(r.value.oracleMs / 1000).toFixed(1)}s)`);
+  }
+}
+section('search vs oracle');
 
 // Nosing around bots: hints win with every clue, the always-wrong and random bots finish within the turn bounds
 // (nosing.test.ts keeps seeds 0-6 per level). The always-wrong bot loses most dog fights.

@@ -6,6 +6,7 @@ import { generateCase } from './generate.ts';
 import { roomAdjacency } from './house.ts';
 import { Rng } from './rng.ts';
 import { allHoldings, allRoomings, countMatching } from './search.ts';
+import { compareSearch, FACT_TYPES } from './searchSweeps.ts';
 import { allCandidates, countSolutions } from './solver.ts';
 import type { ClueFact, Solution } from './types.ts';
 
@@ -66,4 +67,11 @@ test('7-guest cases: shared rooms, two empty hands, the killer alone with the we
     const space = { suspects: c.suspects, rooms: c.rooms, items: c.items, shared: true };
     assert.equal(countMatching(space, c.clues.map((cl) => cl.fact), { suspects: c.suspects, adjacency }, 2), 1, `case ${n}`);
   }
+});
+
+test('the fast search gives the same count as the old exhaustive one on random cases', () => {
+  const r = compareSearch(Array.from({ length: 30 }, (_, i) => i));
+  assert.deepEqual(r.mismatches, []);
+  for (const type of FACT_TYPES) assert.ok((r.types.get(type) ?? 0) > 0, `no ${type} fact tried`);
+  assert.ok(r.none > 0 && r.many > 0, 'both empty and crowded fact sets');
 });
