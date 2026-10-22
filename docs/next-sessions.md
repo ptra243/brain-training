@@ -144,24 +144,23 @@ Read the Guest pool and Confidants sections of docs/theme-draft.md, then help me
 ## Session: Campaign opening, meeting the guests
 Last touched: 2026-10-22
 Reads first: `docs/talk-threads.md` (Talk, beats, mood), `docs/theme-draft.md` (Confidants, opening and
-ending), `src/engine/campaign.ts`, and "The killer lies" entry below.
-Idea (owner, 2026-10-22): a skippable first phase of a campaign where she talks to every guest once.
-From these conversations she gets 2 true clues and a lie. Each conversation can set up story beats
-(the guest's thread or Confidant chapter) or just be filler. While talking to a guest later she can
-review their beats so far as a short story summary, in case she forgot or skipped the opening.
-**Conflict:** "Every clue is true" (CLAUDE.md) rules out a lie in the casebook. Settle first:
-- Where the lie lives: only in the opening, marked as hearsay and never a casebook clue? Or a claim
-  ("the Butler says X") as in "The killer lies"? Who tells it must not depend on the killer (rule 5),
-  or the liar points at the answer; or the killer always lies, and that is the hard-mode rule.
-- How she can tell: the lie must be provable false from later clues, so she never has to guess.
-- Whether the 2 true clues are extra clues (easier cases; the solver and clue counts change) or the
-  round 1 clues moved earlier (cases unchanged).
-Also decide: skipping (what she misses: only beats, or the clues too); one beat per guest or a full first
-chapter; where the beat review sits (the Talk log on the sheet already lists heard beats; a summary
-line per thread is content); quick play untouched.
+ending), `src/engine/campaign.ts` (free clues per round).
+Idea (owner, 2026-10-22): a skippable first phase of a campaign where she talks to every guest once and
+gets her starting clues from those conversations. Each conversation can set up story beats (the guest's
+thread or Confidant chapter) or just be filler. While talking to a guest later she can review their beats
+so far as a short story summary, in case she forgot or skipped the opening.
+- Clues: round 1 already starts with free clues (`src/engine/campaign.ts`, "Free clues"). Proposed: the
+  opening delivers those same clues as conversations, so cases don't change. Which guest says which
+  clue must not depend on the killer (rule 5), and a witness never vouches for themselves.
+- No lie for now: every clue stays true. The owner's "2 truths and a lie" waits for "The killer lies"
+  (exploratory, below), which settles how a lie can stay fair.
+- Decide: what skipping costs (proposed: nothing; the free clues land in the casebook as today, only the
+  beats are missed); one beat per guest or a full first chapter; where the beat review sits (the Talk log
+  on the sheet already lists heard beats; a summary line per thread is content); later rounds' free clues;
+  quick play untouched.
 Starting prompt:
 ```
-Read the "Campaign opening" entry in docs/next-sessions.md and its reads-first docs, then propose how the 2 truths and a lie fit with every clue being true, with the alternatives beside it.
+Read the "Campaign opening" entry in docs/next-sessions.md and its reads-first docs, then propose the opening flow: how round 1's free clues become conversations, skipping, and the beat review.
 ```
 
 ## Session: Relationships between characters
