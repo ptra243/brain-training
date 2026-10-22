@@ -85,6 +85,21 @@ test('a short tap on a tray piece selects it, and the late click does not undo t
   await expect(tray(page).locator(`[data-cbpid="${pid}"]`).first()).toBeVisible();
 });
 
+test('a short tap on a pinned board piece selects it so its clue can be read', async ({ page }) => {
+  await openBoard(page);
+  const pinned = page.locator('.cb-board .cb-pc.fixed').first();
+  await pinned.scrollIntoViewIfNeeded();
+  await touchTap(page, await centre(pinned));
+  const panel = page.getByRole('region', { name: 'Selected piece' });
+  await expect(panel).toBeVisible();
+  await page.evaluate(() => new Promise((r) => setTimeout(r, 500)));
+  await expect(panel).toBeVisible();
+  // The panel sits below the tray; on a phone the tap must bring it on screen, or nothing seems to happen.
+  await expect(panel).toBeInViewport({ ratio: 1 });
+  const dock = await page.locator('.dock').boundingBox();
+  if (dock) expect((await panel.boundingBox())!.y + 40).toBeLessThanOrEqual(dock.y);
+});
+
 test('dropping a tray piece on the cat asks for a hint and keeps the piece in the tray', async ({ page }) => {
   await openBoard(page);
   const { square, pid } = await firstTrayPiece(page);

@@ -98,6 +98,8 @@ export function CaseBoard(props: CaseBoardProps) {
 
   const cardRef = useRef<HTMLDivElement>(null);
   const fired = useRef(false);
+  const panelRef = useRef<HTMLElement>(null);
+  const revealPanel = useRef(false);
 
   // ---------- Size: as big as fits, up to 40px a square ----------
   useLayoutEffect(() => {
@@ -132,7 +134,19 @@ export function CaseBoard(props: CaseBoardProps) {
     setSelected,
     turnSelected,
     hasSelection: !!selected,
+    onTap: () => {
+      revealPanel.current = true;
+    },
   });
+
+  // A tap on the board opens the panel below the tray, often off a phone screen: bring it up.
+  // Only after taps, so a drop never scrolls the tray away from the board.
+  useEffect(() => {
+    if (!revealPanel.current) return;
+    revealPanel.current = false;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    panelRef.current?.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+  }, [selected]);
 
   // ---------- What's on the board ----------
   const heldPid = drag ? drag.pid : null;
@@ -558,7 +572,7 @@ export function CaseBoard(props: CaseBoardProps) {
       )}
 
       {focus && !drag && !finished && rules.piece[focus] && (
-        <section className="cb-panel" style={{ '--who': colourOf(focus) } as CSSProperties} aria-label="Selected piece">
+        <section ref={panelRef} className="cb-panel" style={{ '--who': colourOf(focus) } as CSSProperties} aria-label="Selected piece">
           <div className="head">
             <h2>{pieceName(rules, focus)}</h2>
             {loose(focus) && !save.placed[focus] && (

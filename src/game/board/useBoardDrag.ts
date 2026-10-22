@@ -55,6 +55,8 @@ export interface BoardDragOptions {
   turnSelected(): void;
   /** Is a piece selected (so R has something to turn)? */
   hasSelection: boolean;
+  /** A short tap changed the selection (the panel it opens may be below the screen). */
+  onTap(): void;
 }
 
 export function useBoardDrag(o: BoardDragOptions) {
@@ -106,6 +108,7 @@ export function useBoardDrag(o: BoardDragOptions) {
     const now = Date.now();
     const double = lastTap.current && lastTap.current.pid === d.pid && now - lastTap.current.t < 350;
     lastTap.current = { pid: d.pid, t: now };
+    o.onTap();
     if (double && !o.save.placed[d.pid]) {
       o.setSelected(d.pid);
       o.commit(withTurn(o.save, d.pid));
@@ -193,7 +196,9 @@ export function useBoardDrag(o: BoardDragOptions) {
       const up = (u: PointerEvent) => {
         if (u.pointerId !== pointerId) return;
         end();
-        if (Math.hypot(u.clientX - clientX, u.clientY - clientY) <= 8) o.setSelected((s) => (s === pinPid ? null : pinPid));
+        if (Math.hypot(u.clientX - clientX, u.clientY - clientY) > 8) return;
+        o.onTap();
+        o.setSelected((s) => (s === pinPid ? null : pinPid));
       };
       window.addEventListener('pointerup', up);
       window.addEventListener('pointercancel', end);

@@ -117,7 +117,7 @@
 .cb-cat.over { background: rgba(200, 162, 76, 0.25); border-style: solid; }
 .cb-cat small { color: var(--on-baize-soft); }
 
-.cb-panel { background: var(--card); color: var(--ink); border: 1px solid var(--card-edge); border-left: 6px solid var(--who, var(--brass)); border-radius: 0.35rem; padding: 12px; display: grid; gap: 8px; }
+.cb-panel { background: var(--card); color: var(--ink); border: 1px solid var(--card-edge); border-left: 6px solid var(--who, var(--brass)); border-radius: 0.35rem; padding: 12px; display: grid; gap: 8px; scroll-margin-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); }
 .cb-panel .head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .cb-panel h2 { font-size: 1.05rem; }
 .cb-rules { display: grid; gap: 4px; font-size: 0.88rem; margin: 0; padding-left: 1.1em; }
