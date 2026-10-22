@@ -160,7 +160,7 @@ function nosingProblems(p: NosingPuzzle, sceneRoom: string, clueCount: number): 
     if (!q.choices.includes(q.answer) || new Set(q.choices).size !== 3) out.push(`nosing question ${i} has bad choices`);
   }
   for (const [i, list] of Object.entries(p.speed)) {
-    if (list.some((q) => !Number.isInteger(q.answer) || q.answer < 0 || q.answer > 9999)) out.push(`nosing speed round ${i} has a bad answer`);
+    if (list.some((q) => new Set(q.cards).size !== 4 || !q.cards.includes(q.answer) || q.text.split('_').length !== 2)) out.push(`nosing speed round ${i} has a bad answer`);
   }
   board.squares.forEach((sq, i) => {
     if ((sq.kind === 'ladder' || (sq.kind === 'snake' && i !== p.dogSquare) || sq.kind === 'obstacle' || sq.kind === 'search') && !p.questions[i]) out.push(`nosing square ${i} has no question`);

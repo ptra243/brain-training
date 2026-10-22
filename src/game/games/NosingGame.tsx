@@ -316,17 +316,19 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
 
       {!walking && !done && !showEnd && q && !atEncounter && (
         <div className="card nosing-question">
-          {hintBlock}
-          <p className="question-text">{q.q.text}</p>
-          {questionHint && questionHint.choices && (
-            <div className="choices" role="group" aria-label="The cat's three choices">
-              {questionHint.choices.map((c) => (
-                <button key={c} className="secondary" onClick={() => play({ t: 'answer', value: c })}>
-                  {c}
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="question-scroll">
+            {hintBlock}
+            <p className="question-text">{q.q.text}</p>
+            {questionHint && questionHint.choices && (
+              <div className="choices" role="group" aria-label="The cat's three choices">
+                {questionHint.choices.map((c) => (
+                  <button key={c} className="secondary" onClick={() => play({ t: 'answer', value: c })}>
+                    {c}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <NumberPad onSubmit={(value) => play({ t: 'answer', value })} />
         </div>
       )}

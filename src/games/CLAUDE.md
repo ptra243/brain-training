@@ -55,7 +55,7 @@ Pure puzzle logic, no React. Components live in `src/game/games/`.
   clues unlock when their square is answered right (`onFound`); the rest, and
   any search square she never landed on, come with the lock, so every clue is
   guaranteed. Hints are `nosingHint` (question ladder, then `lockHint`), never in
-  the speed round. Every roll stops first (phase `rolled`, `nosingLanding` gives the square a Move would reach); a wrong plain-obstacle answer sends the cat back 2 squares (`obstacleBack`). The exact turn bounds model ladders, snakes, the back-2 and the `steps` bonus (shared helpers in `nosingBoard.ts`), so every run, however she answers, takes `NOSING_LEVELS[level].turns`. Tests drive bots that follow hints, are always wrong, and answer at random,
+  the speed round. A speed question is a sum with one blank and four cards, rebuilt from the seed. Every roll stops first (phase `rolled`, `nosingLanding` gives the square a Move would reach); a wrong plain-obstacle answer sends the cat back 2 squares (`obstacleBack`). The exact turn bounds model ladders, snakes, the back-2 and the `steps` bonus (shared helpers in `nosingBoard.ts`), so every run, however she answers, takes `NOSING_LEVELS[level].turns`. Tests drive bots that follow hints, are always wrong, and answer at random,
   on a few fixed seeds per level; the 100-seed sweeps live in `nosingSweeps.ts`
   and run from `check-cases` (sampled quick, all with `--full`), which also
   covers every scene room at every level.

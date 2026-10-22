@@ -319,9 +319,11 @@ Also from 2026-10-22, the owner's idea; can go in the same build or right after.
 
 - No keypad: each question shows a sum with a blank and **4 cards** to tap: `7 × _ = 56`, `_ − 9 = 14`,
   and sometimes the operator, `7 _ 8 = 56`.
-- Wrong cards are near misses: one table off (7×7 for 7×8), ±10, or the result of the wrong operation.
-- A wrong tap costs 3 seconds off the timer, so tapping at random can't climb the tiers.
-- Plain board questions could use 4 cards the same way and retire `NumberPad`; decide when building.
+- Wrong cards are near misses: one step off in a times or divide, ±10, or the blank from a different
+  operation on the same shown numbers. An operator blank offers the other three of +, −, ×, ÷.
+- A wrong tap costs 3 seconds and moves on. The prizes stay 4/6/9 and 5/8/12. Mashing can still take a
+  lower prize (about 7 right in 60 seconds); retune after she plays.
+- Board questions keep `NumberPad`. The OK button must stay inside 780px; four cards do not replace it.
 
 ### Settled (2026-10-22)
 
@@ -338,7 +340,10 @@ Also from 2026-10-22, the owner's idea; can go in the same build or right after.
   arithmetic, decided by tuning runs (see `dogCards.ts`).
 - **Old saves:** no prefix bump (that would wipe the campaign). On load, a nosing save holding old
   `combine` lock moves keeps its board moves and drops its lock moves, so she starts the lock again.
-- **Speed round fill-in-the-blank** comes after the dog, as its own brief.
+- **Speed round fill-in-the-blank** (2026-10-22): one blank in a sum, four cards, board questions stay
+  on the pad. Easy is + − × about one operator blank in five, and ÷ is only ever a wrong card. Medium
+  and hard add exact ÷ and an operator blank about one in four. Percent and fraction sums leave the
+  speed round; they stay on the board. No storage prefix bump.
 - Smaller calls made while splitting the build:
   - Cards go in by tap: tap a card, then a slot. Tapping a filled slot clears it. Drag can come later.
   - Each row's total and running total sit on a small line under the row, so the six slots keep 44px

@@ -946,6 +946,19 @@ body.dev { background: #f2f1ec; color: #222; }
 .nosing-note { margin: 0; font-size: 0.85rem; color: var(--on-baize-soft); }
 .nosing-question { padding: 0.65rem 0.75rem; gap: 0.4rem; }
 .nosing-question .hint-bar { margin: 0; }
+/* The card stops short of the bottom of a 780px screen, under the heading and the 3.5rem board strip: the story and the cat's choices
+   scroll in .question-scroll, the pad (and its OK) never does. 11rem is what sits above the card (it starts at 166px; the rest is slack). */
+.nosing-question { grid-template-rows: minmax(0, 1fr) auto; max-height: calc(100dvh - 11rem); }
+.question-scroll { display: grid; gap: 0.4rem; align-content: start; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+/* The speed round's four cards: a 2x2 grid of big targets. */
+.speed-sum { text-align: center; font-size: 1.6rem; font-variant-numeric: tabular-nums; padding: 0.25rem 0; }
+.speed-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+.speed-card {
+  min-height: 3.5rem; border: 1px solid var(--card-edge); border-radius: 0.35rem; cursor: pointer;
+  background: #fffcf3; color: var(--ink); font-family: var(--serif); font-size: 1.5rem; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.speed-card:active { background: var(--card-edge); }
 
 /* ---------- Exploring a campaign round ---------- */
 /* Rooms are tapped, so a square must stay at least 44px wide: the frame gives up its padding for it. */

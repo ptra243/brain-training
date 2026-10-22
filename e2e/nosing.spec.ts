@@ -27,6 +27,36 @@ const padOnScreen = async (page: Page, scope: string) => {
 
 const hintButton = (page: Page) => page.getByRole('button', { name: /for a hint$/ });
 
+/**
+ * From the first roll, roll and move until a square asks a question (a ladder or snake square may come first),
+ * check the encounter card, then press its button so the sum and the pad are showing.
+ */
+const playToQuestion = async (page: Page) => {
+  const roll = page.getByRole('button', { name: 'Roll', exact: true });
+  const move = page.getByRole('button', { name: 'Move', exact: true });
+  const question = page.locator('.nosing-question');
+  const encounter = page.locator('.nosing-encounter');
+  for (let guard = 0; guard < 12; guard++) {
+    await roll.or(move).or(encounter).first().waitFor();
+    if (await encounter.isVisible()) break;
+    if (await roll.isVisible()) {
+      await checkScreen(page, 'nosing: roll');
+      await roll.click();
+    } else {
+      await checkScreen(page, 'nosing: rolled');
+      await move.click();
+    }
+  }
+  // The encounter card comes first: the reason, what is at stake, then one button. No sum yet.
+  await expect(encounter).toBeVisible();
+  await expect(question).toBeHidden();
+  await expect(page.locator('.numpad')).toHaveCount(0);
+  await expect(encounter.locator('.stake')).toHaveCount(2);
+  await checkScreen(page, 'nosing: encounter card');
+  await encounter.getByRole('button', { name: /^(Start|Evade!|Jump!)$/ }).click();
+  await expect(encounter).toBeHidden();
+  await expect(question).toBeVisible();
+};
 test.describe('nosing around', () => {
   test('Solve opens the lock, shows the way and unlocks the clues', async ({ page }) => {
     await openNosing(page);
@@ -46,29 +76,7 @@ test.describe('nosing around', () => {
     const roll = page.getByRole('button', { name: 'Roll', exact: true });
     const move = page.getByRole('button', { name: 'Move', exact: true });
     const question = page.locator('.nosing-question');
-    const encounter = page.locator('.nosing-encounter');
-
-    // Roll and move until a square asks a question (a ladder or snake square may come first).
-    for (let guard = 0; guard < 12; guard++) {
-      await roll.or(move).or(encounter).first().waitFor();
-      if (await encounter.isVisible()) break;
-      if (await roll.isVisible()) {
-        await checkScreen(page, 'nosing: roll');
-        await roll.click();
-      } else {
-        await checkScreen(page, 'nosing: rolled');
-        await move.click();
-      }
-    }
-    // The encounter card comes first: the reason, what is at stake, then one button. No sum yet.
-    await expect(encounter).toBeVisible();
-    await expect(question).toBeHidden();
-    await expect(page.locator('.numpad')).toHaveCount(0);
-    await expect(encounter.locator('.stake')).toHaveCount(2);
-    await checkScreen(page, 'nosing: encounter card');
-    await encounter.getByRole('button', { name: /^(Start|Evade!|Jump!)$/ }).click();
-    await expect(encounter).toBeHidden();
-    await expect(question).toBeVisible();
+    await playToQuestion(page);
 
     // Ask the cat three times: the working, three choices, the answer.
     await hintButton(page).click();
@@ -83,6 +91,41 @@ test.describe('nosing around', () => {
     await typeNumber(page, answer);
     await expect(question).toBeHidden();
     await expect(roll.or(move).first()).toBeVisible();
+  });
+
+  // The OK button must stay inside 780px at any seed: the story and the cat's choices scroll, the pad does not.
+  for (const seed of [2, 3]) {
+    test.describe(`a question at seed ${seed}`, () => {
+      test.use({ seed });
+      test('OK stays inside 780px with the three choices open', async ({ page }) => {
+        await openNosing(page);
+        await playToQuestion(page);
+        await padOnScreen(page, '.nosing-question');
+        await hintButton(page).click();
+        await hintButton(page).click();
+        await expect(page.getByRole('group', { name: "The cat's three choices" })).toBeVisible();
+        await checkScreen(page, `nosing: question with choices at seed ${seed}`);
+        await padOnScreen(page, '.nosing-question');
+      });
+    });
+  }
+
+  test('a very long question scrolls inside its card and OK stays inside 780px', async ({ page }) => {
+    await openNosing(page);
+    await playToQuestion(page);
+    // Stand in a story far longer than any real one (the page re-renders only if the text changes).
+    await page.locator('.nosing-question .question-text').evaluate((el) => {
+      el.textContent = Array.from({ length: 40 }, (_, i) => `Sentence number ${i + 1} of a very long story.`).join(' ');
+    });
+    await hintButton(page).click();
+    await hintButton(page).click();
+    await expect(page.getByRole('group', { name: "The cat's three choices" })).toBeVisible();
+    await padOnScreen(page, '.nosing-question');
+    const scroller = page.locator('.question-scroll');
+    const room = await scroller.evaluate((el) => ({ scrolls: el.scrollHeight > el.clientHeight, overflowY: getComputedStyle(el).overflowY }));
+    expect(room, 'the story scrolls inside its own box').toEqual({ scrolls: true, overflowY: 'auto' });
+    await expect(page.locator('.nosing-question').getByRole('button', { name: '7', exact: true })).toBeVisible();
+    await checkScreen(page, 'nosing: very long question');
   });
 
   test('the key opens, and tapping a mark says what it is and how far', async ({ page }) => {
@@ -116,7 +159,34 @@ test.describe('nosing around', () => {
     await speedStart.click();
     await expect(page.getByRole('timer')).toBeVisible();
     await checkScreen(page, 'nosing: speed round');
-    await padOnScreen(page, '.nosing-speed');
+    // Four cards, no pad and no phone keyboard, all inside 780px.
+    const speed = page.locator('.nosing-speed');
+    await expect(speed.locator('.numpad')).toHaveCount(0);
+    const cards = page.getByRole('group', { name: 'Four cards' }).getByRole('button');
+    await expect(cards).toHaveCount(4);
+    for (let i = 0; i < 4; i++) await inViewport(page, cards.nth(i), `speed card ${i + 1}`);
+    // Tap cards until one is right and one is wrong. A wrong tap leaves the count alone and takes 3 seconds off the label.
+    const timer = page.getByRole('timer');
+    const secondsLeft = async () => Number(/^(\d+) seconds left$/.exec((await timer.getAttribute('aria-label')) ?? '')?.[1]);
+    const count = page.locator('.speed-count');
+    const rightNow = async () => Number(/^(\d+) right$/.exec(await count.innerText())?.[1]);
+    let right = 0;
+    let wrong = 0;
+    for (let tap = 0; tap < 12 && (right === 0 || wrong === 0); tap++) {
+      const before = await secondsLeft();
+      const was = await rightNow();
+      await cards.nth(tap % 4).click();
+      if ((await rightNow()) > was) {
+        right++;
+        expect(await secondsLeft(), 'a right tap costs nothing').toBe(before);
+      } else {
+        wrong++;
+        expect(await rightNow(), 'a wrong tap does not count').toBe(was);
+        expect(await secondsLeft(), `label after wrong tap ${wrong}`).toBe(before - 3);
+      }
+    }
+    expect(right, 'saw a right tap').toBeGreaterThan(0);
+    expect(wrong, 'saw a wrong tap').toBeGreaterThan(0);
     await page.clock.runFor(61_000);
     await expect(page.getByRole('timer')).toBeHidden();
     await expect(page.getByRole('button', { name: 'Roll', exact: true })).toBeVisible();

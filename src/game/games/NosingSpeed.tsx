@@ -1,6 +1,8 @@
-import { useEffect, useEffectEvent, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import type { SpeedQuestion } from '../../games/speedRound.ts';
-import { NumberPad } from './NumberPad.tsx';
+
+/** Seconds a wrong card takes off the clock. */
+const SPEED_PENALTY_SECONDS = 3;
 
 interface Props {
   questions: readonly SpeedQuestion[];
@@ -22,6 +24,11 @@ export function NosingSpeed({ questions, seconds, onEnd }: Props) {
   const end = useEffectEvent(() => onEnd(right));
   const running = endsAt !== null;
   const over = running && (left <= 0 || index >= questions.length);
+  // A second tap can land before React re-renders the next sum. One tap per sum.
+  const taken = useRef(false);
+  useEffect(() => {
+    taken.current = false;
+  }, [index]);
 
   useEffect(() => {
     if (endsAt === null) return;
@@ -34,13 +41,26 @@ export function NosingSpeed({ questions, seconds, onEnd }: Props) {
     if (over) end();
   }, [over]);
 
+  /** One tap ends that sum. A wrong card also takes the penalty off the clock, and off the label at once. */
+  const tap = (card: string) => {
+    if (taken.current || over) return;
+    taken.current = true;
+    if (card === questions[Math.min(index, questions.length - 1)].answer) {
+      setRight((r) => r + 1);
+    } else {
+      setEndsAt((e) => (e === null ? e : e - SPEED_PENALTY_SECONDS * 1000));
+      setLeft((l) => Math.max(0, l - SPEED_PENALTY_SECONDS));
+    }
+    setIndex((i) => i + 1);
+  };
+
   if (!running) {
     return (
       <div className="speed">
         <h2>Speed round</h2>
         <p>
-          Answer as many quick sums as you can in {seconds} seconds. The more you get right, the better the prize. A
-          poor round costs you nothing.
+          Tap the card that fills the blank. You have {seconds} seconds. A wrong card costs {SPEED_PENALTY_SECONDS}{' '}
+          seconds. The more you get right, the better the prize. A poor round costs you nothing.
         </p>
         <button
           className="primary"
@@ -63,15 +83,15 @@ export function NosingSpeed({ questions, seconds, onEnd }: Props) {
         <span className="sand-text">{left}s</span>
       </div>
       <p className="speed-count">{right} right</p>
-      <p className="question-text">{q.text}</p>
+      <p className="question-text speed-sum">{q.text}</p>
       {!over && (
-        <NumberPad
-          label="Your answer"
-          onSubmit={(v) => {
-            if (v === q.answer) setRight((r) => r + 1);
-            setIndex((i) => i + 1);
-          }}
-        />
+        <div className="speed-cards" role="group" aria-label="Four cards">
+          {q.cards.map((c) => (
+            <button key={c} className="speed-card" onClick={() => tap(c)}>
+              {c}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );

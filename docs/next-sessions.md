@@ -35,20 +35,6 @@ Starting prompt:
 Read .claude/handoff/nosing-board-polish.md, brief the implementer on Purr-diction on the board and the Move step, review and commit.
 ```
 
-## Session: Nosing around: fill-in-the-blank speed round
-Last touched: 2026-10-22
-Reads first: `docs/nosing-around.md` ("Speed round: fill in the blank", "Settled (2026-10-22)"), then
-`src/games/speedRound.ts`, the speed round and question UI in `src/game/games/`.
-Goal: speed questions become a sum with a blank and 4 cards to tap (near misses as wrong cards, 3 s off
-the timer for a wrong tap). Decide whether board questions use 4 cards too and retire `NumberPad`.
-Also fix a known layout bug there: at most seeds the question screen's OK button ends 12–40px below
-780px (the e2e pad check passes only at seed 12345); 4 cards may remove the cause.
-One layer per brief: engine and tests first, then UI and e2e.
-Starting prompt:
-```
-Read "Speed round: fill in the blank" in docs/nosing-around.md, settle whether board questions use cards too, then brief the engine and the UI separately.
-```
-
 ## Session: Exploration mode, the next-murder scene
 Last touched: 2026-10-22
 Reads first: `docs/exploration-mode.md` ("The next murder" and the build order), `src/game/CLAUDE.md`,
