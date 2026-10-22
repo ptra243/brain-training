@@ -33,7 +33,7 @@ are shelved (see Later).
   - *An object with a puzzle*: one of the round's minigames, placed in a room and named from that room's
     words (Wordle answers already come from room `objects`, crossword and word search from `things`).
     Finishing or revealing it moves the clock on.
-  - *A person*: a guest in the room. Opens their screen: tarot card art as the portrait, then the talk
+  - *A person*: a guest in the room. Opens their screen: their portrait in an ivory card frame (`docs/portraits.md`), then the talk
     interface from `SuspectSheet` (greeting, pips, "Anything else?"), and "Question them" when they have a
     questioning game (moves the clock on like any puzzle). Talking costs no time. With no beat ready, the
     guest has nothing more to say for now and she can read back what they've told her (the talk log).

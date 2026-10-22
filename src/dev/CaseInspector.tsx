@@ -15,6 +15,7 @@ import { countMatching } from '../engine/search.ts';
 import type { Difficulty } from '../engine/types.ts';
 import { emptyProgress } from '../game/state.ts';
 import { saveQuick, saveScreen } from '../game/storage.ts';
+import { PortraitGallery } from './PortraitGallery.tsx';
 
 const ROOM_COLOURS = ['#e8d7c3', '#cfdcc8', '#d6d3e6', '#ecd0cf', '#cfe0e6', '#ece2bf'];
 const nameOf = <T extends { id: string; name: string }>(list: readonly T[], id: string) =>
@@ -174,6 +175,8 @@ export function CaseInspector() {
           </table>
         )}
       </section>
+
+      <PortraitGallery />
     </main>
   );
 }

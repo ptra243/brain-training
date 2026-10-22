@@ -242,7 +242,7 @@ h1, h2 { font-family: var(--serif); font-weight: 600; margin: 0; }
 
 /* ---------- Dev case inspector (#dev) ---------- */
 body.dev { background: #f2f1ec; color: #222; }
-.inspector { max-width: 34rem; margin: 0 auto; padding: 1rem 1rem 3rem; display: grid; gap: 1.25rem; color: #222; }
+.inspector { grid-template-columns: minmax(0, 1fr); max-width: 34rem; margin: 0 auto; padding: 1rem 1rem 3rem; display: grid; gap: 1.25rem; color: #222; }
 .inspector h1 { font-size: 1.5rem; }
 .inspector h2 { font-size: 1.1rem; margin-bottom: 0.5rem; }
 .inspector .muted { color: #666; }
@@ -265,6 +265,20 @@ body.dev { background: #f2f1ec; color: #222; }
 .tag { font-size: 0.7rem; color: #666; border: 1px solid #ccc; border-radius: 999px; padding: 0 0.4rem; white-space: nowrap; }
 .inspector .answer { margin-top: 0.75rem; background: #fff; }
 .inspector .answer th, .inspector .answer td { border-bottom: 1px solid #ddd; }
+.pg h3 { font-size: 0.95rem; margin: 1rem 0 0.4rem; }
+.pg-grid, .pg-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(6.25rem, 1fr)); gap: 0.5rem; }
+.pg-row { grid-template-columns: repeat(3, minmax(0, 6.5rem)); }
+.pg-card {
+  margin: 0; padding: 0.4rem 0.4rem 0.5rem; display: grid; gap: 0.3rem; justify-items: center;
+  background: var(--card); border: 1px solid var(--card-edge); border-radius: 0.4rem; color: var(--ink);
+}
+.pg-art { width: 100%; aspect-ratio: 100 / 120; }
+.pg-card figcaption { font-family: var(--serif); font-size: 0.8rem; text-align: center; }
+.pg-counters { display: flex; gap: 0.4rem; align-items: center; }
+.pg-counter { display: block; border: 3px solid var(--brass); border-radius: 50%; overflow: hidden; background: var(--card-edge); }
+.pg-big { width: 52px; height: 52px; }
+.pg-small { width: 32px; height: 32px; border-width: 2px; }
+.pg-large { width: 150px; height: 180px; border: 1px solid var(--card-edge); border-radius: 0.4rem; overflow: hidden; background: var(--card); padding: 0.3rem; }
 
 /* ---------- Clues: tonight's puzzles ---------- */
 .puzzles ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
