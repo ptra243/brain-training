@@ -356,7 +356,11 @@ function makePlan(sim: Sim, herVals: Map<number, GridWay>): DogPlan {
   const doubleTurn = role === 'attack' && new Rng(hashSeed(`${f.seed}-dog-tier-${turn}`)).next() < 1 / 3;
   let hand = dog.nums.draw(HAND_NUMBERS);
   let opHand = dog.ops.draw(HAND_OPS);
-  for (let k = 0; k <= MAX_REDEALS; k++) {
+  // Her bonus hand can lift her best out of reach of the dog's beat tier; then, once the
+  // redeals run out, the dog keeps redealing for a play she can double (the bonus pays off).
+  const bonusBeat = role === 'attack' && !doubleTurn && sim.herNums.length > HAND_NUMBERS;
+  const last = bonusBeat ? 2 * MAX_REDEALS + 1 : MAX_REDEALS;
+  for (let k = 0; k <= last; k++) {
     if (k > 0) {
       hand = dog.nums.redeal(hand, HAND_NUMBERS, `${sim.f.seed}-dog-numbers-${turn}-redeal-${k}`);
       opHand = dog.ops.redeal(opHand, HAND_OPS, `${sim.f.seed}-dog-ops-${turn}-redeal-${k}`);
@@ -365,7 +369,7 @@ function makePlan(sim: Sim, herVals: Map<number, GridWay>): DogPlan {
     const vals = sortedKeys(cachedValues(dogHand));
     const middle = vals.slice(1, -1);
     const rng = new Rng(hashSeed(`${f.seed}-dog-play-${turn}-${k}`));
-    const value = pickDogValue(role, doubleTurn, middle, herVals, best, rng);
+    const value = pickDogValue(role, doubleTurn || k > MAX_REDEALS, middle, herVals, best, rng);
     if (value === null) continue;
     const fill = cachedValues(dogHand).get(value)!.fill;
     return {
