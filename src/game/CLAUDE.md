@@ -48,6 +48,8 @@
   seeded from `c.seed`, never the truth. At midnight (`atMidnight`) the Accuse
   tab opens once and the map and puzzles are frozen. Quick play keeps `MapPanel`.
   The talk section is shared (`TalkSection`) by `SuspectSheet` and the person screen.
+  A wrong person plays `NextMurder`, a full-screen button over an SVG night room (it guards its own
+  late click, so it isn't a `Dialog`); the escaped ending stays a dialog.
 - **Word games type with the phone's keyboard** through `TypingInput` (one
   hidden input; tapping the board focuses it). No on-screen keyboards.
   Buttons beside a focused board use `onPointerDown={(e) =>

@@ -245,6 +245,8 @@ h1, h2 { font-family: var(--serif); font-weight: 600; margin: 0; }
 
 /* ---------- Dev case inspector (#dev) ---------- */
 body.dev { background: #f2f1ec; color: #222; }
+/* A #dev/<id> preview of a game screen keeps the game's own look. */
+body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
 .inspector { grid-template-columns: minmax(0, 1fr); max-width: 34rem; margin: 0 auto; padding: 1rem 1rem 3rem; display: grid; gap: 1.25rem; color: #222; }
 .inspector h1 { font-size: 1.5rem; }
 .inspector h2 { font-size: 1.1rem; margin-bottom: 0.5rem; }
@@ -1067,6 +1069,8 @@ body.dev { background: #f2f1ec; color: #222; }
   .time-card { animation: time-fade 1.5s ease-out both; }
 }
 @keyframes time-fade { from { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } to { opacity: 0.2; } }
+/* The #dev/time-card preview holds the card still; the real one still fades. */
+.time-card.held { animation: none; opacity: 1; }
 .midnight-note { font-weight: 600; color: var(--on-baize); }
 
 /* Nosing: key, tap line, encounter card, dice tumble */
@@ -1089,4 +1093,50 @@ body.dev { background: #f2f1ec; color: #222; }
   0% { transform: rotate(-200deg) translateY(-14px) scale(0.8); opacity: 0.4; }
   60% { transform: rotate(25deg) translateY(2px) scale(1.05); opacity: 1; }
   100% { transform: none; }
+}
+
+/* The next-murder scene: a full-screen button over a night room. Only the bolt and the flash move. */
+.next-murder { position: fixed; inset: 0; z-index: 40; background: var(--wall); }
+.nm-button {
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 0.5rem;
+  width: 100%; height: 100%; margin: 0; border: 0; border-radius: 0; background: none; cursor: pointer;
+  padding: calc(0.5rem + env(safe-area-inset-top)) 1rem calc(0.9rem + env(safe-area-inset-bottom));
+  text-align: center; color: var(--on-baize);
+}
+.nm-button:focus-visible { outline-offset: -6px; }
+.nm-art { display: block; flex: 1 1 0; min-height: 0; width: 100%; max-width: 30rem; }
+.nm-room { fill: var(--wall); }
+.nm-rain line { stroke: #8fa8c4; stroke-width: 1.5; opacity: 0.55; }
+.nm-bolt { fill: var(--card); stroke: var(--brass); stroke-width: 1.5; stroke-linejoin: round; }
+.nm-frame { fill: none; stroke: var(--brass); stroke-width: 8; }
+.nm-mullion { stroke: var(--brass); stroke-width: 6; }
+.nm-sill { fill: var(--brass-deep); }
+.nm-flash { fill: var(--card); opacity: 0.28; pointer-events: none; }
+.nm-case { fill: var(--brass-deep); stroke: var(--brass); stroke-width: 3; }
+.nm-glass { fill: #0b1424; fill-opacity: 0.55; stroke: var(--brass); stroke-width: 3; }
+.nm-rod { stroke: var(--brass); stroke-width: 3; stroke-linecap: round; }
+.nm-bob { fill: var(--brass); }
+.nm-clock-face { fill: var(--card); stroke: var(--brass); stroke-width: 5; }
+.nm-tick { stroke: var(--ink); stroke-width: 2; }
+.nm-hand { stroke: var(--ink); stroke-linecap: round; }
+.nm-burst { fill: var(--card); stroke: var(--ink); stroke-width: 4; stroke-linejoin: round; }
+.nm-scream { font-family: var(--serif); font-weight: 700; font-size: 34px; fill: var(--ink); }
+.nm-title { display: block; flex: none; max-width: 100%; overflow-wrap: anywhere; font-family: var(--serif); font-weight: 600; font-size: 1.45rem; line-height: 1.2; color: var(--card); }
+.nm-body { display: block; flex: none; max-width: 100%; overflow-wrap: anywhere; font-family: var(--serif); font-size: 1.05rem; line-height: 1.4; color: var(--on-baize); }
+.nm-go { display: block; flex: none; font-family: var(--serif); font-size: 1.05rem; color: var(--brass); }
+@media (prefers-reduced-motion: no-preference) {
+  .nm-bolt { animation: nm-bolt 0.7s steps(1, end) infinite; }
+  .nm-flash { animation: nm-flash 0.7s ease-out infinite; }
+}
+@keyframes nm-bolt {
+  0% { opacity: 1; }
+  12% { opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes nm-flash {
+  0% { opacity: 0.05; }
+  3% { opacity: 0.28; }
+  12% { opacity: 0.28; }
+  20% { opacity: 0; }
+  100% { opacity: 0; }
 }

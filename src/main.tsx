@@ -6,8 +6,8 @@ import { App } from './game/App.tsx';
 import { ErrorBoundary } from './game/ErrorBoundary.tsx';
 import './styles.css';
 
-// The dev case inspector lives at #dev, in its own chunk; everything else is the game.
-const isDev = window.location.hash === '#dev';
+// The dev case inspector lives at #dev and the previews at #dev/<id>, in their own chunks; everything else is the game.
+const isDev = window.location.hash === '#dev' || window.location.hash.startsWith('#dev/');
 if (isDev) document.body.classList.add('dev');
 
 createRoot(document.getElementById('root')!).render(

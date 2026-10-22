@@ -124,7 +124,12 @@ Long sessions re-read their whole context every turn, so keep them short.
   design decisions for a task are settled, and before writing the code, stop
   and list the pieces. Hand each well-defined piece to the `implementer`
   agent (Sonnet, never `general`) with a full brief (files, behaviour, how to
-  test); it starts with no context. Any change to more than two code files
+  test); it starts with no context. Claude Code reads `model: sonnet` from
+  `.claude/agents/implementer.md`; leave that line as it is. In Cursor, pass
+  one of the following on the sub-session instead of inheriting this chat:
+  Composer 2.5 for a mechanical brief (CSS, copy, content lists, test
+  updates), or Grok 4.7 with Fast off when the brief touches the generator,
+  seeds, or saves. Any change to more than two code files
   (`.ts`, `.tsx`, `.css`, tests; not `.md`), anything you can describe in a few
   sentences, and any bug fix with a known cause goes to it. Edit directly only
   for one-line tweaks, for docs, or while you're still working out the design.
@@ -171,6 +176,7 @@ Long sessions re-read their whole context every turn, so keep them short.
   at one part; use Grep or Read with offset and limit.
 - Run layout rules and flows with `npm run e2e`. Run look checks through the `browser-check` agent and ask
   for a short pass/fail report, so screenshots stay out of the main context.
+- **Short path to a screen.** Looking: open `#dev/<id>` when `src/dev/CLAUDE.md` lists a preview, and give `browser-check` that URL only. Playing, or proving one click: load a save built on that run that lands on the screen, or one real action before the click. Do not solve puzzles, walk rooms, or play earlier rounds to get there. The click being proved still goes through the real UI. See `e2e/CLAUDE.md`.
 - After each commit, or when context is large, suggest starting a new session.
   Also suggest it when the topic changes (say, from one minigame's rules to
   theme content). Suggest only; don't write handoff files or split unasked.

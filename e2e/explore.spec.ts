@@ -187,6 +187,35 @@ test.describe('exploring a campaign round', () => {
   });
 });
 
+test.describe('the next-murder scene', () => {
+  test('a wrong person plays the scene, a tap does not skip it, a second tap goes on to midnight', async ({ page }) => {
+    await startCampaign(page);
+    await openTab(page, 'Accuse');
+
+    // Accuse a guest with the first weapon; if that was the right person with the wrong weapon, try the next guest.
+    const guests = page.getByRole('group', { name: 'Who' }).getByRole('button');
+    const scene = page.getByRole('dialog', { name: /wasn't the killer/ });
+    for (let i = 0; i < 2 && (await scene.count()) === 0; i++) {
+      await guests.nth(i).click();
+      await page.getByRole('group', { name: 'With what' }).getByRole('button').first().click();
+      await page.getByRole('button', { name: 'Make the accusation' }).click();
+      await page.getByRole('dialog', { name: 'Guess now?' }).getByRole('button', { name: 'Guess now' }).click();
+    }
+
+    // The confirming click did not dismiss it.
+    await expect(scene).toBeVisible();
+    await expect(scene.getByText('Murder!')).toBeVisible();
+    await expect(scene.getByText(/is found dead/)).toBeVisible();
+    await expect(scene.getByText(/Tap to go on to midnight/i)).toBeVisible();
+    await checkScreen(page, 'next murder');
+
+    // A second tap goes on: the Midnight round is open.
+    await scene.getByRole('button').click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.getByRole('navigation', { name: 'Rounds' }).getByRole('button', { name: 'Midnight' })).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
 // The murder room changes with the seed; an edge room once pushed the body mark off the plan.
 for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
   test.describe(`the explore map with seed ${seed}`, () => {

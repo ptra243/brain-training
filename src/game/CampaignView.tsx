@@ -9,6 +9,7 @@ import { Dialog } from './Dialog.tsx';
 import { atMidnight } from './explore.ts';
 import { DIFFICULTY_LABEL, ROUND_TIMES } from './labels.ts';
 import { itemName, suspectName } from './names.ts';
+import { NextMurder } from './NextMurder.tsx';
 import { currentRound, pick, puzzlesLeft, stillPossible, updateRound, type CampaignSave, type Verdict } from './campaign.ts';
 import { generate } from './caseClient.ts';
 import { roundsKey } from './caseJobs.ts';
@@ -58,25 +59,17 @@ export function CampaignView({ save, onSave, onHome }: Props) {
       {ready ? <CampaignRounds save={save} cases={ready} onSave={onSave} onHome={onHome} setNotice={setNotice} /> : <Shuffling />}
 
       {notice === 'next-body' && victim && (
-        <Dialog placement="center" labelId="next-body-title" onClose={() => setNotice(null)}>
-          <h2 id="next-body-title">{suspectName(victim)} wasn't the killer</h2>
-          <p className="dialog-text">
-            Later that night, {midSentence(suspectName(victim))} is found dead. The killer is still among the guests, and
-            {ROUNDS - save.victims.length === 1 ? ' this is your last chance.' : ` you have ${ROUNDS - save.victims.length} accusations left.`}
-          </p>
-          <div className="dialog-actions single">
-            <button
-              data-autofocus
-              className="primary"
-              onClick={() => {
-                setNotice(null);
-                window.scrollTo(0, 0);
-              }}
-            >
-              On to {ROUND_TIMES[now].toLowerCase()}
-            </button>
-          </div>
-        </Dialog>
+        <NextMurder
+          title={`${suspectName(victim)} wasn't the killer`}
+          body={`Later that night, ${midSentence(suspectName(victim))} is found dead. The killer is still among the guests, and${
+            ROUNDS - save.victims.length === 1 ? ' this is your last chance.' : ` you have ${ROUNDS - save.victims.length} accusations left.`
+          }`}
+          line={`Tap to go on to ${ROUND_TIMES[now].toLowerCase()}`}
+          onContinue={() => {
+            setNotice(null);
+            window.scrollTo(0, 0);
+          }}
+        />
       )}
       {notice === 'escaped' && victim && lastCase && (
         <Dialog placement="center" labelId="escaped-title" onClose={() => setNotice(null)}>
