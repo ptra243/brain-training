@@ -5,11 +5,14 @@ import { lockAccepts, lockNote } from './lock.ts';
 import { wordingPairs } from './mentalMaths.ts';
 import { usedNumbers } from './numberGrid.ts';
 import { CAT_LIVES } from './dogFight.ts';
+import { NOSING_LEVELS } from './nosingBoard.ts';
 import {
   nosingHint,
   nosingInitial,
   nosingLanding,
   nosingSolve,
+  nosingSolveKind,
+  nosingSolveStep,
   nosingSplit,
   nosingStep,
   nosingUpgrade,
@@ -407,3 +410,86 @@ for (const level of LEVELS) {
     for (const i of BOT_SEEDS) botSeed(level, i);
   });
 }
+
+test('Solve on a step: a question is answered right with the working shown, as a hint; the game goes on', () => {
+  for (const level of LEVELS) {
+    const { p, s, v } = find(level, 'hints', (x) => x.question?.kind === 'search' && x.question.clueId !== null);
+    assert.equal(nosingSolveKind(v), 'step');
+    const next = nosingSolveStep(p, s);
+    const after = nosingView(p, next);
+    assert.equal(next.hints, s.hints + 1);
+    assert.equal(next.solved, undefined);
+    assert.equal(after.finished, null);
+    assert.ok(after.found.includes(v.question!.clueId!), 'the clue is found');
+    assert.deepEqual(after.spent.filter((i) => i === v.question!.square), [v.question!.square]);
+    assert.deepEqual(after.working, v.question!.q.working);
+    // Same result as typing the right answer, apart from the working.
+    const typed = nosingView(p, nosingStep(p, s, { t: 'answer', value: v.question!.q.answer }));
+    assert.equal(after.pos, typed.pos);
+    assert.deepEqual(after.found, typed.found);
+  }
+  const { p, s } = find('easy', 'hints', (x) => x.question?.kind === 'ladder');
+  const climbed = nosingView(p, nosingSolveStep(p, s));
+  assert.equal(climbed.takenLadders.length, 1);
+});
+
+test('Solve on the dog fight: the fight is won and the cat carries on; the game goes on', () => {
+  for (const level of LEVELS) {
+    const { p, s, v } = find(level, 'hints', (x) => x.phase === 'dog');
+    assert.equal(nosingSolveKind(v), 'step');
+    const next = nosingSolveStep(p, s);
+    const after = nosingView(p, next);
+    assert.equal(next.hints, s.hints + 1);
+    assert.equal(after.finished, null);
+    assert.equal(after.dog!.over, 'won');
+    assert.ok(after.usedSnakes.includes(p.dogSquare));
+    assert.ok(after.pos >= p.dogSquare);
+    assert.equal(after.messages[0], 'The dog runs off.');
+  }
+});
+
+test('Solve step is illegal outside a question or the fight, and nosingStep refuses the move', () => {
+  const p = make('easy', 2);
+  const fresh = nosingInitial();
+  assert.equal(nosingSolveKind(nosingView(p, fresh)), null);
+  assert.equal(nosingSolveStep(p, fresh), fresh);
+  assert.equal(nosingStep(p, fresh, { t: 'solve' }), fresh);
+  const rolled = nosingStep(p, fresh, { t: 'roll' });
+  assert.equal(nosingSolveKind(nosingView(p, rolled)), null, 'hidden once rolled');
+  assert.equal(nosingSolveStep(p, rolled), rolled);
+  const lock = find('easy', 'hints', (x) => x.phase === 'lock');
+  assert.equal(nosingSolveKind(lock.v), 'lock');
+  assert.equal(nosingSolveStep(lock.p, lock.s), lock.s, 'the lock is solved by nosingSolve, not a step');
+  const open = drive(p, 'hints');
+  assert.equal(nosingSolveKind(open.v), null);
+});
+
+test('a bot that Solves every question and dog step, then opens the lock by hints, wins within the turn bounds', () => {
+  for (const level of LEVELS) {
+    for (const i of [0, 1, 2]) {
+      const p = make(level, i);
+      let s = nosingInitial();
+      let steps = 0;
+      for (let n = 0; n < 2000; n++) {
+        const v = nosingView(p, s);
+        if (v.finished) break;
+        let after: NosingState;
+        if (nosingSolveKind(v) === 'step') {
+          after = nosingSolveStep(p, s);
+          steps++;
+        } else if (v.phase === 'lock') {
+          after = v.evaluation.submittable && v.evaluation.answer === p.lock.target ? nosingStep(p, s, { t: 'try' }) : nosingHint(p, s)!.state;
+        } else if (v.phase === 'speed') after = nosingStep(p, s, { t: 'speed', right: 0 });
+        else after = nosingStep(p, s, { t: 'roll' });
+        assert.notEqual(after, s, `${level} ${i}: stuck in ${v.phase}`);
+        s = after;
+      }
+      const end = nosingView(p, s);
+      assert.equal(end.finished, 'won', `${level} ${i}`);
+      assert.ok(steps > 0 && s.hints >= steps);
+      assert.deepEqual(end.found.slice().sort(), p.clues.slice().sort());
+      const [lo, hi] = NOSING_LEVELS[level].turns;
+      assert.ok(end.turn - 1 >= lo && end.turn - 1 <= hi, `${level} ${i}: turn bound`);
+    }
+  }
+});

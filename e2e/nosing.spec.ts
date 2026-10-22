@@ -60,11 +60,35 @@ const playToQuestion = async (page: Page) => {
   await expect(question).toBeVisible();
 };
 test.describe('nosing around', () => {
-  test('Solve opens the lock, shows the way and unlocks the clues', async ({ page }) => {
+  test('Solve is hidden before the first roll', async ({ page }) => {
     await openNosing(page);
     await expect(page.getByRole('button', { name: 'Roll', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Solve', exact: true })).toHaveCount(0);
     await checkScreen(page, 'nosing: first roll');
+  });
 
+  test('Solve on a question answers only that step; the game goes on', async ({ page }) => {
+    await openNosing(page);
+    await playToQuestion(page);
+    await page.getByRole('button', { name: 'Solve', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Solve this step?' });
+    await expect(dialog).toContainText("The cat answers this one for you and it counts as a hint.");
+    await checkScreen(page, 'nosing: solve this step');
+    await dialog.getByRole('button', { name: 'Keep playing' }).click();
+    await expect(page.locator('.nosing-question')).toBeVisible();
+    await page.getByRole('button', { name: 'Solve', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Solve this step' }).click();
+    await expect(page.locator('.nosing-question')).toBeHidden();
+    await expect(page.locator('section.unlocked')).toHaveCount(0);
+    await expect(page.locator('.nosing-messages .working')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Roll', exact: true }).or(page.getByRole('button', { name: 'Move', exact: true })).first()).toBeVisible();
+    // Between steps there is nothing to solve.
+    await expect(page.getByRole('button', { name: 'Solve', exact: true })).toHaveCount(0);
+    await checkScreen(page, 'nosing: after solving a step');
+  });
+
+  test('Solve at the lock opens it, shows the way and unlocks the clues', async ({ page }) => {
+    await openNosingAt(page, 'lock');
     await page.getByRole('button', { name: 'Solve', exact: true }).click();
     await page.getByRole('dialog', { name: 'Solve this puzzle?' }).getByRole('button', { name: 'Solve it' }).click();
     await expect(page.locator('section.unlocked')).toBeVisible();
@@ -274,6 +298,16 @@ test.describe('nosing around', () => {
       await checkScreen(page, 'nosing: dog result');
       await dogResult.getByRole('button', { name: 'Continue' }).click();
       await expect(dogResult).toBeHidden();
+    });
+
+    test('Solve in the dog fight wins it and the game goes on', async ({ page }) => {
+      await openNosingAt(page, 'dog');
+      await page.getByRole('button', { name: 'Solve', exact: true }).click();
+      await page.getByRole('dialog', { name: 'Solve this step?' }).getByRole('button', { name: 'Solve this step' }).click();
+      await expect(page.locator('.dog-result')).toBeVisible();
+      await expect(page.locator('section.unlocked')).toHaveCount(0);
+      await page.locator('.dog-result').getByRole('button', { name: 'Continue' }).click();
+      await expect(page.locator('.dog-result')).toBeHidden();
     });
 
     test('an attack turn shows its challenge line, and the screen fits', async ({ page }) => {

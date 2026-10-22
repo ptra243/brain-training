@@ -28,9 +28,34 @@ async function walkTo(page: Page, what: ReturnType<Page['locator']>) {
 const objectRow = (page: Page) => page.locator('.room-list .puzzle-row:not(.person-row):not(:has-text("Have a")):not(.done):not(.locked)');
 
 async function solveOpenPuzzle(page: Page) {
-  await page.getByRole('button', { name: 'Solve', exact: true }).click();
-  await page.getByRole('dialog', { name: 'Solve this puzzle?' }).getByRole('button', { name: 'Solve it' }).click();
-  await page.locator('section.unlocked').getByRole('button', { name: 'Back to the casebook' }).click();
+  // Most games solve whole. Nosing around solves one step at a time: walk it on, Solve each question or
+  // dog fight, and Solve the lock at the end.
+  const unlocked = page.locator('section.unlocked');
+  const solve = page.getByRole('button', { name: 'Solve', exact: true });
+  const walk = page
+    .getByRole('button', { name: 'Roll', exact: true })
+    .or(page.getByRole('button', { name: 'Move', exact: true }))
+    .or(page.getByRole('button', { name: /^(Start|Evade!|Jump!)$/ }))
+    .or(page.getByRole('button', { name: 'Continue', exact: true }))
+    .or(page.getByRole('button', { name: /^Start the \d+ seconds$/ }));
+  for (let guard = 0; guard < 80 && !(await unlocked.isVisible()); guard++) {
+    await solve.or(walk).or(unlocked).first().waitFor();
+    if (await unlocked.isVisible()) break;
+    if (await solve.isVisible()) {
+      await solve.click();
+      const dialog = page.getByRole('dialog', { name: /^Solve this (puzzle|step)\?$/ });
+      await dialog.getByRole('button', { name: /^Solve (it|this step)$/ }).click();
+      await expect(dialog).toBeHidden();
+    } else {
+      const speed = page.getByRole('button', { name: /^Start the \d+ seconds$/ });
+      if (await speed.isVisible()) {
+        await page.clock.install();
+        await speed.click();
+        await page.clock.runFor(61_000);
+      } else await walk.first().click();
+    }
+  }
+  await unlocked.getByRole('button', { name: 'Back to the casebook' }).click();
 }
 
 test.describe('exploring a campaign round', () => {

@@ -14,7 +14,7 @@ import type { BoardSpec, Case, CatsSpec, GameKind, GameSpec, Interrogation, Inte
 import { tarotClueCards } from '../../engine/tarotCards.ts';
 import { generateCats, type CatPuzzle } from '../../games/cats.ts';
 import { nosingLadders, nosingSnakes } from '../../content/nosing.ts';
-import { buildNosing, nosingInitial, nosingSeed, nosingSolve, nosingUpgrade, type NosingPuzzle } from '../../games/nosing.ts';
+import { buildNosing, nosingInitial, nosingSeed, nosingSolve, nosingSolveKind, nosingSolveStep, nosingUpgrade, nosingView, type NosingPuzzle } from '../../games/nosing.ts';
 import { buildTarot, tarotInitial, tarotRevealAll } from '../../games/tarot.ts';
 import type { CrosswordPuzzle } from '../../games/crossword.ts';
 import { foundLocations, generateSudoku, locationSquares, type LocationSquares, type SudokuPuzzle } from '../../games/sudoku.ts';
@@ -77,6 +77,11 @@ export interface Played {
   view: ReactNode;
   /** Her moves with the answer filled in, for the Solve button. */
   solved: () => unknown;
+  /**
+   * Optional: the header Solve does something smaller than solving the game.
+   * `'hidden'` hides the button; otherwise its dialog uses this title and text, and `run` replaces the whole-game solve.
+   */
+  solveStep?: 'hidden' | { title: string; text: string; run: () => void };
 }
 
 /** A game with its own spec and puzzle types. */
@@ -296,8 +301,27 @@ export const GAMES: Record<GameKind, GameEntry> = {
     play(puzzle, a) {
       // A save from the old tile lock loses its lock moves (`nosingUpgrade`); the rest of the walk stays.
       const data = isNosingState(a.saved) ? nosingUpgrade(a.saved, puzzle, a.finished !== null) : a.finished === null ? nosingInitial() : nosingSolve(puzzle, nosingInitial());
+      // Solve acts on the step she is on: a question or the dog fight is answered for her (a hint); only the lock reveals the game.
+      const kind = nosingSolveKind(nosingView(puzzle, data));
+      const solveStep: Played['solveStep'] =
+        kind === 'lock' || a.finished !== null
+          ? undefined
+          : kind === 'step'
+            ? {
+                title: 'Solve this step?',
+                text: "Are you sure? This can't be undone. The cat answers this one for you and it counts as a hint.",
+                run: () => {
+                  const next = nosingSolveStep(puzzle, data);
+                  if (next === data) return;
+                  const found = nosingView(puzzle, next).found;
+                  if (found.length > nosingView(puzzle, data).found.length) a.dispatch({ type: 'found', clues: found });
+                  a.onChange(next);
+                },
+              }
+            : 'hidden';
       return {
         solved: () => nosingSolve(puzzle, data),
+        solveStep,
         view: (
           <NosingGame
             puzzle={puzzle}

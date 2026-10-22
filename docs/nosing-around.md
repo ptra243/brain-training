@@ -100,8 +100,9 @@ must account for each encounter's worst case.
 
 ## House rules this must keep
 
-- Puzzle first: the answers are numbers, never names. Solve button (in-app `Dialog`) moves the cat to
-  the end, opens the lock, gives every clue, recorded as `revealed`.
+- Puzzle first: the answers are numbers, never names. Solve (in-app `Dialog`) acts on the step she is on:
+  a question or the dog fight is answered for her (`nosingSolveStep`, counted as a hint, the game goes on);
+  at the lock it opens it, gives every clue, recorded as `revealed`; hidden elsewhere.
 - Hints from the cat: break the sum down, then three choices, then the answer. Pure `…Hint()` with a
   test that following hints always wins. Save the hint count.
 - Same ref = same case: board, rolls, questions and lock all from the seed; only her answers are saved.
@@ -226,8 +227,7 @@ better fit turns up in the code.
 - The game's clues split as in "Clue split". Search clues go to the clue rooms in path order. A
   search clue unlocks the moment she answers its square right; otherwise it waits for the lock.
   Opening the lock gives the lock clues plus every waiting clue.
-- Solve (in-app `Dialog`) moves the cat to the end, opens the lock, gives every clue and is recorded
-  as `revealed`. A run won using hints is still `won`. Save the hint count.
+- Solve (in-app `Dialog`) solves only the current step (a question, or the dog fight; a `solve` move plus a hint). Only at the lock does it open it, give every clue and record `revealed`. A run won using hints is still `won`. Save the hint count.
 
 ### Saved data
 

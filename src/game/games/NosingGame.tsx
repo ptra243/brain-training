@@ -90,7 +90,9 @@ function lockHintText(helper: string, h: Extract<NosingHint, { kind: 'lock' }>['
 
 export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChange, onFinish, onFound }: NosingScreenProps) {
   const view = useMemo(() => viewOf(puzzle, data), [puzzle, data]);
-  const [hint, setHint] = useState<NosingHint | null>(null);
+  // A hint note belongs to the position it was asked in (a step solved from the header moves on).
+  const [hintAt, setHintAt] = useState<{ hint: NosingHint; moves: number } | null>(null);
+  const hint = hintAt && hintAt.moves === data.moves.length ? hintAt.hint : null;
   /** The fight's result card was dismissed at this many moves. */
   const [seenEnd, setSeenEnd] = useState(-1);
   /** The encounter card was tapped at this many moves (hints not counted); not saved, so a reload shows the card again. */
@@ -113,7 +115,7 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
   const moveCount = data.moves.reduce((n, m) => n + (m.t === 'hint' ? 0 : 1), 0);
 
   const clearHint = () => {
-    setHint(null);
+    setHintAt(null);
   };
 
   /** Save a new state; search clues unlock at once, and a lock that opens ends the game. */
@@ -134,7 +136,7 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
     const res = nosingHint(puzzle, data);
     if (!res) return;
     // A lock hint has already filled her grid: replaying the hint move does it.
-    setHint(res.hint);
+    setHintAt({ hint: res.hint, moves: res.state.moves.length });
     onChange(res.state);
   };
 

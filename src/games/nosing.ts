@@ -152,7 +152,9 @@ export type NosingMove =
   /** In the dog fight: the once-per-fight swap of 1 or 2 cards (indexes into the fight hand). */
   | { t: 'swap'; nums: number[]; ops: number[] }
   /** A cat hint was taken (also counted in `hints`); it lets the next hint be a step stronger. */
-  | { t: 'hint' };
+  | { t: 'hint' }
+  /** Solve on a question square or in the dog fight: the cat answers that step for her (also counted in `hints`). */
+  | { t: 'solve' };
 
 /**
  * The save version. 2: the dog fight got its challenge, +1/+1 bonus and swap, which replay old
@@ -594,6 +596,24 @@ function act(p: NosingPuzzle, sim: Sim, move: NosingMove): boolean {
       }
       sim.hintRun++;
       return true;
+    case 'solve': {
+      if (sim.phase === 'question' && sim.square != null) {
+        const q = p.questions[sim.square];
+        sim.hintRun = 0;
+        sim.messages = [];
+        sim.working = null;
+        answer(p, sim, q.answer);
+        sim.working = q.working; // show the working for the step she was given
+        break;
+      }
+      if (sim.phase === 'dog' && sim.fight && !sim.fight.over) {
+        sim.messages = [];
+        sim.fight.over = 'won';
+        endDog(p, sim, true);
+        break;
+      }
+      return false;
+    }
     case 'roll': {
       if (sim.phase !== 'roll' && sim.phase !== 'rolled') return false;
       sim.hintRun = 0;
@@ -807,7 +827,7 @@ export function nosingLanding(p: NosingPuzzle, view: NosingView): number | null 
 
 /** One move. An illegal move gives back the same state. */
 export function nosingStep(p: NosingPuzzle, state: NosingState, move: NosingMove): NosingState {
-  if (move.t === 'hint') return state; // hints go through `nosingHint`
+  if (move.t === 'hint' || move.t === 'solve') return state; // these go through `nosingHint` and `nosingSolveStep`
   if (state.solved) return state;
   if (!act(p, replay(p, state), move)) return state;
   return { ...state, moves: [...state.moves, move] };
@@ -816,6 +836,21 @@ export function nosingStep(p: NosingPuzzle, state: NosingState, move: NosingMove
 /** Solve: the cat goes to the end, the lock opens, every clue is given. Recorded as `revealed`. */
 export function nosingSolve(_p: NosingPuzzle, state: NosingState): NosingState {
   return state.solved ? state : { ...state, solved: 'revealed' };
+}
+
+/** What the header Solve does in this view: solve the step (question, dog fight), open the lock, or nothing (hidden). */
+export function nosingSolveKind(view: NosingView): 'step' | 'lock' | null {
+  if (view.finished) return null;
+  if (view.phase === 'question' || view.phase === 'dog') return 'step';
+  return view.phase === 'lock' ? 'lock' : null;
+}
+
+/** Solve the step she is on (a question or the dog fight): the cat answers it, counted as a hint. Illegal elsewhere: the same state. */
+export function nosingSolveStep(p: NosingPuzzle, state: NosingState): NosingState {
+  if (state.solved) return state;
+  const move: NosingMove = { t: 'solve' };
+  if (!act(p, replay(p, state), move)) return state;
+  return { ...state, moves: [...state.moves, move], hints: state.hints + 1 };
 }
 
 export type NosingHint =

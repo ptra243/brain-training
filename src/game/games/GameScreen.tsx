@@ -29,7 +29,7 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
 
   // The puzzle is rebuilt from the seed once per game; only her moves are saved.
   const puzzle = useMemo(() => entry.build(c, spec), [entry, c, spec]);
-  const { view, solved } = entry.play(puzzle, {
+  const { view, solved, solveStep } = entry.play(puzzle, {
     c,
     progress,
     dispatch,
@@ -39,6 +39,8 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
     onChange: save,
     onFinish: finish,
   });
+
+  const step = solveStep && solveStep !== 'hidden' ? solveStep : null;
 
   // Play word games: the clue this game hides, half heard until she wins.
   const halfHeard = isSceneGame(spec) ? c.clues.find((cl) => cl.blank?.game === spec.kind) : undefined;
@@ -52,7 +54,7 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
           ‹
         </button>
         <h1>{entry.name}</h1>
-        {!finished ? (
+        {!finished && solveStep !== 'hidden' ? (
           <button className="solve-link" onClick={() => setConfirming(true)}>
             Solve
           </button>
@@ -93,8 +95,8 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
 
       {confirming && (
         <Dialog placement="center" labelId="solve-title" onClose={() => setConfirming(false)}>
-          <h2 id="solve-title">Solve this puzzle?</h2>
-          <p className="dialog-text">Are you sure? This can't be undone. You'll see the answer and still get the clues.</p>
+          <h2 id="solve-title">{step ? step.title : 'Solve this puzzle?'}</h2>
+          <p className="dialog-text">{step ? step.text : "Are you sure? This can't be undone. You'll see the answer and still get the clues."}</p>
           <div className="dialog-actions">
             <button data-autofocus className="secondary" onClick={() => setConfirming(false)}>
               Keep playing
@@ -103,10 +105,11 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
               className="primary"
               onClick={() => {
                 setConfirming(false);
-                finish('revealed', solved());
+                if (step) step.run();
+                else finish('revealed', solved());
               }}
             >
-              Solve it
+              {step ? 'Solve this step' : 'Solve it'}
             </button>
           </div>
         </Dialog>
