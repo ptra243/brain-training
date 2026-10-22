@@ -150,13 +150,15 @@ const isNosingMove = (v: unknown): v is NosingMove | LegacyNosingMove => {
       return isSlot(v.slot) && (isInt(v.card) || isOp(v.card));
     case 'clear':
       return isSlot(v.slot);
+    case 'swap':
+      return isArrayOf(isInt)(v.nums) && isArrayOf(isInt)(v.ops);
     default:
       return false;
   }
 };
 
 export const isNosingState = (v: unknown): v is SavedNosingState =>
-  isObject(v) && isArrayOf(isNosingMove)(v.moves) && isNum(v.hints) && opt(oneOf<'revealed'>('revealed'))(v.solved);
+  isObject(v) && isArrayOf(isNosingMove)(v.moves) && isNum(v.hints) && opt(oneOf<'revealed'>('revealed'))(v.solved) && opt(isNum)(v.v);
 
 // ---------- Progress ----------
 

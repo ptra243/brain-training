@@ -4,6 +4,7 @@ import { rerollFor, rollFor, nosingRollSeed, type NosingLevel } from './nosingBo
 import { lockAccepts, lockNote } from './lock.ts';
 import { wordingPairs } from './mentalMaths.ts';
 import { usedNumbers } from './numberGrid.ts';
+import { CAT_LIVES } from './dogFight.ts';
 import {
   nosingHint,
   nosingInitial,
@@ -13,6 +14,7 @@ import {
   nosingStep,
   nosingUpgrade,
   nosingView,
+  NOSING_VERSION,
   dogReward,
   type NosingMove,
   type NosingPuzzle,
@@ -327,19 +329,53 @@ test('a note from the cat fills the start of the lock, and those slots stay', ()
 
 test('an old save with combine or undo loses the lock moves and keeps the rest', () => {
   const walk: NosingMove[] = [{ t: 'roll' }, { t: 'answer', value: 4 }];
-  const old = nosingUpgrade({ moves: [...walk, { t: 'combine', a: 0, b: 1, op: '+' }, { t: 'hint' }, { t: 'try' }], hints: 2 });
-  assert.deepEqual(old, { moves: walk, hints: 2 });
-  const undone = nosingUpgrade({ moves: [...walk, { t: 'hint' }, { t: 'undo' }, { t: 'roll' }], hints: 1, solved: 'revealed' });
-  assert.deepEqual(undone, { moves: [...walk, { t: 'hint' }], hints: 1, solved: 'revealed' });
-  // A save with nothing old comes back untouched, including a try on the new grid.
-  const fresh = { moves: [...walk, { t: 'try' }] as NosingMove[], hints: 0 };
-  assert.equal(nosingUpgrade(fresh), fresh);
-  // A finished game with old lock moves stays open, as revealed.
-  assert.equal(nosingUpgrade({ moves: [{ t: 'undo' }], hints: 0 }, true).solved, 'revealed');
-  // And it plays on: the upgraded save replays.
   const p = make('easy', 2);
-  const v = nosingView(p, nosingUpgrade({ moves: [{ t: 'roll' }, { t: 'roll' }, { t: 'combine', a: 0, b: 1, op: '+' }], hints: 0 }));
+  const V = NOSING_VERSION;
+  const old = nosingUpgrade({ moves: [...walk, { t: 'combine', a: 0, b: 1, op: '+' }, { t: 'hint' }, { t: 'try' }], hints: 2, v: V }, p);
+  assert.deepEqual(old, { moves: walk, hints: 2, v: V });
+  const undone = nosingUpgrade({ moves: [...walk, { t: 'hint' }, { t: 'undo' }, { t: 'roll' }], hints: 1, solved: 'revealed', v: V }, p);
+  assert.deepEqual(undone, { moves: [...walk, { t: 'hint' }], hints: 1, solved: 'revealed', v: V });
+  // A save with nothing old comes back untouched, including a try on the new grid.
+  const fresh = { moves: [...walk, { t: 'try' }] as NosingMove[], hints: 0, v: V };
+  assert.equal(nosingUpgrade(fresh, p), fresh);
+  // A finished game with old lock moves stays open, as revealed.
+  assert.equal(nosingUpgrade({ moves: [{ t: 'undo' }], hints: 0, v: V }, p, true).solved, 'revealed');
+  // And it plays on: the upgraded save replays.
+  const v = nosingView(p, nosingUpgrade({ moves: [{ t: 'roll' }, { t: 'roll' }, { t: 'combine', a: 0, b: 1, op: '+' }], hints: 0, v: V }, p));
   assert.equal(v.turn, 2);
+});
+
+test('an older save in the dog fight restarts the fight and keeps the walk before it', () => {
+  const { p, s, v } = find('medium', 'hints', (x) => x.phase === 'dog' && x.dog!.turn >= 2);
+  const first = s.moves.findIndex((_, i) => nosingView(p, { ...s, moves: s.moves.slice(0, i) }).phase === 'dog');
+  assert.ok(first >= 0 && first < s.moves.length);
+  const saved = { moves: s.moves, hints: s.hints }; // no version: from before the new rules
+  const up = nosingUpgrade(saved, p);
+  assert.equal(up.v, NOSING_VERSION);
+  assert.deepEqual(up.moves, s.moves.slice(0, first));
+  const after = nosingView(p, up);
+  assert.equal(after.phase, 'dog');
+  assert.equal(after.dog!.turn, 1);
+  assert.equal(after.dog!.catLives, CAT_LIVES); // a fresh fight: full lives
+  assert.ok(v.dog!.turn >= 2);
+  // Idempotent, and a current save is left alone.
+  assert.equal(nosingUpgrade(up, p), up);
+  assert.equal(nosingUpgrade(s, p), s);
+  // A finished game that loses its fight stays open, as revealed.
+  assert.equal(nosingUpgrade(saved, p, true).solved, 'revealed');
+  // A save with no fight move in it only gets the version.
+  const walk = { moves: s.moves.slice(0, first), hints: 0 };
+  assert.deepEqual(nosingUpgrade(walk, p, true), { ...walk, v: NOSING_VERSION });
+});
+
+test('the swap move works inside a nosing dog fight', () => {
+  const { p, s } = find('easy', 'hints', (x) => x.phase === 'dog' && x.dog!.turn === 1 && x.dog!.swapAvailable);
+  const before = nosingView(p, s).dog!;
+  const next = nosingStep(p, s, { t: 'swap', nums: [0], ops: [] });
+  assert.notEqual(next, s);
+  assert.equal(nosingView(p, next).dog!.swapAvailable, false);
+  assert.equal(nosingStep(p, next, { t: 'swap', nums: [1], ops: [] }), next, 'once per fight');
+  assert.equal(before.turn, 1);
 });
 
 test('close enough: a near number opens the lock as won, with the way to show', () => {

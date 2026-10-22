@@ -295,7 +295,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
       }),
     play(puzzle, a) {
       // A save from the old tile lock loses its lock moves (`nosingUpgrade`); the rest of the walk stays.
-      const data = isNosingState(a.saved) ? nosingUpgrade(a.saved, a.finished !== null) : a.finished === null ? nosingInitial() : nosingSolve(puzzle, nosingInitial());
+      const data = isNosingState(a.saved) ? nosingUpgrade(a.saved, puzzle, a.finished !== null) : a.finished === null ? nosingInitial() : nosingSolve(puzzle, nosingInitial());
       return {
         solved: () => nosingSolve(puzzle, data),
         view: (

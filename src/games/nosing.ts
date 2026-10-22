@@ -149,16 +149,25 @@ export type NosingMove =
   | { t: 'try' }
   /** In the dog fight: play the grid. (`place`, `clear` and `clearAll` act on the fight's grid there; a card is an index into the fight hand.) */
   | { t: 'play' }
+  /** In the dog fight: the once-per-fight swap of 1 or 2 cards (indexes into the fight hand). */
+  | { t: 'swap'; nums: number[]; ops: number[] }
   /** A cat hint was taken (also counted in `hints`); it lets the next hint be a step stronger. */
   | { t: 'hint' };
+
+/**
+ * The save version. 2: the dog fight got its challenge, +1/+1 bonus and swap, which replay old
+ * fights differently. A save without `v` is older, and `nosingUpgrade` restarts its dog fight.
+ */
+export const NOSING_VERSION = 2;
 
 export interface NosingState {
   moves: NosingMove[];
   hints: number;
   solved?: 'revealed';
+  v?: number;
 }
 
-export const nosingInitial = (): NosingState => ({ moves: [], hints: 0 });
+export const nosingInitial = (): NosingState => ({ moves: [], hints: 0, v: NOSING_VERSION });
 
 /** A move from before the lock moved onto the number grid. */
 export type LegacyNosingMove = { t: 'combine'; a: number; b: number; op: Op } | { t: 'undo' };
@@ -168,6 +177,7 @@ export interface SavedNosingState {
   moves: (NosingMove | LegacyNosingMove)[];
   hints: number;
   solved?: 'revealed';
+  v?: number;
 }
 
 /**
@@ -176,13 +186,35 @@ export interface SavedNosingState {
  * moves belonged to the lock, the last square, so they are dropped; `hints` and
  * `solved` stay. A state with none of them comes back as it is. When the game is
  * already `finished`, the cut leaves it open as `revealed`, so its clues stay.
+ * A save from before version 2 that has made a move inside the dog fight is cut at
+ * that move (the fight restarts from turn 1, later moves are dropped) the same way;
+ * it needs the puzzle to replay where the fight starts.
  */
-export function nosingUpgrade(state: SavedNosingState, finished = false): NosingState {
+export function nosingUpgrade(state: SavedNosingState, p: NosingPuzzle, finished = false): NosingState {
   const old = (m: { t: string }) => m.t === 'combine' || m.t === 'undo';
-  if (!state.moves.some(old)) return state as NosingState;
-  const cut = state.moves.findIndex((m) => old(m) || m.t === 'try');
-  const moves = state.moves.slice(0, cut) as NosingMove[];
-  return finished && !state.solved ? { ...state, moves, solved: 'revealed' } : { ...state, moves };
+  let moves = state.moves;
+  let cut = false;
+  if (moves.some(old)) {
+    moves = moves.slice(0, moves.findIndex((m) => old(m) || m.t === 'try'));
+    cut = true;
+  }
+  let v = state.v;
+  if ((v ?? 1) < NOSING_VERSION) {
+    const sim = newSim();
+    const at = moves.findIndex((m) => {
+      if (sim.phase === 'dog') return true;
+      act(p, sim, m as NosingMove);
+      return false;
+    });
+    if (at >= 0) {
+      moves = moves.slice(0, at);
+      cut = true;
+    }
+    v = NOSING_VERSION;
+  }
+  if (!cut && v === state.v) return state as NosingState;
+  const out = { ...state, moves, v } as NosingState;
+  return cut && finished && !state.solved ? { ...out, solved: 'revealed' } : out;
 }
 
 export const TRIES = 3;
@@ -636,6 +668,8 @@ function act(p: NosingPuzzle, sim: Sim, move: NosingMove): boolean {
       sim.fill = clear(sim.fill, move.slot);
       return true;
     }
+    case 'swap':
+      return sim.phase === 'dog' && dogApply(sim.fight!, { t: 'swap', nums: move.nums, ops: move.ops }).ok;
     case 'clearAll': {
       if (sim.phase === 'dog') return dogApply(sim.fight!, move).ok;
       if (sim.phase !== 'lock' || sameFill(sim.fill, sim.base)) return false;

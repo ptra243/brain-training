@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { Difficulty } from '../engine/types.ts';
-import { buildDogFight, CAT_LIVES, dogHint, dogInitial, dogStep, dogView, type DogFight, type DogState, type DogView } from './dogFight.ts';
+import { buildDogFight, CAT_LIVES, challengeMet, challengeWay, dogHint, dogInitial, dogStep, dogView, type DogFight, type DogState, type DogView } from './dogFight.ts';
 import { allSlots, getSlot, gridValues, type GridFill, type Hand } from './numberGrid.ts';
 
 /**
@@ -115,6 +115,31 @@ export function redealSeed(level: Difficulty, i: number): { plays: number; redea
     out.plays++;
     if (v.dog.redeals > 0) out.redealed++;
     if (v.dog.fallback) out.fallbacks++;
+  }
+  return out;
+}
+
+/**
+ * The hint bot's first five turns: every attack challenge drawn is one her hand can meet while beating the dog
+ * (checked by playing the meeting fill: it is met and gives the bonus hand). Returns the attacks, how many had a
+ * challenge and the count per kind.
+ */
+export function challengeSeed(level: Difficulty, i: number): { attacks: number; drawn: number; kinds: Record<string, number> } {
+  const out = { attacks: 0, drawn: 0, kinds: {} as Record<string, number> };
+  const f = buildDogFight(`dog-challenge-${i}`, level);
+  const r = fight(f, hintBot(f), 5);
+  for (const v of r.trace.concat(r.view.over ? [] : [r.view])) {
+    if (v.role !== 'attack') {
+      assert.equal(v.challenge, null, 'no challenge on defence');
+      continue;
+    }
+    out.attacks++;
+    if (!v.challenge) continue;
+    out.drawn++;
+    out.kinds[v.challenge.kind] = (out.kinds[v.challenge.kind] ?? 0) + 1;
+    const way = challengeWay(v.challenge, handOf(v), v.dog.value);
+    assert.ok(way, `${level} dog-challenge-${i} turn ${v.turn}: ${v.challenge.kind} can be met`);
+    assert.ok(way.value >= v.dog.value && challengeMet(v.challenge, handOf(v), way.fill, way.value, v.dog.value));
   }
   return out;
 }

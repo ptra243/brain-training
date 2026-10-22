@@ -917,6 +917,11 @@ body.dev { background: #f2f1ec; color: #222; }
 .dog-play span:not(.dog-play-title) { display: block; white-space: nowrap; font-size: 0.95rem; }
 .dog-play-title { font-family: var(--sans); font-size: 0.8rem; color: var(--ink-soft); }
 .dog-last { font-size: 0.9rem; }
+.dog-challenge { font-family: var(--serif); font-size: 0.9rem; line-height: 1.3; color: var(--brass-deep); }
+.dog-pick { display: grid; gap: 0.4rem; }
+.dog-pick-hint { font-size: 0.85rem; text-align: center; }
+.swap-button { min-height: 44px; }
+.swap-actions { grid-template-columns: 1fr 2fr; }
 .dog-result { text-align: center; }
 .dog-card-face { display: grid; justify-items: center; align-content: center; gap: 0; line-height: 1; }
 .dog-card-face svg { width: 22px; height: 22px; }

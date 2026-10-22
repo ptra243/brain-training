@@ -417,13 +417,22 @@ function fillOf(state: State): GridFill {
   return fill;
 }
 
+/** Optional limits on the ways `gridValues` lists: at least `minNumbers` numbers, and every operator card in `opMask` (bit i = card i) used. */
+export interface GridNeed {
+  minNumbers?: number;
+  opMask?: number;
+}
+
 /**
  * Every value reachable in the grid's shape with at least 2 numbers (and at most
  * `maxNumbers`, default all), each with one preferred way: fewest numbers, then
  * fewest rows, then the first found in a fixed order. With operator cards each
  * card is used at most once, row operators included. Each number is used once.
+ * `need` keeps only the ways that meet it (operator cards only).
  */
-export function gridValues(hand: Hand, maxNumbers = hand.numbers.length): Map<number, GridWay> {
+export function gridValues(hand: Hand, maxNumbers = hand.numbers.length, need: GridNeed = {}): Map<number, GridWay> {
+  const minNumbers = Math.max(2, need.minNumbers ?? 2);
+  const needOps = need.opMask ?? 0;
   const n = hand.numbers.length;
   const full = (1 << n) - 1;
   const cap = Math.min(maxNumbers, n);
@@ -469,7 +478,7 @@ export function gridValues(hand: Hand, maxNumbers = hand.numbers.length): Map<nu
   // Best way per value over all levels.
   const best = new Map<number, State>();
   const consider = (s: State): void => {
-    if (popcount(s.mask) < 2) return;
+    if (popcount(s.mask) < minNumbers || (s.opMask & needOps) !== needOps) return;
     const old = best.get(s.value);
     if (!old) {
       best.set(s.value, s);

@@ -69,6 +69,13 @@ Pure puzzle logic, no React. Components live in `src/game/games/`.
   per Nosing run, on a seeded snake head. The dog only plays what she can
   answer with her hand; on attack it is strict-tiered (a third of turns
   doubleable, the rest only beatable). The dog stops the cat as it passes
-  (a roll, `steps` or a ladder onto or past its square). Following hints always wins; a win
+  (a roll, `steps` or a ladder onto or past its square). A bonus (an exact
+  hit on defence, or a met attack challenge) gives 6 numbers and 4 operators
+  next turn. Each attack turn may carry one seeded challenge, drawn only if her
+  hand can meet it while beating the dog (`challengeWay`; data, the UI words
+  it). She may swap 1-2 cards once per fight (`swap` move). The nosing save
+  has a version (`NOSING_VERSION`): an older save restarts its dog fight
+  (`nosingUpgrade`); bump it when the fight rules change. Following hints (never
+  swapping) always wins; a win
   carries the cat on to where the move was going and never gives `steps`, a
   loss slides it; `nosingBounds` models the stop, so turn bounds hold.

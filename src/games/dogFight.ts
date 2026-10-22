@@ -20,6 +20,7 @@ import {
   usedOpCards,
   type GridEval,
   type GridFill,
+  type GridNeed,
   type GridWay,
   type Hand,
   type Op,
@@ -30,6 +31,9 @@ export const CAT_LIVES = 3;
 export const DOG_LIVES = 3;
 export const HAND_NUMBERS = 5;
 export const HAND_OPS = 3;
+/** A bonus turn adds one number card and one operator card. */
+export const BONUS_NUMBERS = HAND_NUMBERS + 1;
+export const BONUS_OPS = HAND_OPS + 1;
 /** How many times the dog's hand is redealt before the fallback play. */
 export const MAX_REDEALS = 20;
 
@@ -54,7 +58,9 @@ export type DogMove =
   | { t: 'clear'; slot: Slot }
   | { t: 'clearAll' }
   | { t: 'play' }
-  | { t: 'hint' };
+  | { t: 'hint' }
+  /** Once per fight: send 1 or 2 cards (indexes into her hand's numbers and operators) back and draw as many. Clears the grid. */
+  | { t: 'swap'; nums: number[]; ops: number[] };
 
 export interface DogState {
   moves: DogMove[];
@@ -98,6 +104,18 @@ class Pile {
     return hand;
   }
 
+  /** Cards that can still be drawn (the pile and the spent ones, which are reshuffled in). */
+  available(): number {
+    return this.pile.length + this.spent.length;
+  }
+
+  /** Draws `removed.length` cards, then sends `removed` to the bottom of the pile. */
+  swapOut(removed: number[]): number[] {
+    const drawn = this.draw(removed.length);
+    this.pile.push(...removed);
+    return drawn;
+  }
+
   /** The hand's used cards are spent; the rest go to the bottom, in hand order. */
   settle(hand: readonly number[], used: ReadonlySet<number>): void {
     for (const c of hand) {
@@ -123,15 +141,112 @@ function newSide(seed: string, who: string, f: DogFight): Side {
 
 const valuesCache = new Map<string, Map<number, GridWay>>();
 
-function cachedValues(hand: Hand): Map<number, GridWay> {
-  const key = `${hand.numbers.join(',')}|${(hand.ops as readonly Op[]).join('')}`;
+function cachedValues(hand: Hand, need?: GridNeed): Map<number, GridWay> {
+  const key = `${hand.numbers.join(',')}|${(hand.ops as readonly Op[]).join('')}|${need ? `${need.minNumbers ?? ''}/${need.opMask ?? ''}` : ''}`;
   let v = valuesCache.get(key);
   if (!v) {
     if (valuesCache.size > 4000) valuesCache.clear();
-    v = gridValues(hand);
+    v = need ? gridValues(hand, need.minNumbers ?? hand.numbers.length, need) : gridValues(hand);
     valuesCache.set(key, v);
   }
   return v;
+}
+
+// ---------- the attack challenge ----------
+
+/** A side goal on an attack turn. Data only; the UI words it. */
+export type DogChallenge =
+  | { kind: 'even' }
+  | { kind: 'multiple'; n: number }
+  /** d <= value <= d + n, where d is the dog's number. */
+  | { kind: 'within'; n: number }
+  | { kind: 'prime' }
+  | { kind: 'square' }
+  /** Uses a minus or divide card. */
+  | { kind: 'minusDivide' }
+  /** Uses every operator card in her hand. */
+  | { kind: 'allOps' };
+
+export const CHALLENGE_KINDS: readonly DogChallenge['kind'][] = ['even', 'multiple', 'within', 'prime', 'square', 'minusDivide', 'allOps'];
+
+/** The challenges a level can draw from, in a fixed order. */
+export function challengeList(level: Difficulty): DogChallenge[] {
+  const easy: DogChallenge[] = [{ kind: 'even' }, { kind: 'multiple', n: 5 }, { kind: 'within', n: 10 }];
+  if (level === 'easy') return easy;
+  return [
+    ...easy,
+    { kind: 'multiple', n: 6 },
+    { kind: 'prime' },
+    { kind: 'square' },
+    { kind: 'within', n: 5 },
+    { kind: 'minusDivide' },
+    { kind: 'allOps' },
+  ];
+}
+
+const isPrime = (v: number): boolean => {
+  if (v < 2) return false;
+  for (let i = 2; i * i <= v; i++) if (v % i === 0) return false;
+  return true;
+};
+
+/** The value part of a challenge (the fill part is `fillMeets`). */
+function valueMeets(c: DogChallenge, v: number, d: number): boolean {
+  switch (c.kind) {
+    case 'even':
+      return v % 2 === 0;
+    case 'multiple':
+      return v % c.n === 0;
+    case 'within':
+      return v >= d && v <= d + c.n;
+    case 'prime':
+      return isPrime(v);
+    case 'square':
+      return Number.isInteger(Math.sqrt(v));
+    default:
+      return true;
+  }
+}
+
+function fillMeets(c: DogChallenge, hand: Hand, fill: GridFill): boolean {
+  const ops = hand.ops as readonly Op[];
+  const used = usedOpCards(fill);
+  if (c.kind === 'minusDivide') return used.some((i) => ops[i] === '-' || ops[i] === '/');
+  if (c.kind === 'allOps') return used.length === ops.length;
+  return true;
+}
+
+/** Whether this play (value `v` on `fill`) beats the dog (v >= d) and meets the challenge. */
+export function challengeMet(c: DogChallenge, hand: Hand, fill: GridFill, v: number, d: number): boolean {
+  return v >= d && valueMeets(c, v, d) && fillMeets(c, hand, fill);
+}
+
+/** A play of this hand that beats the dog (value >= d) and meets the challenge, or null when there is none. */
+export function challengeWay(c: DogChallenge, hand: Hand, d: number): { value: number; fill: GridFill } | null {
+  const reach = (vals: Map<number, GridWay>): { value: number; fill: GridFill } | null => {
+    for (const [value, way] of vals) if (value >= d && valueMeets(c, value, d)) return { value, fill: way.fill };
+    return null;
+  };
+  const ops = hand.ops as readonly Op[];
+  if (c.kind === 'allOps') {
+    if (ops.length + 1 > hand.numbers.length) return null;
+    return reach(cachedValues(hand, { minNumbers: ops.length + 1, opMask: (1 << ops.length) - 1 }));
+  }
+  if (c.kind === 'minusDivide') {
+    for (const [j, op] of ops.entries()) {
+      if (op !== '-' && op !== '/') continue;
+      const r = reach(cachedValues(hand, { opMask: 1 << j }));
+      if (r) return r;
+    }
+    return null;
+  }
+  return reach(cachedValues(hand));
+}
+
+/** The challenge for an attack turn: the level's list shuffled from the seed, the first one her hand can meet. Null when none fits. */
+function drawChallenge(f: DogFight, turn: number, hand: Hand, d: number): DogChallenge | null {
+  const order = new Rng(hashSeed(`${f.seed}-challenge-${turn}`)).shuffle(challengeList(f.level));
+  return order.find((c) => challengeWay(c, hand, d) !== null) ?? null;
 }
 
 // ---------- the dog's play ----------
@@ -210,6 +325,10 @@ interface Sim {
   last: DogTurnResult | null;
   over: 'won' | 'lost' | null;
   hints: number;
+  /** This attack turn's challenge (null on defence, or when her hand can't meet any). */
+  challenge: DogChallenge | null;
+  /** The once-per-fight swap has been spent. */
+  swapUsed: boolean;
 }
 
 export interface DogTurnResult {
@@ -221,8 +340,11 @@ export interface DogTurnResult {
   dogLines: string[];
   dogLost: number;
   catLost: number;
-  /** She hit the dog's number exactly on a defence: one more card next turn. */
+  /** She hit the dog's number exactly on a defence, or met the attack challenge: one more number and one more operator next turn. */
   bonusCard: boolean;
+  /** The attack challenge this turn had (null on defence or when none was drawn), and whether she met it while beating the dog. */
+  challenge: DogChallenge | null;
+  challengeMet: boolean;
 }
 
 const roleOf = (turn: number): DogRole => (turn % 2 === 1 ? 'attack' : 'defend');
@@ -283,14 +405,21 @@ function makePlan(sim: Sim, herVals: Map<number, GridWay>): DogPlan {
   };
 }
 
-function startTurn(sim: Sim): void {
+/** Her hand and what it can make, from the cards she holds now. */
+function setHand(sim: Sim): void {
   const { f } = sim;
-  sim.herNums = sim.cat.nums.draw(HAND_NUMBERS + (sim.bonus ? 1 : 0));
-  sim.bonus = false;
-  sim.herOps = sim.cat.ops.draw(HAND_OPS);
   sim.hand = { numbers: sim.herNums.map((c) => f.cards[c].value), ops: sim.herOps.map((c) => f.opCards[c]) };
   sim.herVals = cachedValues(sim.hand);
+}
+
+function startTurn(sim: Sim): void {
+  const { f } = sim;
+  sim.herNums = sim.cat.nums.draw(sim.bonus ? BONUS_NUMBERS : HAND_NUMBERS);
+  sim.herOps = sim.cat.ops.draw(sim.bonus ? BONUS_OPS : HAND_OPS);
+  sim.bonus = false;
+  setHand(sim);
   sim.plan = makePlan(sim, sim.herVals);
+  sim.challenge = roleOf(sim.turn) === 'attack' ? drawChallenge(f, sim.turn, sim.hand, sim.plan.value) : null;
   sim.fill = emptyFill();
   sim.hintRun = 0;
 }
@@ -309,6 +438,8 @@ function newSim(f: DogFight): Sim {
     last: null,
     over: null,
     hints: 0,
+    challenge: null,
+    swapUsed: false,
   } as unknown as Sim;
   startTurn(sim);
   return sim;
@@ -335,8 +466,10 @@ function hintFor(sim: Sim): DogHint {
     return { step, topic, possible, value: null };
   }
   let value: number;
-  if (role === 'attack') value = step === 1 ? keys.find((v) => v >= d)! : keys[keys.length - 1];
-  else value = sim.herVals.has(d) ? d : keys.find((v) => v > d)!;
+  // After a swap her hand may not reach d at all: then the hint shows her best play.
+  const best = keys[keys.length - 1];
+  if (role === 'attack') value = step === 1 ? (keys.find((v) => v >= d) ?? best) : best;
+  else value = sim.herVals.has(d) ? d : (keys.find((v) => v > d) ?? best);
   sim.fill = sim.herVals.get(value)!.fill;
   return { step, topic, possible: null, value };
 }
@@ -351,8 +484,10 @@ function resolve(sim: Sim, ev: GridEval): void {
   let dogLost = 0;
   let catLost = 0;
   let bonusCard = false;
+  const met = role === 'attack' && sim.challenge !== null && challengeMet(sim.challenge, sim.hand, sim.fill, v, d);
   if (role === 'attack') {
     dogLost = v >= 2 * d ? 2 : v >= d ? 1 : 0;
+    bonusCard = met;
   } else if (v < d) catLost = 1;
   else if (v === d) bonusCard = true;
   sim.last = {
@@ -365,6 +500,8 @@ function resolve(sim: Sim, ev: GridEval): void {
     dogLost,
     catLost,
     bonusCard,
+    challenge: role === 'attack' ? sim.challenge : null,
+    challengeMet: met,
   };
   sim.dogLives -= dogLost;
   sim.catLives -= catLost;
@@ -390,6 +527,24 @@ function apply(sim: Sim, move: DogMove): { ok: boolean; hint?: DogHint } {
     sim.hintRun++;
     sim.hints++;
     return { ok: true, hint };
+  }
+  if (move.t === 'swap') {
+    const { nums, ops } = move;
+    if (sim.swapUsed || !Array.isArray(nums) || !Array.isArray(ops)) return { ok: false };
+    const total = nums.length + ops.length;
+    const good = (idx: number[], len: number): boolean =>
+      idx.every((i) => Number.isInteger(i) && i >= 0 && i < len) && new Set(idx).size === idx.length;
+    if (total < 1 || total > 2 || !good(nums, sim.herNums.length) || !good(ops, sim.herOps.length)) return { ok: false };
+    if (sim.cat.nums.available() < nums.length || sim.cat.ops.available() < ops.length) return { ok: false };
+    const newNums = sim.cat.nums.swapOut(nums.map((i) => sim.herNums[i]));
+    const newOps = sim.cat.ops.swapOut(ops.map((i) => sim.herOps[i]));
+    nums.forEach((hi, k) => (sim.herNums[hi] = newNums[k]));
+    ops.forEach((hi, k) => (sim.herOps[hi] = newOps[k]));
+    setHand(sim);
+    sim.fill = emptyFill();
+    sim.hintRun = 0;
+    sim.swapUsed = true;
+    return { ok: true };
   }
   if (move.t === 'clearAll') {
     if (evaluateGrid(sim.hand, sim.fill).rows.every((r) => !r.used)) return { ok: false };
@@ -472,6 +627,10 @@ export interface DogView {
   hints: number;
   /** How many hints she has taken this turn. */
   hintsThisTurn: number;
+  /** This attack turn's challenge; null on defence or when her hand can't meet any. */
+  challenge: DogChallenge | null;
+  /** The once-per-fight swap is still available. */
+  swapAvailable: boolean;
 }
 
 export const dogView = (f: DogFight, state: DogState): DogView => dogSimView(f, replay(f, state));
@@ -510,6 +669,8 @@ export function dogSimView(f: DogFight, sim: DogSim): DogView {
     over: sim.over,
     hints: sim.hints,
     hintsThisTurn: sim.hintRun,
+    challenge: sim.over ? null : sim.challenge,
+    swapAvailable: !sim.swapUsed && !sim.over,
   };
 }
 

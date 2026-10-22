@@ -275,5 +275,58 @@ test.describe('nosing around', () => {
       await dogResult.getByRole('button', { name: 'Continue' }).click();
       await expect(dogResult).toBeHidden();
     });
+
+    test('an attack turn shows its challenge line, and the screen fits', async ({ page }) => {
+      await openNosingAt(page, 'dog', (v) => v.dog?.role === 'attack' && v.dog.challenge !== null && !v.dog.over);
+      const dogFight = page.locator('.dog-fight');
+      await expect(dogFight.locator('.dog-challenge')).toHaveText(/^Bonus: .+ \(one more number and operator next turn\)\.$/);
+      await checkScreen(page, 'nosing: dog attack with a challenge');
+      await inViewport(page, dogFight.getByRole('button', { name: /^Play/ }), 'dog challenge: Play');
+    });
+
+    test('a bonus hand of 6 numbers and 4 operators fits the phone', async ({ page }) => {
+      await openNosingAt(page, 'dog', (v) => (v.dog?.numbers.length ?? 0) >= 6 && !v.dog?.over);
+      const dogFight = page.locator('.dog-fight');
+      await expect(dogFight.getByRole('group', { name: 'Your numbers' }).getByRole('button')).toHaveCount(6);
+      await expect(dogFight.getByRole('group', { name: 'Signs' }).getByRole('button')).toHaveCount(4);
+      await expect(dogFight.locator('.dog-last')).toContainText(/one more number and operator next turn/);
+      await checkScreen(page, 'nosing: dog bonus hand');
+      await inViewport(page, dogFight.getByRole('button', { name: /^Play/ }), 'dog bonus hand: Play');
+    });
+
+    test('swap: pick two cards, confirm, and it is only once', async ({ page }) => {
+      await openNosingAt(page, 'dog');
+      const dogFight = page.locator('.dog-fight');
+      const numbers = dogFight.getByRole('group', { name: 'Your numbers' });
+      const before = await numbers.getByRole('button').allInnerTexts();
+      await dogFight.getByRole('button', { name: 'Swap cards', exact: true }).click();
+      const pick = dogFight.getByRole('group', { name: 'Pick cards to swap' });
+      const confirm = dogFight.getByRole('button', { name: /^Swap \d cards?$/ });
+      await expect(confirm).toBeDisabled();
+      await checkScreen(page, 'nosing: dog swap picking');
+      await pick.getByRole('button').nth(0).click();
+      await expect(confirm).toHaveText('Swap 1 card');
+      await dogFight.getByRole('group', { name: 'Pick signs to swap' }).getByRole('button').nth(0).click();
+      await expect(confirm).toHaveText('Swap 2 cards');
+      // Two are picked: no third.
+      await expect(pick.getByRole('button').nth(1)).toBeDisabled();
+      // Cancel leaves everything as it was.
+      await dogFight.getByRole('button', { name: 'Cancel', exact: true }).click();
+      await expect(dogFight.getByRole('group', { name: 'Your numbers' })).toBeVisible();
+      await dogFight.getByRole('button', { name: 'Swap cards', exact: true }).click();
+      await pick.getByRole('button').nth(0).click();
+      await confirm.click();
+      const dialog = page.getByRole('dialog', { name: 'Swap these cards?' });
+      await expect(dialog).toContainText("You can only swap once this fight.");
+      await dialog.getByRole('button', { name: 'Keep my cards' }).click();
+      await expect(dialog).toBeHidden();
+      await expect(confirm).toBeVisible();
+      await confirm.click();
+      await dialog.getByRole('button', { name: 'Swap', exact: true }).click();
+      await expect(dialog).toBeHidden();
+      await expect(dogFight.getByRole('button', { name: /^Swap/ })).toHaveCount(0);
+      await expect(numbers.getByRole('button')).toHaveCount(before.length);
+      await checkScreen(page, 'nosing: dog after swap');
+    });
   });
 });

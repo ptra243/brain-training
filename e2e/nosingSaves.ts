@@ -3,7 +3,7 @@ import { expect } from './fixtures.ts';
 import { content } from '../src/content/index.ts';
 import { nosingLadders, nosingSnakes } from '../src/content/nosing.ts';
 import { caseFor, type CaseRef } from '../src/engine/caseRef.ts';
-import { buildNosing, nosingSeed, type NosingPhase } from '../src/games/nosing.ts';
+import { buildNosing, nosingSeed, type NosingPhase, type NosingView } from '../src/games/nosing.ts';
 import { drive } from '../src/games/nosingSweeps.ts';
 
 /** Casebook -> Clues -> Get a clue -> Nosing around (the game must be in the list and not done). */
@@ -39,7 +39,7 @@ export async function openNosing(page: Page) {
  * her quick save with moves the 'hints' bot made (built here with the app's own engine) and
  * reloads. The save is made on every run, so a format or prefix change can't leave it stale.
  */
-export async function openNosingAt(page: Page, phase: Exclude<NosingPhase, 'open'>) {
+export async function openNosingAt(page: Page, phase: Exclude<NosingPhase, 'open'>, also: (v: NosingView) => boolean = () => true) {
   await openNosing(page);
   const raw = await page.evaluate(() => {
     const key = Object.keys(localStorage).find((k) => k.endsWith(':quick'));
@@ -61,9 +61,11 @@ export async function openNosingAt(page: Page, phase: Exclude<NosingPhase, 'open
     snakes: nosingSnakes,
   });
   // A short board can jump over a speed square or the dog with right answers: try the hint bot, then random bots.
-  let run = drive(puzzle, 'hints', (v) => v.phase === phase);
-  for (let salt = 0; run.v.phase !== phase && salt < 100; salt++) run = drive(puzzle, 'mixed', (v) => v.phase === phase, String(salt));
-  if (run.v.phase !== phase) throw new Error(`no bot reaches '${phase}' (seed ${spec.seed})`);
+  // `also` narrows the stop, e.g. a dog turn with a challenge or a bonus hand.
+  const stop = (v: NosingView) => v.phase === phase && also(v);
+  let run = drive(puzzle, 'hints', stop);
+  for (let salt = 0; !stop(run.v) && salt < 100; salt++) run = drive(puzzle, 'mixed', stop, String(salt));
+  if (!stop(run.v)) throw new Error(`no bot reaches '${phase}' (seed ${spec.seed})`);
 
   save.progress.games.nosing = { status: 'playing', data: run.s };
   await page.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: raw!.key, value: JSON.stringify(save) });

@@ -36,7 +36,7 @@ import { countCatSolutions, generateCats, solvableBySimpleSteps } from '../src/g
 import { CROSSWORD_SIZE, solutionAt } from '../src/games/crossword.ts';
 import { LEVELS as NOSING_LEVELS_LIST, botSeed as nosingBotSeed, dogSquareSeed as nosingDogSquareSeed } from '../src/games/nosingSweeps.ts';
 import { BOARD_SEEDS, boardSeed as nosingBoardSeed } from '../src/games/nosingBoardSweeps.ts';
-import { LEVELS as DOG_LEVELS, dogPlaysSeed, doubleSeed as dogDoubleSeed, hintBotSeed as dogHintBotSeed, redealSeed as dogRedealSeed, smallestBotSeed as dogSmallestBotSeed } from '../src/games/dogFightSweeps.ts';
+import { LEVELS as DOG_LEVELS, challengeSeed as dogChallengeSeed, dogPlaysSeed, doubleSeed as dogDoubleSeed, hintBotSeed as dogHintBotSeed, redealSeed as dogRedealSeed, smallestBotSeed as dogSmallestBotSeed } from '../src/games/dogFightSweeps.ts';
 import { compareSearch, FACT_TYPES as SEARCH_FACT_TYPES } from '../src/engine/searchSweeps.ts';
 import { LOCK_LEVELS, LOCK_SEEDS, lockHintSeed, lockPrefixSeed, lockTierSeed } from '../src/games/lockSweeps.ts';
 import { CROSSWORD_SIZES, crosswordSeed as crosswordGridSeed, roomThings, sceneCaseSeed } from '../src/game/sceneGamesSweeps.ts';
@@ -760,6 +760,17 @@ section('nosing boards');
       if (r.ok && r.value) doubles++;
     }
     bound(doubles > doubleSeeds.length * 0.2 && doubles < doubleSeeds.length * 0.45, `dog ${level}: a double is possible on ${doubles}/${doubleSeeds.length} attacks (wanted 20-45%)`);
+    const ch = { attacks: 0, drawn: 0, kinds: {} as Record<string, number> };
+    for (const i of seedsOf(20, 400, 60)) {
+      const r = holds('dog fights', `dog challenge ${level} seed ${i}`, () => dogChallengeSeed(level, i));
+      if (!r.ok) continue;
+      ch.attacks += r.value.attacks;
+      ch.drawn += r.value.drawn;
+      for (const [k, n] of Object.entries(r.value.kinds)) ch.kinds[k] = (ch.kinds[k] ?? 0) + n;
+    }
+    bound(ch.drawn >= ch.attacks * 0.5, `dog ${level}: a challenge on only ${ch.drawn}/${ch.attacks} attacks`);
+    const kinds = Object.entries(ch.kinds).sort().map(([k, n]) => `${k} ${n}`).join(', ');
+    parts.push(`${level}: challenge on ${ch.drawn}/${ch.attacks} attacks (${kinds})`);
     parts.push(`${level}: hint bot mean ${mean.toFixed(2)} turns, smallest bot lost ${lost}/${fights}, redeals ${count.redealed} and fallbacks ${count.fallbacks} in ${count.plays} plays, double on ${doubles}/${doubleSeeds.length}`);
   }
   console.log(`Dog fights (${FULL ? 'all' : 'sampled'} seeds): ${parts.join('; ')}`);

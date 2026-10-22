@@ -344,6 +344,16 @@ Also from 2026-10-22, the owner's idea; can go in the same build or right after.
   on the pad. Easy is + − × about one operator blank in five, and ÷ is only ever a wrong card. Medium
   and hard add exact ÷ and an operator blank about one in four. Percent and fraction sums leave the
   speed round; they stay on the board. No storage prefix bump.
+- **Attack challenge, bonus and swap** (2026-10-23, after playtesting): attack felt like autopilot
+  (her biggest number is always right), and the bonus number could never be placed (n numbers need
+  n − 1 operators). Now:
+  - The bonus (an exact defence, or a met challenge) is +1 number and +1 operator next turn.
+  - Each attack turn may show one seeded challenge, only when her hand can meet it while beating
+    the dog. Easy: even, multiple of 5, within 10 of the dog. Medium and hard add: multiple of 6,
+    prime, square, within 5 of the dog, use a − or ÷, use every operator. Lives are unchanged.
+  - Once per fight she can swap 1 or 2 cards (numbers or operators) after seeing the dog's number.
+    The dog's number stays; the new hand may be worse.
+  - The dog keeps its own hand. Hints still aim only to win. Old saves restart a fight in progress.
 - Smaller calls made while splitting the build:
   - Cards go in by tap: tap a card, then a slot. Tapping a filled slot clears it. Drag can come later.
   - Each row's total and running total sit on a small line under the row, so the six slots keep 44px
