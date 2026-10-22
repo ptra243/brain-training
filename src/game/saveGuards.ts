@@ -186,6 +186,7 @@ export function sanitizeProgress(v: unknown): Progress {
   if (isObject(v.endBoard) && isString(v.endBoard.key)) p.endBoard = { key: v.endBoard.key, save: v.endBoard.save };
   if (isRecordOf(isNum)(v.talk)) p.talk = v.talk;
   if (isString(v.at)) p.at = v.at;
+  if (Array.isArray(v.seen)) p.seen = v.seen.filter(isString);
   return p;
 }
 

@@ -351,6 +351,14 @@ body.dev { background: #f2f1ec; color: #222; }
 }
 /* Map and grid hints */
 .case-header .hint-button { justify-self: end; }
+.case-header.exploring { grid-template-columns: 2.75rem minmax(0, 1fr) auto; }
+.header-tools { display: flex; align-items: center; justify-content: flex-end; gap: 0.35rem; }
+.you-button {
+  flex: none; width: 2.75rem; height: 2.75rem; padding: 0; border-radius: 50%; overflow: hidden; cursor: pointer;
+  border: 3px solid var(--brass); background: none;
+  box-shadow: 0 2px 0 var(--brass-deep), 0 3px 6px rgba(0, 0, 0, 0.35);
+}
+.you-button svg { display: block; width: 100%; height: 100%; }
 .casebook-hint { position: sticky; top: 0.5rem; z-index: 4; margin: 0 1rem 0.6rem; }
 .mark.wrong { box-shadow: inset 0 0 0 2.5px var(--pencil); border-radius: 50%; }
 .mark.pawed { color: var(--brass-deep); background: #f3e6bf; }
@@ -975,11 +983,23 @@ body.dev { background: #f2f1ec; color: #222; }
 .tile.here { filter: brightness(1.07); }
 .you-marker {
   position: absolute; z-index: 3; transform: translate(-50%, -50%); pointer-events: none;
-  width: 2.2rem; height: 2.2rem; border-radius: 50%; display: grid; place-items: center;
-  background: var(--ink); color: var(--card); border: 3px solid var(--brass);
+  width: 2.75rem; height: 2.75rem; border-radius: 50%; overflow: hidden; padding: 0;
+  background: none; border: 3px solid var(--brass);
   box-shadow: 0 2px 0 var(--brass-deep), 0 3px 6px rgba(0, 0, 0, 0.35);
-  font-family: var(--serif); font-size: 0.72rem; font-weight: 700;
 }
+.you-marker svg { display: block; width: 100%; height: 100%; }
+.map-person {
+  position: absolute; z-index: 4; transform: translate(-50%, -50%);
+  width: 2.75rem; height: 2.75rem; min-width: 2.75rem; min-height: 2.75rem; padding: 0;
+  border-radius: 50%; overflow: hidden; cursor: pointer; display: grid; place-items: center;
+  border: 3px solid var(--brass); background: var(--counter); color: #fbf7ea;
+  box-shadow: 0 2px 0 var(--brass-deep), 0 3px 6px rgba(0, 0, 0, 0.35);
+  font-family: var(--serif); font-size: 0.85rem; font-weight: 700;
+}
+.map-person.has-portrait { background: none; }
+.map-person svg { display: block; width: 100%; height: 100%; }
+.map-person:disabled { cursor: default; }
+.map-person:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
 .todo-mark {
   position: absolute; z-index: 3; transform: translate(-50%, -50%) rotate(-8deg); pointer-events: none;
   width: 1.4rem; height: 1.4rem; border-radius: 50%; display: grid; place-items: center;
@@ -1014,12 +1034,32 @@ body.dev { background: #f2f1ec; color: #222; }
   border: 2px solid var(--brass);
   box-shadow: 0 2px 0 var(--brass-deep), 0 3px 6px rgba(0, 0, 0, 0.3);
 }
-.portrait-card .portrait-art { display: block; width: 150px; aspect-ratio: 100 / 120; overflow: hidden; }
+.portrait-card .portrait-art { position: relative; display: block; width: 150px; aspect-ratio: 100 / 120; overflow: hidden; }
 .portrait-card .portrait-art svg { display: block; width: 100%; height: 100%; }
 /* Too wide to sit beside the title at 360px: the card goes on top, the title and close button below. */
 .sheet-head.with-card { grid-template-columns: 1fr auto; }
 .sheet-head.with-card .portrait-card { grid-column: 1 / -1; justify-self: center; }
 .portrait-card figcaption { font-family: var(--serif); font-size: 0.85rem; font-weight: 700; text-align: center; line-height: 1.1; }
+/* Two full cards and the close button across a 360px sheet. */
+.talk-head {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2.75rem; gap: 0.4rem; align-items: start;
+}
+.talk-head .sheet-close { grid-column: 3; grid-row: 1; }
+.talk-head .portrait-card { min-width: 0; width: 100%; }
+.talk-head .portrait-art { position: relative; width: 100%; aspect-ratio: 100 / 120; }
+.portrait-art .portrait-fallback {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  color: #fbf7ea; font-family: var(--serif); font-size: 1.6rem; font-weight: 700;
+}
+.person-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.35rem; }
+.person-tabs button {
+  min-height: 2.75rem; padding: 0.35rem 0.2rem; border-radius: 0.35rem; cursor: pointer;
+  border: 1px solid var(--card-edge); background: #fffcf3; color: var(--ink);
+  font-family: var(--serif); font-size: 0.95rem;
+}
+.person-tabs button[aria-selected='true'] { border-color: var(--brass-deep); box-shadow: inset 0 -3px 0 var(--brass); font-weight: 700; }
+.person-game { display: grid; gap: 0.45rem; }
+.person-game-name { margin: 0; font-family: var(--serif); font-size: 1.05rem; font-weight: 700; }
 .time-card { text-align: center; padding: 0.4rem 0; }
 .time-card h2 { font-size: 2.4rem; margin: 0; letter-spacing: 0.02em; }
 .time-card p { margin: 0.2rem 0 0; font-family: var(--serif); font-size: 1.05rem; color: var(--ink-soft); }

@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { content, houseDetails } from '../content/index.ts';
 import { campaignCast, campaignRound, type CampaignRef } from '../engine/campaign.ts';
 import { isSceneGame } from '../engine/gameKinds.ts';
-import type { Case } from '../engine/types.ts';
-import { atMidnight, canOpen, clockAfterNext, clockLine, clockTime, gamesLeft, roomContents, roundPuzzles } from './explore.ts';
+import type { Case, Room } from '../engine/types.ts';
+import { atMidnight, canOpen, centreCell, clockAfterNext, clockLine, clockTime, gamesLeft, roomContents, roomsSeen, roundPuzzles, standSpots } from './explore.ts';
 import { emptyProgress, reduce, sceneText, sceneUnlocked, type Progress } from './state.ts';
 import { questioningOf } from './talk.ts';
 
@@ -117,11 +117,63 @@ test('in an exploring round the scene is known from the start; others are unchan
   assert.equal(sceneText(c, emptyProgress()), null);
 });
 
-test('move sets the room she is in, only a room in play', () => {
+test('move sets the room she is in, only a room in play, and remembers the destination', () => {
   const c = all[0];
-  const room = c.rooms[1];
-  assert.equal(reduce(c, emptyProgress(), { type: 'move', room }).at, room);
+  const scene = c.sceneRoom;
+  const room = c.rooms.find((r) => r !== scene)!;
+  const onward = c.rooms.find((r) => r !== scene && r !== room)!;
+  assert.ok(onward, 'a round has a third room');
+
+  assert.deepEqual(roomsSeen(c, emptyProgress()), [scene]);
+
+  const there = reduce(c, emptyProgress(), { type: 'move', room });
+  assert.equal(there.at, room);
+  assert.deepEqual(there.seen, [room]);
+  assert.deepEqual([...roomsSeen(c, there)].sort(), [scene, room].sort());
+
+  const left = reduce(c, there, { type: 'move', room: onward });
+  assert.equal(left.at, onward);
+  assert.deepEqual(left.seen, [room, onward]);
+  assert.deepEqual([...roomsSeen(c, left)].sort(), [scene, room, onward].sort());
+
+  const bad = reduce(c, left, { type: 'move', room: 'nowhere' });
+  assert.equal(bad.at, onward);
+  assert.deepEqual(bad.seen, [room, onward]);
+  assert.equal(reduce(c, left, { type: 'move', room: onward }), left);
+
+  const back = reduce(c, left, { type: 'move', room: scene });
+  assert.equal(back.at, scene);
+  assert.deepEqual(back.seen, [room, onward]);
   assert.equal(reduce(c, emptyProgress(), { type: 'move', room: 'nowhere' }).at, undefined);
+});
+
+test('people stand on their own cells, and share one only when the room is full', () => {
+  const room = content.house.rooms[0];
+  assert.equal(room.cells.length, 6);
+  const [cr, cc] = centreCell(room);
+  const guests = ['a', 'b', 'c', 'd'];
+  const spots = standSpots(room, guests, true);
+  const player = spots.find((s) => s.id === 'player')!;
+  assert.deepEqual([player.r, player.col], [cr + 0.5, cc + 0.5]);
+  const theirs = spots.filter((s) => s.id !== 'player');
+  assert.deepEqual(theirs.map((s) => s.id), guests);
+  assert.equal(new Set(theirs.map((s) => `${s.r},${s.col}`)).size, guests.length);
+  assert.ok(theirs.every((s) => s.r !== player.r || s.col !== player.col));
+  assert.ok(guests.length + 1 <= room.cells.length);
+
+  const free = room.cells.filter((cell) => cell[0] !== cr || cell[1] !== cc).slice();
+  free.sort((a, b) => {
+    const da = (a[0] - cr) ** 2 + (a[1] - cc) ** 2;
+    const db = (b[0] - cr) ** 2 + (b[1] - cc) ** 2;
+    return da - db || a[0] - b[0] || a[1] - b[1];
+  });
+  assert.deepEqual([theirs[0].r, theirs[0].col], [free[0][0] + 0.5, free[0][1] + 0.5]);
+
+  const nook: Room = { id: 'nook', name: 'Nook', tint: '#fff', objects: [], things: [], cells: [[4, 1]] };
+  const shared = standSpots(nook, ['a', 'b'], false);
+  assert.equal(shared.length, 2);
+  assert.deepEqual(shared.map((s) => s.r), [4.5, 4.5]);
+  assert.deepEqual(shared.map((s) => s.col), [1.3, 1.7]);
 });
 
 test('no object is named with a word any puzzle of the round hides', () => {

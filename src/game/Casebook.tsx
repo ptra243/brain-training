@@ -14,7 +14,9 @@ import { afterHint, gridHint, markActions } from './gridHints.ts';
 import { gridHintText } from './gridHintText.ts';
 import { gameDone, reduce, sceneUnlocked, unlockedClueIds, visibleClues, type Action, type Progress, type Subject } from './state.ts';
 import { cats } from '../content/index.ts';
+import { playerPortrait } from '../content/portraits.ts';
 import { DIFFICULTY_LABEL } from './labels.ts';
+import { Portrait } from './Portrait.tsx';
 import type { Case, GameKind } from '../engine/types.ts';
 
 type Tab = 'clues' | 'map' | 'grid' | 'board' | 'accuse';
@@ -139,7 +141,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
 
   return (
     <div className={`casebook ${drawer ? (drawerOpen ? 'with-drawer open' : 'with-drawer') : ''}`}>
-      <header className="case-header">
+      <header className={`case-header${exploring ? ' exploring' : ''}`}>
         <button className="step" aria-label="Home" onClick={onHome}>
           ‹
         </button>
@@ -147,7 +149,18 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
           <h1>{title ?? `Case ${c.code}`}</h1>
           <p>{(exploring && !readOnly ? clockLine(c, progress) : subtitle) ?? `${DIFFICULTY_LABEL[c.difficulty]}, ${c.suspects.length} suspects${progress.solved ? ', solved' : ''}`}</p>
         </div>
-        {drawer && !readOnly ? <HintButton helper={helper} onAsk={askHint} /> : <span aria-hidden="true" />}
+        {exploring ? (
+          <div className="header-tools">
+            {drawer && !readOnly && <HintButton helper={helper} onAsk={askHint} />}
+            <button type="button" className="you-button" aria-label="You">
+              <Portrait parts={playerPortrait} view="counter" />
+            </button>
+          </div>
+        ) : drawer && !readOnly ? (
+          <HintButton helper={helper} onAsk={askHint} />
+        ) : (
+          <span aria-hidden="true" />
+        )}
       </header>
 
       {banner}
