@@ -96,23 +96,18 @@ Read docs/portraits.md, settle its open items with me, design the parametric par
 ```
 
 ## Session: Theme content, tarot cast and line pools
-Last touched: 2026-10-20
+Last touched: 2026-10-22
 Reads first: `docs/theme-draft.md`. Best after "The cast", which fixes the roles.
-Goal: the line pools and shared tangents are drafted. What's left is content only (no engine code):
-fix lines that break rules 2 and 3 (times such as "all night", "for hours"), write the 4 extra
-next-door tangents, lines for the six extra cards, the missing card + object and follow-up threads,
-and pick the tone. Also make borrowed cards sound natural:
-- Audit every role-neutral line against each role that may borrow that card. Some only fit the home
-  role (the Emperor's "I've given the orders for years" is tagged N but needs someone in charge); retag as B.
-- Write 1 or 2 bespoke lines per role + secondary card pairing (about 15 to 20 lines in all, e.g. the
-  Gardener with the Devil: "Everything in that garden owes me something.").
-- Explore a hostile reading: a cold or curt night as its own line pool ("Ask someone else. Or don't.").
-  Rolled the same way for everyone, so the killer is no more likely to be hostile (rule 5). Hostile
-  means rude, never lying (every clue is true), and no barbed lines aimed at one person unless any
-  suspect can say them about anyone.
+Goal: every pool is drafted (2026-10-22): 10 guests and 5 extra cards, borrowing table, borrowed
+lines per pair, 40 tangents, card + object threads, cold greetings, funnier tone. What's left:
+- Card threads: one per card per reading (one thread per suspect, `docs/talk-threads.md`); 2 drafted.
+- Card + object gaps listed at the end of that section (Chariot and Sun have none).
+- Pool size: grow the core cast to 10 to 12 lines per reading before the campaign.
+- Then put it into `src/content/` (talk-threads Part B, with the storage prefix bump), swapping the
+  placeholder cast; check card names on counters at 360px.
 Starting prompt:
 ```
-Read docs/theme-draft.md, fix the lines that break rules 2 and 3, audit the neutral lines against borrowing roles, then draft the six extra cards and the missing card + object threads.
+Read docs/theme-draft.md, draft one card thread per card per reading for the 15 cards, then fill the card + object gaps.
 ```
 
 ## Session: Talk and threads, part B

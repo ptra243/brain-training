@@ -48,7 +48,7 @@ The Fool, the unnumbered tarot card: the innocent wanderer with a little dog. Th
 ## Draft cast (placeholder roles; first-person lines, no pronouns)
 
 Marking: **N** = role-neutral (any suspect rolling this card may use it), **B** = role-bound (home suspect only).
-Six lines per card per reading. Tone so far: warm with a little bite.
+Six lines per card per reading. Tone (decided 2026-10-22): funnier. Cosy-mystery comedy with dry asides; still never lying, never naming a card.
 
 ### Guest pool: 10 guests, 7 seated
 Decided 2026-10-21. The pool is 10 guests with unique home cards; each case seats 7.
@@ -62,9 +62,9 @@ Decided 2026-10-21. The pool is 10 guests with unique home cards; each case seat
 | The Housekeeper | High Priestess | drafted |
 | The Financier | Devil | drafted |
 | The Uncle | Hermit | drafted |
-| The Elder heir | Chariot | to write |
-| The Younger heir | Sun | to write |
-| The Detective | Justice | to write |
+| The Elder heir | Chariot | drafted |
+| The Younger heir | Sun | drafted |
+| The Detective | Justice | drafted |
 
 - Seating needs no engine work: `campaignCast` and `generate.ts` already shuffle `content.suspects` and
   take the first 7 (or the level's count), from the case ref, before the killer is picked. Adding 3 guests
@@ -72,144 +72,320 @@ Decided 2026-10-21. The pool is 10 guests with unique home cards; each case seat
 - Role labels can depend on who is seated, never on the killer: with both heirs seated they're the elder
   and younger child; with one, that one is "the Heir".
 - Pair threads (see `docs/next-sessions.md`, Relationships) only come up when both guests are seated.
+- Borrowed cards (`mayAlsoRoll`, decided 2026-10-22). Each guest borrows at most one of these per case (about 35%).
+  The Moon is the only wandering card. A guest's role-bound (B) lines never travel; a role-neutral (N) line must
+  fit every guest who may roll that card.
+
+  | Guest | Home | May also roll |
+  |---|---|---|
+  | The Host | Emperor | Hierophant, Hanged Man |
+  | The Hostess | Empress | Star, Lovers |
+  | The Butler | Hierophant | Emperor, High Priestess |
+  | The Conjurer | Magician | Star, Devil |
+  | The Housekeeper | High Priestess | Hermit, Death |
+  | The Financier | Devil | Emperor, Hanged Man |
+  | The Uncle | Hermit | Death, Hanged Man |
+  | The Elder heir | Chariot | Emperor, Devil |
+  | The Younger heir | Sun | Lovers, Star |
+  | The Detective | Justice | High Priestess, Hermit |
+
+  Who rolls each card: Emperor (Host; Butler, Financier, Elder heir), Hierophant (Butler; Host),
+  High Priestess (Housekeeper; Butler, Detective), Hermit (Uncle; Housekeeper, Detective), Devil (Financier;
+  Conjurer, Elder heir), Star (Hostess, Conjurer, Younger heir), Lovers (Hostess, Younger heir),
+  Hanged Man (Host, Financier, Uncle), Death (Housekeeper, Uncle). Empress, Magician, Chariot, Sun and Justice
+  are home only, so their N lines need only fit the home guest (keep the tag for side characters later).
 - Open: should any guest always be seated (the Host: it's their house)? That would be engine work.
 
 ### The Host: The Emperor
-Master of the estate; everything runs by their say-so.
+Master of the estate; everything runs by their say-so. Reversed: cold control. Rolled by the Host, and borrowed by the Butler, Financier and Elder heir, so N lines must fit anyone who gives orders or runs affairs, not only the master of the house.
 - Upright
-  - B: "Somebody has to keep this household in order."
-  - B: "Every guest here eats at my table. I like to think that counts for something."
+  - B: "Somebody has to run this household. The household has never volunteered."
+  - B: "Everyone eats at my table. The least they can do is use the right fork."
   - N: "I've never asked for thanks. Only that things be done properly."
-  - N: "I like a plan, and I like it followed."
-  - N: "Rules exist so that nobody has to make a scene."
-  - B: "In my house, nobody goes without. That is simply how it is done."
+  - N: "I like a plan. I like it even more when it's followed."
+  - N: "Rules exist so that nobody has to make a scene. I've still seen several."
+  - B: "In my house, nobody goes without. Least of all an opinion."
 - Reversed
-  - B: "I'll not be told how to run my own house."
-  - B: "They all expect me to pay, and none of them to ask."
-  - N: "Order matters. Some people just don't seem to understand that."
-  - N: "I've given the orders for years, and see how few are heeded."
-  - N: "Being obeyed is not the same as being respected. I know the difference."
-  - B: "A host's patience is not a bottomless cellar."
+  - B: "I've given orders in this house for years. The echo is very obedient."
+  - B: "A host's patience is not a bottomless cellar. I've checked the bottom."
+  - B: "I'll not be told how to run my own house. I don't raise my voice about it. I lower the temperature."
+  - N: "I don't shout. Shouting is for people who've lost control of the room."
+  - N: "I keep a list. It's longer than anyone would like."
+  - N: "Warmth is overrated. Efficiency has never let anybody down."
 
 ### The Hostess: The Empress
-Generous, fond of comfort, protective of the family.
+Generous, fond of comfort, protective of the family. Reversed: smothering, and a little vain. Home guest only (no one borrows the Empress).
 - Upright
-  - N: "I only ever wanted everyone fed and happy."
-  - B: "A house like this should feel like a home, not a museum."
-  - N: "I've always looked after my own."
-  - N: "A kind word costs nothing, and it goes a long way."
-  - B: "There's always a spare bed and a warm plate in this house."
-  - N: "I can't bear to see anyone go without."
+  - N: "I only ever wanted everyone fed and happy. Fed is the easier half."
+  - B: "A house like this should feel like a home, not a museum. Museums don't do seconds."
+  - N: "I've always looked after my own. A few of them have even noticed."
+  - N: "A kind word costs nothing, and it goes a long way. Pudding goes further."
+  - B: "There's always a spare bed and a warm plate in this house. Usually a spare hot-water bottle too."
+  - N: "I can't bear to see anyone go without. I'm told it's a flaw."
 - Reversed
-  - N: "I give and give, and see what it buys me."
-  - B: "Some here would like to see me out of this house."
-  - N: "It's hard being generous when everyone expects it."
-  - N: "Kindness is wasted on some people."
-  - N: "I've fussed over a few people too much, I suppose. They never minded the cake."
-  - B: "A home can feel like a cage, with the wrong people in it."
+  - N: "I've been told I fuss. I prefer to call it managing everyone's welfare."
+  - B: "Some here would like to see me out of this house. They'd miss the cooking, mind."
+  - N: "When I'm not at the centre of things, I tend to rearrange things until I am."
+  - N: "Everyone's welcome to my opinion on their life. It comes with the soup."
+  - N: "I do look rather well in this light, whatever else is said."
+  - B: "A home can feel like a cage with the wrong people in it. I do keep the door shut, for their own good."
 
 ### The Butler: The Hierophant
-Keeper of the household's traditions and proprieties. Takes in the old Solicitor; role-bound lines about
-papers still to be reworded for a butler (keys, the silver, the household books).
+Keeper of the household's traditions and proprieties; takes in the old Solicitor. Reversed: rule-lawyer pettiness. Rolled by the Butler, and borrowed by the Host, so N lines must fit someone who runs the house as well as someone who serves it.
 - Upright
-  - N: "There's a right way of doing things, and it's usually written down."
-  - B: "I know where every document is kept. That's all I'll say."
-  - N: "Tradition holds a house together, you know."
-  - N: "I keep my word, and expect the same."
-  - B: "A signature means something, or it ought to."
-  - N: "Manners are just the rules everyone agreed on."
+  - N: "There's a right way of doing things, and it's usually written down. Somewhere. Probably in a drawer nobody can find."
+  - B: "I know where every key in this house is kept. That's all I'll say."
+  - N: "Tradition holds a house together. Mostly by being too heavy to move."
+  - N: "I keep my word, and expect the same. It saves on paperwork."
+  - B: "I polish the silver myself. Some traditions are worth the elbow grease."
+  - N: "Manners are the rules everyone agreed on, then forgot they'd agreed to."
 - Reversed
-  - N: "Rules are only as good as the person reading them."
-  - B: "I've been asked to look the other way more than once."
-  - B: "It isn't my place to say what the papers really contain."
-  - N: "Propriety is a fine cloak for all sorts of things."
-  - N: "I've bent a rule or two. Quietly, and for good reason."
-  - B: "Some clauses are better left unread."
+  - N: "Rules are rules, and I have a surprising number I haven't mentioned yet."
+  - B: "I've been asked to look the other way more than once. I have excellent peripheral vision."
+  - B: "It isn't my place to say what the household books really say. It is my place to read them."
+  - N: "Propriety is a fine cloak for all sorts of things. Mine is rather tweedy."
+  - N: "I've bent a rule or two. I did it correctly."
+  - B: "Some bottles in the wine cellar are better left uncounted."
 
 ### The Conjurer: The Magician
-A guest with quick hands and a quicker tongue.
+A guest with quick hands and a quicker tongue. Reversed: recklessness and bluff. Home guest only.
 - Upright
-  - B: "Give me a pack of cards and I'll make a room full of friends."
-  - N: "A good trick is about making them look the other way."
-  - N: "I'm only here to entertain, truly."
-  - N: "Everything is possible with the right patter."
+  - B: "Give me a pack of cards and I'll make a room full of friends. Give me two and I'll make a rival."
+  - N: "A good trick is about making them look the other way. Works on relatives too."
+  - N: "I'm only here to entertain, truly. The applause is a bonus."
+  - N: "Everything is possible with the right patter. Some things with the right lighting."
   - B: "A coin from behind the ear wins over the most doubtful audience."
-  - N: "I can always find a way, given a moment."
+  - N: "I can always find a way, given a moment and a sturdy sleeve."
 - Reversed
-  - N: "People believe what they want to. It's rather useful."
-  - N: "I've told a few stories, and not all of them quite true."
-  - N: "A little sleight of hand never hurt anyone. Usually."
-  - B: "The trick is never in the hands. It's in the questions."
-  - N: "Charm is just persuasion with better manners."
-  - N: "I've talked my way out of worse than this."
+  - N: "I never plan the second half of a trick. That's what the first half is for."
+  - N: "I've bet on worse odds than this and won, twice, which is exactly the problem."
+  - N: "A little sleight of hand never hurt anyone. Usually. Mostly the same person."
+  - B: "The trick is never in the hands. It's in the questions. I stopped asking mine."
+  - N: "Charm is persuasion without the brakes."
+  - N: "I've talked my way out of worse than this, or into it. It's hard to tell."
 
 ### The Housekeeper: The High Priestess
-Quiet, watchful; knows what the house keeps to itself.
+Quiet, watchful; knows what the house keeps to itself. Reversed: smug about it. Rolled by the Housekeeper, and borrowed by the Butler and Detective, so N lines must fit anyone who notices things.
 - Upright
   - N: "I notice things. It's rather what I'm for."
-  - B: "A house has secrets, and I'm the one they trust."
-  - N: "Some things are better left unsaid."
-  - N: "Listening is quieter than talking, and teaches more."
+  - B: "A house has secrets, and I'm the one they trust. The house isn't chatty either."
+  - N: "Some things are better left unsaid. Usually the interesting ones."
+  - N: "Listening is quieter than talking, and teaches more. Also, nobody interrupts."
   - B: "Every door in this house creaks differently. I know them all."
-  - N: "I keep what I'm told to myself."
+  - N: "I keep what I'm told to myself. It's the only fireproof place."
 - Reversed
-  - B: "I've kept this family's secrets for years, and got little for it."
-  - N: "I know more than I ought, and they know it."
-  - N: "Silence has a price, and nobody's paying."
-  - N: "Being overlooked is useful, until it isn't."
-  - N: "Nobody asks the quiet ones what they think."
-  - B: "A good servant hears everything and is thanked for none of it."
+  - B: "I know where every skeleton in this house is kept. They're very well dusted."
+  - N: "I know more than I ought, and I enjoy that you can tell."
+  - N: "I could say something. I'd rather watch you wonder."
+  - N: "Silence has a price, and I do like to be asked."
+  - N: "Being underestimated is the nicest compliment anyone pays me."
+  - B: "Nobody asks the quiet ones what they think. They'd be surprised."
 
 ### The Financier: The Devil
-Lends freely and remembers every debt.
+Lends freely and remembers every debt. Reversed: afraid it will all catch up. Rolled by the Financier, and borrowed by the Conjurer and Elder heir.
 - Upright
   - N: "Everyone here wants something. I simply make it possible."
-  - N: "I never forget a favour, or a debt."
-  - N: "It's only business, my dear."
-  - B: "A loan is just friendship with terms."
-  - N: "I like to be useful to people who can't manage without me."
-  - N: "Temptation is only an offer. Nobody is made to accept."
+  - N: "I never forget a favour, or a debt. I do forget birthdays."
+  - N: "It's only business, my dear. It's always only business."
+  - B: "A loan is just friendship with terms and conditions."
+  - N: "I like to be useful to people who can't manage without me. It's a hobby."
+  - N: "Temptation is only an offer. Nobody is made to accept. That's rather the charm."
 - Reversed
-  - N: "I've done things I'd rather this house didn't hear of."
-  - N: "I'm trying to put old dealings behind me, believe it or not."
-  - B: "Some debts can't be settled the way they used to be."
-  - N: "A hold over someone cuts both ways."
-  - B: "I've lent to the wrong people, and been repaid in other ways."
-  - N: "Everyone has a price. I'd rather not talk about mine."
+  - N: "I've done things I'd rather this house didn't hear of. It's a house with good ears."
+  - N: "I'm trying to put old dealings behind me. They keep following me to dinner."
+  - B: "Some debts can't be settled the way they used to be. I read the post nervously."
+  - N: "A hold over someone cuts both ways, and I've been cut."
+  - B: "I've lent to the wrong people, and been repaid in other ways. I sleep with the lamp on."
+  - N: "Everyone has a price. I lie awake wondering what mine is."
 
 ### The Uncle: The Hermit
-Keeps to the margins; has an old quarrel with the family.
+Keeps to the margins; has an old quarrel with the family. Reversed: theatrical grumpiness. Rolled by the Uncle, and borrowed by the Housekeeper and Detective.
 - Upright
-  - N: "I prefer my own company, and the quiet that comes with it."
-  - N: "Age teaches you who to trust. Not many, in the end."
-  - N: "I don't need much from anyone here."
+  - N: "I prefer my own company, and the quiet that comes with it. It rarely interrupts."
+  - N: "Age teaches you who to trust. Not many, in the end. Fewer at dinner."
+  - N: "I don't need much from anyone here. A chair, mostly."
   - N: "A short conversation and a long silence suit me best."
-  - B: "There's an old quarrel in this family, and I'd as soon let it lie."
+  - B: "There's an old quarrel in this family, and I'd as soon let it lie. It's the one thing in the house that's stayed put."
   - N: "I've learned more from sitting still than from any lecture."
 - Reversed
-  - N: "Nobody here ever asked how I was."
-  - N: "I've held my tongue for years, and see where that got me."
-  - N: "They'd all rather I'd stayed away."
+  - N: "Oh, don't mind me. I'll just fade into the wallpaper, as ever."
+  - N: "I shall say nothing. Loudly, and at length."
+  - N: "I would leave, but then who would sigh at the lot of you?"
   - B: "I've nursed that old quarrel a long while. It keeps me warm."
-  - N: "Solitude is lovely until it's all you're offered."
-  - N: "I was here before most of them, and nobody remembers."
+  - N: "Solitude is lovely until it's all you're offered. Then it's a performance."
+  - B: "I was here before most of them, and I intend to be insufferable about it."
 
 ### The Elder heir: The Chariot
 Son or daughter of the house who wants to be its head, and will do anything for it. Threads with the Host
-(succession) and the Financier (debts against the inheritance). Reversed: ambition with no brakes. Lines to write.
+(succession) and the Financier (debts against the inheritance). Reversed: ambition with no brakes. Home guest only (the Elder heir borrows the Emperor and Devil, but no one borrows the Chariot).
+- Upright
+  - B: "One day this will all be mine, and I intend to have it properly organised."
+  - N: "I don't wait for things to happen. I tap them on the shoulder."
+  - N: "Fortune favours the early riser, and I've been up since the invention of breakfast."
+  - B: "I've been practising being in charge since I could walk. The walking was the harder part."
+  - N: "Eyes forward, hands steady, clear road ahead. A person can dream."
+  - N: "I'd rather be doing than talking, and I'm doing an awful lot of talking."
+- Reversed
+  - B: "Being next in line is a dreadful thing to be. I'd like to skip the line."
+  - N: "I've never met a speed limit I respected."
+  - N: "Brakes are for people who aren't sure where they're going."
+  - B: "I've been promised this house since I was small. Promises have a way of ageing."
+  - N: "I won't be told to wait. I never did learn how."
+  - N: "If there's a shortcut, I've already taken it and sent back for the luggage."
 
 ### The Younger heir: The Sun
 The other child: cheerful, open, everyone's favourite. With the Elder heir seated, the two are rivals for the
-house (a strong pair thread). Reversed: spoilt, used to getting their way. Lines to write.
+house (a strong pair thread). Reversed: spoilt, used to getting their way. Home guest only (the Younger heir borrows the Lovers and Star).
+- Upright
+  - N: "I like everyone. It saves ever so much time."
+  - B: "My sibling takes the house terribly seriously. I take the biscuits seriously."
+  - N: "Sunshine is free, you know, and I'm generous with it."
+  - N: "I've never met a stranger, only a person I haven't made laugh yet."
+  - B: "I grew up in this house and it's always been kind to me. I've tried to return the favour."
+  - N: "Worry is a waste of a perfectly good face."
+- Reversed
+  - N: "I don't see why I should have to ask twice."
+  - B: "I was told I could have the run of the house. Nobody mentioned rules."
+  - N: "Sulking is only sunshine that's been told no."
+  - N: "I've never had to want something for very long, and I'm not keen on starting."
+  - B: "My sibling gets the serious talks. I get the allowance, and I'd like it raised."
+  - N: "It's terribly unfair when things don't go my way. I have it on good authority."
 
 ### The Detective: Justice
 A rival detective at the party, the Fool's counterpart; a suspect like the rest. Lines are about method and
-pride, never conclusions ("I always start with the hands"): they never name a suspect, room or weapon and
-never vouch for anyone. Reversed: has already decided, and bends the facts to fit. A natural Confidant arc
-(rivalry to respect). Lines to write.
+pride, never conclusions: they never name a suspect, room or weapon and never vouch for anyone. Reversed: has
+already decided, and bends the facts to fit. A natural Confidant arc (rivalry to respect). Home guest only (the Detective borrows the High Priestess and Hermit).
+- Upright
+  - B: "I always start with the hands. Hands never learned to lie."
+  - N: "A good detective notices what doesn't fit. Mostly it's my own hat."
+  - B: "I've solved cases with less than a dinner and a draughty hallway."
+  - N: "Facts first, then theories, then a very good sit-down."
+  - B: "Some people here call themselves detectives. I call myself right."
+  - N: "I weigh everything twice. Once for the evidence, once for the cut of the coat."
+- Reversed
+  - N: "I never change my mind. I merely reach the right conclusion before the facts do."
+  - B: "A detective with doubts is just a witness with a notebook."
+  - N: "Evidence is a lovely thing, once it agrees with me."
+  - N: "I trust my instincts. Frankly, they're better qualified than the evidence."
+  - B: "I've never been wrong. A few cases have been wrong about me."
+  - N: "I've a theory, and I'd hate to waste it on facts."
 
-Other cards for variety: the Lovers (secret engagement), the Moon (deceiver), the Star
-(actress), Death (the doctor, with a wink), the Hanged Man (failed investor). The Tower is the storm.
+### Extra cards (borrowed or wandering)
+No home guest. All N lines, written to fit every borrower, so they stay at feelings and old memories and never
+make a claim about tonight. The Tower is the storm, not a character.
+
+#### Lovers
+Rolled by the Hostess and Younger heir (borrowed).
+- Upright
+  - N: "I'm a sucker for a happy ending. Even other people's."
+  - N: "Some things are worth the fuss, which is usually where the fuss comes from."
+  - N: "I've been told I wear my heart on my sleeve. It's murder on the laundry."
+  - N: "Love is mostly noticing, and then pretending you haven't."
+  - N: "A good match is hard to find and impossible to arrange. I've tried."
+  - N: "I believe in following the heart, and then checking where the exits are."
+- Reversed
+  - N: "I've nearly said yes to the wrong thing more than once."
+  - N: "Choosing is the hardest part. I put it off with great skill."
+  - N: "Hearts break, but it's the china that really hurts."
+  - N: "I've been torn between two things and picked neither, thoroughly."
+  - N: "There's a letter I wrote once and never sent. It's the best thing I've ever written."
+  - N: "Some affections are better admired from a safe distance."
+
+#### Star
+Rolled by the Hostess, Conjurer and Younger heir (borrowed).
+- Upright
+  - N: "I believe things tend to come good, given patience and a decent candle."
+  - N: "A little hope is the cheapest thing in the house and does the most work."
+  - N: "I like to be looked at, I'll admit it, but kindly."
+  - N: "Wishing is free, which is why I do so much of it."
+  - N: "Even in a storm the sky is still up there, being optimistic."
+  - N: "I tell myself things will get better. It keeps the washing-up from mattering."
+- Reversed
+  - N: "I wished on something once. It sent a polite refusal."
+  - N: "Being admired is lovely. Being relied on to sparkle is a job."
+  - N: "I've dimmed myself for company before. The company didn't notice."
+  - N: "Hope is a lovely thing to lose in company. Everyone looks away politely."
+  - N: "I put on a brave face. It's a good one, but it never quite fits."
+  - N: "There's nothing like the silence after applause that doesn't come."
+
+#### Death
+Rolled by the Housekeeper and Uncle (borrowed). Endings and change, with a wink; never about a person dying.
+- Upright
+  - N: "Everything comes to an end sooner or later. Usually the pudding first."
+  - N: "I've learned to let things go. The house has learned to let me."
+  - N: "A clean break is kinder than a slow fade. Ask any candle."
+  - N: "Endings aren't gloomy. They're the last page, and I like a tidy last page."
+  - N: "Change comes for everyone. I'd rather meet it with a clean collar."
+  - N: "I don't fear endings. I fear the speeches that go with them."
+- Reversed
+  - N: "I'm not keen on change, and I've been called stubborn for it."
+  - N: "Some things are over and refuse to be told."
+  - N: "I've clung to a few things long past their best. Cheese included."
+  - N: "I keep waiting for things to end properly, and they keep not."
+  - N: "I've sat through more goodbyes than a railway platform."
+  - N: "Letting go is easy to say over dinner."
+
+#### Hanged Man
+Rolled by the Host, Financier and Uncle (borrowed). Surrender and a new view; reversed, stuck and martyred.
+- Upright
+  - N: "Sometimes you have to stop pushing and see what the day does instead."
+  - N: "I've found that looking at things upside down helps. Mostly with the soup."
+  - N: "Waiting is an underrated skill, and I've been practising."
+  - N: "I let go of a lot, years ago. It was surprisingly light."
+  - N: "A change of view costs nothing and is worth several dinners."
+  - N: "Giving up a little control is freeing, or so I tell myself."
+- Reversed
+  - N: "I've been stuck on the same problem for years. We've become close."
+  - N: "Sacrifice is lovely when someone else is making it."
+  - N: "I let go of things I should have held, and held things I should have let go."
+  - N: "Standing still looks wise until it's just standing still."
+  - N: "I keep saying I'll move on. The armchair keeps saying otherwise."
+  - N: "I've waited so long for things to improve that I've forgotten what I was waiting for."
+
+#### Moon
+Wandering card: no home guest. Each case deals it to one suspect (see Hidden tarot layer), so these lines fit any
+guest. Dreams, half-truths and old memories only; never a claim about tonight that could clash with a clue.
+- Upright
+  - N: "I dream of this house sometimes, and it's always bigger."
+  - N: "I'm never sure what I saw as a child, only how it felt."
+  - N: "Old memories are like old coats: warm, and slightly the wrong shape."
+  - N: "I wonder if I invented half my childhood. It was a good half."
+  - N: "I can never tell if a feeling is a memory or a draught."
+  - N: "Half the things I recall happened, and the other half deserved to."
+- Reversed
+  - N: "I don't trust my memory, and I trust other people's less."
+  - N: "I've told a story so often I can't find the real one underneath."
+  - N: "Half-truths keep better than whole ones, I find."
+  - N: "I get frightened of shadows I put there myself."
+  - N: "I'd swear to an old memory in the dark and take it back by lamplight."
+  - N: "I frighten myself with dreams, and then blame the cheese."
+
+### Borrowed lines (guest + borrowed card)
+One line for each guest + borrowed card in the table. Each fits only that guest with that card (treat as B), and
+is rolled only when the guest borrows that card.
+
+| Guest + card | Reading | Line |
+|---|---|---|
+| Host + Hierophant | Upright | "We've always done it this way here, and I'll not have anyone say otherwise." |
+| Host + Hanged Man | Reversed | "I've spent so long holding this house up that I can't put it down." |
+| Hostess + Star | Upright | "A house this big deserves a bit of sparkle, and I'm the one who polishes it." |
+| Hostess + Lovers | Reversed | "I've matched half the county and been thanked by none of it." |
+| Butler + Emperor | Upright | "I run the staff the way the master runs the house. One of us has to be tidy." |
+| Butler + High Priestess | Reversed | "I know what goes on below stairs and above them, and I'm paid to look surprised." |
+| Conjurer + Star | Upright | "Give me an audience and a good lamp and I'll show you my best." |
+| Conjurer + Devil | Reversed | "Everything I've ever pulled out of a hat had a price on it." |
+| Housekeeper + Hermit | Upright | "I keep to the back stairs. They've better company and fewer opinions." |
+| Housekeeper + Death | Reversed | "I've aired the black crepe more often than anyone should." |
+| Financier + Emperor | Upright | "I run my affairs like a good host runs a table: everyone served, nobody shortchanged." |
+| Financier + Hanged Man | Reversed | "I once backed a sure thing upside down. The market took the other view." |
+| Uncle + Death | Upright | "I'm old enough to know the last chapter is the best. I'd not hurry it." |
+| Uncle + Hanged Man | Reversed | "I've been hanging about this family for years, waiting for someone to ask me to get down." |
+| Elder heir + Emperor | Upright | "I learned from the best, who never let me forget it." |
+| Elder heir + Devil | Reversed | "I've borrowed against the future so often that the future has started sending reminders." |
+| Younger heir + Lovers | Upright | "I fall for people easily. I just never fall for the same one twice." |
+| Younger heir + Star | Reversed | "Everyone says I'll go far. I'd like to go further, in a better carriage." |
+| Detective + High Priestess | Upright | "A good detective knows what to leave unsaid until the right moment." |
+| Detective + Hermit | Reversed | "I do my best thinking alone, mostly because nobody else can keep up." |
 
 ### Major arcana coverage
 18 of 22 have a place (10 of them in the guest pool); ideas for the rest. Not every card needs a person: a card can be a non-character (the
@@ -240,8 +416,10 @@ Tower), a wandering card, or a secondary-only pool that suspects borrow. A small
 | 20 | Judgement | — | Long-lost relative come back (the vicar would overlap the Hierophant) |
 | 21 | World | — | World traveller: seen everything; reversed, finishes nothing. Or the house itself |
 
+Other cards for variety: see "Extra cards (borrowed or wandering)" above. The Tower is the storm.
+
 ## Shared tangents (any suspect, tagged by what the question is about)
-No names, seating, times or outdoors (rules 2 and 3). 8 per tag for the first four, 4 for next door; 36 in all.
+No names, seating, times or outdoors (rules 2 and 3). 8 per tag for all five; 40 in all.
 - Dinner
   - "The soup was cold by the time it reached me."
   - "Someone left half the pudding, I noticed."
@@ -252,13 +430,13 @@ No names, seating, times or outdoors (rules 2 and 3). 8 per tag for the first fo
   - "Somebody's been at the cheese, I'd swear to it."
   - "I'd have liked a smaller portion of the fish."
 - Weather
-  - "That wind's been at the windows all night."
-  - "The lights flickered twice during the toast."
+  - "That wind won't leave the windows alone."
+  - "The lights keep flickering. I wish they wouldn't."
   - "I've never heard rain like it."
   - "The thunder rattled every glass in the house."
   - "A storm like this makes the whole place groan."
   - "There's no point asking when it will clear. It never says."
-  - "The chimneys have been howling for hours."
+  - "Listen to those chimneys howl."
   - "Nobody's going anywhere in this weather, and that's a fact."
 - Room
   - "That room always did have a draught."
@@ -283,6 +461,10 @@ No names, seating, times or outdoors (rules 2 and 3). 8 per tag for the first fo
   - "You hear everything in this house."
   - "The floorboards tell on everybody."
   - "Sound carries oddly in this place."
+  - "The pipes in these walls have opinions, and they share them."
+  - "Doors in this house don't close so much as consider it."
+  - "Every cough in this place gets a round of applause from the echo."
+  - "Even a sigh finds its way down the corridor."
 
 ## Follow-up threads (mini storylines)
 A thread is a short chain of 2 or 3 beats. Beat 1 is an ordinary tangent. Later beats only come up when she
@@ -340,7 +522,7 @@ today: knife, rope, candlestick, wrench (the stories go in content, keyed by obj
     - Up: "Strange how a candlestick can vanish and turn up where it was." / "Rumour has it a
       guest once borrowed it for a trick, and gave it back warm." / "It has always seemed a little too eager to return."
     - Rev: "That candlestick has sold itself twice to two different families." / "I heard a guest
-      traded it for a card game, and the host never noticed." / "The copy in the hall isn't the real one."
+      traded it for a card game, and the host never noticed." / "The one on show isn't the real one."
   - High Priestess + wrench
     - Up: "The wrench lives in the one drawer nobody dusts." / "Rumour has it the house keeps odd tools
       for odder jobs." / "Some doors in this house only open to that."
@@ -355,8 +537,76 @@ today: knife, rope, candlestick, wrench (the stories go in content, keyed by obj
       preferred fixing things to talking." / "The house is a good deal quieter for it."
     - Rev: "Nobody asked who left that wrench, or why they left." / "I heard there was a quarrel, and
       a door slammed." / "It has sat untouched ever since."
-- Gaps: no pair yet for the Hanged Man, Lovers, Justice, Moon, Star, Death; knife + Hierophant/Devil;
-  candlestick + Emperor/Hermit. Aim for about 3 objects per card so most draws find a thread.
+  - Knife + Hierophant
+    - Up: "That knife was carried in a procession once, I'm told, for a feast day." / "Rumour has it it was
+      blessed alongside the bread." / "The family still lowers its voice when it's mentioned."
+    - Rev: "That knife has been 'blessed' three times, by three different men." / "I heard the blessings
+      were sold by the slice." / "Nobody has dared ask for a refund."
+  - Knife + Devil
+    - Up: "That knife was part of a bargain once, I'm told." / "Rumour has it it changed hands for a favour
+      nobody could name." / "The family considers it a fair price."
+    - Rev: "That knife came with strings, they say." / "I heard a debt was settled with it that wasn't quite
+      a debt." / "Folk who've been offered it tend to owe someone afterwards."
+  - Candlestick + Emperor
+    - Up: "That candlestick stood at the head of every great dinner this house ever gave." / "Rumour has it
+      a rule was made that it be lit first and snuffed last." / "The house has run on it ever since, one way or another."
+    - Rev: "That candlestick was a gift from someone the house would rather forget." / "I heard it was put
+      away whenever the head of the house was in a temper." / "It's been put away rather a lot."
+  - Candlestick + Hermit
+    - Up: "That candlestick is said to have belonged to someone who liked to read alone." / "Rumour has it
+      they burnt through a hundred candles before they'd share one." / "The house has been a little dimmer since."
+    - Rev: "Nobody likes to say who that candlestick was left burning for." / "I heard a letter was read by
+      it and never answered." / "The wax is still there."
+  - Hanged Man + rope
+    - Up: "That rope was bought from a failed enterprise at a very good price." / "Rumour has it its former
+      owner lost everything but the rope." / "They say it was the best investment anyone ever made in this house."
+    - Rev: "That rope was bought in a hurry from someone who'd lost everything." / "I heard the sale wasn't
+      entirely the owner's idea." / "Nobody asks what else came with it."
+  - Death + rope
+    - Up: "That rope once lowered a coffin, I'm told, very gently." / "Rumour has it it was kept afterwards
+      out of respect." / "Nobody in the house would dream of tying a parcel with it."
+    - Rev: "That rope has seen things it won't talk about." / "I heard it was used on the last day of
+      something." / "The house has been waiting for it to be thrown out ever since."
+  - Lovers + wrench
+    - Up: "A wrench is a romantic object, if you know the story." / "Rumour has it two people met over a
+      dripping tap and have never agreed on anything since." / "They're still very fond of each other, in a thorough way."
+    - Rev: "That wrench was left on a windowsill in a huff." / "I heard it was thrown, though it missed." /
+      "The tap is still dripping, and so is the feeling."
+  - Star + wrench
+    - Up: "A famous actress once fixed a dressing-room tap with that wrench, to prove a point." / "Rumour has it a
+      theatre company borrowed it for a prop." / "It got better reviews than the play."
+    - Rev: "That wrench was a prop in a play nobody liked." / "I heard it got the only good notice." / "It's
+      been resting ever since."
+  - Justice + knife
+    - Up: "That knife has been weighed in every kind of argument, I'm told." / "Rumour has it a cook
+      demanded a proper hearing over it." / "The matter was settled fairly, which satisfied no one."
+    - Rev: "That knife has been blamed for a lot over the years." / "I heard it was never given a fair
+      hearing." / "It's easier to blame the knife."
+  - Moon + candlestick
+    - Up: "That candlestick is said to burn bluer when rain is on the way." / "Rumour has it a guest saw a
+      face in the flame once." / "They put it down to the wine."
+    - Rev: "That candlestick has a way of leaving shadows where none belong." / "I heard a guest swore it
+      moved, and was laughed at." / "Nobody laughed the second time."
+- Gaps, toward about 3 objects per card: Chariot and Sun have no pair yet; Empress, Magician, High Priestess,
+  Hanged Man, Death, Lovers, Star, Justice and Moon have one object each and need two more; Emperor, Hierophant,
+  Devil and Hermit have two and need one more. Objects so far: knife 4 cards, candlestick 5, rope 4, wrench 4.
+
+## Cold greetings (hostile reading)
+Cold follows the reversed roll (`docs/talk-threads.md`, "Hostile to warm"), so there is no new roll; the warm
+greetings stay as they are. Curt, rude, never a lie, never about tonight's facts, never aimed at a named or
+specific person.
+- "Ask someone else. Or don't."
+- "Make it quick."
+- "Oh. It's you."
+- "I've a great deal of nothing to do, and I'd like to get back to it."
+- "I'm not in the mood, and the mood is not improving."
+- "If this is going to be long, I'd like it noted that I disagree."
+- "Speak, if you must."
+- "Do come in. Don't stay."
+- "I'd say it's a pleasure, but I'm not that sort of liar."
+- "Go on, then. Impress me."
+- "Was there something, or just the staring?"
+
 
 ## Model: a set per character, triggers, and stage
 Settled 2026-10-21 in `docs/talk-threads.md` (Talk on the suspect sheet, when beats are ready, `visit`
@@ -377,17 +627,11 @@ dropped, one thread per suspect, hostility). That doc wins where it differs from
 
 ## Open
 - Card + object threads: check rule 8 (never tappable) and that none reads as a hint about a real weapon.
-- Tone: warm with a little bite (this draft), funnier, or darker.
-- Variety: four of seven reversed pools are the same "nobody appreciates me" note (Emperor, Empress, High
-  Priestess, Hermit), three with the same "...and see what/where/how..." shape. Give each reversed reading
-  its own feeling (cold control, vanity, recklessness, fear). Upright leans on "X is just Y" sayings.
 - Pool size: 6 lines per reading repeats within a few cases (rule 7 is per case only). Aim for 10 to 12
   per reading on the core cast before the campaign.
 - Threads first: one thread per suspect (`docs/talk-threads.md`) needs one card thread per card per
   reading (14 for the core seven; 2 drafted). Card pairs are in the "Relationships" session.
 - How tarot mode unlocks.
-- About 4 more next-door tangents to reach 40, and lines for the extra cards (Lovers, Justice, Moon, Star, Death, Hanged Man).
-- Check "all night", "during the toast" and "for hours" against rule 3 (no times) before building.
 - Ids: reuse the old placeholder ids (saves load, wrong lines) or bump the storage prefix in `src/game/storage.ts`.
 - Name length of cards on counters at 360px (High Priestess, Hierophant); check before committing.
 
