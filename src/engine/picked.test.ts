@@ -55,7 +55,10 @@ test('every combination of three or more games builds, with every picked game in
     // One code for every combination, three for the ones that stress tarot, the board and everything at once.
     const stress = games.length === PICK_ORDER.length || (games.length === 3 && games.includes('tarot') && games.includes('board'));
     const some = stress ? codes : [codes[combos % codes.length]];
+    // A fixed sample here (every 12th, and the stress ones); scripts/check-cases.ts sweeps them all (quick: the 12ths offset by 6).
+    const sampled = combos % 12 === 0 || stress;
     combos++;
+    if (!sampled) continue;
     for (const code of some) {
       const c = caseFor(content, ref(code, games));
       for (const g of games) assert.ok(c.games.some((x) => x.kind === g), `${code}+${games.join(',')} lacks ${g}`);

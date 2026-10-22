@@ -80,8 +80,14 @@ export function goldenRefs(): Record<string, () => Case> {
   return out;
 }
 
-/** Label to hash for every golden ref, keys sorted. */
-export function goldenHashes(): Record<string, string> {
+/** The sorted labels of one part (label index % of === index), or of all of them. */
+export function goldenLabels(part?: { index: number; of: number }): string[] {
+  const labels = Object.keys(goldenRefs()).sort();
+  return part ? labels.filter((_, i) => i % part.of === part.index) : labels;
+}
+
+/** Label to hash for every golden ref, keys sorted. With `part`, only builds that part's labels. */
+export function goldenHashes(part?: { index: number; of: number }): Record<string, string> {
   const refs = goldenRefs();
-  return Object.fromEntries(Object.keys(refs).sort().map((label) => [label, hashCase(refs[label]())]));
+  return Object.fromEntries(goldenLabels(part).map((label) => [label, hashCase(refs[label]())]));
 }

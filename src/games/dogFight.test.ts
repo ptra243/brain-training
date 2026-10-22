@@ -1,76 +1,13 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import type { Difficulty } from '../engine/types.ts';
 import { DOG_CARDS, dogDeck, dogOpDeck } from '../content/dogCards.ts';
-import {
-  buildDogFight,
-  CAT_LIVES,
-  dogHint,
-  dogInitial,
-  dogStep,
-  dogView,
-  HAND_NUMBERS,
-  HAND_OPS,
-  type DogFight,
-  type DogState,
-  type DogView,
-} from './dogFight.ts';
-import { allSlots, getSlot, gridValues, type GridFill, type Hand } from './numberGrid.ts';
+import { buildDogFight, dogHint, dogInitial, dogStep, dogView, HAND_NUMBERS, HAND_OPS } from './dogFight.ts';
+import { gridValues } from './numberGrid.ts';
+import { LEVELS, dogPlaysSeed, doubleSeed, fight, handOf, hintBot, hintBotSeed, placeFill, redealSeed, smallestBotSeed } from './dogFightSweeps.ts';
 
-const LEVELS: Difficulty[] = ['easy', 'medium', 'hard'];
+// The seed sweeps (dogFightSweeps.ts) run in full in scripts/check-cases.ts; here a few fixed seeds each.
+const FEW = [0, 1, 2, 3, 4, 5];
 const seeds = (n: number): string[] => Array.from({ length: n }, (_, i) => `dog-test-${i}`);
-const handOf = (v: DogView): Hand => ({ numbers: v.numbers.map((c) => c.value), ops: v.ops.map((o) => o.op) });
-
-/** Moves that build `fill` from an empty grid. */
-function movesFor(fill: GridFill): DogState['moves'] {
-  const out: DogState['moves'] = [];
-  for (const slot of allSlots()) {
-    const card = getSlot(fill, slot);
-    if (card !== null) out.push({ t: 'place', slot, card: card as number });
-  }
-  return out;
-}
-
-function placeFill(f: DogFight, state: DogState, fill: GridFill): DogState {
-  let s = dogStep(f, state, { t: 'clearAll' });
-  for (const m of movesFor(fill)) s = dogStep(f, s, m);
-  return s;
-}
-
-interface Run {
-  turns: number;
-  view: DogView;
-  state: DogState;
-  trace: DogView[];
-}
-
-/** Plays a fight with a strategy until it ends or the turn cap is hit. */
-function fight(f: DogFight, pick: (v: DogView, s: DogState) => DogState, cap = 400): Run {
-  let state = dogInitial();
-  let view = dogView(f, state);
-  const trace: DogView[] = [];
-  while (!view.over && view.turn <= cap) {
-    trace.push(view);
-    const before = view.turn;
-    state = pick(view, state);
-    state = dogStep(f, state, { t: 'play' });
-    view = dogView(f, state);
-    assert.ok(view.over || view.turn === before + 1, 'a play ends the turn');
-  }
-  return { turns: view.over ? view.last!.turn : view.turn, view, state, trace };
-}
-
-const hintBot = (f: DogFight) => (_v: DogView, s: DogState): DogState => {
-  let state = s;
-  for (let i = 0; i < 3; i++) state = dogHint(f, state)!.state;
-  return state;
-};
-
-const smallestBot = (f: DogFight) => (v: DogView, s: DogState): DogState => {
-  const vals = gridValues(handOf(v));
-  const min = Math.min(...vals.keys());
-  return placeFill(f, s, vals.get(min)!.fill);
-};
 
 test('easy deck: 40 cards valued 1-10, no divide', () => {
   const deck = dogDeck('easy');
@@ -89,60 +26,15 @@ test('easy deck: 40 cards valued 1-10, no divide', () => {
 });
 
 test('hint bot always wins within 6 turns', () => {
-  for (const level of LEVELS) {
-    const turns: number[] = [];
-    for (const seed of seeds(100)) {
-      const f = buildDogFight(seed, level);
-      const r = fight(f, hintBot(f), 20);
-      assert.equal(r.view.over, 'won', `${level} ${seed}`);
-      assert.equal(r.view.catLives, CAT_LIVES, 'following hints never costs a life');
-      turns.push(r.turns);
-    }
-    const mean = turns.reduce((a, b) => a + b, 0) / turns.length;
-    console.log(`hint bot ${level}: mean ${mean.toFixed(2)}, max ${Math.max(...turns)}, one-turn ${turns.filter((t) => t === 1).length}/100`);
-    assert.ok(Math.max(...turns) <= 6);
-  }
+  for (const level of LEVELS) for (const i of FEW) hintBotSeed(level, i);
 });
 
-test('a bot that plays its smallest value loses sometimes, and every fight ends', () => {
-  for (const level of LEVELS) {
-    let lost = 0;
-    for (const seed of seeds(100)) {
-      const f = buildDogFight(seed, level);
-      const r = fight(f, smallestBot(f), 300);
-      assert.ok(r.view.over, `${level} ${seed} ended`);
-      if (r.view.over === 'lost') lost++;
-    }
-    console.log(`smallest bot ${level}: lost ${lost}/100`);
-    assert.ok(lost > 0, level);
-  }
+test('a bot that plays its smallest value: every fight ends', () => {
+  for (const level of LEVELS) for (const i of FEW) smallestBotSeed(level, i);
 });
 
 test('the dog never plays its own best or worst, and never more than her best', () => {
-  let fallbacks = 0;
-  let plays = 0;
-  let redeals = 0;
-  for (const level of LEVELS) {
-    for (const seed of seeds(100)) {
-      const f = buildDogFight(seed, level);
-      // Mix of play styles so both roles come up for many turns.
-      const r = fight(f, smallestBot(f), 60);
-      for (const v of r.trace) {
-        plays++;
-        redeals += v.dog.redeals;
-        const best = Math.max(...gridValues(handOf(v)).keys());
-        assert.ok(v.dog.value <= best, 'dog play within her best');
-        if (v.dog.fallback) {
-          fallbacks++;
-          continue;
-        }
-        const dogVals = [...gridValues({ numbers: v.dog.numbers, ops: v.dog.ops }).keys()];
-        assert.ok(v.dog.value > Math.min(...dogVals), 'not its worst');
-        assert.ok(v.dog.value < Math.max(...dogVals), 'not its best');
-      }
-    }
-  }
-  console.log(`dog plays ${plays}, fallbacks ${fallbacks}, redeals ${redeals}`);
+  for (const level of LEVELS) for (const i of FEW) dogPlaysSeed(level, i);
 });
 
 test('a defence that hits exactly gives 6 number cards next turn', () => {
@@ -296,36 +188,16 @@ test('hints: question first, then fills; the ladder resets each turn', () => {
   }
 });
 
-test('redeals and the fallback are rare, counted over many seeds', () => {
-  for (const level of LEVELS) {
-    let plays = 0;
-    let redealed = 0;
-    let fallbacks = 0;
-    for (let i = 0; i < 200; i++) {
-      const f = buildDogFight(`dog-count-${i}`, level);
-      const r = fight(f, hintBot(f), 5);
-      for (const v of r.trace.concat(r.view.over ? [] : [r.view])) {
-        plays++;
-        if (v.dog.redeals > 0) redealed++;
-        if (v.dog.fallback) fallbacks++;
-      }
-    }
-    console.log(`${level}: ${plays} dog plays, ${redealed} needed a redeal, ${fallbacks} fallbacks`);
-    assert.ok(fallbacks <= plays / 50);
+test('redeals and the fallback: the counts are consistent', () => {
+  for (const level of LEVELS) for (const i of FEW) {
+    const r = redealSeed(level, i);
+    assert.ok(r.plays >= 1 && r.fallbacks <= r.plays && r.redealed <= r.plays);
   }
 });
 
-test('on attack a double is possible about a third of the time', () => {
+test('on attack a double is sometimes possible and sometimes not (the rate is checked in check-cases)', () => {
   for (const level of LEVELS) {
-    let attacks = 0;
-    let doubles = 0;
-    for (let i = 0; i < 600; i++) {
-      const f = buildDogFight(`dog-double-${i}`, level);
-      const v = dogView(f, dogInitial());
-      attacks++;
-      if (Math.max(...gridValues(handOf(v)).keys()) >= 2 * v.dog.value) doubles++;
-    }
-    console.log(`${level}: double possible on ${doubles}/${attacks} attacks`);
-    assert.ok(doubles > attacks * 0.2 && doubles < attacks * 0.45, `${level}: ${doubles}/${attacks}`);
+    const doubles = Array.from({ length: 60 }, (_, i) => doubleSeed(level, i)).filter(Boolean).length;
+    assert.ok(doubles > 0 && doubles < 60, `${level}: ${doubles}/60`);
   }
 });

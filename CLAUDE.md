@@ -68,6 +68,12 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
   `npm run check-cases` (the quick run), `npm run build`. While fixing one
   failure, re-run just that check.
   For UI changes also run `npm run e2e` (Playwright: layout rules and main flows at phone size).
+- **Seed sweeps go in `check-cases`, not `npm test`.** A node test checks a
+  few fixed seeds per level and stays under ~5 s alone. Checks over many seeds
+  (bots, "rare" or "sometimes" rates) live in a `*Sweeps.ts` helper next to
+  the code, called from `scripts/check-cases.ts`: quick samples seeds the test
+  doesn't use, `--full` runs them all. Its closing "Time by section" and
+  "Time by work" lines show where a slow run goes.
 - **`check-cases:full` runs once, in the main session**, after generator
   changes (CI runs it too). Delegated pieces run only the quick check. Once
   they're all back, start the full run in the background and review, write

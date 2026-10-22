@@ -17,37 +17,6 @@ status changes** (built, blocked, unblocked, done): move it to its place, don't 
 stands. A blocked entry keeps its rank and names its blocker in the heading.
 
 
-## Session: Faster checks and tests
-Last touched: 2026-10-22
-Reads first: the root `CLAUDE.md` ("Working on it"), `e2e/CLAUDE.md`, `scripts/check-cases.ts`,
-`package.json` scripts. Ask the owner what the earlier "automated tests taking too long" session found.
-Best done after the Nosing grid and dog build lands. Measured in that build:
-
-| Check | Before | After |
-|---|---|---|
-| `check-cases` quick, run alone | 106 s | about 130 s |
-| `npm run checks` (parallel) | n/a | lint 44 s, build 46 s, test 57 s, check-cases 136–187 s |
-| e2e | n/a | 29 tests, plus a dog-fight flow on its own seed |
-
-Leads:
-- **`check-cases`** is the long pole. It replays a dog fight and runs `solveGrid` up to 4 numbers on
-  every lock, at every level. Sample those in the quick run and keep every case for `--full`.
-- **Node tests:** bot tests over 100 seeds per level repeat across `nosing`, `lock` and `dogFight`. The
-  dog redeal test was 11 s before being cut to 200 seeds.
-- **Parallel `checks`** may be fighting for CPU (each check is much slower than alone). Try running
-  check-cases alone, or limit the workers.
-- **e2e:** see whether specs could reach their screen from a saved state instead of playing through.
-Targets: one test file under 5 s, `npm test` 10–20 s, lint 10–20 s, quick `check-cases` 30–45 s,
-`npm run checks` under 1 min, e2e about 90 s. Many node tests are seed sweeps (bots over 100–300
-seeds); keep a few fixed seeds per level in `npm test` and move the sweeps to `check-cases`
-(sampled in the quick run, every case in `--full`).
-Goal: a timing table before and after, with no lost coverage (anything moved out of the quick run stays
-in `--full` or CI).
-Starting prompt:
-```
-Read the "Faster checks and tests" entry in docs/next-sessions.md, time each check alone and in parallel, and propose where to cut before changing anything.
-```
-
 ## Session: Nosing around: fill-in-the-blank speed round
 Last touched: 2026-10-22
 Reads first: `docs/nosing-around.md` ("Speed round: fill in the blank", "Settled (2026-10-22)"), then
@@ -235,6 +204,28 @@ owner first, ideally from screenshots of her game.
 Starting prompt:
 ```
 Read the Grid cases build plan doc, go through its open questions with me, then start step 1: grid types and the per-case map generator in src/engine/grid/.
+```
+
+## Session: A faster case solver (constraint propagation)
+Last touched: 2026-10-22
+Reads first: `src/engine/search.ts` (`countMatching`, `anyMatching`), `src/engine/clues.ts`, the
+golden test (`src/engine/golden*.test.ts`), the root `CLAUDE.md` rule "Don't change existing cases".
+Measured 2026-10-22 (CPU profile of quick `check-cases`): the solver is about 39 % of the run
+(`fill` 21 s self, `countMatching` 39 s inclusive of 100 s). Almost none of it is the final
+uniqueness check. It comes from the generator (`generate.ts` minimising clues, `interrogation.ts`
+picking proofs) and case boards (`caseBoard.ts`). Next were crossword `buildBoard` (17 s self) and
+word search `findPlacement` (10 s).
+Idea: keep a suspect × room and suspect × weapon possibility grid, let each clue cross out cells,
+propagate (singletons, used columns) and branch only on the smallest domain. It must return the
+same counts, so cases stay identical (golden test and a before/after dump prove it). Relational
+clues (next to, either room, adjacent, alone) need their own propagators; fall back to checking
+them on complete answers if needed. A propagation-only pass could also grade "solvable by simple
+steps", as the cat puzzles do.
+Check timings now: `npm test` about 18 s, quick `check-cases` about 45 s, `npm run checks` about
+64 s in parallel, e2e about 82 s, full `check-cases` about 8 min.
+Starting prompt:
+```
+Read the "A faster case solver" entry in docs/next-sessions.md, profile countMatching's callers, and propose a propagation design (and how we prove the counts are unchanged) before writing code.
 ```
 
 ## Session: Target or another word game (exploratory)

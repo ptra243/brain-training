@@ -15,7 +15,7 @@ const bigCases = () => (built ??= buildBigCases());
 function buildBigCases(): Case[] {
   const out: Case[] = [];
   for (const difficulty of DIFFICULTIES) {
-    for (let i = 1; i <= 6; i++) {
+    for (let i = 1; i <= 2; i++) {
       out.push(caseFor(content, { mode: 'quick', code: codeFor(i * 1_215_773), difficulty, length: 'long', cast: 'big' }));
       const ref: CampaignRef = { mode: 'campaign', code: codeFor(i * 2_654_435), difficulty };
       out.push(campaignRound(content, ref, []));

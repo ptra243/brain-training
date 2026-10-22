@@ -56,8 +56,9 @@ Pure puzzle logic, no React. Components live in `src/game/games/`.
   any search square she never landed on, come with the lock, so every clue is
   guaranteed. Hints are `nosingHint` (question ladder, then `lockHint`), never in
   the speed round. The exact turn bounds model ladders, snakes and the `steps` bonus (shared helpers in `nosingBoard.ts`), so every run, however she answers, takes `NOSING_LEVELS[level].turns`. Tests drive bots that follow hints, are always wrong, and answer at random,
-  over 100 seeds per level; `check-cases` covers every
-  scene room at every level.
+  on a few fixed seeds per level; the 100-seed sweeps live in `nosingSweeps.ts`
+  and run from `check-cases` (sampled quick, all with `--full`), which also
+  covers every scene room at every level.
 - **Number grid** (`numberGrid.ts`): the shared way she builds a number, used
   by the lock and the dog fight. Up to 3 rows of at most 3 numbers; × ÷ before
   + − inside a row, then a running total top down; only whole positive results.

@@ -28,7 +28,7 @@ npm run update-golden # rewrite the golden case snapshot (only after an intended
 | `src/game/` | Home screen, casebook (clues, map, grids, accusation), campaign view, saved progress, game screens. |
 | `src/games/` | Puzzle logic: Wordle scoring, crossword, word search, cat puzzle and sudoku generators. No React. |
 | `src/dev/CaseInspector.tsx` | Dev page (add `#dev` to the URL): step through cases, see clues and the answer. |
-| `scripts/check-cases.ts` | The fairness check. Full (`--full`): 100 cases per preset, 10 per combination of levels, 20 Quick start cases per kind, and every wrong-guess path of 9 campaigns. Quick (default): 20, 2, 5 and 3 campaigns. |
+| `scripts/check-cases.ts` | The fairness check, plus the minigame seed sweeps (`src/**/*Sweeps.ts`) moved out of `npm test`. Full (`--full`, CI): 100 cases per preset, 10 per combination of levels, 20 Quick start cases per kind, every wrong-guess path of 27 campaigns, every picked-games combination and every sweep seed. Quick (default): 20, 1, 2, one path of each of 9 campaigns, every 12th combination and a sample of sweep seeds. Ends with time per section and per kind of work. |
 | `scripts/update-golden.ts` | Rewrites `src/engine/golden.json`, the hashes of 77 fixed cases that `golden.test.ts` compares against. |
 | `scripts/build-words.ts` | Builds `public/words.txt`, the list of accepted guesses. |
 
