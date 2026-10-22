@@ -164,7 +164,7 @@ Read the "Campaign opening" entry in docs/next-sessions.md and its reads-first d
 ```
 
 ## Session: Relationships between characters
-Last touched: 2026-10-21
+Last touched: 2026-10-22
 Reads first: `docs/theme-draft.md` (Follow-up threads, Model), the cast and who-knows-whom map from
 "The cast" session. The trigger list is settled in `docs/talk-threads.md`.
 Goal: make characters react to each other, without anything depending on the killer (rule 5). Explore:
@@ -187,9 +187,19 @@ Goal: make characters react to each other, without anything depending on the kil
   lately" opens the Financier's thread). It uses only what she has seen, so it's safe.
 - No alibis: relationship lines say how people feel, never where they were or when (rule 3; a witness
   never vouches for themselves).
+- Victim threads (owner, 2026-10-22; **campaign only**): each seated guest has a thread about how they
+  knew the victim, the whodunit "everyone had a reason". Fixed by who the guest is and who died, never
+  by the killer, and every guest gets one so the killer's doesn't stand out (rule 5). Victims are never
+  rolled: round 1's is the proposed named first victim (8th in the campaign shuffle, theme-draft
+  Confidants), rounds 2 and 3 are her wrong accusations, so a victim thread gives nothing away.
+  Proposed size: a few relationship types (owes them money, old rival, secret fondness, family), each a
+  2 or 3 beat thread per reading with `{victim}`; the pair's type comes from the who-knows-whom map or
+  the cards, not 90 hand-written pairs. Decide how it shares the thread slot with the guest's own thread.
+- Quick play stays puzzles first: guests are window dressing there, with loose lines and their own
+  thread only; no pair or victim threads, no named victim.
 Starting prompt:
 ```
-Read the "Relationships between characters" entry in docs/next-sessions.md and docs/theme-draft.md, then help me design card-pair and shared-card threads and the heard trigger.
+Read the "Relationships between characters" entry in docs/next-sessions.md and docs/theme-draft.md, then help me design card-pair and shared-card threads, campaign victim threads and the heard trigger.
 ```
 
 ## Session: Two-storey houses, picked per case

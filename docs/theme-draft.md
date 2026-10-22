@@ -667,6 +667,8 @@ same company in a new reading. A guest who isn't seated this campaign just waits
   to be the first"). 10 guests × 2 or 3 lines. About the victim only, never the killer.
 - **Ending**: after she solves it, why the killer did it, from the killer's card (reversed pool, `{victim}`
   filled in). Safe because she already knows. One pool per card, not one per killer + victim pair (90).
+- **Victim threads** (campaign only, 2026-10-22): each seated guest's thread about how they knew the victim;
+  designed in the "Relationships between characters" session. Quick play keeps guests as window dressing.
 - No storyline per case: cases are generated. The story is made of who's seated, the victim, the readings,
   each guest's next chapter and the seated pairs, framed by the opening and the ending.
 - Next: write each character's 5-chapter arc, the openings and the endings (a content session), then wire
