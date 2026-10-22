@@ -76,6 +76,35 @@ Starting prompt:
 Read docs/portraits.md, settle its open items with me, design the parametric parts model, then brief the implementer on the portrait component and the guest parts.
 ```
 
+## Session: Tarot card faces
+Last touched: 2026-10-23
+Reads first: `src/content/tarotArt.ts` (today's faces), `src/engine/tarotCards.ts` (case cards are
+`major-i` by order: suspects, items, rooms), `src/content/dogCards.ts`, `docs/theme-draft.md`
+("Hidden tarot layer", "Major arcana coverage") and "Settled" in `docs/portraits.md`.
+Decided 2026-10-23: the tarot match keeps drawn tarot faces, **not portraits** (only suspects have
+portraits, busts are hard to pair at a glance on a 25-card board, and the deal always holds the
+reward clue's cards, so portraits would show who the clue names before she wins). Today's faces are
+fixed shape + colour per id, not random; the dog fight shows the same faces, so "Seven of cups" is a
+coloured shape. Code-drawn SVG in `tarotArt.ts`, like the portraits; no case or storage change.
+Plan:
+1. **Minor arcana pips** (first; also fixes the dog fight). Four suit emblems (cup, wand, sword, coin),
+   one colour per suit; ranks 1 to 10 lay out that many emblems like a playing card; page, knight,
+   queen and king show one emblem plus a letter. Same-suit cards are harder to tell apart than
+   shapes: decide whether that's fine at medium and hard, or whether easy deals decoys spread across
+   suits and ranks. Screen-reader labels become "Seven of cups".
+2. **Major arcana emblems.** 22 flat emblems (tower, moon, sun, star, wheel, scales…) in the portrait
+   style, each on its own background colour so pairs still read at a glance. No names or numerals in
+   normal play (case cards go by order, not by home card, so a name would mislead or hint at the
+   hidden layer).
+3. **Follow-on, with tarot mode:** map each suspect to their home card (the Butler gets the
+   Hierophant) and show card names. Check first that `rng.shuffle` positions depend only on the seed
+   and the count, so saved boards keep their layout.
+Check the board (easy and hard pair counts) and the dog fight hand at 360px through `browser-check`.
+Starting prompt:
+```
+Read the "Tarot card faces" entry in docs/next-sessions.md and src/content/tarotArt.ts, settle the pip layout and suit colours with me, then brief the implementer on step 1.
+```
+
 ## Session: Theme content, tarot cast and line pools
 Last touched: 2026-10-22
 Reads first: `docs/theme-draft.md`. Best after "The cast", which fixes the roles.
@@ -234,23 +263,6 @@ owner first, ideally from screenshots of her game.
 Starting prompt:
 ```
 Read the Grid cases build plan doc, go through its open questions with me, then start step 1: grid types and the per-case map generator in src/engine/grid/.
-```
-
-## Session: Faster word game builders
-Last touched: 2026-10-22
-Reads first: `src/games/crossword.ts` (`buildBoard`, `at`, `crossings`), `src/games/wordsearch.ts`
-(`findPlacement`, `tryLayout`), `src/games/CLAUDE.md`, the root `CLAUDE.md` rule "Don't change
-existing cases".
-Measured 2026-10-22 after the propagation solver landed (CPU profile of quick `check-cases`, 38 s
-before the solver): crossword `buildBoard` 6.0 s self plus `at` 1.0 s and `crossings` 0.6 s, word
-search `findPlacement` 3.3 s and `tryLayout` 0.9 s; "word games" work is about 12 s. The slowest test
-file is now `src/game/sceneGames.test.ts` (4 s, almost all `buildBoard`).
-Constraint: these are seeded, so a faster version must consume the `Rng` exactly as now and build the
-same grids. Prove it the way the solver did: keep the old builder as an oracle in a sweep, the golden
-test, and a before/after case-hash dump (the solver's dump script compared 326 fresh cases).
-Starting prompt:
-```
-Read the "Faster word game builders" entry in docs/next-sessions.md, profile crossword buildBoard and word search findPlacement, and propose a faster version that builds identical grids before writing code.
 ```
 
 ## Session: CSS Modules for game styles
