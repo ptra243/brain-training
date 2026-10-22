@@ -253,6 +253,26 @@ Starting prompt:
 Read the "Faster word game builders" entry in docs/next-sessions.md, profile crossword buildBoard and word search findPlacement, and propose a faster version that builds identical grids before writing code.
 ```
 
+## Session: CSS Modules for game styles
+Last touched: 2026-10-23
+Reads first: `src/styles.css` (one ~1,040-line global sheet, sections marked `/* ---------- X ---------- */`),
+`src/game/CLAUDE.md`, `e2e/CLAUDE.md`, commit 37870b2.
+Why: global class names collide across games. In 37870b2 the dog fight reused `.tarot-card`, and its
+later `.tarot-card svg { 22px }` rule shrank every Tarot match card's art. A scan on 2026-10-23 found
+18 selectors with rules in more than one place, most of them harmless additions a few lines apart.
+Decided: CSS Modules (built into Vite, no new dependency), adopted gradually. Tailwind and
+CSS-in-JS were ruled out as too big a move from the CSS-variable look. Shared pieces stay global in
+`styles.css`: colour and type variables, buttons, hint notes, `Dialog`, layout. Each game's own styles
+move to a `<Game>.module.css` next to its component and are used as `styles.x`. Start with Tarot match
+and the dog fight, then move the other games one at a time.
+Watch: e2e uses about 33 class selectors (`locator('.x')`). Scoped names break them, so move those
+to roles, labels or `data-testid`. Check each moved screen at 360px (`browser-check`). Add the rule
+"new game styles go in a CSS module" to `src/game/CLAUDE.md`.
+Starting prompt:
+```
+Read the "CSS Modules for game styles" entry in docs/next-sessions.md, then move Tarot match and the dog fight to CSS modules as the first step, with e2e and a 360px look check.
+```
+
 ## Session: Target or another word game (exploratory)
 Last touched: 2026-10-21
 Reads first: `src/games/CLAUDE.md`, `scripts/build-words.ts`, `src/games/dictionary.ts` and
