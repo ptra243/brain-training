@@ -9,7 +9,7 @@ import { readFileSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const THRESHOLD = Number(process.env.SESSION_REMIND_BYTES) || 700_000;
+const THRESHOLD = Number(process.env.SESSION_REMIND_BYTES) || 1_000_000;
 const GROWTH = 1.5;
 
 const REMINDER = `SESSION LENGTH REMINDER (from a hook). This session's context is large and every turn re-reads all of it (see "Token budget" in CLAUDE.md).

@@ -138,11 +138,27 @@ Long sessions re-read their whole context every turn, so keep them short.
   experiments, ambiguous bugs, cross-cutting refactors.
   Say in one line which pieces you're delegating and which you're keeping.
 - **Keep briefs small.** One layer per brief (engine and checks, then UI and
-  e2e on a finished engine). Ask for reports of at most 15 lines. Brief tuning
+  e2e on a finished engine). Ask for reports of about 8 lines (detail goes in the handoff file). Brief tuning
   as one sweep with a results table (every setting combination), not one
   setting per round. A follow-up goes to a fresh agent with its own brief;
   don't resume an agent past about 100k tokens or pile new work onto one
   that's running.
+- **Hand over what you already know in a handoff file.** Before briefing,
+  write `.claude/handoff/<task-slug>.md` (gitignored) and give its absolute
+  path in the brief, so an agent in a worktree can read it too. Put in it
+  what the agent would otherwise redo: measurements with the command, the
+  commit or working-tree state and the numbers (baselines, timings, "Time by
+  section" lines), what was tried and ruled out and why, decisions taken, and
+  `file:line` pointers. Say in the brief which numbers to trust rather than
+  re-measure. The agent appends its own findings, so a follow-up agent reads
+  one file instead of a chat history. It also adds "Review notes" (what each
+  file's change is for, the risky spots as `file:line`, departures from the
+  brief, what the tests miss, whether cases changed); its reply stays to
+  status and the path. For mechanical pieces (CSS, copy, content lists,
+  test updates after a rule change) say "no review notes" in the brief. Read
+  the notes only when reviewing logic, then review from them and the diff of
+  the spots they name, not by re-reading every changed file. Delete the file
+  once the task is committed.
 - **Split once the design is settled and the first piece lands.** Before
   briefing the rest, suggest starting a session for it that reads the plan
   doc, delegates to implementers itself and commits; this session keeps only
@@ -162,7 +178,7 @@ Long sessions re-read their whole context every turn, so keep them short.
   what goes in each; skip what's already in the repo) and the sessions to
   start (what each does, which docs it reads first, a one-line starting
   prompt). A `UserPromptSubmit` hook (`.claude/hooks/session-length.mjs`)
-  adds a reminder when the transcript passes 700 KB; it is a reminder, not
+  adds a reminder when the transcript passes 1 MB; it is a reminder, not
   a rule that replaces judging topic drift.
   Session ideas worth starting fresh live in `docs/next-sessions.md`, each
   with a `Last touched` date and a starting prompt; a `SessionStart` hook

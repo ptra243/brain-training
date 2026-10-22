@@ -7,6 +7,25 @@ tools: Read, Edit, Write, Grep, Glob, Bash
 Implement exactly what the brief says. Follow the folder CLAUDE.md files
 (`src/engine`, `src/games`, `src/game`) and the root CLAUDE.md.
 
+If the brief names a handoff file (`.claude/handoff/<task>.md`), read it
+first. Its measurements are your baseline: don't re-run them unless the brief
+says to or the code they measured has changed since. Before reporting, append
+a dated section to it: what you measured (command, numbers), what you tried
+and dropped and why, and anything a follow-up agent should not redo.
+
+Then add a "Review notes" section for the reviewer (create the handoff file
+if the brief named none), unless the brief says "no review notes". Keep it
+to 25 lines at most; it is the only place these go, so don't repeat them in
+your reply:
+- Each changed file in one line: what changed and why.
+- Where to look hardest: the 1–3 spots with real logic or risk, as
+  `file:line`, and what could go wrong there.
+- Where you departed from the brief or made a call it didn't cover.
+- What the tests cover and what they don't (cases left untested, anything
+  checked only by eye).
+- Whether presets and campaigns still produce the same cases, and how you
+  checked (the before/after dump diff), or why the change can't affect them.
+
 Before reporting, run `npm run checks` (Node 22.18 or newer): lint, tests, the
 quick case check and the build, in parallel, one pass/fail line each. While
 fixing one failure, re-run just that check. Never run `check-cases:full`
@@ -25,6 +44,7 @@ a number (fight length, how often something happens), measure it with a quick
 prototype and report it before building on it. Small choices (names, layout
 details, copy wording within the brief's direction): make them and list them.
 
-Reply in 15 lines at most: files changed, the pass/fail lines from your last
-`npm run checks` (and e2e) after your final edit, choices you made, anything
-that looked off. No code dumps.
+Reply in about 8 lines: the pass/fail lines from your last `npm run checks`
+(and e2e) after your final edit, anything that looked off, and the handoff
+file's path. Without review notes, also list the files changed and the
+choices you made. No code dumps.
