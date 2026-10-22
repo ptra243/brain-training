@@ -42,7 +42,7 @@ the clues. It is the "long" minigame and can carry more clues than the others.
 - **Snakes:** before answering, the question shows where a slip would take the cat. The square it slides
   to doesn't trigger (no chains). Each snake can trigger at most once, so the run always ends.
 - **Ladders and snakes are cat things, and content.** Ladders: along the bookshelves, the dumbwaiter, the
-  cat flap, behind the walls, the banister. Snakes: chased by the dog, the cook's broom, chasing a mouse,
+  cat flap, behind the walls, the banister. Snakes: chased by the dog, shooed with a broom, chasing a mouse,
   a ball of wool, knocking over a vase. Each house's content says which can go in which room; the
   generator places them to fit. Drawn as a paw-print trail (ladder) and a loose strand of red wool
   trailing back (snake), which fades once used.

@@ -94,15 +94,15 @@ export function GridPanel({ c, progress, dispatch, focus, onFocus, pawedSquare }
                 <th scope="row">
                   {label(
                     { kind: 'suspect', id: s },
-                    suspectName(s),
-                    <span className={`counter static mini${faceClass(s)}`} style={{ '--counter': suspectColour(s) } as CSSProperties} title={suspectName(s)}>
-                      <SuspectCounterFace id={s} />
+                    suspectName(s, c.guests),
+                    <span className={`counter static mini${faceClass(s)}`} style={{ '--counter': suspectColour(s) } as CSSProperties} title={suspectName(s, c.guests)}>
+                      <SuspectCounterFace id={s} guests={c.guests} />
                     </span>,
                     'axis-label row-label',
                   )}
                 </th>
-                {c.rooms.map((room) => cell('suspect-room', s, room, suspectName(s), roomName(room)))}
-                {c.items.map((item, i) => cell('suspect-item', s, item, suspectName(s), `the ${itemName(item)}`, i === 0))}
+                {c.rooms.map((room) => cell('suspect-room', s, room, suspectName(s, c.guests), roomName(room)))}
+                {c.items.map((item, i) => cell('suspect-item', s, item, suspectName(s, c.guests), `the ${itemName(item)}`, i === 0))}
               </tr>
             ))}
           </tbody>

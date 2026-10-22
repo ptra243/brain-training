@@ -71,15 +71,27 @@ export interface CampaignCast {
   rooms: string[];
   items: string[];
   killer: string;
+  /** Round 1's victim: the guest after the seated ones in the seating shuffle. Not a suspect. */
+  firstVictim: string;
 }
 
 export function campaignCast(content: Content, ref: CampaignRef): CampaignCast {
   const rng = new Rng(hashSeed(seedText(ref)));
-  const suspects = rng.shuffle(content.suspects.map((s) => s.id)).slice(0, CAST);
+  const seating = rng.shuffle(content.suspects.map((s) => s.id));
+  const suspects = seating.slice(0, CAST);
   const rooms = rng.shuffle(content.house.rooms.map((r) => r.id)).slice(0, 5);
   const items = rng.shuffle(content.items.map((i) => i.id)).slice(0, 5);
-  return { suspects, rooms, items, killer: rng.pick(suspects) };
+  return { suspects, rooms, items, killer: rng.pick(suspects), firstVictim: seating[CAST] };
 }
+
+/** Everyone at the campaign's dinner: the cast and the first victim, the same every round. */
+export const campaignGuests = (cast: CampaignCast): string[] => [...cast.suspects, cast.firstVictim];
+
+/** This round's body (the last wrong accusation, or the first victim in round 1) and who is at dinner. */
+const whoDied = (cast: CampaignCast, victims: readonly string[]) => ({
+  victim: victims.at(-1) ?? cast.firstVictim,
+  guests: campaignGuests(cast),
+});
 
 /** The settings a round is built with: the 7-guest levels at her difficulty, no finale. */
 function roundSettings(difficulty: Difficulty): { levels: CaseLevels; settings: CaseSettings } {
@@ -119,7 +131,7 @@ export function campaignRound(content: Content, ref: CampaignRef, victims: reado
       levels,
       caseNumber: round + 1,
       code: ref.code,
-      truth: { ...truth, minimal: order },
+      truth: { ...truth, minimal: order, ...whoDied(cast, victims) },
       order,
       rotating,
       kinds: rotating,
@@ -145,7 +157,7 @@ function tryRound(
   settings: CaseSettings,
   last: boolean,
   rng: Rng,
-): { truth: Omit<Truth, 'minimal'>; free: ClueFact[]; puzzles: ClueFact[][] } | null {
+): { truth: Omit<Truth, 'minimal' | 'victim' | 'guests'>; free: ClueFact[]; puzzles: ClueFact[][] } | null {
   const { rooms, items, killer } = cast;
   const k = alive.indexOf(killer);
 
@@ -281,7 +293,7 @@ function wideRound(
       levels,
       caseNumber: round + 1,
       code: ref.code,
-      truth: { ...truth, minimal: order },
+      truth: { ...truth, minimal: order, ...whoDied(cast, victims) },
       order,
       rotating,
       kinds: rotating,
@@ -307,7 +319,7 @@ function tryWide(
   offered: number,
   per: number,
   cover: number,
-): { truth: Omit<Truth, 'minimal'>; free: ClueFact[]; puzzles: ClueFact[][] } | null {
+): { truth: Omit<Truth, 'minimal' | 'victim' | 'guests'>; free: ClueFact[]; puzzles: ClueFact[][] } | null {
   const { rooms, items, killer } = cast;
   const k = alive.indexOf(killer);
   const { scene, solution } = rollShared(rng, alive, rooms, items, k);

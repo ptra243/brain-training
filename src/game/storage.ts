@@ -10,7 +10,8 @@ import type { Progress } from './state.ts';
 // v5: the case board puzzle stands in for a game in some cases, which changes those cases.
 // v6: Nosing around deals its question wordings from a shuffled deck, which changes those puzzles.
 // v7: Nosing around medium and hard boards are shorter, every roll stops first, and a wrong obstacle answer backs the cat off.
-const PREFIX = 'brain-training:v7:';
+// v8: the real cast of 10 guests, and every case has a named victim; seating changes every case.
+const PREFIX = 'brain-training:v8:';
 
 function read(key: string): unknown {
   try {

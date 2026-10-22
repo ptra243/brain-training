@@ -23,7 +23,7 @@ npm run update-golden # rewrite the golden case snapshot (only after an intended
 
 | Path | What it is |
 | --- | --- |
-| `src/content/` | House, suspects, items. Placeholder names; swap the theme here. |
+| `src/content/` | House, the 10 guests, items, talk lines. Swap the theme here. |
 | `src/engine/` | Seeded generator, clue pool, solvers (classic and the 7-guest search), levels, case codes and names, campaign rounds. No React. |
 | `src/game/` | Home screen, casebook (clues, map, grids, accusation), campaign view, saved progress, game screens. |
 | `src/games/` | Puzzle logic: Wordle scoring, crossword, word search, cat puzzle and sudoku generators. No React. |

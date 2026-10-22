@@ -1,9 +1,12 @@
 import { test, expect, newCase, openTab } from './fixtures.ts';
 import { checkScreen } from './rules.ts';
 
-// Only the Butler has a drawn portrait in the current content; everyone else keeps their initials.
+// Seed 12345's campaign makes the Butler the victim, so they are in no room: seed 3 seats them.
+test.use({ seed: 3 });
 
-test('map tray: the Butler counter shows a portrait, another guest keeps initials', async ({ page }) => {
+// All ten guests have a drawn portrait; the initials remain only as a fallback for a guest without one.
+
+test('map tray: every counter shows a portrait, and the Butler is named', async ({ page }) => {
   await newCase(page);
   await openTab(page, 'Map');
   const butler = page.locator('.tray .counter[data-suspect="butler"]');
@@ -12,10 +15,13 @@ test('map tray: the Butler counter shows a portrait, another guest keeps initial
   await expect(butler.locator('svg')).toHaveCount(1);
   await expect(butler).toHaveAttribute('aria-label', 'The Butler');
 
-  const other = page.locator('.tray .counter:not([data-suspect="butler"])').first();
-  await expect(other).not.toHaveClass(/has-portrait/);
-  await expect(other.locator('svg')).toHaveCount(0);
-  await expect(other).toHaveText(/^\S{2}$/);
+  const counters = page.locator('.tray .counter');
+  const n = await counters.count();
+  expect(n).toBeGreaterThan(1);
+  for (let i = 0; i < n; i++) {
+    await expect(counters.nth(i)).toHaveClass(/has-portrait/);
+    await expect(counters.nth(i).locator('svg')).toHaveCount(1);
+  }
 
   // Her sheet from the tray shows the portrait head too.
   await butler.click();

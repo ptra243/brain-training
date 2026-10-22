@@ -1,5 +1,6 @@
-// The case board's rules and saved play, as plain data. No React, no content:
-// the screen (CaseBoard.tsx) turns the structured reasons here into words.
+// The case board's rules and saved play, as plain data. No React; the only content it reads is the
+// list of guest ids (the default for `Rules.guests`). The screen (CaseBoard.tsx) turns the structured
+// reasons here into words.
 //
 // A piece is "pinned" when it starts on the board and never moves: the body,
 // the filler, and the pieces `board.pinned[level]` names. Everything else is
@@ -11,6 +12,7 @@
 //  - rules between two loose pieces (touch, apart, same guest in one section)
 //    never refuse. They show up as `clashes` and as touches not met yet.
 
+import { content } from '../../content/index.ts';
 import type { Board, BoardCell, BoardMarks, BoardPiece } from '../../engine/boardTypes.ts';
 import { UNKNOWN, boardKey } from '../../engine/boardTypes.ts';
 import type { Difficulty } from '../../engine/types.ts';
@@ -95,6 +97,8 @@ export interface Rules {
   siblings: Record<string, string[]>;
   /** Read-only: the board is done, hidden pieces show what they are. */
   finished: boolean;
+  /** Everyone at dinner (`Case.guests`): decides whether a lone heir is "The Heir". Default: every guest in the content. */
+  guests: readonly string[];
   /** Names the case gives some pieces: a house detail for each filler piece, the puzzle behind each hunch. */
   labels?: PieceLabels;
 }
@@ -156,7 +160,7 @@ export function pinnedIds(board: Board, level: Difficulty): string[] {
   return [...new Set([...always, ...(board.pinned[level] ?? [])])];
 }
 
-export function makeRules(source: Board, level: Difficulty, finished = false): Rules {
+export function makeRules(source: Board, level: Difficulty, finished = false, guests: readonly string[] = content.suspects.map((s) => s.id)): Rules {
   const board = visibleBoard(source, finished);
   const piece = Object.fromEntries(board.pieces.map((p) => [p.id, p]));
   const pinned = new Set(pinnedIds(board, level));
@@ -171,7 +175,7 @@ export function makeRules(source: Board, level: Difficulty, finished = false): R
   for (const p of board.pieces) {
     siblings[p.id] = p.kind === 'guest' ? board.pieces.filter((q) => q.kind === 'guest' && q.who === p.who && q.id !== p.id).map((q) => q.id) : [];
   }
-  return { board, level, piece, touch: pairsOf(board.pieces, 'sym'), anti: pairsOf(board.pieces, 'anti'), pinned, pinnedPlace, pinnedOcc, siblings, finished };
+  return { board, level, piece, touch: pairsOf(board.pieces, 'sym'), anti: pairsOf(board.pieces, 'anti'), pinned, pinnedPlace, pinnedOcc, siblings, finished, guests };
 }
 
 /** The pieces a piece must touch. */

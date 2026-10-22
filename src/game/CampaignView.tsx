@@ -52,16 +52,18 @@ export function CampaignView({ save, onSave, onHome }: Props) {
   const killer = campaignCast(content, save.ref).killer;
   // When the killer escapes the round doesn't change, so the last built case has the weapon.
   const lastCase = built?.cases[Math.min(now, built.cases.length - 1)];
+  // The guest list is the same in every round, so any built round's will do for the pop-ups.
+  const guests = built?.cases[0]?.guests;
 
   return (
     <>
       {ready ? <CampaignRounds save={save} cases={ready} onSave={onSave} onHome={onHome} setNotice={setNotice} /> : <Shuffling />}
 
-      {notice === 'next-body' && victim && (
+      {notice === 'next-body' && victim && guests && (
         <Dialog placement="center" labelId="next-body-title" onClose={() => setNotice(null)}>
-          <h2 id="next-body-title">{suspectName(victim)} wasn't the killer</h2>
+          <h2 id="next-body-title">{suspectName(victim, guests)} wasn't the killer</h2>
           <p className="dialog-text">
-            Later that night, {midSentence(suspectName(victim))} is found dead. The killer is still among the guests, and
+            Later that night, {midSentence(suspectName(victim, guests))} is found dead. The killer is still among the guests, and
             {ROUNDS - save.victims.length === 1 ? ' this is your last chance.' : ` you have ${ROUNDS - save.victims.length} accusations left.`}
           </p>
           <div className="dialog-actions single">
@@ -78,11 +80,11 @@ export function CampaignView({ save, onSave, onHome }: Props) {
           </div>
         </Dialog>
       )}
-      {notice === 'escaped' && victim && lastCase && (
+      {notice === 'escaped' && victim && lastCase && guests && (
         <Dialog placement="center" labelId="escaped-title" onClose={() => setNotice(null)}>
           <h2 id="escaped-title">The killer got away</h2>
           <p className="dialog-text">
-            {suspectName(victim)} wasn't the killer either. By dawn, {midSentence(suspectName(killer))} was gone, with the{' '}
+            {suspectName(victim, guests)} wasn't the killer either. By dawn, {midSentence(suspectName(killer, guests))} was gone, with the{' '}
             {itemName(lastCase.weapon)}.
           </p>
           <div className="dialog-actions single">
@@ -169,7 +171,7 @@ function CampaignRounds({ save, cases: built, onSave, onHome, setNotice }: Round
       <article className="card verdict">
         <h2>{ROUND_TIMES[viewing]}: the wrong person</h2>
         <p className="verdict-line">
-          You accused {midSentence(suspectName(save.victims[viewing]))}. They weren't the killer, and they were the next body.
+          You accused {midSentence(suspectName(save.victims[viewing], c.guests))}. They weren't the killer, and they were the next body.
         </p>
       </article>
     </section>
@@ -178,7 +180,7 @@ function CampaignRounds({ save, cases: built, onSave, onHome, setNotice }: Round
       <article className="card verdict">
         <h2>The killer got away</h2>
         <p className="verdict-line">
-          It was {midSentence(suspectName(killer))}, with the {itemName(c.weapon)}.
+          It was {midSentence(suspectName(killer, c.guests))}, with the {itemName(c.weapon)}.
         </p>
         <p className="muted">Three wrong guesses, and by dawn they were gone.</p>
         <button className="primary" onClick={onHome}>

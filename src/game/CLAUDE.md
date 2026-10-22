@@ -7,6 +7,12 @@
   switch on the kind of game anywhere else. Use `isSceneGame` /
   `isInterrogation` to narrow a `GameSpec`, not optional fields.
 
+- **Names follow the dinner.** `suspectName(id, c.guests)` and
+  `suspectInitials(id, c.guests)` (`names.ts`, via `guestName`). A lone heir is
+  "The Heir" when the other heir is not in `c.guests`; the victim counts as
+  present. Clue sentences are already worded by the engine. Above the opening,
+  one line names the body: "The Financier was found dead after dinner." A later
+  campaign round says "later that night" instead.
 - **Map and grid share one source of truth** (`state.ts`): a counter is in a
   room exactly when its suspect×room cell is ticked; a weapon is in a room
   when item×room is ticked and held when suspect×item is ticked (a held

@@ -30,6 +30,11 @@ export interface Suspect {
   id: string;
   name: string;
   bio: string;
+  /**
+   * A guest with a kin-mate (the two heirs) is called `name` when both are at dinner, and
+   * `alone.name` when no other guest present has the same `kin`. See `guestNames.ts`.
+   */
+  alone?: { kin: string; name: string };
 }
 
 export interface Item {
@@ -304,6 +309,13 @@ export interface Case {
   houseId: string;
   /** Suspect ids in play, in solution order. */
   suspects: readonly string[];
+  /** The guest who was killed: from the same shuffle as the seating, never a suspect or the killer. */
+  victim: string;
+  /**
+   * Everyone at dinner: the seated suspects plus the victim (a campaign: the whole campaign cast plus the
+   * first victim, the same every round). Names are decided from this list (`guestNames.ts`).
+   */
+  guests: readonly string[];
   /** Room ids in play (one per suspect in a classic case, 5 shared by 7 guests). Other rooms on the map are empty. */
   rooms: readonly string[];
   /** Weapon ids in play (one per suspect in a classic case, 5 for 7 guests). */

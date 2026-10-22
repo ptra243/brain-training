@@ -4,6 +4,7 @@ import { Rng, hashSeed } from '../engine/rng.ts';
 import type { Case, GameKind, GameSpec } from '../engine/types.ts';
 import { DIFFICULTY_LABEL } from './labels.ts';
 import { Dialog } from './Dialog.tsx';
+import { victimLine } from './names.ts';
 import { GAMES } from './games/registry.tsx';
 import { allGamesDone, cluesToFind, finaleOpen, gameDone, puzzlesDone, unfinishedGames, type Progress } from './state.ts';
 
@@ -46,6 +47,7 @@ export function GetClue({ c, progress, readOnly, onPlay }: Props) {
   return (
     <>
       <article className="card puzzles">
+        <p className="case-victim">{victimLine(c)}</p>
         <p className="case-opening">{opening}</p>
         <p className="muted small get-clue-help">
           {everything

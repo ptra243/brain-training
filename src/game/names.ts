@@ -2,18 +2,26 @@ import { content } from '../content/index.ts';
 import { caseNameWords } from '../content/caseNames.ts';
 import { hasPortrait } from './portrait.ts';
 import { caseName, type CaseRef } from '../engine/caseRef.ts';
+import { guestName } from '../engine/guestNames.ts';
+import type { Case } from '../engine/types.ts';
 
 const find = <T extends { id: string; name: string }>(list: readonly T[], id: string) =>
   list.find((x) => x.id === id)?.name ?? id;
 
-export const suspectName = (id: string) => find(content.suspects, id);
+/** What a guest is called at this dinner (`Case.guests`): a lone heir is "The Heir". */
+export const suspectName = (id: string, guests: readonly string[]) => guestName(content, guests, id);
 export const roomName = (id: string) => find(content.house.rooms, id);
 export const itemName = (id: string) => find(content.items, id);
 
 /** Short label for a suspect counter: "The Butler" -> "Bu". */
-export function suspectInitials(id: string) {
-  const name = suspectName(id).replace(/^The /, '');
+export function suspectInitials(id: string, guests: readonly string[]) {
+  const name = suspectName(id, guests).replace(/^The /, '');
   return name.slice(0, 2);
+}
+
+/** The line that names the body, above the opening: later rounds of a campaign happen later that night. */
+export function victimLine(c: Case) {
+  return `${suspectName(c.victim, c.guests)} was found dead ${c.campaign && c.campaign.round > 0 ? 'later that night' : 'after dinner'}.`;
 }
 
 /** Extra class for a counter whose face is a portrait (the CSS clips it to the circle). */

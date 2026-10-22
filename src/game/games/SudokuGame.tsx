@@ -63,7 +63,8 @@ export function SudokuGame({
   onFinish,
   statements,
   finishClues = [],
-}: GameProps<SudokuPuzzle, SudokuData> & { statements: SudokuStatement[]; finishClues?: Clue[] }) {
+  guests,
+}: GameProps<SudokuPuzzle, SudokuData> & { statements: SudokuStatement[]; finishClues?: Clue[]; guests: readonly string[] }) {
   const tags = new Map<number, string>();
   for (const st of statements) {
     tags.set(st.squares.row, `${st.label}↓`);
@@ -237,6 +238,7 @@ export function SudokuGame({
                 </span>
                 <ClueCard
                   clue={st.clue}
+                  guests={guests}
                   compact
                   coords={{ row: digit(st.squares.row), col: digit(st.squares.col), found: st.found }}
                 />
@@ -256,7 +258,7 @@ export function SudokuGame({
                   </svg>
                 )}
               </span>
-              {finished ? <ClueCard clue={clue} compact /> : <p className="statement-locked">Finish the grid to hear this one.</p>}
+              {finished ? <ClueCard clue={clue} guests={guests} compact /> : <p className="statement-locked">Finish the grid to hear this one.</p>}
             </div>
           ))}
         </section>

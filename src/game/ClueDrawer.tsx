@@ -17,8 +17,8 @@ interface Props {
   pawed?: readonly string[];
 }
 
-const subjectName = (s: Subject) =>
-  s.kind === 'suspect' ? suspectName(s.id) : s.kind === 'room' ? `the ${roomName(s.id)}` : `the ${itemName(s.id)}`;
+const subjectName = (s: Subject, guests: readonly string[]) =>
+  s.kind === 'suspect' ? suspectName(s.id, guests) : s.kind === 'room' ? `the ${roomName(s.id)}` : `the ${itemName(s.id)}`;
 
 /** The clues she has found, in a drawer above the tab bar so she can read them while working the map or grid. */
 export function ClueDrawer({ c, progress, dispatch, open, onToggle, focus, onClearFocus, pawed = [] }: Props) {
@@ -34,7 +34,7 @@ export function ClueDrawer({ c, progress, dispatch, open, onToggle, focus, onCle
         <span className="drawer-title">Clues</span>
         <span className="drawer-count">
           {focus
-            ? `${shown.length} about ${subjectName(focus)}`
+            ? `${shown.length} about ${subjectName(focus, c.guests)}`
             : visible.length
               ? `${left} of ${visible.length} still to use`
               : 'None found yet'}
@@ -48,7 +48,7 @@ export function ClueDrawer({ c, progress, dispatch, open, onToggle, focus, onCle
           {focus ? (
             <p className="drawer-filter">
               <span>
-                Showing clues about <strong>{subjectName(focus)}</strong>
+                Showing clues about <strong>{subjectName(focus, c.guests)}</strong>
               </span>
               <button className="chip" onClick={onClearFocus}>
                 Show all
@@ -64,6 +64,7 @@ export function ClueDrawer({ c, progress, dispatch, open, onToggle, focus, onCle
                   {pawed.includes(clue.id) && <Paw />}
                   <ClueCard
                     clue={clue}
+                    guests={c.guests}
                     compact
                     used={progress.used.includes(clue.id)}
                     onToggle={() => dispatch({ type: 'toggle-used', clue: clue.id })}
@@ -74,7 +75,7 @@ export function ClueDrawer({ c, progress, dispatch, open, onToggle, focus, onCle
           ) : (
             <p className="muted">
               {focus
-                ? `No clue you've found so far names ${subjectName(focus)}. Work it out from everything else.`
+                ? `No clue you've found so far names ${subjectName(focus, c.guests)}. Work it out from everything else.`
                 : "Play tonight's puzzles on the Clues tab to find some."}
             </p>
           )}

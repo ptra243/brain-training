@@ -84,8 +84,8 @@ export function CaseBoard(props: CaseBoardProps) {
       noticed: Object.fromEntries(fog.map((id, i) => [id, details[i % details.length]])),
       hunchFor: Object.fromEntries(grey.flatMap((id, i) => (hunches?.[i] ? [[id, hunches[i]]] : []))),
     };
-    return { ...makeRules(board, level, finished), labels };
-  }, [board, level, finished, c.seed, hunches]);
+    return { ...makeRules(board, level, finished, c.guests), labels };
+  }, [board, level, finished, c.seed, c.guests, hunches]);
   const solved = useMemo(() => boardSolvedSave(board, level), [board, level]);
   const save = finished ? solved : props.save;
 
@@ -446,7 +446,7 @@ export function CaseBoard(props: CaseBoardProps) {
 
   const pieceKinds = new Set(board.pieces.map((p) => p.kind));
   const legendItems: { k: string; label: string; style: CSSProperties; cls: string }[] = [
-    ...c.suspects.filter((s) => board.pieces.some((p) => p.kind === 'guest' && p.who === s)).map((s) => ({ k: legendKey('guest', s), label: shortName(s), cls: `cb-gp-${guestIdx(s) % 7}`, style: { backgroundColor: suspectColour(s) } })),
+    ...c.suspects.filter((s) => board.pieces.some((p) => p.kind === 'guest' && p.who === s)).map((s) => ({ k: legendKey('guest', s), label: shortName(c.guests, s), cls: `cb-gp-${guestIdx(s) % 7}`, style: { backgroundColor: suspectColour(s) } })),
     ...c.items.filter((w) => board.pieces.some((p) => p.kind === 'weapon' && p.who === w)).map((w) => ({ k: legendKey('weapon', w), label: itemName(w)[0].toUpperCase() + itemName(w).slice(1), cls: `cb-wp-${weaponIdx(w) % 6}`, style: { backgroundColor: WEAPON_COLOURS[weaponIdx(w) % WEAPON_COLOURS.length] } })),
     ...(pieceKinds.has('body') ? [{ k: 'body', label: 'Body', cls: '', style: { background: '#3b2b2b' } }] : []),
     ...(pieceKinds.has('grey') ? [{ k: 'grey', label: 'Hunch', cls: '', style: { background: '#8f918b' } }] : []),

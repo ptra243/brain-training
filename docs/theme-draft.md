@@ -7,7 +7,8 @@ Related: `docs/tell-me-again.md` (the minigame that uses the tangent lines).
 A dinner party at a large estate. Time period agnostic: no phones, modern slang, dates or named events.
 The murder happens after dinner. Everyone is staying over because of the weather, so nobody came or went:
 one of the guests did it. After dinner the guests drift into different rooms, holding different things.
-CLAUDE.md still says the theme is placeholder; update that line when this is chosen.
+Chosen 2026-10-22: the 10-guest cast, its bios and the drafted line pools are in `src/content/`
+(`index.ts`, `talk.ts`). Card threads beyond the two drafted here are a first pass, still to polish.
 
 ## The player
 The Fool, the unnumbered tarot card: the innocent wanderer with a little dog. The house cat that gives hints
@@ -70,7 +71,8 @@ Decided 2026-10-21. The pool is 10 guests with unique home cards; each case seat
   take the first 7 (or the level's count), from the case ref, before the killer is picked. Adding 3 guests
   to content changes cases, so bump the storage prefix with the theme.
 - Role labels can depend on who is seated, never on the killer: with both heirs seated they're the elder
-  and younger child; with one, that one is "the Heir".
+  and younger child; with one, that one is "the Heir". Built 2026-10-22 as content (`alone: { kin, name }`
+  on a guest). "Present" counts the victim too, so a dead elder heir keeps the younger one "the Younger heir".
 - Pair threads (see `docs/next-sessions.md`, Relationships) only come up when both guests are seated.
 - Borrowed cards (`mayAlsoRoll`, decided 2026-10-22). Each guest borrows at most one of these per case (about 35%).
   The Moon is the only wandering card. A guest's role-bound (B) lines never travel; a role-neutral (N) line must
@@ -94,7 +96,7 @@ Decided 2026-10-21. The pool is 10 guests with unique home cards; each case seat
   Conjurer, Elder heir), Star (Hostess, Conjurer, Younger heir), Lovers (Hostess, Younger heir),
   Hanged Man (Host, Financier, Uncle), Death (Housekeeper, Uncle). Empress, Magician, Chariot, Sun and Justice
   are home only, so their N lines need only fit the home guest (keep the tag for side characters later).
-- Open: should any guest always be seated (the Host: it's their house)? That would be engine work.
+- Settled 2026-10-22: no guest is always seated. Anyone may sit out or be the victim, the Host included.
 
 ### The Host: The Emperor
 Master of the estate; everything runs by their say-so. Reversed: cold control. Rolled by the Host, and borrowed by the Butler, Financier and Elder heir, so N lines must fit anyone who gives orders or runs affairs, not only the master of the house.
@@ -632,7 +634,6 @@ dropped, one thread per suspect, hostility). That doc wins where it differs from
 - Threads first: one thread per suspect (`docs/talk-threads.md`) needs one card thread per card per
   reading (14 for the core seven; 2 drafted). Card pairs are in the "Relationships" session.
 - How tarot mode unlocks.
-- Ids: reuse the old placeholder ids (saves load, wrong lines) or bump the storage prefix in `src/game/storage.ts`.
 - Name length of cards on counters at 360px (High Priestess, Hierophant); check before committing.
 
 ## Extension: Confidants (campaign only)
@@ -661,8 +662,9 @@ same company in a new reading. A guest who isn't seated this campaign just waits
   One telling per chapter, not one per reading. No neglect; ignoring a guest never reverses them.
 - **Named first victim** (campaign only): the campaign shuffle already orders all 10 guests; the first 7 are
   seated and the 8th is the round 1 victim. No extra roll, so cases don't change; fixed by the campaign code,
-  never by the killer. Rounds 2 and 3 already make a wrongly accused guest the body. Quick play keeps the
-  unnamed body. This is the only piece here that needs code (`campaignCast` in `src/engine/campaign.ts`).
+  never by the killer. Rounds 2 and 3 already make a wrongly accused guest the body. Built 2026-10-22, and
+  every mode names its victim the same way (the next guest after the seated ones); the owner dropped
+  "Quick play keeps the unnamed body".
 - **Opening**: a line or two per victim on why they mattered to the house ("Nobody expected the Financier
   to be the first"). 10 guests × 2 or 3 lines. About the victim only, never the killer.
 - **Ending**: after she solves it, why the killer did it, from the killer's card (reversed pool, `{victim}`

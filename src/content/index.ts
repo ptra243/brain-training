@@ -1,5 +1,5 @@
-// Placeholder cast and house. Swap names, bios and words here when a theme is
-// chosen; nothing else in the code refers to them directly.
+// The guests, house and words. Swap names, bios and words here;
+// nothing else in the code refers to them directly.
 //
 // Rules for content:
 // - Room `objects` are 5-letter things found in that room. A Wordle answer is
@@ -72,13 +72,16 @@ export const house = houseFromLayout(
 );
 
 export const suspects: readonly Suspect[] = [
-  { id: 'cook', name: 'The Cook', bio: 'Placeholder bio.' },
-  { id: 'butler', name: 'The Butler', bio: 'Placeholder bio.' },
-  { id: 'gardener', name: 'The Gardener', bio: 'Placeholder bio.' },
-  { id: 'maid', name: 'The Maid', bio: 'Placeholder bio.' },
-  { id: 'doctor', name: 'The Doctor', bio: 'Placeholder bio.' },
-  { id: 'painter', name: 'The Painter', bio: 'Placeholder bio.' },
-  { id: 'chauffeur', name: 'The Chauffeur', bio: 'Placeholder bio.' },
+  { id: 'host', name: 'The Host', bio: 'Master of the estate. Everything in the house runs by their say-so, and they like it that way.' },
+  { id: 'hostess', name: 'The Hostess', bio: 'Generous, fond of comfort and protective of the family. Nobody leaves the table hungry.' },
+  { id: 'butler', name: 'The Butler', bio: 'Keeper of the household’s traditions and proprieties. Knows the right way to do everything, and where it is written down.' },
+  { id: 'conjurer', name: 'The Conjurer', bio: 'A guest with quick hands and a quicker tongue. Always has a pack of cards about their person.' },
+  { id: 'housekeeper', name: 'The Housekeeper', bio: 'Quiet and watchful. Knows what the house keeps to itself, and lets it.' },
+  { id: 'financier', name: 'The Financier', bio: 'Lends freely and remembers every debt. Half the table owes them something.' },
+  { id: 'uncle', name: 'The Uncle', bio: 'Keeps to the margins of the room. There is an old quarrel with the family, and it has not been settled.' },
+  { id: 'elder-heir', name: 'The Elder heir', bio: 'Child of the house who wants to run it one day, and will do almost anything to get there.', alone: { kin: 'heir', name: 'The Heir' } },
+  { id: 'younger-heir', name: 'The Younger heir', bio: 'The other child of the house: cheerful, open and everyone’s favourite.', alone: { kin: 'heir', name: 'The Heir' } },
+  { id: 'detective', name: 'The Detective', bio: 'A rival detective who came for the party. Very proud of their methods.' },
 ];
 
 export const items: readonly Item[] = [

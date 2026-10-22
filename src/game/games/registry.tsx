@@ -123,6 +123,7 @@ const questioning = (name: string, blurb: string) =>
           <InterrogationGame
             puzzle={puzzle}
             data={data}
+            guests={a.c.guests}
             evidence={interrogationEvidence(a.c, puzzle)}
             disproves={(cards, answer) => disproves(cf, cards.map((x) => x.fact), answer.answer.fact)}
             finished={a.finished}
@@ -206,6 +207,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
             puzzle={puzzle}
             data={data}
             statements={statements}
+            guests={a.c.guests}
             finishClues={finish.map((id) => a.c.clues.find((cl) => cl.id === id)).filter((cl) => cl !== undefined)}
             finished={a.finished}
             helper={a.helper}

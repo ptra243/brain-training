@@ -62,14 +62,14 @@ export function AccusePanel({ c, progress, dispatch, onNextCase, campaign, suspe
         <article className="card verdict">
           <h2>Case closed</h2>
           <p className="verdict-line">
-            {suspectName(c.murderer)}, in the {roomName(c.sceneRoom)}, with the {itemName(c.weapon)}.
+            {suspectName(c.murderer, c.guests)}, in the {roomName(c.sceneRoom)}, with the {itemName(c.weapon)}.
           </p>
           <p className="muted">Solved {tries === 1 ? 'on the first accusation' : `in ${tries} accusations`}.</p>
           <table className="answer">
             <tbody>
               {c.suspects.map((s, i) => (
                 <tr key={s} className={s === c.murderer ? 'murderer' : ''}>
-                  <th scope="row">{suspectName(s)}</th>
+                  <th scope="row">{suspectName(s, c.guests)}</th>
                   <td>{roomName(c.solution.room[i])}</td>
                   <td>{c.solution.item[i] ? itemName(c.solution.item[i]!) : 'nothing'}</td>
                 </tr>
@@ -113,7 +113,7 @@ export function AccusePanel({ c, progress, dispatch, onNextCase, campaign, suspe
             ? `The murder happened in the ${roomName(c.sceneRoom)}, where the body was found.`
             : 'Solve a word game on the Clues tab to learn where the body was found.'}
         </p>
-        <Picker legend="Who" options={suspects} value={suspect} onChange={(v) => { setSuspect(v); setError(''); }} name={suspectName} />
+        <Picker legend="Who" options={suspects} value={suspect} onChange={(v) => { setSuspect(v); setError(''); }} name={(id) => suspectName(id, c.guests)} />
         <Picker legend="With what" options={c.items} value={item} onChange={(v) => { setItem(v); setError(''); }} name={itemName} />
         {error && <p className="error" role="alert">{error}</p>}
         <button className="primary" onClick={submit}>
@@ -154,7 +154,7 @@ export function AccusePanel({ c, progress, dispatch, onNextCase, campaign, suspe
           <ul className="history">
             {progress.accusations.map((a, i) => (
               <li key={i}>
-                {suspectName(a.suspect)} with the {itemName(a.item)}: <strong>{a.correct} of {ACCUSATION_PARTS}</strong>
+                {suspectName(a.suspect, c.guests)} with the {itemName(a.item)}: <strong>{a.correct} of {ACCUSATION_PARTS}</strong>
               </li>
             ))}
           </ul>

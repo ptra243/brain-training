@@ -33,7 +33,8 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
 - **Every clue is true**, and a witness never vouches for themselves.
 - **Content is data.** Names, rooms, objects, items and room colours live
   only in `src/content/`; code never refers to them by name. The theme is
-  still placeholder.
+  the dinner party with a hidden tarot layer (`docs/theme-draft.md`): 10
+  guests, each case seats some and one more is the victim.
 - **Same ref = same case.** Each mode seeds from its own text (`case-6-easy`,
   `quick-K7QF2-medium`; `src/engine/caseRef.ts`). Puzzles are rebuilt from
   seeds; only her moves are saved. All engine randomness goes through the

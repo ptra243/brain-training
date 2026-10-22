@@ -7,7 +7,7 @@ import { Dialog } from './Dialog.tsx';
 import { clockAfterNext, minutesPerGame } from './explore.ts';
 import { GetClue } from './GetClue.tsx';
 import { GAMES } from './games/registry.tsx';
-import { suspectName } from './names.ts';
+import { suspectName, victimLine } from './names.ts';
 import { SCENE_TEASER, finaleOpen, gameDone, sceneGameInPlay, sceneText, unlockedClueIds, visibleClues, type Action, type Progress } from './state.ts';
 
 /** A campaign round's limit on puzzles (the word game is always free). */
@@ -60,6 +60,7 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly, fres
       {play && <GetClue c={c} progress={progress} readOnly={readOnly} onPlay={onPlay} />}
       {!play && (
       <article className="card puzzles">
+        <p className="case-victim">{victimLine(c)}</p>
         <h2>Tonight's puzzles</h2>
         {gate && gate.budget < puzzles.length && (
           <p className="muted small budget-note">
@@ -90,7 +91,7 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly, fres
             const done = status === 'won' || status === 'revealed';
             const usedUp = gate !== undefined && !gate.picked.includes(g.kind) && gate.left === 0;
             const locked = (g.kind === 'finale' && !finaleOpen(c, progress)) || usedUp;
-            const who = isInterrogation(g) ? ` ${midSentence(suspectName(g.interrogation.suspect))}` : '';
+            const who = isInterrogation(g) ? ` ${midSentence(suspectName(g.interrogation.suspect, c.guests))}` : '';
             const reward = usedUp
               ? 'Not tonight: you have used your picks'
               : locked
@@ -192,6 +193,7 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly, fres
           <li key={clue.id}>
             <ClueCard
               clue={clue}
+              guests={c.guests}
               used={progress.used.includes(clue.id)}
               fresh={fresh.includes(clue.id)}
               onToggle={() => dispatch({ type: 'toggle-used', clue: clue.id })}
@@ -205,7 +207,7 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly, fres
           <ul className="clue-list">
             {waiting.map((clue) => (
               <li key={clue.id}>
-                <ClueCard clue={clue} blank />
+                <ClueCard clue={clue} guests={c.guests} blank />
               </li>
             ))}
           </ul>

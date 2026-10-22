@@ -91,7 +91,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
     // Only fill a square in once every clue is found: until then, a puzzle can still help.
     const unlocked = unlockedClueIds(c, progress);
     const h = gridHint(c, progress, clues, state, c.clues.every((cl) => unlocked.has(cl.id)));
-    setHintNote(gridHintText(helper, h, clues, sceneUnlocked(c, progress)));
+    setHintNote(gridHintText(helper, h, clues, sceneUnlocked(c, progress), c.guests));
     const pawing = h.kind === 'why' && h.reason.type === 'clues' ? h.reason.clues : [];
     setPawed(pawing);
     if (pawing.length) {

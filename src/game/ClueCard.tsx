@@ -34,6 +34,8 @@ export function LocationPhrase({ row, col }: { row: number | null; col: number |
 
 interface Props {
   clue: Clue;
+  /** Everyone at dinner (`Case.guests`), for the speaker's name. */
+  guests: readonly string[];
   /** Show the statement with coordinates instead of the room name (sudoku statements). */
   coords?: { row: number | null; col: number | null; found: boolean };
   /** Show the statement with one blank where the room goes (sudoku statements not yet found). */
@@ -47,8 +49,8 @@ interface Props {
 }
 
 /** One clue with where it came from: a witness's words or what the cats found. */
-export function ClueCard({ clue, coords, blank, used, onToggle, compact, fresh }: Props) {
-  const label = clue.source === 'testimony' ? `${suspectName(clue.speaker ?? '')} says` : 'Found by the cats';
+export function ClueCard({ clue, guests, coords, blank, used, onToggle, compact, fresh }: Props) {
+  const label = clue.source === 'testimony' ? `${suspectName(clue.speaker ?? '', guests)} says` : 'Found by the cats';
   const loc = clue.location;
   const room = 'room' in clue.fact ? clue.fact.room : null;
 

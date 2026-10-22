@@ -1,4 +1,5 @@
 import { caseContext, caseSpace } from './caseFacts.ts';
+import { guestContent } from './guestNames.ts';
 import { WORDLE_BLANK, cluePool, compileClue, type ClueContext } from './clues.ts';
 import { canLocate, plainText, wordClue } from './wording.ts';
 import { Rng, hashSeed } from './rng.ts';
@@ -248,6 +249,8 @@ export function assemble(o: Layout): Case {
   const { suspects, rooms, items, solution, murdererIndex, ctx } = o.truth;
   const difficulty = levels.logic;
   const { house } = content;
+  // Guest names depend on who is at dinner (the heirs), so all wording goes through this.
+  const named = guestContent(content, o.truth.guests);
 
   // 6. Hand out the clues, in order: the free ones, each rotating game's
   //    share, then up to two for the finale. A sudoku's "located" statements
@@ -273,8 +276,8 @@ export function assemble(o: Layout): Case {
     const delivery = deliveryOf(fact, i);
     const blankOf = o.words?.find((pw) => pw.blank === fact);
     const isLocated = (locatedFacts.includes(fact) && canLocate(fact)) || blankOf !== undefined;
-    const w = wordClue(fact, CLUE_SOURCE[delivery], content, suspects, rng, isLocated, speaker);
-    const clue: Clue = { id: `c${i + 1}`, fact, delivery, source: CLUE_SOURCE[delivery], speaker: w.speaker, body: w.body, text: plainText(w, content) };
+    const w = wordClue(fact, CLUE_SOURCE[delivery], named, suspects, rng, isLocated, speaker);
+    const clue: Clue = { id: `c${i + 1}`, fact, delivery, source: CLUE_SOURCE[delivery], speaker: w.speaker, body: w.body, text: plainText(w, named) };
     if (blankOf && w.located) {
       // A Play word game's clue, with its room hidden behind the word.
       clue.blank = { game: blankOf.kind, answer: blankOf.answer, teaser: `${w.located.before}the room with the ${WORDLE_BLANK}${w.located.after}` };
@@ -293,12 +296,12 @@ export function assemble(o: Layout): Case {
   const interrogations: Partial<Record<'interrogation' | 'finale', Interrogation>> = {};
   if (kinds.includes('interrogation')) {
     interrogations.interrogation = buildInterrogation({
-      cf, content, rng: new Rng(hashSeed(`${seed}-interrogation`)), idPrefix: 'iq-', delivery: 'interrogation', hard: settings.hardInterrogation, known,
+      cf, content: named, rng: new Rng(hashSeed(`${seed}-interrogation`)), idPrefix: 'iq-', delivery: 'interrogation', hard: settings.hardInterrogation, known,
     });
   }
   if (kinds.includes('finale')) {
     interrogations.finale = buildInterrogation({
-      cf, content, rng: new Rng(hashSeed(`${seed}-finale`)), idPrefix: 'fq-', delivery: 'finale', hard: true, known,
+      cf, content: named, rng: new Rng(hashSeed(`${seed}-finale`)), idPrefix: 'fq-', delivery: 'finale', hard: true, known,
       caseClues: clues.filter((c) => c.delivery !== 'finale'),
     });
   }
@@ -377,6 +380,8 @@ export function assemble(o: Layout): Case {
     ...(o.campaign && { campaign: o.campaign }),
     houseId: house.id,
     suspects,
+    victim: o.truth.victim,
+    guests: o.truth.guests,
     rooms,
     items,
     solution,
@@ -474,6 +479,10 @@ function tarotPairsAt(o: Layout, slot: number): number | null {
 
 export interface Truth {
   suspects: string[];
+  /** The guest after the seated ones in the seating shuffle. */
+  victim: string;
+  /** Everyone at dinner: `suspects` then `victim`. */
+  guests: string[];
   rooms: string[];
   items: string[];
   solution: Solution;
@@ -499,7 +508,9 @@ function classicTruth(content: Content, settings: CaseSettings, rng: Rng, code: 
   const { house } = content;
 
   // 1. Roll the truth.
-  const suspects = rng.shuffle(content.suspects.map((s) => s.id)).slice(0, n);
+  const seating = rng.shuffle(content.suspects.map((s) => s.id));
+  const suspects = seating.slice(0, n);
+  const victim = seating[n];
   const rooms = rng.shuffle(house.rooms.map((r) => r.id)).slice(0, n);
   const items = rng.shuffle(content.items.map((i) => i.id)).slice(0, n);
   const solution = { room: rng.shuffle(rooms), item: rng.shuffle(items) };
@@ -538,7 +549,7 @@ function classicTruth(content: Content, settings: CaseSettings, rng: Rng, code: 
     const without = minimal.filter((f) => f !== fact);
     if (countSolutions(candidates, without, ctx, 1) === 1) minimal = without;
   }
-  return { suspects, rooms, items, solution, murdererIndex, minimal, ctx };
+  return { suspects, victim, guests: [...suspects, victim], rooms, items, solution, murdererIndex, minimal, ctx };
 }
 
 /**
@@ -574,7 +585,9 @@ function sharedTruth(content: Content, settings: CaseSettings, rng: Rng, code: s
   const { house } = content;
 
   // 1. Roll the truth.
-  const suspects = rng.shuffle(content.suspects.map((s) => s.id)).slice(0, n);
+  const seating = rng.shuffle(content.suspects.map((s) => s.id));
+  const suspects = seating.slice(0, n);
+  const victim = seating[n];
   const rooms = rng.shuffle(house.rooms.map((r) => r.id)).slice(0, settings.rooms);
   const items = rng.shuffle(content.items.map((i) => i.id)).slice(0, settings.rooms);
   const murdererIndex = rng.int(n);
@@ -617,5 +630,5 @@ function sharedTruth(content: Content, settings: CaseSettings, rng: Rng, code: s
     const without = minimal.filter((f) => f !== fact);
     if (countMatching(space, without, ctx, 1) === 1) minimal = without;
   }
-  return { suspects, rooms, items, solution, murdererIndex, minimal, ctx };
+  return { suspects, victim, guests: [...suspects, victim], rooms, items, solution, murdererIndex, minimal, ctx };
 }

@@ -160,11 +160,11 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
       data-suspect={suspect}
       className={`counter${faceClass(suspect)} ${selected === suspect ? 'selected' : ''} ${lifted({ kind: 'suspect', id: suspect }) ? 'lifted' : ''} ${wrongSuspect(suspect) ? 'wrong' : ''} ${hintedPiece({ kind: 'suspect', id: suspect }) ? 'hinted' : ''}`}
       style={{ '--counter': suspectColour(suspect) } as CSSProperties}
-      aria-label={`${suspectName(suspect)}${selected === suspect ? ', selected' : ''}`}
+      aria-label={`${suspectName(suspect, c.guests)}${selected === suspect ? ', selected' : ''}`}
       aria-pressed={selected === suspect}
       {...handlers({ kind: 'suspect', id: suspect })}
     >
-      <SuspectCounterFace id={suspect} />
+      <SuspectCounterFace id={suspect} guests={c.guests} />
     </button>
   );
 
@@ -172,7 +172,7 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
     <button
       key={item}
       className={`weapon ${held ? 'carried' : ''} ${lifted({ kind: 'item', id: item }) ? 'lifted' : ''} ${wrongItem(item) ? 'wrong' : ''} ${hintedPiece({ kind: 'item', id: item }) || (hint?.kind === 'suspect-item' && hint.col === item) ? 'hinted' : ''}`}
-      aria-label={`The ${itemName(item)}${held ? `, held by ${suspectName(holderOf(c, progress, item) ?? '')}` : ''}`}
+      aria-label={`The ${itemName(item)}${held ? `, held by ${suspectName(holderOf(c, progress, item) ?? '', c.guests)}` : ''}`}
       {...handlers({ kind: 'item', id: item })}
     >
       {itemName(item)}
@@ -200,7 +200,7 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
     <section className="panel">
       <p className="hint">
         {selected
-          ? `Now tap a room for ${suspectName(selected)}, or tap the counter again to cancel.`
+          ? `Now tap a room for ${suspectName(selected, c.guests)}, or tap the counter again to cancel.`
           : 'Drag people and weapons into rooms. Drop a weapon on someone to hand it to them. Tap anything to see its clues.'}
       </p>
 
@@ -289,7 +289,7 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
             {unplaced.map((s) => (
               <li key={s}>
                 {counter(s)}
-                <span>{suspectName(s)}</span>
+                <span>{suspectName(s, c.guests)}</span>
                 {heldByUnplaced.filter((i) => holderOf(c, progress, i) === s).map((i) => weapon(i, true))}
               </li>
             ))}
@@ -308,7 +308,7 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
         ) : implied ? (
           <>
             <p>
-              Your map says <strong>{suspectName(implied.suspect)}</strong>, in the {roomName(scene)}, with the{' '}
+              Your map says <strong>{suspectName(implied.suspect, c.guests)}</strong>, in the {roomName(scene)}, with the{' '}
               <strong>{itemName(implied.item)}</strong>.
             </p>
             <button className="primary" disabled={progress.solved} onClick={() => setConfirming(true)}>
@@ -346,7 +346,7 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
         <Dialog placement="center" labelId="accuse-title" onClose={() => setConfirming(false)}>
           <h2 id="accuse-title">Make the accusation?</h2>
           <p className="dialog-text">
-            {suspectName(implied.suspect)}, in the {roomName(scene)}, with the {itemName(implied.item)}. You'll hear how much of
+            {suspectName(implied.suspect, c.guests)}, in the {roomName(scene)}, with the {itemName(implied.item)}. You'll hear how much of
             it is right.
           </p>
           <div className="dialog-actions">
@@ -370,7 +370,7 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
       {held &&
         (held.kind === 'suspect' ? (
           <div ref={ghostRef} className={`ghost${faceClass(held.id)}`} style={{ '--counter': suspectColour(held.id) } as CSSProperties}>
-            <SuspectCounterFace id={held.id} />
+            <SuspectCounterFace id={held.id} guests={c.guests} />
           </div>
         ) : (
           <div ref={ghostRef} className="ghost weapon-ghost">
@@ -399,7 +399,7 @@ function ItemSheet({
   const holder = holderOf(c, progress, item);
   const room = itemRoom(c, progress, item);
   const where = holder
-    ? `You've given it to ${suspectName(holder).replace(/^The /, 'the ')}.`
+    ? `You've given it to ${suspectName(holder, c.guests).replace(/^The /, 'the ')}.`
     : room
       ? `You've put it in the ${roomName(room)}.`
       : 'Not placed yet.';
@@ -422,6 +422,7 @@ function ItemSheet({
           {clues.map((clue) => (
             <li key={clue.id}>
               <ClueCard
+                guests={c.guests}
                 clue={clue}
                 used={progress.used.includes(clue.id)}
                 onToggle={() => dispatch({ type: 'toggle-used', clue: clue.id })}

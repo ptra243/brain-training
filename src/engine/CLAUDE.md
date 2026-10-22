@@ -50,9 +50,14 @@
   never does.
 - **The campaign** (`campaign.ts`; saved play in `src/game/campaign.ts`): 7
   guests, one killer, up to 3 rounds, each a body later in the night, built
-  from the campaign and the victims before it. A wrong person becomes the
-  next body; after the third the killer escapes; the right person with the
-  wrong weapon costs nothing. She plays any `budget` of a round's 3 puzzles
+  from the campaign and the victims before it. Round 1's victim is the next
+  guest after the seated seven in that same shuffle (`seating[CAST]`). A wrong
+  person becomes the next body; after the third the killer escapes; the right
+  person with the wrong weapon costs nothing. A guest with `alone: { kin, name }`
+  is called `name` when no other id in `Case.guests` shares `kin` (both heirs,
+  so a lone heir is "The Heir"). The victim counts as present. A campaign's
+  `guests` is the whole cast plus the first victim, and it stays the same every
+  round. She plays any `budget` of a round's 3 puzzles
   (easy 3, medium 2, hard 1; the word game is free). Before the last round
   every choice of puzzles leaves 2 or 3 possible killers; in the last round
   the free clues settle the weapon and any one puzzle settles the killer.
@@ -68,7 +73,9 @@
 - **Play cases** (Quick play, `buildPlayCase`, seed `play-<code>`): the bare
   code rolls everything (`playLevels`, its own seed; a new game's roll goes
   last so earlier rolls stay the same; the crossword's roll sets its grid size,
-  the wordle has none). A case draws 3 to 5 games (more only when its clues
+  the wordle has none). The victim is the next guest after the seated ones in
+  the same shuffle (`seating[n]`), and names follow `Case.guests` the same way
+  as a campaign. A case draws 3 to 5 games (more only when its clues
   need the room; `PLAY_GAMES_MIN/MAX`), each with its own `level`, and
   `playShares` splits the clues by level (easy 1 : medium 2 : hard 3, the
   leftovers to random games); no free clues, the scene is given (`sceneGiven`), and the

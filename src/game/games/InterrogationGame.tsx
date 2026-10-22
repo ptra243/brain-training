@@ -8,15 +8,17 @@ import type { InterrogationData } from '../state.ts';
 import type { GameProps } from './types.ts';
 
 interface Props extends GameProps<Interrogation, InterrogationData> {
+  /** Everyone at dinner (`Case.guests`), so a lone heir is called "The Heir". */
+  guests: readonly string[];
   /** What she can present: the cards on the table, or her casebook in the finale. */
   evidence: readonly Clue[];
   /** Whether these pieces of evidence, together, prove the answer is a lie. */
   disproves: (evidence: readonly Clue[], answer: Question) => boolean;
 }
 
-const mid = (id: string) => midSentence(suspectName(id));
-
-export function InterrogationGame({ puzzle, data, finished, onChange, onFinish, evidence, disproves }: Props) {
+export function InterrogationGame({ puzzle, data, guests, finished, onChange, onFinish, evidence, disproves }: Props) {
+  const name = (id: string) => suspectName(id, guests);
+  const mid = (id: string) => midSentence(name(id));
   const [challenging, setChallenging] = useState<Question | null>(null);
   const [picked, setPicked] = useState<string[]>([]);
   const [reply, setReply] = useState('');
@@ -44,14 +46,14 @@ export function InterrogationGame({ puzzle, data, finished, onChange, onFinish, 
     const strikes = data.strikes + 1;
     const next = { ...data, strikes };
     if (strikes >= puzzle.strikes) {
-      setReply(`${suspectName(who)} refuses to say another word.`);
+      setReply(`${name(who)} refuses to say another word.`);
       onFinish('revealed', next);
       return;
     }
     setReply(
       challenging.lie
-        ? `"That proves nothing." ${suspectName(who)} doesn't budge. You're onto something, but not with that evidence.`
-        : `"That's the truth, and you know it." ${suspectName(who)} folds their arms.`,
+        ? `"That proves nothing." ${name(who)} doesn't budge. You're onto something, but not with that evidence.`
+        : `"That's the truth, and you know it." ${name(who)} folds their arms.`,
     );
     onChange(next);
   };
@@ -65,10 +67,10 @@ export function InterrogationGame({ puzzle, data, finished, onChange, onFinish, 
     <div className="interrogation">
       <section className="chair card">
         <span className="counter static" style={{ '--counter': suspectColour(who) } as CSSProperties} aria-hidden="true">
-          {suspectInitials(who)}
+          {suspectInitials(who, guests)}
         </span>
         <div>
-          <h2>{suspectName(who)} is in the chair</h2>
+          <h2>{name(who)} is in the chair</h2>
           <p className="muted">
             {finished
               ? data.caught
@@ -107,7 +109,7 @@ export function InterrogationGame({ puzzle, data, finished, onChange, onFinish, 
           })}
           {finished && data.caught && (
             <p className="crack">
-              {suspectName(who)} goes pale. “All right. I'll tell you what I really know.”
+              {name(who)} goes pale. “All right. I'll tell you what I really know.”
             </p>
           )}
           {finished && !data.caught && !data.asked.includes(lie.id) && (
@@ -139,7 +141,7 @@ export function InterrogationGame({ puzzle, data, finished, onChange, onFinish, 
         <ul className="clue-list">
           {evidence.map((e) => (
             <li key={e.id}>
-              <ClueCard clue={e} compact />
+              <ClueCard clue={e} guests={guests} compact />
             </li>
           ))}
         </ul>
@@ -173,7 +175,7 @@ export function InterrogationGame({ puzzle, data, finished, onChange, onFinish, 
                     <span className="tick" aria-hidden="true">
                       {on ? '✓' : ''}
                     </span>
-                    <ClueCard clue={e} compact />
+                    <ClueCard clue={e} guests={guests} compact />
                   </button>
                 </li>
               );

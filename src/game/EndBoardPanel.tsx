@@ -55,17 +55,17 @@ export function EndBoardPanel({ c, progress, dispatch, helper, readOnly, onAccus
       {placed.length > 0 && (
         <p>
           <b>Placed by your clues:</b>{' '}
-          {listAnd(placed.map((s) => `${lower(suspectName(s))} in the ${roomName(board.truth[placedBy(s)!].section)}`))}.
+          {listAnd(placed.map((s) => `${lower(suspectName(s, c.guests))} in the ${roomName(board.truth[placedBy(s)!].section)}`))}.
         </p>
       )}
       {open.length > 0 && (
         <p>
-          <b>No one can say where they were:</b> {listAnd(open.map((s) => lower(suspectName(s))))}.
+          <b>No one can say where they were:</b> {listAnd(open.map((s) => lower(suspectName(s, c.guests))))}.
         </p>
       )}
       {scene ? (
         <p>
-          <b>Could be the killer:</b> {killers.length ? listAnd(killers.map((s) => lower(suspectName(s)))) : 'no one, by these clues'}.
+          <b>Could be the killer:</b> {killers.length ? listAnd(killers.map((s) => lower(suspectName(s, c.guests)))) : 'no one, by these clues'}.
         </p>
       ) : (
         <p className="muted">Play a word game to find where the body was, and the board shows who could be the killer.</p>

@@ -33,10 +33,10 @@ export function SuspectSheet({ c, progress, dispatch, suspect, onClose, onMove, 
     <Dialog onClose={onClose} labelId="sheet-title">
         <header className="sheet-head">
           <span className={`counter static${faceClass(suspect)}`} style={{ '--counter': suspectColour(suspect) } as CSSProperties} aria-hidden="true">
-            <SuspectCounterFace id={suspect} />
+            <SuspectCounterFace id={suspect} guests={c.guests} />
           </span>
           <div>
-            <h2 id="sheet-title">{suspectName(suspect)}</h2>
+            <h2 id="sheet-title">{suspectName(suspect, c.guests)}</h2>
             <p className="muted">{placedLine ? `${placedLine}.` : 'Not placed yet.'}</p>
           </div>
           <button data-autofocus className="sheet-close" aria-label="Close" onClick={onClose}>
@@ -50,6 +50,7 @@ export function SuspectSheet({ c, progress, dispatch, suspect, onClose, onMove, 
               <li key={clue.id}>
                 <ClueCard
                   clue={clue}
+                  guests={c.guests}
                   used={progress.used.includes(clue.id)}
                   onToggle={() => dispatch({ type: 'toggle-used', clue: clue.id })}
                 />
@@ -57,7 +58,7 @@ export function SuspectSheet({ c, progress, dispatch, suspect, onClose, onMove, 
             ))}
           </ul>
         ) : (
-          <p className="muted">No clue you've found so far names {suspectName(suspect)}. Play the games to unlock more, or work them out from everyone else.</p>
+          <p className="muted">No clue you've found so far names {suspectName(suspect, c.guests)}. Play the games to unlock more, or work them out from everyone else.</p>
         )}
 
         <TalkSection c={c} progress={progress} dispatch={dispatch} suspect={suspect} onQuestion={onQuestion} />

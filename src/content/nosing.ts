@@ -55,7 +55,7 @@ export const nosingSnakes: readonly NosingJump[] = [
   },
   {
     id: 'broom',
-    name: "The cook's broom",
+    name: 'Shooed with a broom',
     description: 'I was shooed along with a broom, and not politely.',
     rooms: ['kitchen', 'hall'],
   },

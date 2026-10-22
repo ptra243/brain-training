@@ -2,8 +2,8 @@
 // - testimony: a quote from one of the suspects (free clues and sudoku clues)
 // - evidence: something the cats found (cat-puzzle clues)
 //
-// Placeholders: {s}/{S} suspect mid-sentence/start of sentence ("the Cook" /
-// "The Cook"), {a}/{b} and {A}/{B} the two suspects in pair clues, {i} item,
+// Placeholders: {s}/{S} suspect mid-sentence/start of sentence ("the Butler" /
+// "The Butler"), {a}/{b} and {A}/{B} the two suspects in pair clues, {i} item,
 // {r}/{r2} rooms. Room templates always write "the {r}" so a sudoku clue can
 // swap in "the room at row 3, column 4".
 
@@ -162,7 +162,11 @@ export function wordClue(
 /** Whether a clue names exactly one room, so a sudoku can point to it on the map. */
 export const canLocate = (fact: ClueFact): fact is Extract<ClueFact, { room: string }> => 'room' in fact;
 
-/** Plain one-line version, e.g. for the dev page: `The Maid: "…"` or the evidence sentence. */
+/**
+ * Plain one-line version, e.g. for the dev page: `The Butler: "…"` or the evidence sentence.
+ * Names come from `content.suspects`, so pass `guestContent(content, case.guests)` (`guestNames.ts`)
+ * for a case; `wordClue` and `questionFor` take the same.
+ */
 export function plainText(w: Worded, content: Content): string {
   if (!w.speaker) return w.body;
   const name = content.suspects.find((s) => s.id === w.speaker)?.name ?? w.speaker;

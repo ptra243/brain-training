@@ -7,7 +7,7 @@ import { characterSets } from './sets.ts';
 const everyone = content.suspects.map((s) => s.id);
 const seeds = Array.from({ length: 500 }, (_, i) => `seed-${i}`);
 
-test('placeholder talk content covers every suspect and card reading', () => {
+test('talk content covers every suspect and card reading', () => {
   for (const s of everyone) {
     const me = talk.suspects[s];
     assert.ok(me, `${s} has a card`);

@@ -72,7 +72,7 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
             )}
             {unlocked.map((u, i) => (
               <li key={u.id} style={{ animationDelay: `${120 + (i + 1) * 140}ms` }}>
-                <ClueCard clue={u} compact />
+                <ClueCard clue={u} guests={c.guests} compact />
               </li>
             ))}
           </ul>
@@ -84,7 +84,7 @@ export function GameScreen({ c, spec, progress, dispatch, onBack }: Props) {
 
       {halfHeard?.blank && !finished && (
         <div className="half-heard">
-          <ClueCard clue={{ ...halfHeard, body: halfHeard.blank.teaser }} compact />
+          <ClueCard clue={{ ...halfHeard, body: halfHeard.blank.teaser }} guests={c.guests} compact />
           <p className="muted small">Half-heard. Solve the puzzle to hear the room.</p>
         </div>
       )}

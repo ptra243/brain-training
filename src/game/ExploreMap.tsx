@@ -240,9 +240,9 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
                   <li key={s}>
                     <button className="puzzle-row person-row" disabled={frozen} onClick={() => setPerson(s)}>
                       <span className={`counter static${faceClass(s)}`} style={{ '--counter': suspectColour(s) } as CSSProperties} aria-hidden="true">
-                        <SuspectCounterFace id={s} />
+                        <SuspectCounterFace id={s} guests={c.guests} />
                       </span>
-                      <span className="puzzle-name">{suspectName(s)}</span>
+                      <span className="puzzle-name">{suspectName(s, c.guests)}</span>
                       <span className="puzzle-reward">{q && playable(q.kind) ? 'Talk, or question them' : 'Talk'}</span>
                       <span className="puzzle-action" aria-hidden="true">
                         Talk
@@ -266,15 +266,15 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
                 <span className="portrait-art">
                   <Portrait parts={portraits[person]} view="full" tint={personTint} />
                 </span>
-                <figcaption>{suspectName(person)}</figcaption>
+                <figcaption>{suspectName(person, c.guests)}</figcaption>
               </figure>
             ) : (
               <span className="portrait" style={{ '--counter': suspectColour(person) } as CSSProperties} aria-hidden="true">
-                {suspectInitials(person)}
+                {suspectInitials(person, c.guests)}
               </span>
             )}
             <div>
-              <h2 id="person-title">{suspectName(person)}</h2>
+              <h2 id="person-title">{suspectName(person, c.guests)}</h2>
               <p className="muted">In the {roomName(here)}.</p>
             </div>
             <button data-autofocus className="sheet-close" aria-label="Close" onClick={() => setPerson(null)}>

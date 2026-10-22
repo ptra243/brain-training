@@ -45,6 +45,19 @@ Starting prompt:
 Read docs/face-to-face.md, build piece 1 (wrong weapon ends the round) here, then brief the implementer on pieces 2 to 4.
 ```
 
+## Session: Run history
+Last touched: 2026-10-22
+Reads first: `docs/run-history.md` (settled design), `src/game/CLAUDE.md` (saves), then
+`src/game/storage.ts`, `src/game/saveGuards.ts`, `src/game/AccusePanel.tsx`, `src/game/CampaignView.tsx`.
+Goal: record a finished Quick play case and a finished campaign, and show them. Piece 1 is the
+pure snapshot and its tests. Piece 2 is the `history` save (no storage-prefix bump). Piece 3 is
+the closing line and the Your record screen, then `npm run e2e` and a `browser-check` at 360px.
+One layer per brief. Cases stay as they are.
+Starting prompt:
+```
+Read docs/run-history.md and brief piece 1 (the snapshot and its tests). After it lands, brief piece 2, then piece 3.
+```
+
 ## Session: Portraits, parametric faceted cast
 Last touched: 2026-10-22
 Reads first: `docs/portraits.md` (settled style and open items), the mockup canvas it links (the
@@ -71,8 +84,8 @@ lines per pair, 40 tangents, card + object threads, cold greetings, funnier tone
 - Card threads: one per card per reading (one thread per suspect, `docs/talk-threads.md`); 2 drafted.
 - Card + object gaps listed at the end of that section (Chariot and Sun have none).
 - Pool size: grow the core cast to 10 to 12 lines per reading before the campaign.
-- Then put it into `src/content/` (talk-threads Part B, with the storage prefix bump), swapping the
-  placeholder cast; check card names on counters at 360px.
+- The cast and drafted lines are in `src/content/` (2026-10-22). Card threads past the two drafted are
+  a first pass in `talk.ts`: polish them there. Card names on counters at 360px wait for tarot mode.
 Starting prompt:
 ```
 Read docs/theme-draft.md, draft one card thread per card per reading for the 15 cards, then fill the card + object gaps.
@@ -82,8 +95,8 @@ Read docs/theme-draft.md, draft one card thread per card per reading for the 15 
 Last touched: 2026-10-21
 Reads first: `docs/talk-threads.md` (settled design and the implementer brief), `src/game/CLAUDE.md`,
 `src/engine/CLAUDE.md`, `e2e/CLAUDE.md`.
-Part A is built (2026-10-21, placeholder lines in `src/content/talk.ts`). Start this after the Theme
-content session has written the real lines.
+Part A is built. `src/content/talk.ts` has the drafted lines; card threads beyond that draft are a first
+pass, still to polish.
 Goal: part B of the brief. A cold suspect's questioning game is built one level harder (from their
 mood at case start; in campaigns the mood moves per round), tangents inside minigame answers, and the
 `object` trigger. This changes cases: storage prefix bump and `npm run update-golden` in the same commit.
@@ -102,8 +115,8 @@ Goal: write the campaign's story content for the 10-guest pool:
 - Victim openings: 2 or 3 lines per guest on why they mattered to the house.
 - Endings: one pool per card for after the solve, with `{victim}` filled in.
 - Lines for the three new guests (Elder heir, Younger heir, Detective) and the Butler's reworded lines.
-Then code: chapters in the campaign thread slot, ranks saved as her moves, and the named first victim
-(the 8th guest in `campaignCast`).
+Then code: chapters in the campaign thread slot and ranks saved as her moves (the named first victim is
+built: `Case.victim`).
 Starting prompt:
 ```
 Read the Guest pool and Confidants sections of docs/theme-draft.md, then help me write the 5-chapter arcs, victim openings and endings.
@@ -157,14 +170,15 @@ Goal: make characters react to each other, without anything depending on the kil
   never vouches for themselves).
 - Victim threads (owner, 2026-10-22; **campaign only**): each seated guest has a thread about how they
   knew the victim, the whodunit "everyone had a reason". Fixed by who the guest is and who died, never
-  by the killer, and every guest gets one so the killer's doesn't stand out (rule 5). Victims are never
-  rolled: round 1's is the proposed named first victim (8th in the campaign shuffle, theme-draft
-  Confidants), rounds 2 and 3 are her wrong accusations, so a victim thread gives nothing away.
+  by the killer, and every guest gets one so the killer's doesn't stand out (rule 5). Victims get
+  no roll of their own: round 1's is the next guest in the seating shuffle (built 2026-10-22, the 8th in
+  a campaign), rounds 2 and 3 are her wrong accusations, so a victim thread gives nothing away.
   Proposed size: a few relationship types (owes them money, old rival, secret fondness, family), each a
   2 or 3 beat thread per reading with `{victim}`; the pair's type comes from the who-knows-whom map or
   the cards, not 90 hand-written pairs. Decide how it shares the thread slot with the guest's own thread.
 - Quick play stays puzzles first: guests are window dressing there, with loose lines and their own
-  thread only; no pair or victim threads, no named victim.
+  thread only; no pair or victim threads. Its victim is named (`Case.victim`, 2026-10-22). Threads
+  still are not built on who it is.
 Starting prompt:
 ```
 Read the "Relationships between characters" entry in docs/next-sessions.md and docs/theme-draft.md, then help me design card-pair and shared-card threads, campaign victim threads and the heard trigger.

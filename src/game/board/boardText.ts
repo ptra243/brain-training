@@ -9,7 +9,7 @@ import { pieceNumber } from './boardSave.ts';
 export const sectionName = (s: string) => (s === UNKNOWN ? 'Unknown' : roomName(s));
 export const theSection = (s: string) => (s === UNKNOWN ? 'Unknown' : `the ${roomName(s)}`);
 export const lowerThe = (s: string) => s.replace(/^The /, 'the ').replace(/^A /, 'a ');
-export const shortName = (id: string) => suspectName(id).replace(/^The /, '');
+export const shortName = (guests: readonly string[], id: string) => suspectName(id, guests).replace(/^The /, '');
 export const capital = (s: string) => s[0].toUpperCase() + s.slice(1);
 const sentence = (s: string) => capital(s) + '.';
 
@@ -20,10 +20,10 @@ export function listAnd(xs: readonly string[], word = 'and') {
 /** What a piece is called: "The Butler (piece 1 of 2)", "The knife", "A hunch", "A clock that runs five minutes slow". */
 export function pieceName(r: Rules, pid: string): string {
   const p = r.piece[pid];
-  if (p.kind === 'guest' && p.hidden && !r.finished) return `A hunch about ${lowerThe(suspectName(p.who as string))}`;
+  if (p.kind === 'guest' && p.hidden && !r.finished) return `A hunch about ${lowerThe(suspectName(p.who as string, r.guests))}`;
   if (p.kind === 'guest') {
     const n = pieceNumber(r, pid);
-    return suspectName(p.who as string) + (n ? ` (piece ${n.n} of ${n.of})` : '');
+    return suspectName(p.who as string, r.guests) + (n ? ` (piece ${n.n} of ${n.of})` : '');
   }
   if (p.kind === 'weapon') return `The ${itemName(p.who as string)}`;
   if (p.kind === 'grey') return 'A hunch';
@@ -34,7 +34,7 @@ export function pieceName(r: Rules, pid: string): string {
 /** The short caption under a piece in the tray. */
 export function caption(r: Rules, pid: string): string {
   const p = r.piece[pid];
-  if (p.kind === 'guest') return shortName(p.who as string);
+  if (p.kind === 'guest') return shortName(r.guests, p.who as string);
   if (p.kind === 'weapon') return capital(itemName(p.who as string));
   return p.kind === 'grey' ? 'Hunch' : capital(p.kind);
 }
@@ -54,7 +54,7 @@ export function blockText(r: Rules, pid: string, section: string, b: Block): str
       return `${lead} It can't share a room with ${lowerThe(pieceName(r, b.other as string))}, which is pinned there.`;
     case 'same-pinned': {
       const who = r.piece[pid].who as string;
-      return `${lead} All of ${lowerThe(suspectName(who))}'s pieces go in the same place, and one is pinned in ${theSection(b.otherSection as string)}.`;
+      return `${lead} All of ${lowerThe(suspectName(who, r.guests))}'s pieces go in the same place, and one is pinned in ${theSection(b.otherSection as string)}.`;
     }
   }
 }
@@ -66,7 +66,7 @@ export function clashText(r: Rules, c: Clash): string {
   }
   if (c.kind === 'apart') return `${pieceName(r, c.ids[0])} and ${n(c.ids[1])} were never in the same room, but both are in ${theSection(c.sections[0])}.`;
   const who = r.piece[c.ids[0]].who as string;
-  return `All of ${lowerThe(suspectName(who))}'s pieces go in the same place, but they're in ${listAnd(c.sections.map(theSection))}.`;
+  return `All of ${lowerThe(suspectName(who, r.guests))}'s pieces go in the same place, but they're in ${listAnd(c.sections.map(theSection))}.`;
 }
 
 /** A piece's own rules as lower-case phrases, to build sentences from. */
@@ -98,9 +98,9 @@ export function rulesOf(r: Rules, pid: string, finished: boolean): string[] {
     for (const q of mates) {
       const theirs = ruleBits(r, q);
       const n = pieceNumber(r, q);
-      if (theirs.length && !r.piece[q].hidden) out.push(`${suspectName(p.who as string)}'s other piece${n ? ` (${n.n} of ${n.of})` : ''} ${listAnd(theirs)}.`);
+      if (theirs.length && !r.piece[q].hidden) out.push(`${suspectName(p.who as string, r.guests)}'s other piece${n ? ` (${n.n} of ${n.of})` : ''} ${listAnd(theirs)}.`);
     }
-    out.push(`All of ${lowerThe(suspectName(p.who as string))}'s pieces go in the same place: the same room, or all in Unknown.`);
+    out.push(`All of ${lowerThe(suspectName(p.who as string, r.guests))}'s pieces go in the same place: the same room, or all in Unknown.`);
   }
   return out;
 }
