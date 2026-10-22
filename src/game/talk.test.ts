@@ -7,7 +7,7 @@ import { moodFor } from '../engine/sets.ts';
 import type { Case } from '../engine/types.ts';
 import { generateCase } from '../engine/generate.ts';
 import { emptyProgress, reduce, type Progress } from './state.ts';
-import { gamesAbout, greeting, questioningOf, readyBeats, setsFor } from './talk.ts';
+import { gamesAbout, greeting, moodTint, questioningOf, readyBeats, setsFor } from './talk.ts';
 
 const c = generateCase(content, 5);
 const finish = (p: Progress, kinds: readonly string[], status: 'won' | 'revealed' | 'playing' = 'won'): Progress => ({
@@ -53,12 +53,35 @@ test('greetings: cold guests warm up a step per beat, warm ones stay warm', () =
   const mid = { mood: 1 };
   assert.equal(greeting(cold, 0, g), g.cold[0]);
   assert.equal(greeting(cold, 1, g), g.cold[1]);
-  assert.equal(greeting(cold, 2, g), g.warm[0]);
-  assert.equal(greeting(cold, 9, g), g.warm[0]);
+  const warmAt = (heard: number) => g.warm[Math.min(heard, g.warm.length - 1)]; // never the first-meeting line once they've talked
+  assert.equal(greeting(cold, 2, g), warmAt(2));
+  assert.equal(greeting(cold, 9, g), warmAt(9));
   assert.equal(greeting(mid, 0, g), g.cold[1]);
-  assert.equal(greeting(mid, 1, g), g.warm[0]);
+  assert.equal(greeting(mid, 1, g), warmAt(1));
   assert.ok(g.warm.includes(greeting({ mood: g.cold.length }, 0, g)));
   assert.ok(g.warm.includes(greeting({ mood: g.cold.length }, 5, g)));
+});
+
+test('mood tint: hostile at the coldest step, warm at the top, none between', () => {
+  const g = talk.greetings;
+  const top = g.cold.length;
+  assert.equal(moodTint({ mood: 0 }, 0, g), 'hostile');
+  assert.equal(moodTint({ mood: 0 }, 1, g), top > 1 ? 'none' : 'warm');
+  assert.equal(moodTint({ mood: 0 }, top, g), 'warm');
+  assert.equal(moodTint({ mood: 0 }, 9, g), 'warm');
+  assert.equal(moodTint({ mood: 1 }, 0, g), top > 1 ? 'none' : 'warm');
+  assert.equal(moodTint({ mood: top - 1 }, 1, g), 'warm');
+  assert.equal(moodTint({ mood: top }, 0, g), 'warm');
+  assert.equal(moodTint({ mood: top }, 5, g), 'warm');
+  for (let mood = 0; mood <= top; mood++) {
+    for (let heard = 0; heard < 6; heard++) {
+      const warm = mood >= top || mood + heard >= top;
+      const expected = warm ? 'warm' : mood + heard === 0 ? 'hostile' : 'none';
+      assert.equal(moodTint({ mood }, heard, g), expected);
+      // tint agrees with the greeting shown
+      assert.equal(warm, g.warm.includes(greeting({ mood }, heard, g)));
+    }
+  }
 });
 
 test('talk-hear raises the count by one and never past the ready beats', () => {

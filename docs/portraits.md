@@ -106,3 +106,5 @@ Skin tones vary across the ten (light to deep); every silhouette differs from it
 
 - Where the player's portrait appears (the case intro, a profile). Not in the first build.
 - Whether the cat's counter replaces the cat's name in hint copy. Not in the first build.
+- The questioning game (`InterrogationGame`) still shows initials; counters elsewhere and the person
+  screen show portraits (wired 2026-10-22).

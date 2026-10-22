@@ -4,11 +4,15 @@ import type { Case, GameKind, Room } from '../engine/types.ts';
 import { Dialog } from './Dialog.tsx';
 import { clockAfterNext, canOpen, minutesPerGame, openPuzzlesIn, roomContents, whereAmI } from './explore.ts';
 import { GAMES } from './games/registry.tsx';
-import { roomName, roomTint, suspectColour, suspectInitials, suspectName } from './names.ts';
+import { talk } from '../content/talk.ts';
+import { portraits } from '../content/portraits.ts';
+import { faceClass, roomName, roomTint, suspectColour, suspectInitials, suspectName } from './names.ts';
+import { hasPortrait, Portrait } from './Portrait.tsx';
+import { SuspectCounterFace } from './SuspectCounterFace.tsx';
 import type { PuzzleGate } from './CluesPanel.tsx';
 import { gameDone, type Action, type Progress } from './state.ts';
 import { TalkSection } from './TalkSection.tsx';
-import { questioningOf } from './talk.ts';
+import { moodTint, questioningOf, setsFor } from './talk.ts';
 
 interface Props {
   c: Case;
@@ -80,6 +84,7 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
     gameDone(progress, kind) ? '✓' : usedUp(kind) ? '–' : progress.games[kind]?.status === 'playing' ? 'Continue' : 'Play';
 
   const personQuestion = person ? questioningOf(c, person) : undefined;
+  const personTint = person ? moodTint(setsFor(c)[person], progress.talk?.[person] ?? 0, talk.greetings) : 'none';
 
   return (
     <section className="panel">
@@ -234,8 +239,8 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
                 return (
                   <li key={s}>
                     <button className="puzzle-row person-row" disabled={frozen} onClick={() => setPerson(s)}>
-                      <span className="counter static" style={{ '--counter': suspectColour(s) } as CSSProperties} aria-hidden="true">
-                        {suspectInitials(s)}
+                      <span className={`counter static${faceClass(s)}`} style={{ '--counter': suspectColour(s) } as CSSProperties} aria-hidden="true">
+                        <SuspectCounterFace id={s} />
                       </span>
                       <span className="puzzle-name">{suspectName(s)}</span>
                       <span className="puzzle-reward">{q && playable(q.kind) ? 'Talk, or question them' : 'Talk'}</span>
@@ -255,10 +260,19 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
 
       {person && (
         <Dialog onClose={() => setPerson(null)} labelId="person-title">
-          <header className="sheet-head">
-            <span className="portrait" style={{ '--counter': suspectColour(person) } as CSSProperties} aria-hidden="true">
-              {suspectInitials(person)}
-            </span>
+          <header className={`sheet-head${hasPortrait(person) ? ' with-card' : ''}`}>
+            {hasPortrait(person) ? (
+              <figure className="portrait portrait-card" aria-hidden="true">
+                <span className="portrait-art">
+                  <Portrait parts={portraits[person]} view="full" tint={personTint} />
+                </span>
+                <figcaption>{suspectName(person)}</figcaption>
+              </figure>
+            ) : (
+              <span className="portrait" style={{ '--counter': suspectColour(person) } as CSSProperties} aria-hidden="true">
+                {suspectInitials(person)}
+              </span>
+            )}
             <div>
               <h2 id="person-title">{suspectName(person)}</h2>
               <p className="muted">In the {roomName(here)}.</p>

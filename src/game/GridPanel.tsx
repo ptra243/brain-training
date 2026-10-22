@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { Case } from '../engine/types.ts';
-import { itemName, roomName, suspectColour, suspectInitials, suspectName } from './names.ts';
+import { itemName, roomName, suspectColour, suspectName, faceClass } from './names.ts';
+import { SuspectCounterFace } from './SuspectCounterFace.tsx';
 import { Paw } from './games/Hints.tsx';
 import { showsWrong } from './gridHints.ts';
 import { cellState, markKey, sharedRooms, type Action, type GridKind, type Progress, type Subject } from './state.ts';
@@ -94,8 +95,8 @@ export function GridPanel({ c, progress, dispatch, focus, onFocus, pawedSquare }
                   {label(
                     { kind: 'suspect', id: s },
                     suspectName(s),
-                    <span className="counter static mini" style={{ '--counter': suspectColour(s) } as CSSProperties} title={suspectName(s)}>
-                      {suspectInitials(s)}
+                    <span className={`counter static mini${faceClass(s)}`} style={{ '--counter': suspectColour(s) } as CSSProperties} title={suspectName(s)}>
+                      <SuspectCounterFace id={s} />
                     </span>,
                     'axis-label row-label',
                   )}

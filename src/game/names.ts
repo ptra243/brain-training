@@ -1,5 +1,6 @@
 import { content } from '../content/index.ts';
 import { caseNameWords } from '../content/caseNames.ts';
+import { hasPortrait } from './portrait.ts';
 import { caseName, type CaseRef } from '../engine/caseRef.ts';
 
 const find = <T extends { id: string; name: string }>(list: readonly T[], id: string) =>
@@ -14,6 +15,9 @@ export function suspectInitials(id: string) {
   const name = suspectName(id).replace(/^The /, '');
   return name.slice(0, 2);
 }
+
+/** Extra class for a counter whose face is a portrait (the CSS clips it to the circle). */
+export const faceClass = (id: string) => (hasPortrait(id) ? ' has-portrait' : '');
 
 /** Counter colours, by suspect position in the content file so they stay stable across cases. */
 const COUNTER_COLOURS = ['#7c3b52', '#2f5d8a', '#6b7a2e', '#8a5a2b', '#4f3f86', '#2d7468', '#9a3b2a'];

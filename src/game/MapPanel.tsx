@@ -4,7 +4,8 @@ import type { Case, GameKind, Room } from '../engine/types.ts';
 import { ClueCard } from './ClueCard.tsx';
 import { cellOf, showsWrong } from './gridHints.ts';
 import { Dialog } from './Dialog.tsx';
-import { itemName, roomName, roomTint, suspectColour, suspectInitials, suspectName } from './names.ts';
+import { itemName, roomName, roomTint, suspectColour, suspectName, faceClass } from './names.ts';
+import { SuspectCounterFace } from './SuspectCounterFace.tsx';
 import {
   heldItem,
   holderOf,
@@ -157,13 +158,13 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
     <button
       key={suspect}
       data-suspect={suspect}
-      className={`counter ${selected === suspect ? 'selected' : ''} ${lifted({ kind: 'suspect', id: suspect }) ? 'lifted' : ''} ${wrongSuspect(suspect) ? 'wrong' : ''} ${hintedPiece({ kind: 'suspect', id: suspect }) ? 'hinted' : ''}`}
+      className={`counter${faceClass(suspect)} ${selected === suspect ? 'selected' : ''} ${lifted({ kind: 'suspect', id: suspect }) ? 'lifted' : ''} ${wrongSuspect(suspect) ? 'wrong' : ''} ${hintedPiece({ kind: 'suspect', id: suspect }) ? 'hinted' : ''}`}
       style={{ '--counter': suspectColour(suspect) } as CSSProperties}
       aria-label={`${suspectName(suspect)}${selected === suspect ? ', selected' : ''}`}
       aria-pressed={selected === suspect}
       {...handlers({ kind: 'suspect', id: suspect })}
     >
-      {suspectInitials(suspect)}
+      <SuspectCounterFace id={suspect} />
     </button>
   );
 
@@ -368,8 +369,8 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
 
       {held &&
         (held.kind === 'suspect' ? (
-          <div ref={ghostRef} className="ghost" style={{ '--counter': suspectColour(held.id) } as CSSProperties}>
-            {suspectInitials(held.id)}
+          <div ref={ghostRef} className={`ghost${faceClass(held.id)}`} style={{ '--counter': suspectColour(held.id) } as CSSProperties}>
+            <SuspectCounterFace id={held.id} />
           </div>
         ) : (
           <div ref={ghostRef} className="ghost weapon-ghost">

@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { Case, GameKind } from '../engine/types.ts';
-import { itemName, roomName, suspectColour, suspectInitials, suspectName } from './names.ts';
+import { itemName, roomName, suspectColour, suspectName, faceClass } from './names.ts';
+import { SuspectCounterFace } from './SuspectCounterFace.tsx';
 import { ClueCard } from './ClueCard.tsx';
 import { Dialog } from './Dialog.tsx';
 import { TalkSection } from './TalkSection.tsx';
@@ -31,8 +32,8 @@ export function SuspectSheet({ c, progress, dispatch, suspect, onClose, onMove, 
   return (
     <Dialog onClose={onClose} labelId="sheet-title">
         <header className="sheet-head">
-          <span className="counter static" style={{ '--counter': suspectColour(suspect) } as CSSProperties} aria-hidden="true">
-            {suspectInitials(suspect)}
+          <span className={`counter static${faceClass(suspect)}`} style={{ '--counter': suspectColour(suspect) } as CSSProperties} aria-hidden="true">
+            <SuspectCounterFace id={suspect} />
           </span>
           <div>
             <h2 id="sheet-title">{suspectName(suspect)}</h2>
