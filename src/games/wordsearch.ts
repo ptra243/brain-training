@@ -96,10 +96,9 @@ function tryLayout(answer: string, pool: readonly string[], dirs: readonly Pos[]
   const placed: PlacedWord[] = [];
   const usedWords = new Set<string>();
   const dead = new Set<number>();
-  const uncovered = () => all.filter((p) => letters[p[0]][p[1]] === null && !dead.has(key(p)));
-
   while (placed.length < MAX_WORDS) {
-    const open = uncovered();
+    const open: Pos[] = [];
+    for (const p of all) if (letters[p[0]][p[1]] === null && !dead.has(p[0] * 100 + p[1])) open.push(p);
     if (!open.length) break;
     const target = rng.pick(open);
     const fit = findPlacement(target, pool, usedWords, dirs, letters, secretSet, size, rng);
@@ -133,28 +132,59 @@ function findPlacement(
   rng: Rng,
 ): PlacedWord | null {
   // A sample of the pool is plenty, and keeps generation quick on a phone.
-  for (const word of rng.shuffle(pool).slice(0, 120)) {
+  // The shuffle is Rng.shuffle's Fisher-Yates, run in one reused buffer
+  // (every draw still happens); only the first 120 are tried.
+  const n = pool.length;
+  const buf = shuffleBuf;
+  buf.length = n;
+  for (let i = 0; i < n; i++) buf[i] = pool[i];
+  for (let i = n - 1; i > 0; i--) {
+    const j = rng.int(i + 1);
+    const t = buf[i];
+    buf[i] = buf[j];
+    buf[j] = t;
+  }
+  const tries = Math.min(n, 120);
+  for (let w = 0; w < tries; w++) {
+    const word = buf[w];
     if (usedWords.has(word)) continue;
+    const len = word.length;
+    const idx = indexesOf(len);
     for (const [dr, dc] of rng.shuffle(dirs)) {
-      for (const j of rng.shuffle([...word].map((_, i) => i))) {
+      for (const j of rng.shuffle(idx)) {
         const r0 = target[0] - j * dr;
         const c0 = target[1] - j * dc;
-        const cells: Pos[] = [];
         let fresh = 0;
         let ok = true;
-        for (let i = 0; i < word.length && ok; i++) {
+        for (let i = 0; i < len; i++) {
           const r = r0 + i * dr;
           const c = c0 + i * dc;
-          if (r < 0 || c < 0 || r >= size || c >= size || secretSet.has(r * 100 + c)) ok = false;
-          else if (letters[r][c] === null) fresh++;
-          else if (letters[r][c] !== word[i]) ok = false;
-          cells.push([r, c]);
+          if (r < 0 || c < 0 || r >= size || c >= size || secretSet.has(r * 100 + c)) {
+            ok = false;
+            break;
+          }
+          const l = letters[r][c];
+          if (l === null) fresh++;
+          else if (l !== word[i]) {
+            ok = false;
+            break;
+          }
         }
-        if (ok && fresh >= 2) return { word, cells };
+        if (ok && fresh >= 2) {
+          const cells: Pos[] = [];
+          for (let i = 0; i < len; i++) cells.push([r0 + i * dr, c0 + i * dc]);
+          return { word, cells };
+        }
       }
     }
   }
   return null;
+}
+
+const shuffleBuf: string[] = [];
+const indexCache: number[][] = [];
+function indexesOf(len: number): readonly number[] {
+  return (indexCache[len] ??= Array.from({ length: len }, (_, i) => i));
 }
 
 const isPalindrome = (w: string) => w === [...w].reverse().join('');

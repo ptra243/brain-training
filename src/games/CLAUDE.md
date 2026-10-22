@@ -38,6 +38,12 @@ Pure puzzle logic, no React. Components live in `src/game/games/`.
   squares are right she may stop early with "Take the clue" (still `won`).
   **Word search**: leftover letters spell the word, every listed word appears
   exactly once, and she can type the word early.
+- **The word game builders have an oracle.** `wordBuildersOracle.ts` keeps
+  the crossword and word search builders as they were before they were made
+  fast; `wordBuildersSweeps.ts` (check-cases) and `wordBuilders.test.ts` check
+  the fast ones build identical puzzles. A speed-up must keep every `Rng`
+  draw in order. A change that is meant to change grids is a content change:
+  update the oracle in the same commit and bump the storage prefix.
 - **Word lists.** Fill and answers come from `src/content/words.ts` (common
   words with clues; harder crossword fill in `crosswordWords.ts`) and never
   use a theme word (`themeWords`).

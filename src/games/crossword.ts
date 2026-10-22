@@ -52,18 +52,29 @@ interface Placed extends ClueWordLike {
   col: number;
 }
 
+/**
+ * Squares are integers `r * size + c` in flat arrays. `filled` lists the filled squares in the order they
+ * were first filled (the order the old Map gave), which the random picks in buildBoard and pickShaded rely on.
+ */
 class Board {
-  letters = new Map<string, string>();
-  across = new Set<string>();
-  down = new Set<string>();
+  /** The letter in each square, '' if empty. */
+  readonly letters: string[];
+  /** 1 where an across / down word covers the square. */
+  readonly across: Uint8Array;
+  readonly down: Uint8Array;
+  readonly filled: number[] = [];
   words: Placed[] = [];
   readonly size: number;
   constructor(size: number) {
     this.size = size;
+    this.letters = new Array<string>(size * size).fill('');
+    this.across = new Uint8Array(size * size);
+    this.down = new Uint8Array(size * size);
   }
 
+  /** The letter in a square, '' if empty or off the grid. */
   at(r: number, c: number) {
-    return this.letters.get(cellKey(r, c));
+    return r < 0 || c < 0 || r >= this.size || c >= this.size ? '' : this.letters[r * this.size + c];
   }
 
   /** Squares where `word` would cross what's there, or -1 if it can't go here. */
@@ -80,9 +91,9 @@ class Board {
     for (let i = 0; i < word.length; i++) {
       const r = row + dr * i;
       const c = col + dc * i;
-      const here = this.at(r, c);
+      const here = this.letters[r * this.size + c];
       if (here) {
-        if (here !== word[i] || same.has(cellKey(r, c))) return -1;
+        if (here !== word[i] || same[r * this.size + c]) return -1;
         crossed++;
       } else if (this.at(r - dc, c - dr) || this.at(r + dc, c + dr)) {
         // A new square beside another letter would make a stray two-letter word.
@@ -94,9 +105,11 @@ class Board {
 
   place(w: ClueWordLike, dir: Direction, row: number, col: number) {
     const same = dir === 'across' ? this.across : this.down;
-    for (const [r, c] of entryCells({ word: w.word, dir, row, col })) {
-      this.letters.set(cellKey(r, c), w.word[r - row + c - col]);
-      same.add(cellKey(r, c));
+    for (let i = 0; i < w.word.length; i++) {
+      const idx = dir === 'across' ? row * this.size + col + i : (row + i) * this.size + col;
+      if (!this.letters[idx]) this.filled.push(idx);
+      this.letters[idx] = w.word[i];
+      same[idx] = 1;
     }
     this.words.push({ ...w, dir, row, col });
   }
@@ -134,20 +147,22 @@ function buildBoard(pool: readonly ClueWordLike[], byLetter: LetterIndex, size: 
     const used = new Set(board.words.map((w) => w.word));
     // Letters the hidden word still needs: favour words that bring them.
     const missing = [...answer];
-    for (const l of board.letters.values()) {
-      const k = missing.indexOf(l);
+    for (const idx of board.filled) {
+      const k = missing.indexOf(board.letters[idx]);
       if (k >= 0) missing.splice(k, 1);
     }
-    const filled = [...board.letters];
+    const filled = board.filled;
     const options: { w: ClueWordLike; dir: Direction; row: number; col: number; score: number }[] = [];
     // Random probes are much cheaper than trying every word at every square, and plenty for these grids.
     for (let probe = 0; probe < probes && options.length < 12; probe++) {
-      const [key, letter] = filled[rng.int(filled.length)];
+      const idx = filled[rng.int(filled.length)];
+      const letter = board.letters[idx];
       const fits = byLetter.get(letter);
       if (!fits) continue;
       const { w, i } = fits[rng.int(fits.length)];
       if (used.has(w.word)) continue;
-      const [r, c] = key.split(',').map(Number);
+      const r = Math.floor(idx / size);
+      const c = idx % size;
       const d: Direction = rng.int(2) ? 'across' : 'down';
       const row = d === 'down' ? r - i : r;
       const col = d === 'across' ? c - i : c;
@@ -177,17 +192,17 @@ function buildBoard(pool: readonly ClueWordLike[], byLetter: LetterIndex, size: 
  * if the grid hasn't got the letters.
  */
 function pickShaded(board: Board, answer: string, rng: Rng): [number, number][] | null {
-  const free = rng.shuffle([...board.letters.keys()]);
-  const wordsAt = (key: string) => board.words.filter((w) => entryCells(w).some(([r, c]) => cellKey(r, c) === key));
+  const free = rng.shuffle(board.filled.slice());
+  const wordsAt = (sq: number) => board.words.filter((w) => entryCells(w).some(([r, c]) => r * board.size + c === sq));
   const usedWords = new Set<Placed>();
   const out: [number, number][] = [];
   for (const letter of answer) {
-    const options = free.filter((k) => board.letters.get(k) === letter);
+    const options = free.filter((k) => board.letters[k] === letter);
     if (!options.length) return null;
     const fresh = options.find((k) => wordsAt(k).every((w) => !usedWords.has(w))) ?? options[0];
     free.splice(free.indexOf(fresh), 1);
     for (const w of wordsAt(fresh)) usedWords.add(w);
-    out.push(fresh.split(',').map(Number) as [number, number]);
+    out.push([Math.floor(fresh / board.size), fresh % board.size]);
   }
   return out;
 }
@@ -231,7 +246,7 @@ export function generateCrossword(
     const better =
       !best ||
       (spread >= enough) > (best.spread >= enough) ||
-      ((spread >= enough) === (best.spread >= enough) && (best.spread < enough ? spread > best.spread : board.letters.size > best.board.letters.size));
+      ((spread >= enough) === (best.spread >= enough) && (best.spread < enough ? spread > best.spread : board.filled.length > best.board.filled.length));
     if (better) best = { board, shaded, spread };
     if (spread >= enough && ++good >= keep) break;
   }

@@ -40,6 +40,7 @@ import { LEVELS as DOG_LEVELS, challengeSeed as dogChallengeSeed, dogPlaysSeed, 
 import { compareSearch, FACT_TYPES as SEARCH_FACT_TYPES } from '../src/engine/searchSweeps.ts';
 import { LOCK_LEVELS, LOCK_SEEDS, lockHintSeed, lockPrefixSeed, lockTierSeed } from '../src/games/lockSweeps.ts';
 import { CROSSWORD_SIZES, crosswordSeed as crosswordGridSeed, roomThings, sceneCaseSeed } from '../src/game/sceneGamesSweeps.ts';
+import { CROSSWORD_BUILD_SIZES, WORDSEARCH_LEVELS, crosswordSameSeed, wordSearchSameSeed } from '../src/games/wordBuildersSweeps.ts';
 import { everyWordOnce, leftovers } from '../src/games/wordsearch.ts';
 import type { Case, Difficulty } from '../src/engine/types.ts';
 
@@ -817,6 +818,32 @@ section('locks');
   console.log(`Scene games: ${things.length} room things in ${grids} crossword grids, ${cases} cases' word games`);
 }
 section('scene games');
+
+// Fast crossword and word search builders against the oracle (today's builders): the same puzzle for the same seed
+// (wordBuilders.test.ts keeps a few fixed answers at seed 1). Quick: every other room thing at one size/level, seed 3;
+// --full: every room thing at every size and level for seeds 1 and 2.
+{
+  let crosswords = 0;
+  let searches = 0;
+  roomThings().forEach((answer, k) => {
+    if (!FULL && k % 2) return;
+    const j = (k >> 1) + 1;
+    const sizes = FULL ? CROSSWORD_BUILD_SIZES : [CROSSWORD_BUILD_SIZES[j % CROSSWORD_BUILD_SIZES.length]];
+    const levels = FULL ? WORDSEARCH_LEVELS : [WORDSEARCH_LEVELS[j % WORDSEARCH_LEVELS.length]];
+    for (const seed of FULL ? [1, 2] : [3]) {
+      for (const size of sizes) {
+        holds('builders vs oracle', `crossword vs oracle ${answer} size ${size} seed ${seed}`, () => crosswordSameSeed(answer, size, seed));
+        crosswords++;
+      }
+      for (const level of levels) {
+        holds('builders vs oracle', `word search vs oracle ${answer} level ${level} seed ${seed}`, () => wordSearchSameSeed(answer, level, seed));
+        searches++;
+      }
+    }
+  });
+  console.log(`Word builders vs oracle: ${crosswords} crosswords and ${searches} word searches match the old builders`);
+}
+section('builders vs oracle');
 
 console.log(`Talk: ${talkChecked.guests} guests have a thread; ${talkChecked.short} still have a beat waiting for the solved case once every game is done`);
 console.log(`Case boards:${boards.puzzles} puzzles and ${boards.ends} end boards built (slowest ${boards.slowest.toFixed(0)} ms)`);
