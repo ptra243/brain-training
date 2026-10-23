@@ -17,19 +17,6 @@ status changes** (built, blocked, unblocked, done): move it to its place, don't 
 stands. A blocked entry keeps its rank and names its blocker in the heading.
 
 
-## Session: Face to face, questioning the accused
-Last touched: 2026-10-23
-Reads first: `docs/face-to-face.md` (settled design), `src/engine/CLAUDE.md` (campaign, interrogations),
-`src/game/CLAUDE.md`, then `src/engine/interrogation.ts`, `src/engine/campaign.ts`, `src/game/campaign.ts`.
-Goal: in campaigns, accusing opens the finale questioning with the accused (only the killer lies), with
-rotating closing lines; a wrong weapon now ends the round and a seeded innocent non-decoy is the next
-body. Rounds that never hit the new path stay the same. Do piece 1 (the wrong-weapon rule) here, delegate
-pieces 2 to 4. If exploration phase 1 lands first, the questioning plays before its next-murder scene.
-Starting prompt:
-```
-Read docs/face-to-face.md, build piece 1 (wrong weapon ends the round) here, then brief the implementer on pieces 2 to 4.
-```
-
 ## Session: Run history
 Last touched: 2026-10-22
 Reads first: `docs/run-history.md` (settled design), `src/game/CLAUDE.md` (saves), then
@@ -44,21 +31,18 @@ Read docs/run-history.md and brief piece 1 (the snapshot and its tests). After i
 ```
 
 ## Session: Portraits, parametric faceted cast
-Last touched: 2026-10-22
-Reads first: `docs/portraits.md` (settled style and open items), the mockup canvas it links (the
-three-quarter board's SVG is the reference drawing), `docs/theme-draft.md` ("Guest pool"), and the
-person screen in `docs/exploration-mode.md`.
-The player and the cat are drawn and settled ("The player and the cat" in `docs/portraits.md`); the
-canvas read is large, so read only the one board you need (`project/Main.dc.html` or
-`project/PlayerCat.dc.html`).
-Goal: settle the three open items (which cast, portrait versus tarot card art, where mood comes from),
-then design the parts model (base figure, per-guest hair, headwear, costume, accent and background in
-`src/content/`, mood tint overlay) here. Hand the drawing code, the React component and the per-guest
-content to the implementer. Check the cards, the 52px and 32px counters and the large view at 360px
-through `browser-check`.
+Last touched: 2026-10-23
+Reads first: `docs/portraits.md` (settled style, parts model and open items), `src/content/portraits.ts`
+and `src/game/portrait*.ts` (built), and the `#dev` gallery.
+Built: the parts model, all ten guests, the player, the cat and dog, the gallery, and portraits on
+counters, the person screen, the questioning chair and the dog fight header.
+Left: (1) where the player's portrait appears (case intro or a profile; ask the owner); (2) whether the
+cat's counter replaces its name in hint copy (ask); (3) tune the ten guests' costumes and colours in the
+gallery, checking the 32px and 52px counters and the large view at 360px through `browser-check`;
+(4) facial expressions (brows, mouth facet, head tilt) as a later layer.
 Starting prompt:
 ```
-Read docs/portraits.md, settle its open items with me, design the parametric parts model, then brief the implementer on the portrait component and the guest parts.
+Read docs/portraits.md, then open the #dev gallery through browser-check and tune the ten guests at 32px, 52px and the large view. Ask me where the player's portrait should appear.
 ```
 
 ## Session: Tarot card faces
@@ -138,8 +122,8 @@ Read the Guest pool and Confidants sections of docs/theme-draft.md, then help me
 
 ## Session: Campaign opening, meeting the guests
 Last touched: 2026-10-23
-Reads first: `docs/talk-threads.md` (Talk, beats, mood), `docs/theme-draft.md` (Confidants, opening and
-ending), `src/engine/campaign.ts` (free clues per round).
+Reads first: `docs/campaign-opening.md` (the settled build plan), `docs/talk-threads.md` (Talk, beats,
+mood), `docs/theme-draft.md` (Confidants, opening and ending), `src/engine/campaign.ts` (free clues per round).
 Idea (owner, 2026-10-22): a skippable first phase of a campaign where she talks to every guest once and
 gets her starting clues from those conversations. Each conversation can set up story beats (the guest's
 thread or Confidant chapter) or just be filler. While talking to a guest later she can review their beats
@@ -156,13 +140,38 @@ so far as a short story summary, in case she forgot or skipped the opening.
 - Beat review, both places: (A) a short "so far" line per guest at the top of their Talk sheet (the Talk log
   there already lists heard beats; the summary line per thread is content), and (B) a "Story so far" page in
   the casebook with every guest's line in one place.
+- Decided (owner, 2026-10-23), scene details:
+  - Free order for now.
+  - Each conversation also has one line on the guest's relationship with the victim. That content belongs
+    to "Victim threads" in the Relationships entry below (so the opening line is that thread's opener, not
+    an extra beat); until that is built, use placeholder lines per relationship type.
+  - A testimony clue is told by its speaker. An evidence clue (about an object or a room, not a guest) is
+    delivered by the cat as a last "Talk" after the guests ("found the candlestick in the bedroom"); the
+    cat is the speaker and the clue stays evidence. Open: a rule says a witness never vouches for themselves,
+    so "a guest says the clue if it's about them" is read as "its existing speaker says it", never as a guest
+    clearing themselves.
+  - Staging (owner, 2026-10-23): if the map is visible during the opening, all seven guests stand in the
+    body's room with her. The scene opens on a line like "Someone in this room is the culprit." (true
+    whatever the case, and says nothing about who). When she has spoken to everyone, or skips, they
+    disperse to their rooms for the exploration round (the seeded placement in `explore.ts`).
+  - The gathering room (the body's room; the scene room unless the body was moved) gives
+    nothing away: campaign rounds already know the scene from the start and she starts each round there
+    (`docs/exploration-mode.md`, "The scene is known from the start"). The opening should end with the body
+    found in that room. The scene room is the room the engine built for round 1, not killer-dependent.
+  - Moved body (owner chose option B, 2026-10-23): in some rounds the body is found in another room with a
+    visible sign it was moved (drag marks) that points to the scene, so the scene is still known at the
+    start. UI and copy only: no engine change, no case change, no fairness change. Whether a round's body
+    is moved is rolled from the campaign seed and round only, never the killer. Decided: she starts the
+    round at the body, and the map marks the scene at once. A harder mode
+    where the scene must be deduced (option C) is a separate, larger idea; the engine would have to bring
+    back the scene word game or a scene clue.
 Starting prompt:
 ```
-Read the "Campaign opening" entry in docs/next-sessions.md and its reads-first docs, then propose the opening flow: how round 1's free clues become conversations, skipping, and the beat review.
+Read docs/campaign-opening.md (the settled build plan) and the "Campaign opening" entry in docs/next-sessions.md, write the handoff file, then build it piece by piece with implementer agents, in the order the plan gives.
 ```
 
 ## Session: Relationships between characters
-Last touched: 2026-10-22
+Last touched: 2026-10-23
 Reads first: `docs/theme-draft.md` (Follow-up threads, Model), the cast and who-knows-whom map from
 "The cast" session. The trigger list is settled in `docs/talk-threads.md`.
 Goal: make characters react to each other, without anything depending on the killer (rule 5). Explore:
@@ -193,6 +202,8 @@ Goal: make characters react to each other, without anything depending on the kil
   Proposed size: a few relationship types (owes them money, old rival, secret fondness, family), each a
   2 or 3 beat thread per reading with `{victim}`; the pair's type comes from the who-knows-whom map or
   the cards, not 90 hand-written pairs. Decide how it shares the thread slot with the guest's own thread.
+  The campaign opening (2026-10-23) also needs one short victim-relationship line per guest, said in their
+  first conversation: make the thread's first beat work as that line.
 - Quick play stays puzzles first: guests are window dressing there, with loose lines and their own
   thread only; no pair or victim threads. Its victim is named (`Case.victim`, 2026-10-22). Threads
   still are not built on who it is.
@@ -264,9 +275,9 @@ Decided: CSS Modules (built into Vite, no new dependency), adopted gradually. Ta
 CSS-in-JS were ruled out as too big a move from the CSS-variable look. Shared pieces stay global in
 `styles.css`: colour and type variables, buttons, hint notes, `Dialog`, layout. Each game's own styles
 move to a `<Game>.module.css` next to its component and are used as `styles.x`.
-Done (commit 7909bba): Tarot match and the dog fight, plus the rule in `src/game/CLAUDE.md` and `e2e/CLAUDE.md`.
+Done (commit 7909bba): Tarot match and the dog fight; then Wordle, crossword and word search (2026-10-23), plus the rule in `src/game/CLAUDE.md` and `e2e/CLAUDE.md`.
 Copy `TarotGame.module.css` / `NosingDog.module.css` as the pattern. Next: move the other games one at a
-time (Wordle, crossword, word search, cat puzzle, sudoku, then the rest), one or two per commit.
+time (cat puzzle, sudoku, then the rest), one or two per commit.
 Watch: e2e uses about 33 class selectors (`locator('.x')`). Scoped names break them, so move those
 to roles, labels or `data-testid`. Check each moved screen at 360px (`browser-check`). Add the rule
 "new game styles go in a CSS module" to `src/game/CLAUDE.md`.
@@ -276,7 +287,7 @@ Read the "CSS Modules for game styles" entry in docs/next-sessions.md, then move
 ```
 
 ## Session: Target or another word game (exploratory)
-Last touched: 2026-10-21
+Last touched: 2026-10-23
 Reads first: `src/games/CLAUDE.md`, `scripts/build-words.ts`, `src/games/dictionary.ts` and
 `src/game/games/WordleGame.tsx` (how the guess list is fetched).
 Goal: design, then build, a Target-style game (a 3×3 grid around one 9-letter word, find 4+ letter

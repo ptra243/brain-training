@@ -79,3 +79,82 @@ Cases must not change: the sets live outside `Case` and roll on their own stream
   lands with the real content, with a prefix bump in `src/game/storage.ts` and a refreshed golden snapshot.
 - Tangents inside minigame answers (at most one ready beat per answer, sharing `Progress.talk`), and the
   `object` trigger for card + object threads.
+
+## Part C: relationships (designed 2026-10-23; nothing built yet)
+Settled in the "Relationships between characters" session. Everything here is **campaign only**; Quick play keeps
+one card thread per guest and loose lines. Content goes in `src/content/talk.ts` (never `Case` or `Content`), sets
+stay seeded from the campaign, the round and the guest id, so nothing depends on the killer (rule 5).
+
+### One chain per guest
+A guest's `thread` becomes an ordered chain, so `readyBeats` and the pips keep working unchanged:
+
+| Order | Thread | Beats | Source |
+|---|---|---|---|
+| 1 | Victim thread | 3; beat 1 is the opening's relationship line | relationship type, reading, `{victim}` |
+| 2 | Card thread (as today) | 2 or 3 | home or borrowed card |
+| 3 | Pair or shared-card thread, only if seated | 3 | pair table or tonight's shared card |
+
+### Victim threads
+- Four types: owes money, old rival, secret fondness, family. Each guest lists the 2 or 3 types they can have
+  (`src/content/`); the type is rolled per guest from the campaign seed, round and guest id.
+- Family is only offered when guest and victim are kin (Host, Hostess, Uncle, both heirs).
+- Every seated guest gets one, so the killer's doesn't stand out. Victims have no roll of their own: round 1's
+  is the 8th guest in the seating shuffle, later victims are her wrong accusations.
+- Size: 4 types x 2 readings x 3 beats = 24 lines, `{victim}` filled in. Beat 1 must work as a single line said in the
+  campaign opening. Hearsay only, no times or places.
+
+### Pair threads
+- Hand-picked, 4 to start (table below). A pair thread appears only when both guests are seated; it joins the
+  end of each guest's chain. Check in `check-cases` that every seated pair has the same beat count for both.
+- Beats 1 and 2 are shared wording (either guest can say them, `{other}` is the partner, no pronouns). Beat 3 has
+  four variants, picked by the two readings: both upright (they make up), both reversed (they fall out for good),
+  or one of each (only one still cares; the variant depends on whether the speaker is the upright one).
+- A pair thread never replaces the card thread. A guest in two pairs tonight uses the first in this table order.
+- Lines say how people feel, never where they were or when (rule 3), and no witness vouches for themselves.
+
+### Shared card and the heard trigger (not drafted)
+- Two guests can share tonight's secondary card (never a home card). Both upright: kindred spirits; both reversed:
+  rivals too alike; one of each: one-sided. Start with the 4 or 5 most borrowed cards, about 3 lines per type.
+- `heard`: when she has heard a beat naming `{other}` from A, B's next beat becomes ready. It uses only what she
+  has seen, so it is safe.
+
+### Draft pair threads (placeholder voice, dry and cosy; not final copy)
+Marked U = speaker upright, R = speaker reversed; "partner" = `{other}`'s reading.
+
+**1. Host + Hostess (the marriage)**
+1. "{other} and I have an arrangement about who chooses the wine. Neither of us remembers what it was."
+2. "We have shared a house, a name and a seating plan for decades. Only the plan has survived intact."
+3. both U: "Tonight {other} laughed at something I said. I'm choosing to call that progress."
+   both R: "We have agreed to disagree. In writing. {other} has the carbon copy."
+   U / partner R: "I would happily start again. {other} would need to find the page first."
+   R / partner U: "{other} keeps being kind to me, which is deeply inconvenient."
+
+**2. Elder heir + Younger heir (rivals for the house)**
+1. "{other} measures the curtains every time we meet. Not for me, I notice."
+2. "We were raised to share. It stuck for toys and failed for everything bigger."
+3. both U: "Over the soup, {other} and I decided the house is big enough for two. Nobody believed us."
+   both R: "Whichever of us gets the house, the other has promised to haunt it. Politely."
+   U / partner R: "I would split it down the middle. {other} has already chosen which half is mine."
+   R / partner U: "{other} offered to share. I said I would think about it. I am still thinking."
+
+**3. Host + Uncle (the old quarrel)**
+1. "{other} and I haven't spoken about the ladder in years. We are both very loud about not speaking of it."
+2. "It began over a borrowed book and a lent opinion. By now it is practically a family heirloom."
+3. both U: "Tonight we shook hands over the quarrel. Neither of us can say who offered."
+   both R: "The quarrel has outlived the book, the ladder and most of the furniture. It will outlive me."
+   U / partner R: "I tried to say sorry at the drinks table. {other} asked for the salt."
+   R / partner U: "{other} has been trying to bury it. I keep digging it back up. Old habit."
+
+**4. Detective + Conjurer (the one who sees through tricks, the one who makes them)**
+1. "{other} makes things vanish and I make them reappear. We are, professionally, at odds."
+2. "I have worked out three of {other}'s tricks. {other} claims all three were mistakes."
+3. both U: "We have agreed to swap secrets one evening. Neither of us means to keep ours."
+   both R: "{other} and I are done comparing notes. It ends in a draw and an argument about the draw."
+   U / partner R: "I would trade tricks for evidence over tea. {other} says a magician never explains."
+   R / partner U: "{other} was charming about it, which I found suspicious. It's the job."
+
+### Open for later
+- Pairs 5 and 6 (Host + Financier, the debt, is the likely next; it may collide with the owes-money victim type,
+  so check them together).
+- Whether the Conjurer's pair line leans too close to the Detective's role (rule 5 and the "no lies" rule are fine; the
+  question is variety).

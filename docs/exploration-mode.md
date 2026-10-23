@@ -20,8 +20,7 @@ are shelved (see Later).
   prize was the scene, and the campaign's fairness checks already assume the scene is known. She starts
   the round in the scene room. The engine still builds the word games (same cases); exploration rounds
   just don't offer them.
-- **Placeholders for now.** The person screen's portrait is a card with the counter colour and initials
-  until the Portraits session lands. The explore map has no cat hint and no clue drawer (the Grid keeps
+- **Placeholders for now.** The person screen shows the guest's portrait (`docs/portraits.md`). The explore map has no cat hint and no clue drawer (the Grid keeps
   both). Opening a fresh puzzle asks first ("This takes 45 minutes: the clock moves to 10:30 when you
   finish it."), like tonight's picks do now.
 - **The map is the main screen.** Map is the first tab and fills most of the screen. A marker shows the

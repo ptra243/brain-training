@@ -3,7 +3,8 @@ import type { Clue, Interrogation, Question } from '../../engine/types.ts';
 import { midSentence } from '../../engine/text.ts';
 import { ClueCard } from '../ClueCard.tsx';
 import { Dialog } from '../Dialog.tsx';
-import { suspectColour, suspectInitials, suspectName } from '../names.ts';
+import { suspectColour, suspectName } from '../names.ts';
+import { SuspectCounterFace } from '../SuspectCounterFace.tsx';
 import type { InterrogationData } from '../state.ts';
 import type { GameProps } from './types.ts';
 
@@ -87,7 +88,7 @@ export function InterrogationGame({ puzzle, data, guests, finished, onChange, on
     <div className="interrogation">
       <section className="chair card">
         <span className="counter static" style={{ '--counter': suspectColour(who) } as CSSProperties} aria-hidden="true">
-          {suspectInitials(who, guests)}
+          <SuspectCounterFace id={who} guests={guests} />
         </span>
         <div>
           <h2>{name(who)} is in the chair</h2>
