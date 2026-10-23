@@ -13,6 +13,9 @@ import { Dialog } from '../game/Dialog.tsx';
 import { clockTime, gamesLeft } from '../game/explore.ts';
 import { ROUND_TIMES } from '../game/labels.ts';
 import { itemName, suspectName } from '../game/names.ts';
+import { NosingBoardView } from '../game/games/NosingBoardView.tsx';
+import { buildNosing, nosingInitial, nosingView } from '../games/nosing.ts';
+import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
 import { NextMurderScene } from '../game/NextMurderScene.tsx';
 import { emptyProgress, type Progress } from '../game/state.ts';
 import { DogFightStates } from './DogFightStates.tsx';
@@ -152,8 +155,26 @@ function HousesPreview() {
   );
 }
 
+/** The Nosing around board on each other house at medium, at the start of a game (no cat walk, no questions). */
+function NosingHousesPreview() {
+  return (
+    <main className="panel">
+      {otherHouses.map((h) => {
+        const puzzle = buildNosing({ house: h, seed: `dev-${h.id}`, level: 'medium', sceneRoom: h.rooms[0].id, clues: ['c1', 'c2', 'c3', 'c4', 'c5'], ladders: nosingLadders, snakes: nosingSnakes });
+        return (
+          <section key={h.id} aria-label={h.name} data-testid={`nosing-${h.id}`} className="nosing">
+            <h2 style={{ color: '#f4f0e4' }}>{h.name}</h2>
+            <NosingBoardView puzzle={puzzle} view={nosingView(puzzle, nosingInitial())} catAt={0} />
+          </section>
+        );
+      })}
+    </main>
+  );
+}
+
 const SCREENS: Record<string, () => ReactNode> = {
   houses: () => <HousesPreview />,
+  'nosing-houses': () => <NosingHousesPreview />,
   'next-murder': () => <NextMurderPreview />,
   escaped: () => <EscapedPreview />,
   'guess-now': () => <GuessNowPreview />,

@@ -108,7 +108,7 @@ test('the new layouts have rooms at least 2 cells across and sensible sizes', ()
     }
   }
   const longRows = new Set(longHouse.rooms.flatMap((r) => r.cells.map((c) => c[0])));
-  assert.ok(longRows.size >= 3 && longRows.size <= 4, 'the long house is 3 or 4 rows deep');
+  assert.ok(longRows.size === 6, 'the long house is 6 rows deep');
   assert.equal(longHouse.rooms.length, 8);
   assert.ok(tLodge.rooms.length >= 9 && tLodge.rooms.length <= 10);
   assert.ok(otherHouses.includes(longHouse) && otherHouses.includes(tLodge));

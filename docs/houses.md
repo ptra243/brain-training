@@ -7,7 +7,7 @@ The "Two-storey houses" idea in `next-sessions.md` is not this work: these are s
 
 - Layouts in `src/content/houses.ts`, built by `houseFromLayout` (`src/engine/house.ts`): the manor
   (6x6, no doors), lodge (L-shaped, 10 rooms), courtyard (ring round a void courtyard, 9), steps
-  (staircase footprint, 8), long house (4 rows by 12, centred in the 12x12 grid, 8) and T lodge (9).
+  (staircase footprint, 8), long house (6 rows by 12, each room 3 thick, centred in the 12x12 grid, 8) and T lodge (9).
   The Cross was rejected as unrealistic.
 - A cell no room owns is void (`.` in the layout). The footprint is one contiguous region, each room is
   contiguous and at least 2 cells across, every door pair shares a wall, and the door graph connects
@@ -61,12 +61,10 @@ The "Two-storey houses" idea in `next-sessions.md` is not this work: these are s
 
 ## Open
 
-- The nosing variant sweep builds 100 seeds on each of the 8 orientations of every layout, which tests
-  the same thing 8 times and is most of the "nosing boards" time in `check-cases --full`. Cut it to a few
-  seeds per variant; keep the full sample for the base layouts.
-- Shorter medium and hard windows for the lodge, long house and T lodge (about 70-85% fill) would build
-  far more often and play faster; measure with one sweep table before changing numbers.
-- Not yet looked at on a real device or in the browser: a lodge case on the map and the nosing board at
-  360px (the e2e layout rules pass).
+- Done 2026-10-23: the nosing variant sweep now builds 10 seeds per variant in full (2 in quick), bots on 3
+  (1 in quick); base layouts keep the full sample.
+- Measured 2026-10-23 (20 seeds, medium and hard): only the lodge is slow (26 ms a board, 8 ms at 70-76% fill); the rest build in 1-8 ms. Windows above 85% start failing on the lodge. Shortening the lodge would change its boards (golden regeneration); not done.
+- The long house was made 6 rows deep (72 cells, was 48 and failed below 79% fill). Window 50-55, turns 6-15, stock obstacle count; builds 20/20 at 69-86%. v9 was never pushed, so no prefix bump.
+- `#dev/nosing-houses` shows the nosing board on each other house; the lodge, courtyard, long house and T lodge read at 360px with no sideways scroll (steps not looked at). `#dev/houses` lodge passes too; it prints "Shaded rooms are empty tonight: ." with an empty list.
 - Idea: cache built boards keyed on a hash of the builder, spec, layouts and content so repeat local
   runs skip unchanged builds; CI stays cold.

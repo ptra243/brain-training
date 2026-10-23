@@ -51,6 +51,8 @@ What a look check judges on each:
   placed; a tall plan is narrowed, not stretched: footprint readable, void cells unpainted, door gaps
   (ivory with a brass dashed line) visible and not clipped, room labels
   readable at 360px, no sideways scroll.
+- `nosing-houses`: the Nosing around board at the start on the lodge, courtyard, steps, long house and T
+  lodge (medium): squares and marks readable at 360px, no wall inside door-joined rooms, no sideways scroll.
 - `portraits`: the portrait gallery on its own (light dev page).
 - `dogfight`: the dog fight board in each state, with a cat helper picker
   (light dev page).
