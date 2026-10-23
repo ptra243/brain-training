@@ -23,6 +23,8 @@ interface Props {
   locked: readonly Slot[];
   /** Read only: nothing can be placed or cleared. */
   disabled?: boolean;
+  /** One group of cards, signs first and then numbers, instead of two groups. */
+  oneHand?: boolean;
   /** A number in the hand that the torch showed she won't need. */
   torchCard?: number | null;
   /** Draws a number card's face; the default is the plain number. */
@@ -44,7 +46,7 @@ const NUM_SLOTS = [0, 1, 2] as const;
  * then tap a slot to place it; tap a filled slot to take it back. All the rules
  * live in `numberGrid.ts`; this only keeps which card is selected.
  */
-export function NumberGrid({ hand, fill, evaluation, locked, disabled = false, torchCard = null, renderNumber, numberName, onPlace, onClear }: Props) {
+export function NumberGrid({ hand, fill, evaluation, locked, disabled = false, oneHand = false, torchCard = null, renderNumber, numberName, onPlace, onClear }: Props) {
   const [picked, setPicked] = useState<Selected | null>(null);
   const placedNumbers = usedNumbers(fill);
   const placedOps = usedOpCards(fill);
@@ -95,6 +97,41 @@ export function NumberGrid({ hand, fill, evaluation, locked, disabled = false, t
     );
   };
 
+  const numberCards = hand.numbers.map((value, i) => {
+    const placed = placedNumbers.includes(i);
+    const on = selected?.kind === 'num' && selected.card === i;
+    return (
+      <button
+        key={i}
+        className={`grid-card ${on ? 'selected' : ''} ${i === torchCard ? 'torch' : ''}`}
+        aria-pressed={on}
+        aria-label={`${numberName ? numberName(value, i) : value}${placed ? ', placed' : ''}${i === torchCard ? ', you will not need this one' : ''}`}
+        disabled={disabled || placed}
+        onClick={() => setPicked(on ? null : { kind: 'num', card: i })}
+      >
+        {renderNumber ? renderNumber(value, i) : value}
+      </button>
+    );
+  });
+
+  const signCards = (hand.ops === 'palette' ? PALETTE : hand.ops).map((op, k) => {
+    const card: OpRef = hand.ops === 'palette' ? op : k;
+    const placed = hand.ops !== 'palette' && placedOps.includes(k);
+    const on = selected?.kind === 'op' && selected.card === card;
+    return (
+      <button
+        key={k}
+        className={`grid-card sign ${on ? 'selected' : ''}`}
+        aria-pressed={on}
+        aria-label={`${OP_NAME[op]}${placed ? ', placed' : ''}`}
+        disabled={disabled || placed}
+        onClick={() => setPicked(on ? null : { kind: 'op', card })}
+      >
+        {OP_SIGN[op]}
+      </button>
+    );
+  });
+
   return (
     <div className="number-grid">
       <div className="grid-rows" role="group" aria-label="The grid">
@@ -117,44 +154,21 @@ export function NumberGrid({ hand, fill, evaluation, locked, disabled = false, t
         ))}
       </div>
 
-      <div className="grid-hand" role="group" aria-label="Your numbers">
-        {hand.numbers.map((value, i) => {
-          const placed = placedNumbers.includes(i);
-          const on = selected?.kind === 'num' && selected.card === i;
-          return (
-            <button
-              key={i}
-              className={`grid-card ${on ? 'selected' : ''} ${i === torchCard ? 'torch' : ''}`}
-              aria-pressed={on}
-              aria-label={`${numberName ? numberName(value, i) : value}${placed ? ', placed' : ''}${i === torchCard ? ', you will not need this one' : ''}`}
-              disabled={disabled || placed}
-              onClick={() => setPicked(on ? null : { kind: 'num', card: i })}
-            >
-              {renderNumber ? renderNumber(value, i) : value}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="grid-hand" role="group" aria-label="Signs">
-        {(hand.ops === 'palette' ? PALETTE : hand.ops).map((op, k) => {
-          const card: OpRef = hand.ops === 'palette' ? op : k;
-          const placed = hand.ops !== 'palette' && placedOps.includes(k);
-          const on = selected?.kind === 'op' && selected.card === card;
-          return (
-            <button
-              key={k}
-              className={`grid-card sign ${on ? 'selected' : ''}`}
-              aria-pressed={on}
-              aria-label={`${OP_NAME[op]}${placed ? ', placed' : ''}`}
-              disabled={disabled || placed}
-              onClick={() => setPicked(on ? null : { kind: 'op', card })}
-            >
-              {OP_SIGN[op]}
-            </button>
-          );
-        })}
-      </div>
+      {oneHand ? (
+        <div className="grid-hand one-hand" role="group" aria-label="Your cards">
+          {signCards}
+          {numberCards}
+        </div>
+      ) : (
+        <>
+          <div className="grid-hand" role="group" aria-label="Your numbers">
+            {numberCards}
+          </div>
+          <div className="grid-hand" role="group" aria-label="Signs">
+            {signCards}
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -111,6 +111,8 @@ export const nosingDog = {
   handTitle: 'Your cards',
   catLives: 'The cat',
   dogLives: 'The dog',
+  intentAttack: (n: number) => `Attacks ${n}`,
+  intentGuard: (n: number) => `Guards ${n}`,
   attack: (n: number) => `Beat ${n} to hurt the dog, or make ${n * 2} to hurt it twice.`,
   defend: (n: number) => `The dog attacks with ${n}. Meet it or lose a life. Hit ${n} exactly for an extra card.`,
   hint: {

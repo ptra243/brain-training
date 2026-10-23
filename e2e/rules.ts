@@ -20,6 +20,12 @@ export const EXCEPTIONS: Exception[] = [
     minHeight: 40,
     reason: 'src/game/CLAUDE.md "The grid is one staircase": at 5 suspects grid cells are ~27px wide, 40px tall.',
   },
+  {
+    selector: '.one-hand .grid-card',
+    minWidth: 37,
+    minHeight: 37,
+    reason: 'src/game/CLAUDE.md "The grid is one staircase" bullet: dog fight hand cards are 37px wide so 8 fit one row (owner approved); grid slots stay 44px.',
+  },
 ];
 
 interface Offender {

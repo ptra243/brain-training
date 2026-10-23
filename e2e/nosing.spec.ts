@@ -345,8 +345,8 @@ test.describe('nosing around', () => {
     test('a bonus hand of 6 numbers and 4 operators fits the phone', async ({ page }) => {
       await openNosingAt(page, 'dog', (v) => (v.dog?.numbers.length ?? 0) >= 6 && !v.dog?.over);
       const dogFight = page.getByTestId('dog-fight');
-      await expect(dogFight.getByRole('group', { name: 'Your numbers' }).getByRole('button')).toHaveCount(6);
-      await expect(dogFight.getByRole('group', { name: 'Signs' }).getByRole('button')).toHaveCount(4);
+      // Signs first, then numbers, all in one hand: 4 signs and 6 numbers.
+      await expect(dogFight.getByRole('group', { name: 'Your cards' }).getByRole('button')).toHaveCount(10);
       await expect(dogFight.getByTestId('dog-last')).toContainText(/one more number and operator next turn/);
       await checkScreen(page, 'nosing: dog bonus hand');
       await inViewport(page, dogFight.getByRole('button', { name: /^Play/ }), 'dog bonus hand: Play');
@@ -355,7 +355,7 @@ test.describe('nosing around', () => {
     test('swap: pick two cards, confirm, and it is only once', async ({ page }) => {
       await openNosingAt(page, 'dog');
       const dogFight = page.getByTestId('dog-fight');
-      const numbers = dogFight.getByRole('group', { name: 'Your numbers' });
+      const numbers = dogFight.getByRole('group', { name: 'Your cards' });
       const before = await numbers.getByRole('button').allInnerTexts();
       await dogFight.getByRole('button', { name: 'Swap cards', exact: true }).click();
       const pick = dogFight.getByRole('group', { name: 'Pick cards to swap' });
@@ -370,7 +370,7 @@ test.describe('nosing around', () => {
       await expect(pick.getByRole('button').nth(1)).toBeDisabled();
       // Cancel leaves everything as it was.
       await dogFight.getByRole('button', { name: 'Cancel', exact: true }).click();
-      await expect(dogFight.getByRole('group', { name: 'Your numbers' })).toBeVisible();
+      await expect(dogFight.getByRole('group', { name: 'Your cards' })).toBeVisible();
       await dogFight.getByRole('button', { name: 'Swap cards', exact: true }).click();
       await pick.getByRole('button').nth(0).click();
       await confirm.click();

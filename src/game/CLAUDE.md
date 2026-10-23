@@ -33,6 +33,7 @@
   cells are ~27px wide (40px tall), the one accepted exception to the 44px
   rule. With 7 guests a tick only rules out its row in rooms;
   who holds which weapon stays one per row and column (`oneTickPerColumn`).
+- **Number grid hand cards**: the dog fight passes `oneHand` (signs then numbers in one wrapping row). Its cards are 37px wide, the one other accepted exception to the 44px rule (owner approved); the grid slots stay 44px.
 - **Clues stay reachable while working**: Map and Grid have a clue drawer
   above the tab bar (`ClueDrawer`). Every grid label is a button that filters
   the drawer to the clues naming it (`mentions`).

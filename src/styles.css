@@ -809,11 +809,17 @@ body.dev { background: #f2f1ec; color: #222; }
 .number-grid .grid-card { margin: 0; padding: 0 0.3rem; flex: none; box-sizing: border-box; width: auto; min-width: 44px; overflow: visible; }
 .grid-slot.error, .grid-slot.sign.filled.error { border-color: var(--pencil); color: var(--pencil); }
 /* The slot that joins a row to the rows above: round, with a brass tint, so it reads differently from number and operator slots. */
-.grid-slot.join { border-radius: 50%; border-color: var(--brass-deep); }
-.grid-slot.join:not(.filled):not(.fits):not(.locked):not(.error) { background: rgba(200, 162, 76, 0.15); }
-.grid-slot.join.fits { border-color: var(--brass); }
-.grid-slot.join.locked { border-color: var(--ink-soft); }
-.grid-slot.join.error, .grid-slot.join.sign.filled.error { border-color: var(--pencil); }
+.grid-slot.sign { border-radius: 50%; border-color: var(--brass-deep); }
+.grid-slot.sign:not(.filled):not(.fits):not(.locked):not(.error) { background: rgba(200, 162, 76, 0.15); }
+.grid-slot.sign.fits { border-color: var(--brass); }
+.grid-slot.sign.locked { border-color: var(--ink-soft); }
+.grid-slot.sign.error, .grid-slot.sign.filled.error { border-color: var(--pencil); }
+/* Sign cards are round too, the same brass as the sign slots they go in. */
+.grid-card.sign, .number-grid .grid-card.sign { border-radius: 50%; width: 44px; padding: 0; }
+/* One hand (dog fight): signs then numbers in one wrapping row, cards 37px wide so eight fit 328px. A deliberate exception to the 44px touch rule for these cards only (owner approved); the grid slots stay 44px. */
+.grid-hand.one-hand { gap: 3px; }
+.number-grid .one-hand .grid-card { width: 37px; min-width: 37px; padding: 0; }
+.number-grid .one-hand .grid-card.sign { height: 37px; }
 /* Lock and dog screens: tighter, so the grid, cards and buttons fit 780px without scrolling. */
 .nosing.tight { gap: 0.45rem; }
 .nosing.tight .card { padding: 0.65rem 0.75rem; }

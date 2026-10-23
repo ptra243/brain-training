@@ -57,10 +57,11 @@ function Lives({ label, left, total }: { label: string; left: number; total: num
   );
 }
 
-/** One side of the fight: a round portrait above its lives. */
-function Side({ portrait, testId, children }: { portrait: ReactNode; testId: string; children: ReactNode }) {
+/** One side of the fight: a full portrait standing on the stage, its lives under it. */
+function Side({ portrait, testId, intent, children }: { portrait: ReactNode; testId: string; intent?: ReactNode; children: ReactNode }) {
   return (
     <div className={styles.side}>
+      {intent}
       <span className={styles.face} data-testid={testId} aria-hidden="true">
         {portrait}
       </span>
@@ -112,10 +113,18 @@ export function NosingDog({ view, helper, hints, onMove }: Props) {
   return (
     <div className={styles.fight} data-testid="dog-fight">
       <div className={styles.top}>
-        <Side portrait={<Portrait coat={catCoat} view="counter" />} testId="dog-fight-cat">
+        <Side portrait={<Portrait coat={catCoat} view="full" />} testId="dog-fight-cat">
           <Lives label={nosingDog.catLives} left={view.catLives} total={CAT_LIVES} />
         </Side>
-        <Side portrait={<Portrait dog={dogCoat} view="counter" tint={dogTint} />} testId="dog-fight-dog">
+        <Side
+          portrait={<Portrait dog={dogCoat} view="full" tint={dogTint} />}
+          testId="dog-fight-dog"
+          intent={
+            <span className={`${styles.intent} ${view.role === 'defend' ? styles.intentAttack : styles.intentGuard}`} data-testid="dog-fight-intent" aria-hidden="true">
+              {view.role === 'defend' ? nosingDog.intentAttack(view.dog.value) : nosingDog.intentGuard(view.dog.value)}
+            </span>
+          }
+        >
           <Lives label={nosingDog.dogLives} left={view.dogLives} total={DOG_LIVES} />
         </Side>
       </div>
@@ -125,12 +134,12 @@ export function NosingDog({ view, helper, hints, onMove }: Props) {
           {lastLine(view.last)}
         </p>
       )}
-      <div className={styles.play} aria-label={nosingDog.dogPlays}>
-        <span className={styles.playTitle}>{nosingDog.dogPlays}</span>
+      <details className={styles.play} key={view.turn} data-testid="dog-fight-play">
+        <summary className={styles.playTitle}>{nosingDog.dogPlays}</summary>
         {dogLines.map((line, i) => (
           <span key={i}>{line}</span>
         ))}
-      </div>
+      </details>
       {view.role === 'attack' && view.challenge && (
         <p className={styles.challenge} data-testid="dog-challenge">
           {challengeLine(view.challenge, view.dog.value)}
@@ -175,6 +184,7 @@ export function NosingDog({ view, helper, hints, onMove }: Props) {
         fill={view.fill}
         evaluation={view.eval}
         locked={[]}
+        oneHand
         renderNumber={face}
         numberName={(_, i) => view.numbers[i].name}
         onPlace={(slot: Slot, card: number | OpRef) => onMove({ t: 'place', slot, card })}

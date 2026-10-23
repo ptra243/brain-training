@@ -1,16 +1,26 @@
 /* The dog fight. Foreign classes (the number grid, the nosing layout) are written with :global. */
 .fight, .result { display: grid; gap: 0.6rem; }
 .fight p, .result p, .result h2 { margin: 0; }
-.top { display: flex; justify-content: space-between; gap: 0.5rem; }
-.side { display: grid; justify-items: center; gap: 0.3rem; min-width: 0; }
-.face { display: block; width: 64px; height: 64px; border: 3px solid var(--brass); border-radius: 50%; overflow: hidden; box-sizing: border-box; background: var(--card-edge); }
-.lives { display: flex; align-items: center; gap: 0.3rem; font-size: 0.85rem; color: var(--ink-soft); }
-.lives .life { width: 0.8rem; height: 0.8rem; border-radius: 50%; border: 2px solid var(--brass-deep); box-sizing: border-box; }
+/* The arena stage: dark baize with a floor strip on the bottom third; both fighters stand on it. */
+.top {
+  display: flex; justify-content: space-around; align-items: flex-end; gap: 0.5rem;
+  height: 124px; box-sizing: border-box; padding: 3px 10px 3px; border-radius: 0.6rem; overflow: hidden;
+  background: linear-gradient(to bottom, var(--baize-deep) 0, var(--baize-deep) 66%, #11251f 66%, #11251f 100%);
+  border-bottom: 2px solid var(--baize-line);
+}
+.side { display: grid; justify-items: center; gap: 0.15rem; min-width: 0; color: var(--on-baize); }
+.face { display: block; width: 64px; height: 77px; border: 2px solid var(--card); border-radius: 0.3rem; overflow: hidden; box-sizing: border-box; background: var(--card-edge); box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5); }
+.intent { padding: 0.1rem 0.5rem; border-radius: 0.2rem 0.2rem 0.7rem 0.7rem; font-size: 0.75rem; font-weight: 700; line-height: 1.25; white-space: nowrap; }
+.intentAttack { background: var(--pencil); color: var(--card); }
+.intentGuard { background: var(--brass); color: var(--ink); }
+.lives { display: flex; align-items: center; gap: 0.25rem; font-size: 0.78rem; line-height: 1.1; color: inherit; }
+.lives .life { width: 0.7rem; height: 0.7rem; border-radius: 50%; border: 2px solid var(--brass); box-sizing: border-box; }
 .lives .life.on { background: var(--brass); }
 .role { font-family: var(--serif); font-size: 1rem; line-height: 1.35; }
 .play { min-width: 0; display: grid; gap: 0.1rem; padding: 0.4rem 0.6rem; border-radius: 0.35rem; background: rgba(30, 42, 47, 0.06); font-family: var(--serif); font-variant-numeric: tabular-nums; }
-.play span:not(.playTitle) { display: block; white-space: nowrap; font-size: 0.95rem; }
-.playTitle { font-family: var(--sans); font-size: 0.8rem; color: var(--ink-soft); }
+.play span { display: block; white-space: nowrap; font-size: 0.95rem; }
+.playTitle { display: flex; align-items: center; min-height: 44px; margin: -0.4rem -0.6rem; padding: 0 0.6rem; cursor: pointer; font-family: var(--sans); font-size: 0.85rem; color: var(--ink-soft); }
+.play[open] .playTitle { margin-bottom: 0; }
 .last { font-size: 0.9rem; }
 .challenge { font-family: var(--serif); font-size: 0.9rem; line-height: 1.3; color: var(--brass-deep); }
 /* Beats the global .number-grid gap, whatever the stylesheet order. */
