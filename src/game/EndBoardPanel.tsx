@@ -4,12 +4,12 @@ import { content } from '../content/index.ts';
 import { UNKNOWN } from '../engine/boardTypes.ts';
 import { endBoard } from '../engine/caseBoard.ts';
 import { caseContext, caseSpace } from '../engine/caseFacts.ts';
-import { possibleKillers } from '../engine/search.ts';
+import { possibleKillers, possibleWeapons } from '../engine/search.ts';
 import type { Case } from '../engine/types.ts';
 import { CaseBoard, type BoardSave } from './board/CaseBoard.tsx';
 import { boardInitial } from './board/boardSave.ts';
 import { GAMES } from './games/registry.tsx';
-import { roomName, suspectName } from './names.ts';
+import { itemName, roomName, suspectName } from './names.ts';
 import { gameDone, sceneUnlocked, unlockedClueIds, type Action, type Progress } from './state.ts';
 
 interface Props {
@@ -51,6 +51,8 @@ export function EndBoardPanel({ c, progress, dispatch, helper, readOnly, onAccus
   const found = c.clues.filter((cl) => unlocked.has(cl.id)).map((cl) => cl.fact);
   const killers = scene ? possibleKillers(caseSpace(c), found, caseContext(houseOf(c), c), c.sceneRoom) : [];
 
+  const weapons = killers.length === 1 ? possibleWeapons(caseSpace(c), found, caseContext(houseOf(c), c), c.sceneRoom, killers[0]) : [];
+
   const summary = (
     <div className="end-board-summary">
       {placed.length > 0 && (
@@ -64,7 +66,18 @@ export function EndBoardPanel({ c, progress, dispatch, helper, readOnly, onAccus
           <b>No one can say where they were:</b> {listAnd(open.map((s) => lower(suspectName(s, c.guests))))}.
         </p>
       )}
-      {scene ? (
+      {scene && killers.length === 1 ? (
+        <p>
+          <b>It was {lower(suspectName(killers[0], c.guests))}</b> in the {roomName(c.sceneRoom)}
+          {weapons.length > 0 && (
+            <>
+              {' '}
+              {weapons.length === 1 ? 'with' : 'with one of'} {listAnd(weapons.map((w) => `the ${itemName(w).toLowerCase()}`))}
+            </>
+          )}
+          .
+        </p>
+      ) : scene ? (
         <p>
           <b>Could be the killer:</b> {killers.length ? listAnd(killers.map((s) => lower(suspectName(s, c.guests)))) : 'no one, by these clues'}.
         </p>

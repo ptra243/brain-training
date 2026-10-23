@@ -13,6 +13,7 @@ import type { Case, Difficulty } from '../../engine/types.ts';
 import { Dialog } from '../Dialog.tsx';
 import { Paw } from '../games/Hints.tsx';
 import { suspectColour, roomTint, itemName } from '../names.ts';
+import { loadRoomsOverlay, saveRoomsOverlay } from '../storage.ts';
 import {
   blocker,
   boardSolvedSave,
@@ -75,6 +76,7 @@ export function CaseBoard(props: CaseBoardProps) {
   const uid = useId().replace(/[^a-z0-9]/gi, '');
   // The clues behind the pieces live in a sheet, so the board, tray and legend are all there is on screen.
   const [cluesOpen, setCluesOpen] = useState(false);
+  const [rooms, setRooms] = useState(loadRoomsOverlay);
   const rules = useMemo(() => {
     // Each filler piece is something she noticed about the house, picked on the case's own seed.
     const fog = board.pieces.filter((p) => p.kind === 'fog').map((p) => p.id);
@@ -475,7 +477,7 @@ export function CaseBoard(props: CaseBoardProps) {
   const ghostAt = drag ? new Map(drag.cells.map((x, i) => [boardKey(x[0], x[1]), i])) : new Map<string, number>();
 
   return (
-    <div className={`cb-root ${holding ? 'cb-dragging' : ''}`} style={{ '--cell': `${cell}px` } as CSSProperties} onPointerDown={onPointerDown}>
+    <div className={`cb-root ${holding ? 'cb-dragging' : ''} ${rooms ? 'cb-rooms' : ''}`} style={{ '--cell': `${cell}px` } as CSSProperties} onPointerDown={onPointerDown}>
       {intro && <div className="cb-intro">{intro}</div>}
       <details className="cb-how">
         <summary>How to play</summary>
@@ -504,6 +506,13 @@ export function CaseBoard(props: CaseBoardProps) {
             <defs>{clips}</defs>
             {outlines}
           </svg>
+          {rooms && (
+            <svg className="cb-layer walls" width={W} height={H} aria-hidden="true">
+              {geometry.lines.filter((l) => l.cls === 'wall').map((l) => (
+                <line key={l.key} className="cb-wall-top" x1={l.x1 * cell} y1={l.y1 * cell} x2={l.x2 * cell} y2={l.y2 * cell} />
+              ))}
+            </svg>
+          )}
           {catSec && geometry.first[catSec] && (
             <span className="cb-paw" style={{ left: geometry.first[catSec][1] * cell + 2, top: geometry.first[catSec][0] * cell + 2 }}>
               <Paw />
@@ -512,6 +521,17 @@ export function CaseBoard(props: CaseBoardProps) {
           {names}
         </div>
       </section>
+
+      <button
+        className="cb-tool cb-rooms-btn"
+        aria-pressed={rooms}
+        onClick={() => {
+          setRooms(!rooms);
+          saveRoomsOverlay(!rooms);
+        }}
+      >
+        Rooms
+      </button>
 
       {!finished && (
         <>

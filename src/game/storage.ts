@@ -80,6 +80,11 @@ export const loadAutoRoll = (): boolean => read('autoRoll') === true;
 
 export const saveAutoRoll = (on: boolean) => write('autoRoll', on);
 
+/** The case board's "Rooms" overlay, remembered per device (off until she turns it on). */
+export const loadRoomsOverlay = (): boolean => read('roomsOverlay') === true;
+
+export const saveRoomsOverlay = (on: boolean) => write('roomsOverlay', on);
+
 /** Forget the Quick start case, the campaign and where she was (the error screen's way out of a bad save). */
 export function clearSaves() {
   try {

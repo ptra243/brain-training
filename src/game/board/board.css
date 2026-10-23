@@ -17,9 +17,10 @@
 .cb-muted { color: var(--on-baize-soft); font-size: 0.85rem; }
 .cb-intro { background: var(--card); color: var(--ink); border: 1px solid var(--card-edge); border-radius: 0.35rem; padding: 10px 12px; font-family: var(--serif); }
 .cb-note { background: var(--card); color: var(--ink); border: 1px solid var(--card-edge); border-left: 5px solid var(--pencil); border-radius: 0.35rem; padding: 10px 12px; font-size: 0.88rem; }
-.cb-how { color: var(--on-baize); font-size: 0.88rem; }
-.cb-how summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--brass); text-decoration: underline; }
-.cb-how ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+.cb-how { color: var(--on-baize); font-size: 0.88rem; border: 1px solid var(--baize-line); background: var(--baize-deep); border-radius: 0.35rem; padding: 0 12px; }
+.cb-how summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--brass); font-weight: 600; }
+.cb-how[open] summary { border-bottom: 1px solid var(--baize-line); margin-bottom: 8px; }
+.cb-how ul { margin: 0 0 12px; padding-left: 1.1em; display: grid; gap: 4px; }
 
 .cb-boardcard { background: var(--card); border: 1px solid var(--card-edge); border-radius: 0.35rem; padding: 10px; display: grid; justify-items: center; gap: 8px; }
 .cb-board { position: relative; display: grid; grid-template-columns: repeat(var(--w), var(--cell)); grid-auto-rows: var(--cell); }
@@ -52,6 +53,15 @@
 .cb-roomname small { display: block; font: 600 0.62rem/1.1 var(--sans); color: var(--ink-soft); }
 .cb-roomname.blocked { opacity: 0.75; }
 .cb-dragging .cb-roomname { display: block; }
+
+/* Rooms overlay: piece borders fade, thick room walls and names come over the top. */
+.cb-layer.walls { z-index: 4; }
+.cb-wall-top { stroke: #1e2a2f; stroke-width: 5; stroke-linecap: square; filter: drop-shadow(0 0 1.5px #fffcf3) drop-shadow(0 0 1.5px #fffcf3); }
+.cb-rooms .cb-outl { opacity: 0.2; }
+.cb-rooms .cb-roomname { display: block; }
+.cb-rooms .cb-roomname small { display: none; }
+.cb-rooms-btn { width: 100%; }
+.cb-rooms-btn[aria-pressed='true'] { border-color: var(--brass); }
 .cb-paw { position: absolute; z-index: 4; left: 2px; top: 2px; pointer-events: none; color: var(--brass-deep); background: rgba(255, 252, 243, 0.9); border-radius: 3px; padding: 1px 2px; line-height: 0; }
 
 /* Pieces: a guest's colour with hatching, light paper for a weapon, grey for a puzzle not played. */
