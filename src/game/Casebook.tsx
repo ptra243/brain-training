@@ -14,7 +14,9 @@ import { afterHint, gridHint, markActions } from './gridHints.ts';
 import { gridHintText } from './gridHintText.ts';
 import { gameDone, reduce, sceneUnlocked, unlockedClueIds, visibleClues, type Action, type Progress, type Subject } from './state.ts';
 import { cats } from '../content/index.ts';
+import { playerPortrait } from '../content/portraits.ts';
 import { DIFFICULTY_LABEL } from './labels.ts';
+import { Portrait } from './Portrait.tsx';
 import type { Case, GameKind } from '../engine/types.ts';
 
 type Tab = 'clues' | 'map' | 'grid' | 'board' | 'accuse';
@@ -46,15 +48,17 @@ interface Props {
   readOnly?: boolean;
   /** Final puzzle "Jigsaw" (Play cases always have the Jigsaw tab beside the Grid): a Jigsaw tab that fits her clues together before she accuses. It replaces the Grid tab. */
   endBoard?: boolean;
+  /** The tab to open on (only the #dev previews pass it, to show the locked map at midnight). Read once. */
+  startTab?: Tab;
 }
 
 /** One case: clues, map, grid and accusation. Remount it (key) for another case. */
-export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, subtitle, banner, gate, accuse, readOnly, endBoard }: Props) {
+export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, subtitle, banner, gate, accuse, readOnly, endBoard, startTab }: Props) {
   const exploring = c.explore === true;
   // Midnight: no more walking or puzzles, and she must name someone. Only while the round can still end.
   const midnight = exploring && !readOnly && !progress.solved && atMidnight(c, progress);
   // An exploring round opens on the map, or on the Accuse tab if she comes back to it at midnight.
-  const [tab, setTab] = useState<Tab>(exploring ? (midnight ? 'accuse' : 'map') : 'clues');
+  const [tab, setTab] = useState<Tab>(startTab ?? (exploring ? (midnight ? 'accuse' : 'map') : 'clues'));
   const [playing, setPlaying] = useState<GameKind | null>(null);
   // Where she opened the game from, and whether it was already finished (then the clock doesn't move).
   const [opened, setOpened] = useState<{ tab: Tab; done: boolean }>({ tab: 'clues', done: false });
@@ -139,7 +143,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
 
   return (
     <div className={`casebook ${drawer ? (drawerOpen ? 'with-drawer open' : 'with-drawer') : ''}`}>
-      <header className="case-header">
+      <header className={`case-header${exploring ? ' exploring' : ''}`}>
         <button className="step" aria-label="Home" onClick={onHome}>
           ‹
         </button>
@@ -147,7 +151,18 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
           <h1>{title ?? `Case ${c.code}`}</h1>
           <p>{(exploring && !readOnly ? clockLine(c, progress) : subtitle) ?? `${DIFFICULTY_LABEL[c.difficulty]}, ${c.suspects.length} suspects${progress.solved ? ', solved' : ''}`}</p>
         </div>
-        {drawer && !readOnly ? <HintButton helper={helper} onAsk={askHint} /> : <span aria-hidden="true" />}
+        {exploring ? (
+          <div className="header-tools">
+            {drawer && !readOnly && <HintButton helper={helper} onAsk={askHint} />}
+            <button type="button" className="you-button" aria-label="You">
+              <Portrait parts={playerPortrait} view="counter" />
+            </button>
+          </div>
+        ) : drawer && !readOnly ? (
+          <HintButton helper={helper} onAsk={askHint} />
+        ) : (
+          <span aria-hidden="true" />
+        )}
       </header>
 
       {banner}

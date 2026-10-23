@@ -1,16 +1,18 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { content, houseDetails } from '../content/index.ts';
 import type { Case, GameKind, Room } from '../engine/types.ts';
-import { Dialog } from './Dialog.tsx';
-import { clockAfterNext, canOpen, minutesPerGame, openPuzzlesIn, roomContents, whereAmI } from './explore.ts';
-import { GAMES } from './games/registry.tsx';
+import { playerPortrait, portraits, type PortraitParts } from '../content/portraits.ts';
 import { talk } from '../content/talk.ts';
-import { portraits } from '../content/portraits.ts';
+import { Dialog } from './Dialog.tsx';
+import { canOpen, centreCell, clockAfterNext, minutesPerGame, openPuzzlesIn, roomContents, roomsSeen, standSpots, whereAmI } from './explore.ts';
+import { GAMES } from './games/registry.tsx';
 import { faceClass, roomName, roomTint, suspectColour, suspectInitials, suspectName } from './names.ts';
 import { hasPortrait, Portrait } from './Portrait.tsx';
+import type { Tint } from './portrait.ts';
 import { SuspectCounterFace } from './SuspectCounterFace.tsx';
 import type { PuzzleGate } from './CluesPanel.tsx';
-import { gameDone, type Action, type Progress } from './state.ts';
+import { ClueCard } from './ClueCard.tsx';
+import { gameDone, mentionsSuspect, visibleClues, type Action, type Progress } from './state.ts';
 import { TalkSection } from './TalkSection.tsx';
 import { moodTint, questioningOf, setsFor } from './talk.ts';
 
@@ -27,16 +29,64 @@ interface Props {
   onPlay: (kind: GameKind) => void;
 }
 
-const nearest = (room: Room, r: number, col: number) =>
-  room.cells.reduce((best, cell) =>
-    (cell[0] - r) ** 2 + (cell[1] - col) ** 2 < (best[0] - r) ** 2 + (best[1] - col) ** 2 ? cell : best,
-  );
+type PersonTab = 'talk' | 'minigame' | 'clues';
 
-/** The square nearest the middle of a room: where her marker stands. */
-function centreOf(room: Room): readonly [number, number] {
-  const cr = room.cells.reduce((s, [r]) => s + r, 0) / room.cells.length;
-  const cc = room.cells.reduce((s, [, col]) => s + col, 0) / room.cells.length;
-  return nearest(room, cr, cc);
+/** Ivory card: the drawn portrait, or initials when this guest has none yet. */
+function PortraitCard({ parts, tint, caption, initials, colour }: { parts?: PortraitParts; tint: Tint; caption: string; initials?: string; colour?: string }) {
+  return (
+    <figure className="portrait portrait-card" aria-hidden="true">
+      <span className="portrait-art">
+        {parts ? <Portrait parts={parts} view="full" tint={tint} /> : <span className="portrait-fallback" style={{ background: colour }}>{initials}</span>}
+      </span>
+      <figcaption>{caption}</figcaption>
+    </figure>
+  );
+}
+
+function PersonMinigame({
+  c,
+  progress,
+  person,
+  playable,
+  onPlay,
+}: {
+  c: Case;
+  progress: Progress;
+  person: string;
+  playable: (kind: GameKind) => boolean;
+  onPlay: (kind: GameKind) => void;
+}) {
+  const q = questioningOf(c, person);
+  if (!q) return <p className="muted">Nothing to play with them.</p>;
+  const kind = q.kind;
+  if (gameDone(progress, kind)) return <p className="muted">{progress.games[kind]?.status === 'won' ? 'Solved.' : 'Solved for you.'}</p>;
+  if (!playable(kind)) return <p className="muted">Not tonight: you have used your picks</p>;
+  const n = c.games.find((g) => g.kind === kind)!.clues.length;
+  return (
+    <div className="person-game">
+      <p className="person-game-name">{GAMES[kind].name}</p>
+      <p className="muted">Unlocks {n} clue{n === 1 ? '' : 's'}</p>
+      <button type="button" className="primary" onClick={() => onPlay(kind)}>
+        {progress.games[kind]?.status === 'playing' ? 'Continue' : 'Play'}
+      </button>
+    </div>
+  );
+}
+
+function PersonClues({ c, progress, dispatch, suspect }: { c: Case; progress: Progress; dispatch: (a: Action) => void; suspect: string }) {
+  const clues = visibleClues(c, progress).filter((clue) => mentionsSuspect(clue, suspect));
+  if (!clues.length) {
+    return <p className="muted">No clue you've found so far names {suspectName(suspect, c.guests)}. Play the games to unlock more, or work them out from everyone else.</p>;
+  }
+  return (
+    <ul className="clue-list">
+      {clues.map((clue) => (
+        <li key={clue.id}>
+          <ClueCard guests={c.guests} clue={clue} used={progress.used.includes(clue.id)} onToggle={() => dispatch({ type: 'toggle-used', clue: clue.id })} />
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 /** The campaign's map: her room, where the body was found, a mark over rooms with something to play, and what is in her room. */
@@ -49,7 +99,12 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
   const left = gate?.left ?? 0;
   const [seen, setSeen] = useState<string[]>([]);
   const [person, setPerson] = useState<string | null>(null);
+  const [personTab, setPersonTab] = useState<PersonTab>('talk');
   const [confirming, setConfirming] = useState<GameKind | null>(null);
+  const openPerson = (id: string) => {
+    setPersonTab('talk');
+    setPerson(id);
+  };
 
   const owner = useMemo(() => {
     const m = new Map<string, Room>();
@@ -74,7 +129,8 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
 
   const mine = contents[here];
   const there = house.rooms.find((r) => r.id === here)!;
-  const marker = centreOf(there);
+  const marker = standSpots(there, mine.guests, true).find((s) => s.id === 'player')!;
+  const entered = roomsSeen(c, progress);
   const minutes = minutesPerGame(c);
   const puzzleReward = (kind: GameKind) => {
     const g = c.games.find((x) => x.kind === kind)!;
@@ -83,8 +139,9 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
   const rowAction = (kind: GameKind) =>
     gameDone(progress, kind) ? '✓' : usedUp(kind) ? '–' : progress.games[kind]?.status === 'playing' ? 'Continue' : 'Play';
 
-  const personQuestion = person ? questioningOf(c, person) : undefined;
+  const personRoom = person ? (Object.keys(contents).find((room) => contents[room].guests.includes(person)) ?? here) : here;
   const personTint = person ? moodTint(setsFor(c)[person], progress.talk?.[person] ?? 0, talk.greetings) : 'none';
+  const withThem = !!person && personRoom === here;
 
   return (
     <section className="panel">
@@ -162,15 +219,40 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
             {house.rooms.map((room) => {
               if (!c.rooms.includes(room.id) || locked || readOnly) return null;
               if (!openPuzzlesIn(c, progress, contents[room.id], picked, left).length) return null;
-              const [r, col] = centreOf(room);
+              const [r, col] = centreCell(room);
               return (
                 <span key={`mark-${room.id}`} className="todo-mark" style={pct(r + 0.2, col + 0.82)} aria-hidden="true">
                   !
                 </span>
               );
             })}
-            <span className="you-marker" style={pct(marker[0] + 0.5, marker[1] + 0.5)} aria-hidden="true">
-              You
+            {house.rooms.flatMap((room) => {
+              if (!entered.includes(room.id)) return [];
+              const guests = contents[room.id]?.guests ?? [];
+              const inRoom = room.id === here;
+              return standSpots(room, guests, inRoom).flatMap((spot) => {
+                if (spot.id === 'player') return [];
+                const name = suspectName(spot.id, guests);
+                return (
+                  <button
+                    key={spot.id}
+                    type="button"
+                    className={`map-person${faceClass(spot.id)}`}
+                    style={{ ...pct(spot.r, spot.col), '--counter': suspectColour(spot.id) } as CSSProperties}
+                    aria-label={inRoom ? `Talk to ${name}` : `Clues about ${name}`}
+                    disabled={frozen}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openPerson(spot.id);
+                    }}
+                  >
+                    <SuspectCounterFace id={spot.id} guests={guests} />
+                  </button>
+                );
+              });
+            })}
+            <span className="you-marker" style={pct(marker.r, marker.col)} aria-hidden="true">
+              <Portrait parts={playerPortrait} view="counter" />
             </span>
           </div>
         </div>
@@ -238,7 +320,7 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
                 const q = questioningOf(c, s);
                 return (
                   <li key={s}>
-                    <button className="puzzle-row person-row" disabled={frozen} onClick={() => setPerson(s)}>
+                    <button className="puzzle-row person-row" disabled={frozen} onClick={() => openPerson(s)}>
                       <span className={`counter static${faceClass(s)}`} style={{ '--counter': suspectColour(s) } as CSSProperties} aria-hidden="true">
                         <SuspectCounterFace id={s} guests={c.guests} />
                       </span>
@@ -258,44 +340,75 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
         {!mine.looks.length && !mine.objects.length && !mine.guests.length && <p className="muted">Nothing here.</p>}
       </article>
 
-      {person && (
+      {person && withThem && (
         <Dialog onClose={() => setPerson(null)} labelId="person-title">
-          <header className={`sheet-head${hasPortrait(person) ? ' with-card' : ''}`}>
-            {hasPortrait(person) ? (
-              <figure className="portrait portrait-card" aria-hidden="true">
-                <span className="portrait-art">
-                  <Portrait parts={portraits[person]} view="full" tint={personTint} />
-                </span>
-                <figcaption>{suspectName(person, c.guests)}</figcaption>
-              </figure>
-            ) : (
-              <span className="portrait" style={{ '--counter': suspectColour(person) } as CSSProperties} aria-hidden="true">
-                {suspectInitials(person, c.guests)}
-              </span>
-            )}
+          <h2 id="person-title" className="sr-only">
+            Talking to {suspectName(person, c.guests)}
+          </h2>
+          <div className="talk-head">
+            <button data-autofocus type="button" className="sheet-close" aria-label="Close" onClick={() => setPerson(null)}>
+              ✕
+            </button>
+            <PortraitCard parts={playerPortrait} tint="none" caption="You" />
+            <PortraitCard
+              parts={hasPortrait(person) ? portraits[person] : undefined}
+              tint={personTint}
+              caption={suspectName(person, c.guests)}
+              initials={suspectInitials(person, c.guests)}
+              colour={suspectColour(person)}
+            />
+          </div>
+          <div className="person-tabs" role="tablist" aria-label="With them">
+            {(
+              [
+                ['talk', 'Talk'],
+                ['minigame', 'Minigame'],
+                ['clues', 'Clues'],
+              ] as const
+            ).map(([id, label]) => (
+              <button key={id} type="button" role="tab" aria-selected={personTab === id} onClick={() => setPersonTab(id)}>
+                {label}
+              </button>
+            ))}
+          </div>
+          {personTab === 'talk' && (
+            <TalkSection c={c} progress={progress} dispatch={dispatch} suspect={person} idleLine="Nothing more to say for now." />
+          )}
+          {personTab === 'minigame' && (
+            <PersonMinigame
+              c={c}
+              progress={progress}
+              person={person}
+              playable={playable}
+              onPlay={(kind) => {
+                setPerson(null);
+                open(kind);
+              }}
+            />
+          )}
+          {personTab === 'clues' && <PersonClues c={c} progress={progress} dispatch={dispatch} suspect={person} />}
+        </Dialog>
+      )}
+
+      {person && !withThem && (
+        <Dialog onClose={() => setPerson(null)} labelId="person-title">
+          <header className="sheet-head with-card">
+            <PortraitCard
+              parts={hasPortrait(person) ? portraits[person] : undefined}
+              tint={personTint}
+              caption={suspectName(person, c.guests)}
+              initials={suspectInitials(person, c.guests)}
+              colour={suspectColour(person)}
+            />
             <div>
               <h2 id="person-title">{suspectName(person, c.guests)}</h2>
-              <p className="muted">In the {roomName(here)}.</p>
+              <p className="muted">In the {roomName(personRoom)}.</p>
             </div>
-            <button data-autofocus className="sheet-close" aria-label="Close" onClick={() => setPerson(null)}>
+            <button data-autofocus type="button" className="sheet-close" aria-label="Close" onClick={() => setPerson(null)}>
               ✕
             </button>
           </header>
-          <TalkSection
-            c={c}
-            progress={progress}
-            dispatch={dispatch}
-            suspect={person}
-            idleLine="Nothing more to say for now."
-            onQuestion={
-              personQuestion && playable(personQuestion.kind)
-                ? (kind) => {
-                    setPerson(null);
-                    open(kind);
-                  }
-                : undefined
-            }
-          />
+          <PersonClues c={c} progress={progress} dispatch={dispatch} suspect={person} />
         </Dialog>
       )}
 

@@ -51,6 +51,8 @@ export interface Progress {
   talk?: Record<string, number>;
   /** The room she is in (exploration rounds); the scene room until she moves. Optional so older saves load. */
   at?: string;
+  /** Rooms she has walked into, besides the implicit scene and where she stands. Optional so older saves load. */
+  seen?: string[];
 }
 
 export const emptyProgress = (): Progress => ({ marks: {}, used: [], accusations: [], solved: false, games: {}, found: [] });
@@ -210,8 +212,14 @@ export function reduce(c: Case, p: Progress, action: Action): Progress {
       if (heard >= readyBeats(c, p, action.suspect, thread.length)) return p;
       return { ...p, talk: { ...p.talk, [action.suspect]: heard + 1 } };
     }
-    case 'move':
-      return c.rooms.includes(action.room) && p.at !== action.room ? { ...p, at: action.room } : p;
+    case 'move': {
+      // A room not in play, or the room she is already in, changes nothing.
+      // The scene is never stored: roomsSeen adds it. Only the destination is remembered.
+      if (!c.rooms.includes(action.room) || p.at === action.room) return p;
+      const seen = p.seen ?? [];
+      const nextSeen = action.room === c.sceneRoom || seen.includes(action.room) ? seen : [...seen, action.room];
+      return { ...p, at: action.room, ...(nextSeen.length ? { seen: nextSeen } : {}) };
+    }
     case 'reset':
       return emptyProgress();
   }

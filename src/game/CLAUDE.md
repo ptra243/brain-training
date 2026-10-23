@@ -57,10 +57,14 @@
   the scene is known and the scene word games are not offered. `explore.ts` has
   the pure parts (`roomContents`, the clock, `canOpen`); `ExploreMap` replaces
   `MapPanel` in these rounds (Map is the first tab, no clue drawer or cat hint);
-  `Progress.at` is the room she is in. Guests, objects and flavour lines are
+  `Progress.at` is the room she is in. People show on the explore map in rooms she has
+  entered (`Progress.seen`, the scene from the start); tap one in the room to talk, or from another
+  room for the clues she has. The talk dialog is her portrait on the left, theirs on the right, with
+  Talk, Minigame and Clues. Guests, objects and flavour lines are
   seeded from `c.seed`, never the truth. At midnight (`atMidnight`) the Accuse
   tab opens once and the map and puzzles are frozen. Quick play keeps `MapPanel`.
   The talk section is shared (`TalkSection`) by `SuspectSheet` and the person screen.
+  A wrong person plays `NextMurderScene` (a `Dialog` with `placement="scene"`); the escaped ending stays a dialog.
 - **Word games type with the phone's keyboard** through `TypingInput` (one
   hidden input; tapping the board focuses it). No on-screen keyboards.
   Buttons beside a focused board use `onPointerDown={(e) =>

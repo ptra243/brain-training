@@ -25,6 +25,9 @@ are shelved (see Later).
   finish it."), like tonight's picks do now.
 - **The map is the main screen.** Map is the first tab and fills most of the screen. A marker shows the
   room she is in. Tapping another room moves her there (the marker slides). Moving costs no time.
+
+Her marker on the map is her portrait. Guests appear on the map once she has been in their room. The person
+screen is the pair of portraits, hers on the left and theirs on the right, with Talk, Minigame and Clues.
 - **Rooms with a puzzle get a mark.** A stylised exclamation mark on the map over each room that still has
   an unplayed puzzle (an object or a guest's questioning). It goes once the room's puzzles are done.
 - **The room list replaces the drag tray.** Below the map, everything in her room:

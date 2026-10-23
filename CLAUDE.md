@@ -177,6 +177,7 @@ Long sessions re-read their whole context every turn, so keep them short.
   at one part; use Grep or Read with offset and limit.
 - Run layout rules and flows with `npm run e2e`. Run look checks through the `browser-check` agent and ask
   for a short pass/fail report, so screenshots stay out of the main context.
+- **Short path to a screen.** Looking: open `#dev/<id>` when `src/dev/CLAUDE.md` lists a preview, and give `browser-check` that URL only. Playing, or proving one click: load a save built on that run that lands on the screen, or one real action before the click. Do not solve puzzles, walk rooms, or play earlier rounds to get there. The click being proved still goes through the real UI. See `e2e/CLAUDE.md`.
 - After each commit, or when context is large, suggest starting a new session.
   Also suggest it when the topic changes (say, from one minigame's rules to
   theme content). Suggest only; don't write handoff files or split unasked.
@@ -191,5 +192,9 @@ Long sessions re-read their whole context every turn, so keep them short.
   with a `Last touched` date and a starting prompt; a `SessionStart` hook
   (`stale-sessions.mjs`) shows them as a numbered menu on a fresh session
   ("start 3" runs that entry's starting prompt) and flags entries untouched
-  for 14 days. Keep each heading short: it is the menu line. When you
+  for 14 days. Keep each heading short: it is the menu line. When they pick
+  one, by number or name or through /next, rename this session to that
+  heading before starting the work. In Cursor call rename_chat
+  (cursor-app-control); in the desktop app call set_session_title. The owner
+  asked for this so several open sessions stay distinguishable. When you
   suggest a split, offer to add or refresh the entry.

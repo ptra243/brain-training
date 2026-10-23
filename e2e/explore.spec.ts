@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { test, expect, openTab, tabBar } from './fixtures.ts';
 import { checkScreen } from './rules.ts';
+import { clickRoom, rooms, walkTo } from './walk.ts';
 
 const CLOCK = /^(\d+:\d\d|Midnight) \(.+\)$/;
 
@@ -12,18 +13,6 @@ async function startCampaign(page: Page) {
 }
 
 const timeLine = (page: Page) => page.locator('.case-title p');
-const rooms = (page: Page) => page.locator('.floorplan .tile-hit');
-
-/** Walk room to room until `what` shows in the room list; returns once it does. */
-async function walkTo(page: Page, what: ReturnType<Page['locator']>) {
-  const n = await rooms(page).count();
-  for (let i = 0; i < n; i++) {
-    await rooms(page).nth(i).click();
-    if ((await what.count()) > 0) return;
-  }
-  throw new Error('nothing like that in any room');
-}
-
 /** An object's row in the room list (not a person, not something to look at). */
 const objectRow = (page: Page) => page.locator('.room-list .puzzle-row:not(.person-row):not(:has-text("Have a")):not(.done):not(.locked)');
 
@@ -67,6 +56,8 @@ test.describe('exploring a campaign round', () => {
     await expect(tabBar(page).getByRole('button', { name: 'Map' })).toHaveAttribute('aria-current', 'page');
     await expect(timeLine(page)).toHaveText(/^9:00 \(\d games? left\)$/);
     await expect(page.locator('.floorplan')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'You', exact: true })).toBeVisible();
+    await expect(page.locator('.you-marker svg')).toHaveCount(1);
     await checkScreen(page, 'explore map');
 
     // Tapping another room moves her marker there.
@@ -85,17 +76,45 @@ test.describe('exploring a campaign round', () => {
     await page.getByRole('button', { name: /^Have a look/ }).click();
     await expect(page.locator('.room-list .puzzle-reward', { hasText: /^(?!Tap to take a look)/ }).first()).toBeVisible();
 
-    // A person: talk, then nothing more to say.
+    // A person: talk, then nothing more to say. On the map they are a portrait in this room.
     await walkTo(page, page.locator('.person-row'));
+    const name = (await page.locator('.person-row').first().locator('.puzzle-name').innerText()).trim();
+    await expect(page.getByRole('button', { name: `Talk to ${name}` })).toBeVisible();
     await page.locator('.person-row').first().click();
-    const person = page.getByRole('dialog');
-    await expect(person.locator('.portrait')).toBeVisible();
+    const person = page.getByRole('dialog', { name: `Talking to ${name}` });
+    const youCaption = await person.getByText('You', { exact: true }).boundingBox();
+    const theirCaption = await person.locator('figcaption', { hasText: name }).boundingBox();
+    expect(youCaption && theirCaption && youCaption.x < theirCaption.x).toBeTruthy();
+    await expect(person.getByRole('tab', { name: 'Talk' })).toHaveAttribute('aria-selected', 'true');
+    await expect(person.getByRole('tab', { name: 'Minigame' })).toBeVisible();
+    await expect(person.getByRole('tab', { name: 'Clues' })).toBeVisible();
     const talk = person.getByRole('region', { name: 'Talk' });
     await talk.getByRole('button', { name: 'Tell me about yourself' }).click();
     await expect(talk.locator('.talk-log li')).toHaveCount(1);
     await expect(talk.getByText('Nothing more to say for now.')).toBeVisible();
     await checkScreen(page, 'person screen');
+    await person.getByRole('tab', { name: 'Clues' }).click();
+    const clueCard = person.locator('.clue');
+    const emptyClues = person.getByText(/No clue you've found so far names/);
+    await expect(clueCard.or(emptyClues).first()).toBeVisible();
+    await checkScreen(page, 'person clues');
     await person.getByRole('button', { name: 'Close' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+
+    // Leave the room: the same person offers the clues she has, with no talk tabs.
+    const hereLabel = await page.locator('.floorplan .tile-hit[aria-current="location"]').getAttribute('aria-label');
+    const roomCount = await rooms(page).count();
+    let left = false;
+    for (let i = 0; i < roomCount && !left; i++) {
+      if ((await rooms(page).nth(i).getAttribute('aria-label')) === hereLabel) continue;
+      left = await clickRoom(page, i);
+    }
+    expect(left).toBe(true);
+    await page.getByRole('button', { name: `Clues about ${name}` }).click();
+    const about = page.getByRole('dialog', { name, exact: true });
+    await expect(about.getByRole('tablist')).toHaveCount(0);
+    await checkScreen(page, 'clues from another room');
+    await about.getByRole('button', { name: 'Close' }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
 
     // An object with a puzzle: the confirm names the time, then Solve moves the clock on.

@@ -16,12 +16,15 @@
   run, and clears localStorage once per tab (a reload keeps her save). No
   app hooks; go through the real UI. Wait on roles and text, never sleeps:
   case building may become async.
-- **Reaching deep into a game.** Test flows by tapping through them. To start
-  a test partway through a long game (the nosing speed round, dog fight or
-  lock), open the game through the UI, then rewrite her save with moves the
-  engine's hint bot made and reload (`nosingSaves.ts`). The save is built on
-  every run with the app's own format and engine, never a committed file, so
-  it can't go stale.
+- **Reach the screen, then prove the click.** Load a save built on this run,
+  with the engine and the app's own format, never a committed file
+  (`nosingSaves.ts` is the pattern). Land on the screen, or one real action
+  before the click this test is proving. Do not solve puzzles, walk rooms, or
+  play earlier rounds as setup. The click being proved still goes through the
+  real UI, with no app hooks. A picture of a screen the save cannot show
+  (the next-murder scene, the escaped ending, Guess now?, the time card)
+  opens its `#dev/<id>` preview when `src/dev/CLAUDE.md` lists one. The click
+  that opens that screen still starts from the save just before.
 - **Speed.** Tests run fully parallel (any test may run on any worker, in any
   order; never rely on another test's state) with reduced motion, so the
   app skips its walk and reveal animations. A test about an animation itself
