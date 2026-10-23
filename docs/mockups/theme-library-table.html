@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Theme: library and card table</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#2a1c13}
+a{color:#e8c86e}a:hover{color:#f6dc92}
+.spine{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;box-sizing:border-box;text-decoration:none;border-radius:3px 3px 0 0;padding:8px 0 10px;box-shadow:inset -4px 0 0 rgba(0,0,0,.25),inset 3px 0 0 rgba(255,255,255,.08)}
+.spine-title{writing-mode:vertical-rl;font-family:'EB Garamond',Georgia,serif;font-weight:600;white-space:nowrap}
+.felt{background-color:#2a5245;background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);background-size:5px 5px}
+.seal{width:20px;height:20px;border-radius:50%;background:#a8322d;box-shadow:inset 0 0 0 3px #8a2620}
+.lip{display:flex;justify-content:center;height:18px;margin:0 -10px;background:#8a5e3a;border-top:3px solid #a8774c}
+.plate{margin-top:-1px;padding:0 10px;background:#c8a24c;border-radius:0 0 3px 3px;font-family:'EB Garamond',Georgia,serif;font-weight:700;font-size:11px;letter-spacing:.16em;line-height:16px;color:#2a1d0f}
+</style>
+<style>body{display:flex;justify-content:center;padding:24px 0}</style>
+</head>
+<body>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 20px 0 0; display: flex; flex-direction: column; background: #2a1c13; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #efe7d2; overflow: hidden">
+
+  <header style="display: flex; align-items: flex-start; justify-content: space-between; padding: 8px 18px 0">
+    <div>
+      <h1 style="margin: 0; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 34px; line-height: 1; color: #f3ead4">Casebook</h1>
+      <p style="margin: 4px 0 0; font-size: 14px; color: #c9b993">Your book is where you left it.</p>
+    </div>
+    <a href="#record" aria-label="Your record" style="width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: #3b281b; border: 1px solid #6b4529; color: #e8c86e">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="5.5"></circle><path d="M8.5 13.5 7 21l5-2.5 5 2.5-1.5-7.5"></path></svg>
+    </a>
+  </header>
+
+  <section aria-label="Bookcase" style="position: relative; margin: 34px 16px 0; background: #6b4529; border-radius: 6px 6px 0 0; padding: 10px 10px 0; box-shadow: 0 10px 20px rgba(0,0,0,.4)">
+    <svg width="70" height="34" viewBox="0 0 70 34" aria-hidden="true" style="position: absolute; right: 26px; top: -30px"><ellipse cx="34" cy="26" rx="26" ry="9" fill="#e8a65a"></ellipse><circle cx="54" cy="20" r="9" fill="#e8a65a"></circle><path d="M49 13l2-7 5 6zM57 12l4-6 2 8z" fill="#e8a65a"></path><path d="M10 28c-8 2-8 6 2 5" stroke="#e8a65a" stroke-width="4" fill="none" stroke-linecap="round"></path><path d="M51 20q2 2 4 0M57 20q2 2 4 0" stroke="#7a4a1e" stroke-width="1.3" fill="none"></path><path d="M24 22q3 3 6 0" stroke="#c98a40" stroke-width="2" fill="none"></path></svg>
+
+    <div style="height: 150px; background: #3a2618; display: flex; align-items: flex-end; gap: 3px; padding: 0 8px; box-shadow: inset 0 8px 12px rgba(0,0,0,.45)">
+      <a href="#new-case" aria-label="New case" class="spine" style="width: 50px; height: 136px; background: #2f5a4a; color: #e8c86e"><span class="spine-title" style="font-size: 16px">New case</span><span class="seal"></span></a>
+      <a href="#choose" aria-label="Choose your games" style="position: relative; width: 96px; height: 60px; text-decoration: none; display: block">
+        <span style="position: absolute; left: 8px; bottom: 0; width: 80px; height: 14px; background: #5a1426; border: 1px solid #c8a24c; border-radius: 2px"></span>
+        <span style="position: absolute; left: 4px; bottom: 12px; width: 80px; height: 14px; background: #5a1426; border: 1px solid #c8a24c; border-radius: 2px"></span>
+        <span style="position: absolute; left: 10px; bottom: 24px; width: 80px; height: 14px; background: #5a1426; border: 1px solid #c8a24c; border-radius: 2px; transform: rotate(-4deg)"></span>
+        <span style="position: absolute; left: 0; right: 0; bottom: 42px; text-align: center; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 13px; color: #e8c86e">Choose games</span>
+      </a>
+      <span aria-hidden="true" class="spine" style="width: 22px; height: 118px; background: #34436a"></span>
+      <span aria-hidden="true" class="spine" style="width: 20px; height: 126px; background: #5a3a28"></span>
+      <span aria-hidden="true" class="spine" style="width: 24px; height: 112px; background: #3e2a44"></span>
+      <span aria-hidden="true" class="spine" style="width: 20px; height: 122px; background: #2f5a4a"></span>
+      <a href="#secret" aria-label="An odd-looking book" class="spine" style="width: 26px; height: 124px; margin-left: 10px; background: #1e1a17; transform: rotate(-7deg); transform-origin: bottom left; box-shadow: inset -4px 0 0 rgba(0,0,0,.4), inset 0 0 0 1px #c8a24c"><span style="width: 10px; height: 10px; border: 1px solid #c8a24c; transform: rotate(45deg)"></span></a>
+    </div>
+    <div class="lip"><span class="plate">QUICK PLAY</span></div>
+
+    <div style="height: 150px; margin-top: 4px; background: #3a2618; display: flex; align-items: flex-end; gap: 3px; padding: 0 8px; box-shadow: inset 0 8px 12px rgba(0,0,0,.45)">
+      <a href="#campaign" aria-label="Your campaign, midnight: continue" class="spine" style="width: 54px; height: 142px; background: #3e2a44; color: #e8c86e"><span class="spine-title" style="font-size: 17px">Midnight</span><span style="font-size: 10px; color: #efe2bf">2 left</span></a>
+      <a href="#new-campaign" aria-label="New campaign" class="spine" style="width: 50px; height: 134px; background: #5a1426; color: #e8c86e"><span class="spine-title" style="font-size: 15px">New campaign</span><span class="seal"></span></a>
+      <span aria-hidden="true" class="spine" style="width: 24px; height: 124px; background: #3a3020"></span>
+      <span aria-hidden="true" class="spine" style="width: 22px; height: 116px; background: #2c3444"></span>
+      <span aria-hidden="true" style="margin-left: auto; margin-bottom: 0; width: 44px; height: 40px; display: grid; place-items: end center">
+        <svg width="40" height="40" viewBox="0 0 40 40"><rect x="14" y="10" width="12" height="30" fill="#f2ead2"></rect><path d="M20 0c4 5 4 8 0 10-4-2-4-5 0-10z" fill="#f0b544"></path><rect x="6" y="36" width="28" height="4" fill="#c8a24c"></rect></svg>
+      </span>
+    </div>
+    <div class="lip"><span class="plate">CAMPAIGN</span></div>
+  </section>
+
+  <div class="felt" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border-top: 10px solid #4a2f1e; box-shadow: inset 0 14px 18px rgba(0,0,0,.35)">
+    <a href="#continue" aria-label="Your case, The Orchid Room: keep reading" style="display: flex; width: 344px; height: 196px; text-decoration: none; transform: perspective(700px) rotateX(16deg); box-shadow: 0 18px 22px rgba(0,0,0,.45); border-radius: 4px; background: #5a1426; padding: 6px">
+      <span style="flex: 1; background: #f4f0e4; border-radius: 3px 0 0 3px; padding: 16px 12px 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: inset -12px 0 14px -10px rgba(60,30,10,.4); color: #1e2a2f">
+        <span style="font-size: 10px; letter-spacing: .16em; color: #6b5a3a">YOUR CASE</span>
+        <span style="font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 24px; line-height: 1.05">The Orchid Room</span>
+        <span style="font-family: 'EB Garamond', Georgia, serif; font-style: italic; font-size: 14px; line-height: 1.3; color: #55615f">The Host lies dead in the conservatory.</span>
+      </span>
+      <span style="flex: 1; background: #f4f0e4; border-radius: 0 3px 3px 0; padding: 16px 12px 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: inset 12px 0 14px -10px rgba(60,30,10,.4); color: #1e2a2f">
+        <span style="font-size: 10px; letter-spacing: .16em; color: #6b5a3a">CLUES</span>
+        <span style="display: flex; gap: 5px" role="img" aria-label="3 of 5 clues found">
+          <span style="width: 18px; height: 18px; border-radius: 50%; background: #c8a24c"></span>
+          <span style="width: 18px; height: 18px; border-radius: 50%; background: #c8a24c"></span>
+          <span style="width: 18px; height: 18px; border-radius: 50%; background: #c8a24c"></span>
+          <span style="width: 18px; height: 18px; border-radius: 50%; border: 1.5px dashed #a98a48; box-sizing: border-box"></span>
+          <span style="width: 18px; height: 18px; border-radius: 50%; border: 1.5px dashed #a98a48; box-sizing: border-box"></span>
+        </span>
+        <span style="margin-top: auto; font-family: 'EB Garamond', Georgia, serif; font-weight: 700; font-size: 17px; color: #8a2620">Keep reading ›</span>
+      </span>
+    </a>
+    <span aria-hidden="true" style="width: 14px; height: 34px; margin-top: -22px; margin-left: 140px; background: #c8a24c; clip-path: polygon(0 0,100% 0,100% 100%,50% 80%,0 100%)"></span>
+  </div>
+</div>
+</body>
+</html>

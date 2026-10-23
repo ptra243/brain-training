@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Theme: the card table</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1a352d}
+a{color:#e8c86e}a:hover{color:#f6dc92}
+.felt{background-color:#24463c;background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:5px 5px}
+.back{background-color:#5a1426;background-image:repeating-linear-gradient(45deg,rgba(200,162,76,.22) 0 1px,transparent 1px 9px),repeating-linear-gradient(-45deg,rgba(200,162,76,.22) 0 1px,transparent 1px 9px);border:2px solid #f4f0e4;box-shadow:inset 0 0 0 3px #5a1426,inset 0 0 0 4px #c8a24c,0 3px 6px rgba(0,0,0,.4)}
+.face{background:#f4f0e4;border:1px solid #d8d0bb;box-shadow:0 3px 6px rgba(0,0,0,.4);color:#1e2a2f}
+.card{position:absolute;border-radius:6px;box-sizing:border-box}
+.label{margin:0;font-family:'EB Garamond',Georgia,serif;font-weight:600;font-size:18px;color:#efe7d2;text-align:center}
+.sub{margin:0;font-size:13px;color:#c2cdbf;text-align:center}
+</style>
+<style>body{display:flex;justify-content:center;padding:24px 0}</style>
+</head>
+<body>
+<div class="felt" style="width: 390px; height: 844px; box-sizing: border-box; padding: 20px 18px 22px; display: flex; flex-direction: column; gap: 16px; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #e9e4d2; overflow: hidden">
+
+  <header style="display: flex; align-items: flex-start; justify-content: space-between; padding-top: 8px">
+    <div>
+      <h1 style="margin: 0; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 34px; line-height: 1; color: #efe7d2">Casebook</h1>
+      <p style="margin: 4px 0 0; font-size: 14px; color: #c2cdbf">Pick up your cards.</p>
+    </div>
+    <a href="#record" aria-label="Your record: 12 cases solved" style="position: relative; width: 58px; height: 72px; text-decoration: none">
+      <span class="card face" style="left: 6px; top: 4px; width: 46px; height: 64px; transform: rotate(8deg)"></span>
+      <span class="card face" style="left: 6px; top: 4px; width: 46px; height: 64px; transform: rotate(-4deg); display: grid; place-items: center; font-family: 'EB Garamond', Georgia, serif; font-weight: 700; font-size: 20px; color: #5a1426">12</span>
+    </a>
+  </header>
+
+  <a href="#continue" aria-label="Your case, The Orchid Room, 3 of 5 clues: continue" style="display: flex; flex-direction: column; gap: 8px; text-decoration: none">
+    <span style="position: relative; height: 196px; display: block">
+      <span class="card face" style="left: 66px; top: 34px; width: 84px; height: 122px; transform: rotate(-18deg); padding: 10px 8px; font-family: 'EB Garamond', Georgia, serif; font-size: 12px; line-height: 1.25">The Butler was never in the kitchen.</span>
+      <span class="card face" style="left: 104px; top: 16px; width: 84px; height: 122px; transform: rotate(-8deg); padding: 10px 8px; font-family: 'EB Garamond', Georgia, serif; font-size: 12px; line-height: 1.25">The candlestick was next to the hall.</span>
+      <span class="card face" style="left: 144px; top: 10px; width: 84px; height: 122px; transform: rotate(2deg); padding: 10px 8px; font-family: 'EB Garamond', Georgia, serif; font-size: 12px; line-height: 1.25; color: #6a716f"><span style="text-decoration: line-through; text-decoration-color: #a8322d; text-decoration-thickness: 2px">The Hostess and the Uncle were apart.</span></span>
+      <span class="card back" style="left: 184px; top: 18px; width: 84px; height: 122px; transform: rotate(12deg)"></span>
+      <span class="card back" style="left: 222px; top: 36px; width: 84px; height: 122px; transform: rotate(22deg)"></span>
+    </span>
+    <span class="label" style="display: block">The Orchid Room</span>
+    <span class="sub" style="display: block">Your hand · 3 of 5 clues turned over</span>
+  </a>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding-top: 4px">
+    <a href="#new-case" style="display: flex; flex-direction: column; align-items: center; gap: 10px; text-decoration: none">
+      <span style="position: relative; width: 96px; height: 132px; display: block">
+        <span class="card back" style="left: 6px; top: 6px; width: 84px; height: 120px"></span>
+        <span class="card back" style="left: 3px; top: 3px; width: 84px; height: 120px"></span>
+        <span class="card back" style="left: 0; top: 0; width: 84px; height: 120px"></span>
+      </span>
+      <span class="label" style="font-size: 16px">Deal a new case</span>
+    </a>
+    <a href="#choose" style="display: flex; flex-direction: column; align-items: center; gap: 10px; text-decoration: none">
+      <span style="position: relative; width: 140px; height: 132px; display: block">
+        <span class="card face" style="left: 6px; top: 12px; width: 66px; height: 98px; transform: rotate(-14deg); display: grid; place-items: center; font-family: 'EB Garamond', Georgia, serif; font-weight: 700; font-size: 26px; color: #34436a">W</span>
+        <span class="card face" style="left: 37px; top: 4px; width: 66px; height: 98px; display: grid; place-items: center; font-family: 'EB Garamond', Georgia, serif; font-weight: 700; font-size: 26px; color: #5a1426">9</span>
+        <span class="card face" style="left: 68px; top: 12px; width: 66px; height: 98px; transform: rotate(14deg); display: grid; place-items: center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2f5a4a" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h4a2 2 0 1 1 4 0h4v4a2 2 0 1 1 0 4v4H4v-4a2 2 0 1 0 0-4z"></path></svg></span>
+      </span>
+      <span class="label" style="font-size: 16px">Choose your games</span>
+    </a>
+  </div>
+
+  <a href="#campaign" aria-label="Campaign: midnight, 2 accusations left" style="margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding: 12px 12px 14px; border: 1px solid #35594d; border-radius: 10px; background: rgba(0,0,0,.14); text-decoration: none">
+    <span style="display: flex; justify-content: space-between; align-items: baseline">
+      <span style="font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 18px; color: #efe7d2">Campaign</span>
+      <span style="font-size: 13px; color: #c2cdbf">2 accusations left</span>
+    </span>
+    <span style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+      <span style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+        <span style="position: relative; width: 62px; height: 92px; display: block">
+          <span class="card face" style="left: 0; top: 0; width: 62px; height: 86px"></span>
+          <span class="card face" style="left: 0; top: 6px; width: 62px; height: 86px; display: grid; place-items: center"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#a8322d" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></span>
+        </span>
+        <span style="font-size: 12px; color: #c2cdbf">9pm</span>
+      </span>
+      <span style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+        <span style="position: relative; width: 62px; height: 92px; display: block">
+          <span class="card back" style="left: 0; top: 0; width: 62px; height: 86px; box-shadow: inset 0 0 0 3px #5a1426, inset 0 0 0 4px #c8a24c, 0 0 0 3px #c8a24c, 0 3px 10px rgba(0,0,0,.5)"></span>
+        </span>
+        <span style="font-size: 12px; font-weight: 700; color: #e8c86e">Midnight</span>
+      </span>
+      <span style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+        <span style="width: 62px; height: 86px; border: 2px dashed #4f7869; border-radius: 6px; box-sizing: border-box; display: block"></span>
+        <span style="font-size: 12px; color: #c2cdbf">3am</span>
+      </span>
+    </span>
+  </a>
+</div>
+</body>
+</html>
