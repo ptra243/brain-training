@@ -59,7 +59,7 @@ export const portraits: Record<string, PortraitParts> = {
     costume: { style: 'cape', main: '#1c1c24', trim: '#b02a37' },
     accent: { style: 'bow-tie', colour: '#f4f0e4' },
     background: ['#1f4a4c', '#2d5f61'],
-    crop: [25, 6, 50, 50],
+    crop: [15, 0, 70, 70],
   },
   housekeeper: {
     skin: '#f0d2bc',
@@ -102,7 +102,7 @@ export const portraits: Record<string, PortraitParts> = {
     costume: { style: 'blouse-bow-jacket', main: '#4a5666', trim: '#f4f0e4' },
     accent: { style: 'brooch', colour: '#c4c9cf' },
     background: ['#8a7aa0', '#9f8fb5'],
-    crop: [25, 10, 50, 50],
+    crop: [15, 4, 70, 70],
   },
 };
 

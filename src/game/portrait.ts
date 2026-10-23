@@ -24,7 +24,7 @@ export const TINT_FILL: Record<'warm' | 'hostile', { fill: string; o: number }> 
 };
 
 /** Counter crops: the head of a person, nearly the whole frame for the cat. */
-export const GUEST_CROP: readonly [number, number, number, number] = [25, 20, 50, 50];
+export const GUEST_CROP: readonly [number, number, number, number] = [15, 10, 70, 70];
 export const CAT_CROP: readonly [number, number, number, number] = [4, 6, 92, 92];
 export const DOG_CROP: readonly [number, number, number, number] = [4, 6, 92, 92];
 export const FULL_VIEW_BOX = `0 0 ${FRAME.width} ${FRAME.height}`;

@@ -85,6 +85,6 @@ test('one cat coat per cat, and the player uses the guest model', () => {
   const player: PortraitParts = playerPortrait;
   assert.ok(player.hair && player.costume && player.skin && player.background);
   assert.equal(guestCropBox(player), GUEST_CROP.join(' '));
-  assert.equal(guestCropBox(portraits.conjurer), '25 6 50 50');
+  assert.equal(guestCropBox(portraits.conjurer), '15 0 70 70');
   assert.ok(portraitShapes(player).some((l) => l.id === 'head'));
 });
