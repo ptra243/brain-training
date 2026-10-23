@@ -13,6 +13,7 @@ async function pickNosingClue(page: Page) {
   await page.getByRole('button', { name: 'Get a clue' }).click();
   const dialog = page.getByRole('dialog', { name: 'Pick a game' });
   await dialog.locator('button.puzzle-row:not(.locked):not(.done)', { hasText: 'Nosing around' }).first().click();
+  await dialog.locator('.puzzle-help button.primary').click();
   await expect(page.getByRole('heading', { name: 'Nosing around', level: 1 })).toBeVisible();
 }
 

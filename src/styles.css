@@ -308,6 +308,9 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
   grid-area: action; min-width: 5.2rem; text-align: center; padding: 0.45rem 0.7rem; border-radius: 999px;
   background: var(--ink); color: var(--card); font-size: 0.9rem;
 }
+.puzzle-row.selected { border-color: var(--ink); background: #f6efd9; }
+.puzzle-help { display: grid; gap: 0.5rem; padding: 0.6rem 0.75rem 0.2rem; }
+.puzzle-help p { margin: 0; font-size: 0.9rem; color: var(--ink); }
 .puzzle-row.done { background: #ece6d4; }
 .puzzle-row.done .puzzle-action { background: #3d6b4f; min-width: 2.6rem; font-weight: 700; }
 .small { font-size: 0.82rem; margin-top: 0.35rem; }

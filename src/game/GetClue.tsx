@@ -35,6 +35,7 @@ function LevelChip({ spec }: { spec: GameSpec }) {
 /** Play cases: the opening, the "Get a clue" button, and the sheet that picks a game. */
 export function GetClue({ c, progress, readOnly, onPlay }: Props) {
   const [picking, setPicking] = useState(false);
+  const [chosen, setChosen] = useState<GameKind | null>(null);
   const { done, total } = puzzlesDone(c, progress);
   const everything = allGamesDone(c, progress);
   const left = unfinishedGames(c, progress);
@@ -74,15 +75,14 @@ export function GetClue({ c, progress, readOnly, onPlay }: Props) {
             {left.map((g) => {
               const locked = g.kind === 'finale' && !finaleOpen(c, progress);
               const playing = progress.games[g.kind]?.status === 'playing';
+              const selected = chosen === g.kind && !locked;
               return (
                 <li key={g.kind}>
                   <button
-                    className={`puzzle-row ${locked ? 'locked' : ''}`}
+                    className={`puzzle-row ${locked ? 'locked' : ''} ${selected ? 'selected' : ''}`}
                     disabled={locked}
-                    onClick={() => {
-                      setPicking(false);
-                      onPlay(g.kind);
-                    }}
+                    aria-pressed={selected}
+                    onClick={() => setChosen(selected ? null : g.kind)}
                   >
                     <span className="puzzle-name">
                       {GAMES[g.kind].name} <LevelChip spec={g} />
@@ -92,9 +92,23 @@ export function GetClue({ c, progress, readOnly, onPlay }: Props) {
                       {locked ? 'Opens when the other games are done.' : `Unlocks ${plural(g.clues.length, 'clue')}.`}
                     </span>
                     <span className="puzzle-action" aria-hidden="true">
-                      {locked ? 'Later' : playing ? 'Continue' : 'Play'}
+                      {locked ? 'Later' : selected ? 'Chosen' : 'Choose'}
                     </span>
                   </button>
+                  {selected && (
+                    <div className="puzzle-help">
+                      <p>{GAMES[g.kind].help}</p>
+                      <button
+                        className="primary"
+                        onClick={() => {
+                          setPicking(false);
+                          onPlay(g.kind);
+                        }}
+                      >
+                        {playing ? 'Continue' : 'Play'} {GAMES[g.kind].name}
+                      </button>
+                    </div>
+                  )}
                 </li>
               );
             })}

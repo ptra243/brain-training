@@ -29,6 +29,7 @@ test('reload mid-case lands back in the same case with its progress', async ({ p
 
   await page.getByRole('button', { name: 'Get a clue' }).click();
   await page.getByRole('dialog', { name: 'Pick a game' }).locator('button.puzzle-row:not(.locked)').first().click();
+  await page.getByRole('dialog', { name: 'Pick a game' }).locator('.puzzle-help button.primary').click();
   await page.getByRole('button', { name: 'Solve', exact: true }).click();
   await page.getByRole('dialog', { name: 'Solve this puzzle?' }).getByRole('button', { name: 'Solve it' }).click();
   await page.locator('section.unlocked').getByRole('button', { name: 'Back to the casebook' }).click();

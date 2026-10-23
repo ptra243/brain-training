@@ -28,6 +28,7 @@ async function solveEveryGame(page: Page, layout: boolean): Promise<string[]> {
     const row = dialog.locator('button.puzzle-row:not(.locked):not(.done)').first();
     const name = (await row.locator('.puzzle-name').innerText()).replace(/\s+/g, ' ').trim();
     await row.click();
+    await dialog.locator('.puzzle-help button.primary').click();
 
     const solve = page.getByRole('button', { name: 'Solve', exact: true });
     await expect(solve).toBeVisible();
@@ -98,6 +99,7 @@ test.describe('sudoku notes', () => {
     await page.getByRole('button', { name: 'Get a clue' }).click();
     const dialog = page.getByRole('dialog', { name: 'Pick a game' });
     await dialog.locator('button.puzzle-row:not(.locked):not(.done)', { hasText: 'Sudoku' }).first().click();
+    await dialog.locator('.puzzle-help button.primary').click();
 
     const empties = page.getByRole('gridcell', { name: /: empty/ });
     await expect(empties.first()).toBeVisible();
