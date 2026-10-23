@@ -29,3 +29,9 @@ export function labelClass(house: House, room: Room): string {
   const row = room.cells[0][0];
   return room.cells.filter(([r]) => r === row).length <= 3 ? 'room-name tight' : 'room-name';
 }
+
+/** A plan taller than wide (a long house turned on its side) is narrowed and centred so its squares stay as wide as a wide plan's, not stretched to the full width. */
+export function frameStyle(house: House): { width: string; marginInline: string } | undefined {
+  if (house.rows <= house.cols) return undefined;
+  return { width: `calc(${(house.cols / house.rows) * 100}% + 2rem)`, marginInline: 'auto' };
+}

@@ -3,6 +3,7 @@
 // `src/engine/` (see `gameKinds.ts`) and an entry here; `GAMES` must cover
 // every kind, so the compiler points at anything missing.
 
+import { houseOf } from '../../content/houses.ts';
 import type { ReactNode } from 'react';
 import { content } from '../../content/index.ts';
 import type { Board } from '../../engine/boardTypes.ts';
@@ -121,7 +122,7 @@ const questioning = (name: string, blurb: string) =>
     build: (_c, spec) => spec.interrogation,
     play(puzzle, a) {
       const data = savedOr(a, isInterrogationData, interrogationInitial, interrogationInitial);
-      const cf = caseFacts(content.house, a.c);
+      const cf = caseFacts(houseOf(a.c), a.c);
       return {
         solved: () => ({ ...data, caught: false }),
         view: (
@@ -290,7 +291,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
     blurb: 'Follow the cat round the house, with sums on the way.',
     build: (c, spec) =>
       buildNosing({
-        house: content.house,
+        house: houseOf(c),
         seed: nosingSeed(spec.seed),
         level: spec.level!,
         sceneRoom: c.sceneRoom,

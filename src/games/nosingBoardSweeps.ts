@@ -1,27 +1,30 @@
 import assert from 'node:assert/strict';
-import { house } from '../content/index.ts';
+import { house as manor } from '../content/index.ts';
+import { roomAdjacency } from '../engine/house.ts';
+import type { House } from '../engine/types.ts';
 import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
-import { NOSING_LEVELS, buildNosingBoard, nosingBounds, type NosingBoard, type NosingLevel } from './nosingBoard.ts';
+import { buildNosingBoard, nosingBounds, nosingSpec, type NosingBoard, type NosingLevel } from './nosingBoard.ts';
 
 /** The sweep behind "nosing board: every rule holds": seed `i` of a level. `npm test` runs a few; check-cases a sample or all 300. */
 export const BOARD_SEEDS = 300;
 export const BOARD_LEVELS: NosingLevel[] = ['easy', 'medium', 'hard'];
-const roomIds = house.rooms.map((r) => r.id);
 
-const build = (level: NosingLevel, seed: string, sceneRoom: string, searchClues: number) =>
+const build = (house: House, level: NosingLevel, seed: string, sceneRoom: string, searchClues: number) =>
   buildNosingBoard({ house, level, seed, sceneRoom, searchClues, ladders: nosingLadders, snakes: nosingSnakes });
 
 /** Checks one board against every rule; throws on the first broken one. Returns the build time in ms. */
-export function boardSeed(level: NosingLevel, i: number): number {
-  const lv = NOSING_LEVELS[level];
-  const seed = `case-${i}-${level}`;
+export function boardSeed(level: NosingLevel, i: number, house: House = manor): number {
+  const lv = nosingSpec(house, level);
+  const roomIds = house.rooms.map((r) => r.id);
+  const touching = roomAdjacency(house);
+  const seed = house === manor ? `case-${i}-${level}` : `case-${i}-${level}-${house.id}`;
   const sceneRoom = roomIds[i % roomIds.length];
   const searchClues = i % 6;
   const t0 = performance.now();
   // Every seed and scene room must have a board within NOSING_ATTEMPTS (build throws if not).
-  const b: NosingBoard = build(level, seed, sceneRoom, searchClues);
+  const b: NosingBoard = build(house, level, seed, sceneRoom, searchClues);
   const ms = performance.now() - t0;
-  const ctx = `${seed} scene ${sceneRoom} clues ${searchClues}`;
+  const ctx = `${house.id} ${seed} scene ${sceneRoom} clues ${searchClues}`;
   const len = b.path.length;
 
   // Path: in range, self-avoiding, orthogonally connected, in bounds.
@@ -35,10 +38,25 @@ export function boardSeed(level: NosingLevel, i: number): number {
     const c = b.path[k];
     const dist = Math.abs(Math.floor(a / b.width) - Math.floor(c / b.width)) + Math.abs((a % b.width) - (c % b.width));
     assert.equal(dist, 1, `${ctx}: gap at ${k}`);
+    // Rooms are crossed only where they touch (through a door in a house with doors).
+    const ra = b.roomOf[k - 1];
+    const rc = b.roomOf[k];
+    assert.ok(ra === rc || touching.get(ra)!.has(rc), `${ctx}: ${ra} to ${rc} has no door`);
   }
   assert.equal(b.roomOf.length, len);
   assert.equal(b.squares.length, len);
-  assert.deepEqual([...new Set(b.roomOf)].sort(), [...roomIds].sort(), `${ctx}: misses a room`);
+  // Every room is entered, unless the house stops the path at some of them (then at least searchClues + enterExtra).
+  const entered = [...new Set(b.roomOf)].sort();
+  if (lv.enterExtra === undefined) assert.deepEqual(entered, [...roomIds].sort(), `${ctx}: misses a room`);
+  else {
+    assert.ok(entered.length >= Math.min(roomIds.length, searchClues + lv.enterExtra, lv.enterMax ?? roomIds.length), `${ctx}: enters only ${entered.length} rooms`);
+    assert.ok(entered.every((r) => roomIds.includes(r)), ctx);
+  }
+  if (lv.minEndRoom !== undefined) {
+    let run = 0;
+    while (run < len && b.roomOf[len - 1 - run] === lockRoomOf(b)) run++;
+    assert.ok(run >= lv.minEndRoom, `${ctx}: ends in a room after ${run} squares`);
+  }
 
   // Counts match the table.
   const count = (k: string) => b.squares.filter((s) => s.kind === k).length;
@@ -47,7 +65,7 @@ export function boardSeed(level: NosingLevel, i: number): number {
   assert.equal(count('obstacle'), lv.obstacles, ctx);
   assert.equal(count('speed'), lv.speed, ctx);
   assert.equal(count('catFind'), lv.catFinds, ctx);
-  assert.equal(count('search'), roomIds.length, ctx);
+  assert.equal(count('search'), entered.length, ctx);
 
   // Jumps.
   const ends = new Set<number>();
@@ -82,7 +100,7 @@ export function boardSeed(level: NosingLevel, i: number): number {
 
   // Search squares: one per room, exactly searchClues hold clues.
   const searches = b.squares.map((s, k) => ({ s, k })).filter((x) => x.s.kind === 'search');
-  assert.deepEqual(searches.map((x) => b.roomOf[x.k]).sort(), [...roomIds].sort(), `${ctx}: search per room`);
+  assert.deepEqual(searches.map((x) => b.roomOf[x.k]).sort(), entered, `${ctx}: search per room`);
   const withClue = searches.filter((x) => x.s.clueIndex !== null);
   assert.equal(withClue.length, searchClues, ctx);
   assert.deepEqual(withClue.map((x) => x.s.clueIndex), withClue.map((_, j) => j), `${ctx}: clue order`);
@@ -91,11 +109,13 @@ export function boardSeed(level: NosingLevel, i: number): number {
   for (const s of b.squares) if (s.kind === 'obstacle' || s.kind === 'catFind') assert.ok(s.bonus, ctx);
 
   // Bounds.
-  const bd = nosingBounds(b, seed, level);
+  const bd = nosingBounds(b, seed, lv);
   assert.ok(bd.minTurns >= lv.turns[0] && bd.maxTurns <= lv.turns[1], `${ctx}: turns ${bd.minTurns}-${bd.maxTurns}`);
   assert.ok(bd.minQuestions >= lv.minQuestions, `${ctx}: questions ${bd.minQuestions}`);
 
   // Same seed, same board.
-  if (i % 20 === 0) assert.deepEqual(build(level, seed, sceneRoom, searchClues), b, `${ctx}: not repeatable`);
+  if (i % 20 === 0) assert.deepEqual(build(house, level, seed, sceneRoom, searchClues), b, `${ctx}: not repeatable`);
   return ms;
 }
+
+const lockRoomOf = (b: NosingBoard): string => b.roomOf[b.roomOf.length - 1];

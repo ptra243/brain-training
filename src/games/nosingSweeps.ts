@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { Rng, hashSeed } from '../engine/rng.ts';
 import { house } from '../content/index.ts';
+import type { House } from '../engine/types.ts';
 import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
-import { BONUS_KINDS, NOSING_LEVELS, type NosingLevel } from './nosingBoard.ts';
+import { BONUS_KINDS, nosingSpec, type NosingLevel } from './nosingBoard.ts';
 import { allSlots, getSlot, gridValues, type GridFill } from './numberGrid.ts';
 import {
   buildNosing,
@@ -18,14 +19,14 @@ import {
 } from './nosing.ts';
 
 export const LEVELS: NosingLevel[] = ['easy', 'medium', 'hard'];
-const roomIds = house.rooms.map((r) => r.id);
 
-export function make(level: NosingLevel, i: number, share = 5): NosingPuzzle {
+export function make(level: NosingLevel, i: number, share = 5, at: House = house): NosingPuzzle {
+  const rooms = at.rooms.map((r) => r.id);
   return buildNosing({
-    house,
-    seed: `test-${i}-${level}`,
+    house: at,
+    seed: at === house ? `test-${i}-${level}` : `test-${i}-${level}-${at.id}`,
     level,
-    sceneRoom: roomIds[i % roomIds.length],
+    sceneRoom: rooms[i % rooms.length],
     clues: Array.from({ length: share }, (_, k) => `c${k + 1}`),
     ladders: nosingLadders,
     snakes: nosingSnakes,
@@ -140,10 +141,10 @@ export function drive(p: NosingPuzzle, policy: Policy, stop?: (v: NosingView) =>
  */
 
 /** Hints win with every clue; the always-wrong and random bots finish within the turn bounds. Returns whether the always-wrong bot lost its dog fight. */
-export function botSeed(level: NosingLevel, i: number): { lostFight: boolean } {
-  const lv = NOSING_LEVELS[level];
+export function botSeed(level: NosingLevel, i: number, at: House = house): { lostFight: boolean } {
   const share = 1 + (i % 7);
-  const p = make(level, i, share);
+  const p = make(level, i, share, at);
+  const lv = nosingSpec(p.house, level);
   const all = p.clues.slice().sort();
 
   const good = drive(p, 'hints');

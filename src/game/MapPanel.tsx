@@ -1,8 +1,8 @@
+import { houseOf } from '../content/houses.ts';
 import { useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
-import { content } from '../content/index.ts';
 import type { Case, GameKind, House, Room } from '../engine/types.ts';
 import { DoorGaps } from './DoorGaps.tsx';
-import { labelClass, ownerMap, tileWalls } from './plan.ts';
+import { frameStyle, labelClass, ownerMap, tileWalls } from './plan.ts';
 import { ClueCard } from './ClueCard.tsx';
 import { cellOf, showsWrong } from './gridHints.ts';
 import { Dialog } from './Dialog.tsx';
@@ -69,7 +69,7 @@ const SPREAD: [number, number][][] = [
   [[-0.27, -0.3], [-0.27, 0.3], [0.27, -0.3], [0.27, 0.3], [0, 0]],
 ];
 
-export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQuestion, house = content.house }: Props) {
+export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQuestion, house = houseOf(c) }: Props) {
   // The cat's hint: the person or weapon and the room (or weapon) its square is about.
   const hint = pawedSquare ? cellOf(pawedSquare) : null;
   const hintedPiece = (p: Piece) => !!hint && hint.row === p.id;
@@ -200,7 +200,7 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
           : 'Drag people and weapons into rooms. Drop a weapon on someone to hand it to them. Tap anything to see its clues.'}
       </p>
 
-      <div className="floorplan-frame">
+      <div className="floorplan-frame" style={frameStyle(house)}>
         <div className="plan-axes" style={{ gridTemplateColumns: `1rem repeat(${house.cols}, 1fr)` }} aria-hidden="true">
           <span />
           {Array.from({ length: house.cols }, (_, col) => (

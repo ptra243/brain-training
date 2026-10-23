@@ -29,12 +29,12 @@ function rounds(ref: CampaignRef): Case[] {
 const all = refs.flatMap(rounds);
 
 test('the same case has the same contents', () => {
-  for (const c of all) assert.deepEqual(roomContents(content, houseDetails, c), roomContents(content, houseDetails, c));
+  for (const c of all) assert.deepEqual(roomContents(houseDetails, c), roomContents(houseDetails, c));
 });
 
 test('every guest is in exactly one room, no victim appears, no weapon is listed', () => {
   for (const c of all) {
-    const rooms = roomContents(content, houseDetails, c);
+    const rooms = roomContents(houseDetails, c);
     assert.deepEqual(Object.keys(rooms).sort(), [...c.rooms].sort());
     const seen = Object.values(rooms).flatMap((r) => r.guests);
     assert.deepEqual([...seen].sort(), [...c.suspects].sort());
@@ -46,24 +46,24 @@ test('every guest is in exactly one room, no victim appears, no weapon is listed
 
 test('every puzzle but the scene word games and guests\' questioning is an object, placed once', () => {
   for (const c of all) {
-    const placed = Object.values(roomContents(content, houseDetails, c)).flatMap((r) => r.objects.map((o) => o.kind));
+    const placed = Object.values(roomContents(houseDetails, c)).flatMap((r) => r.objects.map((o) => o.kind));
     const expected = c.games.filter((g) => !isSceneGame(g) && ![...c.suspects].some((s) => questioningOf(c, s) === g)).map((g) => g.kind);
     assert.deepEqual([...placed].sort(), [...expected].sort());
     assert.equal(roundPuzzles(c).objects.length, expected.length);
-    for (const o of Object.values(roomContents(content, houseDetails, c)).flatMap((r) => r.objects)) assert.match(o.label, /^The \w+$/);
+    for (const o of Object.values(roomContents(houseDetails, c)).flatMap((r) => r.objects)) assert.match(o.label, /^The \w+$/);
   }
 });
 
 test('objects spread over different rooms while there are rooms to spare', () => {
   for (const c of all) {
-    const rooms = Object.values(roomContents(content, houseDetails, c));
+    const rooms = Object.values(roomContents(houseDetails, c));
     const most = Math.max(...rooms.map((r) => r.objects.length));
     assert.ok(most <= Math.ceil(roundPuzzles(c).objects.length / c.rooms.length));
   }
 });
 
 test('every room has something to look at, from the house details', () => {
-  for (const c of all) for (const room of Object.values(roomContents(content, houseDetails, c))) {
+  for (const c of all) for (const room of Object.values(roomContents(houseDetails, c))) {
     assert.ok(room.looks.length > 0);
     for (const l of room.looks) assert.ok(houseDetails.includes(l));
   }
@@ -72,7 +72,7 @@ test('every room has something to look at, from the house details', () => {
 test('contents do not depend on the truth: the same seed with another solution gives the same rooms', () => {
   const c = all[0];
   const other = { ...c, murderer: c.suspects.find((s) => s !== c.murderer)!, sceneRoom: c.rooms.find((r) => r !== c.sceneRoom)! };
-  assert.deepEqual(roomContents(content, houseDetails, other), roomContents(content, houseDetails, c));
+  assert.deepEqual(roomContents(houseDetails, other), roomContents(houseDetails, c));
 });
 
 const withBudget = (c: Case, budget: number): Case => ({ ...c, campaign: { ...c.campaign!, budget } });
@@ -179,7 +179,7 @@ test('people stand on their own cells, and share one only when the room is full'
 test('no object is named with a word any puzzle of the round hides', () => {
   for (const c of all) {
     const text = JSON.stringify(c.games).toUpperCase();
-    for (const room of Object.values(roomContents(content, houseDetails, c)))
+    for (const room of Object.values(roomContents(houseDetails, c)))
       for (const o of room.objects) assert.ok(!text.includes(o.label.replace(/^The /, '').toUpperCase()), `${c.code}: ${o.label}`);
   }
 });

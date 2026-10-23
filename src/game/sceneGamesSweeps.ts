@@ -1,3 +1,4 @@
+import { houseOf } from '../content/houses.ts';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
 import { generateCase } from '../engine/generate.ts';
@@ -75,7 +76,7 @@ export function crosswordSeed(answer: string, size: number, seed: number): void 
 /** The scene word games of case `n` at a difficulty build, spell their word, and repeat. */
 export function sceneCaseSeed(difficulty: Difficulty, n: number): void {
   const c = generateCase(content, n, difficulty);
-  const room = content.house.rooms.find((r) => r.id === c.sceneRoom)!;
+  const room = houseOf(c).rooms.find((r) => r.id === c.sceneRoom)!;
   const cwSpec = c.games.filter(isSceneGame).find((g) => g.kind === 'crossword')!;
   const wsSpec = c.games.filter(isSceneGame).find((g) => g.kind === 'wordsearch')!;
   assert.ok(room.things.includes(cwSpec.scene.answer) && room.things.includes(wsSpec.scene.answer));

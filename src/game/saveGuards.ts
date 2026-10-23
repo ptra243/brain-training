@@ -4,6 +4,7 @@
 // instead of crashing into the error boundary (which clears everything).
 // Plain TS, no React, so it can be unit tested.
 
+import { isHouseId } from '../content/houses.ts';
 import { PICK_ORDER, type PickedGame, type PlayRef, type QuickRef } from '../engine/caseRef.ts';
 import type { CampaignRef } from '../engine/campaign.ts';
 import { DIFFICULTIES, LENGTHS } from '../engine/settings.ts';
@@ -215,7 +216,8 @@ const isCampaignRef = (v: unknown): v is CampaignRef =>
   oneOf(...DIFFICULTIES)(v.difficulty) &&
   opt(isBool)(v.possibleOnly) &&
   opt(isBool)(v.endBoard) &&
-  opt(oneOf<1 | 2>(1, 2))(v.perPuzzle);
+  opt(oneOf<1 | 2>(1, 2))(v.perPuzzle) &&
+  opt((h): h is string => isString(h) && isHouseId(h))(v.houseId);
 
 /** The Quick case on disk, or null when it can't be replayed (bad ref, or a Play case from an older version). */
 export function sanitizeQuick(v: unknown): QuickSave | null {

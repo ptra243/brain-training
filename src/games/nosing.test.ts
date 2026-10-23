@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { rerollFor, rollFor, nosingRollSeed, type NosingLevel } from './nosingBoard.ts';
+import { nosingSpec, rerollFor, rollFor, nosingRollSeed, type NosingLevel } from './nosingBoard.ts';
 import { lockAccepts, lockNote } from './lock.ts';
 import { wordingPairs } from './mentalMaths.ts';
 import { usedNumbers } from './numberGrid.ts';
@@ -76,7 +76,7 @@ test('replay is deterministic and an illegal move changes nothing', () => {
   assert.equal(nosingHint(p, fresh), null, 'no hints before a question');
   // The first roll comes from the seed and the turn.
   const v = nosingView(p, nosingStep(p, fresh, { t: 'roll' }));
-  assert.equal(v.lastRoll, rollFor(nosingRollSeed(p.seed, p.board.attempt), p.level, 1));
+  assert.equal(v.lastRoll, rollFor(nosingRollSeed(p.seed, p.board.attempt), nosingSpec(p.house, p.level), 1));
 });
 
 /** Plays right answers until `stop` holds, over many seeds; returns the first hit. */
@@ -197,12 +197,12 @@ test('reroll is held: the roll waits, and a swap uses the reroll roll', () => {
   assert.equal(rolled.phase, 'rolled');
   assert.equal(rolled.pos, v.pos);
   const seed = nosingRollSeed(p.seed, p.board.attempt);
-  assert.equal(rolled.pendingRoll, rollFor(seed, p.level, v.turn));
+  assert.equal(rolled.pendingRoll, rollFor(seed, nosingSpec(p.house, p.level), v.turn));
   const swapped = nosingView(p, nosingStep(p, nosingStep(p, s, { t: 'roll' }), { t: 'reroll' }));
-  assert.equal(swapped.lastRoll, rerollFor(seed, p.level, v.turn));
+  assert.equal(swapped.lastRoll, rerollFor(seed, nosingSpec(p.house, p.level), v.turn));
   assert.equal(swapped.bonuses.reroll, v.bonuses.reroll - 1);
   const kept = nosingView(p, nosingStep(p, nosingStep(p, s, { t: 'roll' }), { t: 'roll' }));
-  assert.equal(kept.lastRoll, rollFor(seed, p.level, v.turn));
+  assert.equal(kept.lastRoll, rollFor(seed, nosingSpec(p.house, p.level), v.turn));
   assert.equal(kept.bonuses.reroll, v.bonuses.reroll);
 });
 

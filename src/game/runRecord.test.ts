@@ -133,7 +133,7 @@ const cast = campaignCast(content, ref);
 
 function act(save: CampaignSave, action: Action) {
   const c = roundCase(content, save, currentRound(save));
-  return updateRound(content, save, c, reduce(c, save.rounds[currentRound(save)], action)).save;
+  return updateRound(save, c, reduce(c, save.rounds[currentRound(save)], action)).save;
 }
 const accuse = (save: CampaignSave, who: (c: Case) => string, item: (c: Case) => string) => {
   const c = roundCase(content, save, currentRound(save));

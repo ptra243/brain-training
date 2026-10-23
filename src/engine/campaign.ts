@@ -19,6 +19,7 @@ import { cluePool, type ClueContext } from './clues.ts';
 import { assemble, rollShared, weightedOrder, type Truth } from './generate.ts';
 import { ROTATION } from './gameKinds.ts';
 import { caseContext, caseSpace } from './caseFacts.ts';
+import { chooseHouse, houseById, houseOf } from '../content/houses.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { couldBeKiller, possibleKillers, possibleWeapons, type Space } from './search.ts';
 import { caseSettings, type CaseLevels, type CaseSettings } from './settings.ts';
@@ -37,7 +38,15 @@ export interface CampaignRef {
   endBoard?: boolean;
   /** Starting option: each puzzle unlocks at most this many clues (absent: 3). Fewer means more puzzles, and more to play. */
   perPuzzle?: 1 | 2;
+  /** The house every round is set in, picked when the campaign starts. Absent (older saves, golden refs): the manor. */
+  houseId?: string;
 }
+
+/** The house a new campaign is set in, on its own seed stream. */
+export const campaignHouseId = (ref: CampaignRef): string => chooseHouse(`${seedText(ref)}`).id;
+
+/** The content with the campaign's house. */
+const inHouse = (content: Content, ref: CampaignRef): Content => ({ ...content, house: ref.houseId ? houseById(ref.houseId) : content.house });
 
 export type PerPuzzle = 1 | 2 | 3;
 export const PER_PUZZLE: readonly PerPuzzle[] = [3, 2, 1];
@@ -77,7 +86,8 @@ export interface CampaignCast {
   firstVictim: string;
 }
 
-export function campaignCast(content: Content, ref: CampaignRef): CampaignCast {
+export function campaignCast(base: Content, ref: CampaignRef): CampaignCast {
+  const content = inHouse(base, ref);
   const rng = new Rng(hashSeed(seedText(ref)));
   const seating = rng.shuffle(content.suspects.map((s) => s.id));
   const suspects = seating.slice(0, CAST);
@@ -105,7 +115,8 @@ function roundSettings(difficulty: Difficulty): { levels: CaseLevels; settings: 
  * The round after these wrong accusations (victims, in order): round 1 with
  * none, round 2 after one, round 3 after two.
  */
-export function campaignRound(content: Content, ref: CampaignRef, victims: readonly string[]): Case {
+export function campaignRound(base: Content, ref: CampaignRef, victims: readonly string[]): Case {
+  const content = inHouse(base, ref);
   const cast = campaignCast(content, ref);
   const round = victims.length;
   if (round >= ROUNDS) throw new Error('The killer has already got away');
@@ -431,8 +442,8 @@ function choose<T>(list: readonly T[], size: number): T[][] {
 }
 
 /** Who could be the killer from these clues of a round, once she knows the scene. */
-export function roundSuspects(content: Content, c: Case, facts: readonly ClueFact[]): string[] {
-  return possibleKillers(caseSpace(c), facts, caseContext(content.house, c), c.sceneRoom);
+export function roundSuspects(c: Case, facts: readonly ClueFact[]): string[] {
+  return possibleKillers(caseSpace(c), facts, caseContext(houseOf(c), c), c.sceneRoom);
 }
 
 /**
@@ -441,10 +452,10 @@ export function roundSuspects(content: Content, c: Case, facts: readonly ClueFac
  * not a decoy (anyone all of the round's clues still allow as the killer), so the death always rules
  * someone out. Same campaign, same victims, same body.
  */
-export function walkedFreeVictim(content: Content, ref: CampaignRef, c: Case): string {
+export function walkedFreeVictim(ref: CampaignRef, c: Case): string {
   const round = c.campaign;
   if (!round) throw new Error('not a campaign round');
-  const possible = new Set(roundSuspects(content, c, c.clues.map((cl) => cl.fact)));
+  const possible = new Set(roundSuspects(c, c.clues.map((cl) => cl.fact)));
   const innocent = c.suspects.filter((s) => s !== c.murderer);
   const open = innocent.filter((s) => !possible.has(s));
   const rng = new Rng(hashSeed(`${seedText(ref)}-round-${round.round}-${round.victims.join('-')}-walked`));
@@ -457,7 +468,7 @@ export function walkedFreeVictim(content: Content, ref: CampaignRef, c: Case): s
  * including the real one; in the last round only the killer, with only the
  * real weapon possible.
  */
-export function roundProblems(content: Content, c: Case): string[] {
+export function roundProblems(c: Case): string[] {
   const round = c.campaign;
   if (!round) return ['not a campaign round'];
   const out: string[] = [];
@@ -470,7 +481,7 @@ export function roundProblems(content: Content, c: Case): string[] {
   if (!offered.includes(puzzles.length)) out.push(`${puzzles.length} puzzles, not ${offered.join(' or ')}`);
   if (round.budget > puzzles.length) out.push(`a budget of ${round.budget} for ${puzzles.length} puzzles`);
   const space = caseSpace(c);
-  const ctx = caseContext(content.house, c);
+  const ctx = caseContext(houseOf(c), c);
   for (const picked of choose(puzzles, round.budget)) {
     const ids = new Set(picked.flatMap((g) => g.clues));
     const facts = [...free, ...c.clues.filter((cl) => ids.has(cl.id)).map((cl) => cl.fact)];

@@ -1,4 +1,5 @@
 // Case generation as plain jobs, so the same code runs in a worker or on the main thread.
+import { houseOf } from '../content/houses.ts';
 import { campaignRound, type CampaignRef, type PerPuzzle } from '../engine/campaign.ts';
 import { caseFacts } from '../engine/caseFacts.ts';
 import { guestContent } from '../engine/guestNames.ts';
@@ -86,7 +87,7 @@ export function faceToFace(content: Content, ref: CampaignRef, victims: readonly
   const caseClues = c.clues.filter((cl) => found.includes(cl.id) && cl.delivery !== 'finale');
   const killer = accused === c.murderer;
   return buildInterrogation({
-    cf: caseFacts(content.house, c),
+    cf: caseFacts(houseOf(c), c),
     content: guestContent(content, c.guests),
     rng: new Rng(hashSeed(`${c.seed}-face-${accused}`)),
     idPrefix: 'fq-',

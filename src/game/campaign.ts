@@ -3,7 +3,7 @@
 // budget, and how it ended. Rounds are rebuilt from the campaign ref and the
 // victims before them; only her moves are saved.
 
-import { ROUNDS, campaignRound, roundSuspects, walkedFreeVictim, type CampaignRef } from '../engine/campaign.ts';
+import { ROUNDS, campaignHouseId, campaignRound, roundSuspects, walkedFreeVictim, type CampaignRef } from '../engine/campaign.ts';
 import type { Case, Content, GameKind } from '../engine/types.ts';
 import { emptyProgress, sceneUnlocked, unlockedClueIds, type Progress } from './state.ts';
 
@@ -22,7 +22,7 @@ export interface CampaignSave {
   historyId?: string;
 }
 
-export const newCampaign = (ref: CampaignRef): CampaignSave => ({ ref, victims: [], rounds: [emptyProgress()], picked: [[]], outcome: 'playing' });
+export const newCampaign = (ref: CampaignRef): CampaignSave => ({ ref: { ...ref, houseId: ref.houseId ?? campaignHouseId(ref) }, victims: [], rounds: [emptyProgress()], picked: [[]], outcome: 'playing' });
 
 /** The case for round `i` (0-based): built from the victims before it. */
 export const roundCase = (content: Content, save: CampaignSave, i: number): Case => campaignRound(content, save.ref, save.victims.slice(0, i));
@@ -39,7 +39,7 @@ export type Verdict = 'caught' | 'wrong-weapon' | 'next-body' | 'escaped';
  * anyone else she named is the next body; and after the last round the
  * killer gets away.
  */
-export function updateRound(content: Content, save: CampaignSave, c: Case, progress: Progress): { save: CampaignSave; verdict?: Verdict } {
+export function updateRound(save: CampaignSave, c: Case, progress: Progress): { save: CampaignSave; verdict?: Verdict } {
   const i = currentRound(save);
   const before = save.rounds[i];
   const rounds = save.rounds.map((p, k) => (k === i ? progress : p));
@@ -49,7 +49,7 @@ export function updateRound(content: Content, save: CampaignSave, c: Case, progr
   const last = progress.accusations.at(-1)!;
   if (last.suspect === c.murderer && last.item === c.weapon) return { save: { ...updated, outcome: 'caught' }, verdict: 'caught' };
   const walked = last.suspect === c.murderer;
-  const victims = [...save.victims, walked ? walkedFreeVictim(content, save.ref, c) : last.suspect];
+  const victims = [...save.victims, walked ? walkedFreeVictim(save.ref, c) : last.suspect];
   if (victims.length >= ROUNDS) return { save: { ...updated, victims, outcome: 'escaped' }, verdict: 'escaped' };
   return {
     save: { ...updated, victims, rounds: [...rounds, emptyProgress()], picked: [...save.picked, []] },
@@ -80,7 +80,7 @@ export function pick(save: CampaignSave, c: Case, kind: GameKind): CampaignSave 
  * alone at every scene she knows, given each round's unlocked clues. Before
  * she knows a round's scene, that round rules nobody out.
  */
-export function stillPossible(content: Content, save: CampaignSave, cases: readonly Case[]): string[] {
+export function stillPossible(save: CampaignSave, cases: readonly Case[]): string[] {
   const now = cases[cases.length - 1];
   let left = now.suspects.slice();
   cases.forEach((c, i) => {
@@ -88,7 +88,7 @@ export function stillPossible(content: Content, save: CampaignSave, cases: reado
     if (!p || !sceneUnlocked(c, p)) return;
     const ids = unlockedClueIds(c, p);
     const facts = c.clues.filter((cl) => ids.has(cl.id)).map((cl) => cl.fact);
-    const possible = new Set(roundSuspects(content, c, facts));
+    const possible = new Set(roundSuspects(c, facts));
     left = left.filter((s) => possible.has(s));
   });
   return left;

@@ -1,8 +1,9 @@
+import { houseOf } from '../content/houses.ts';
 import { useMemo, useState, type CSSProperties } from 'react';
-import { content, houseDetails } from '../content/index.ts';
+import { houseDetails } from '../content/index.ts';
 import type { Case, GameKind, House } from '../engine/types.ts';
 import { DoorGaps } from './DoorGaps.tsx';
-import { labelClass, ownerMap, tileWalls } from './plan.ts';
+import { frameStyle, labelClass, ownerMap, tileWalls } from './plan.ts';
 import { playerPortrait, portraits, type PortraitParts } from '../content/portraits.ts';
 import { talk } from '../content/talk.ts';
 import { Dialog } from './Dialog.tsx';
@@ -94,8 +95,8 @@ function PersonClues({ c, progress, dispatch, suspect }: { c: Case; progress: Pr
 }
 
 /** The campaign's map: her room, where the body was found, a mark over rooms with something to play, and what is in her room. */
-export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPlay, house = content.house }: Props) {
-  const contents = useMemo(() => roomContents(content, houseDetails, c), [c]);
+export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPlay, house = houseOf(c) }: Props) {
+  const contents = useMemo(() => roomContents(houseDetails, c), [c]);
   const here = whereAmI(c, progress);
   const frozen = !!readOnly || !!locked;
   const picked = gate?.picked ?? [];
@@ -151,7 +152,7 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
             : 'Tap a room to walk there. A red mark means something to do.'}
       </p>
 
-      <div className="floorplan-frame explore">
+      <div className="floorplan-frame explore" style={frameStyle(house)}>
         <div className="plan-axes" style={{ gridTemplateColumns: `1rem repeat(${house.cols}, 1fr)` }} aria-hidden="true">
           <span />
           {Array.from({ length: house.cols }, (_, col) => (

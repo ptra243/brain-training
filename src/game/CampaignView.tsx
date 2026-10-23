@@ -59,7 +59,7 @@ export function CampaignView({ save, onSave, onHome }: Props) {
   const pending = pendingAccusation(save);
   const faceKey = pending ? `${key}|${pending.accused}` : null;
   const resolve = (cases: readonly Case[]) => {
-    const { save: next, verdict } = resolveHeld(content, save, cases[now]);
+    const { save: next, verdict } = resolveHeld(save, cases[now]);
     onSave(next);
     if (verdict === 'next-body' || verdict === 'wrong-weapon' || verdict === 'escaped') setNotice(verdict);
   };
@@ -183,7 +183,7 @@ function CampaignRounds({ save, cases: built, onSave, onHome }: RoundsProps) {
         .join('|')
     : '';
   const possible = useMemo(
-    () => (isNow ? stillPossible(content, save, cases.slice(0, now + 1)) : c.suspects),
+    () => (isNow ? stillPossible(save, cases.slice(0, now + 1)) : c.suspects),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- save is read only through the clues that foundKey summarises
     [isNow, foundKey, cases, now, c],
   );

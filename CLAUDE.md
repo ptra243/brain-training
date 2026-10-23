@@ -112,8 +112,8 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
   `tsc` over the non-React files with `--strict --noUnusedLocals
   --noUnusedParameters`; CI catches the rest.
 - Pushing to `main` runs tests, the case check and the build, then deploys to
-  https://ptra243.github.io/brain-training/. `#dev` opens the case inspector,
-  which can also load and play a case code.
+  https://ptra243.github.io/brain-training/. `#dev` lists the dev pages and
+  `#dev/cases` is the case inspector, which can also load and play a case code.
 - Add a rule here (or in the folder's CLAUDE.md) whenever a decision changes
   how code should be written. Keep status in the README, not here.
 
@@ -149,6 +149,19 @@ Long sessions re-read their whole context every turn, so keep them short.
   setting per round. A follow-up goes to a fresh agent with its own brief;
   don't resume an agent past about 100k tokens or pile new work onto one
   that's running.
+- **Tuning is its own brief, with a stop rule.** The implementer builds the
+  mechanism and a sweep script (a grid, not a random walk) that imports the real
+  builders and bots, starts from values derived by rule (e.g. path length about
+  85% of cells; turn bounds from sampled percentiles), and reports a baseline.
+  A tuning brief edits data only, runs the sweep once or twice, and ends with a
+  results table. Rules for it: the agent first runs one row the sweep calls
+  passing through the real path (`check-cases`) to prove they agree; a round
+  that does not improve the headline number twice running means stop and write
+  "stuck" with the rejection counts; after each round it appends one line to the
+  handoff file; `npm run checks` decides done, not its own script. A "none
+  passes" result goes to the main session as a design call, then to a fresh
+  implementer, never back to the old one. Dated lines in "Why sessions ran
+  long" quote minutes (per agent run, per full check), not only tokens.
 - **Hand over what you already know in a handoff file.** Before briefing,
   write `.claude/handoff/<task-slug>.md` (gitignored) and give its absolute
   path in the brief, so an agent in a worktree can read it too. Put in it
@@ -177,7 +190,7 @@ Long sessions re-read their whole context every turn, so keep them short.
   at one part; use Grep or Read with offset and limit.
 - Run layout rules and flows with `npm run e2e`. Run look checks through the `browser-check` agent and ask
   for a short pass/fail report, so screenshots stay out of the main context.
-- **Short path to a screen.** Looking: open `#dev/<id>` when `src/dev/CLAUDE.md` lists a preview, and give `browser-check` that URL only. Playing, or proving one click: load a save built on that run that lands on the screen, or one real action before the click. Do not solve puzzles, walk rooms, or play earlier rounds to get there. The click being proved still goes through the real UI. See `e2e/CLAUDE.md`.
+- **Short path to a screen.** Looking: open `#dev/<id>` when `src/dev/CLAUDE.md` lists a preview, and give `browser-check` that URL only. Playing, or proving one click: load a save built on that run that lands on the screen, or one real action before the click. Do not solve puzzles, walk rooms, or play earlier rounds to get there. The click being proved still goes through the real UI. To *play* from a state, open `#dev/load/<id>` (a scenario in `src/dev/scenarios.ts`) instead of playing earlier rounds. When a task adds or changes a screen or state, add or update its preview or scenario: `src/dev/CLAUDE.md` says when. See `e2e/CLAUDE.md`.
 - After each commit, or when context is large, suggest starting a new session.
   Also suggest it when the topic changes (say, from one minigame's rules to
   theme content). Suggest only; don't write handoff files or split unasked.

@@ -255,6 +255,7 @@ h1, h2 { font-family: var(--serif); font-weight: 600; margin: 0; }
 body.dev { background: #f2f1ec; color: #222; }
 /* A #dev/<id> preview of a game screen keeps the game's own look. */
 body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
+.dev-back { position: fixed; top: 0.5rem; right: 0.5rem; z-index: 50; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 1.75rem; line-height: 1; text-decoration: none; }
 .inspector { grid-template-columns: minmax(0, 1fr); max-width: 34rem; margin: 0 auto; padding: 1rem 1rem 3rem; display: grid; gap: 1.25rem; color: #222; }
 .inspector h1 { font-size: 1.5rem; }
 .inspector h2 { font-size: 1.1rem; margin-bottom: 0.5rem; }

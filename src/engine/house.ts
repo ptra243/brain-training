@@ -156,6 +156,59 @@ export function doorSpots(house: House): DoorSpot[] {
   });
 }
 
+/** The 8 orientations of a layout: quarter turns clockwise, and whether it is mirrored (left-right) first. */
+export const VARIANTS: readonly { quarterTurns: number; mirror: boolean; suffix: string }[] = [
+  { quarterTurns: 0, mirror: false, suffix: '' },
+  { quarterTurns: 1, mirror: false, suffix: 'r90' },
+  { quarterTurns: 2, mirror: false, suffix: 'r180' },
+  { quarterTurns: 3, mirror: false, suffix: 'r270' },
+  { quarterTurns: 0, mirror: true, suffix: 'm' },
+  { quarterTurns: 1, mirror: true, suffix: 'm90' },
+  { quarterTurns: 2, mirror: true, suffix: 'm180' },
+  { quarterTurns: 3, mirror: true, suffix: 'm270' },
+];
+
+/** Split "lodge/m90" into its base id and variant; a plain id is the unturned layout. Throws on an unknown suffix. */
+export function parseVariantId(id: string): { base: string; quarterTurns: number; mirror: boolean } {
+  const slash = id.indexOf('/');
+  if (slash < 0) return { base: id, quarterTurns: 0, mirror: false };
+  const suffix = id.slice(slash + 1);
+  const v = VARIANTS.find((x) => x.suffix === suffix && suffix !== '');
+  if (!v) throw new Error(`Unknown house variant "${id}"`);
+  return { base: id.slice(0, slash), quarterTurns: v.quarterTurns, mirror: v.mirror };
+}
+
+/**
+ * The house turned clockwise by `quarterTurns` (after an optional left-right mirror). A quarter turn swaps
+ * the grid's rows and columns. Rooms, doors (by room pair) and nosing overrides carry over; room cells
+ * stay in row-major order so the first cell is still the label cell, and labels stay horizontal.
+ */
+export function rotateHouse(house: House, quarterTurns: number, mirror: boolean): House {
+  const turns = ((quarterTurns % 4) + 4) % 4;
+  if (turns === 0 && !mirror) return house;
+  const suffix = VARIANTS.find((v) => v.quarterTurns === turns && v.mirror === mirror)!.suffix;
+  let rows = house.rows;
+  let cols = house.cols;
+  const move = (cell: Cell): Cell => {
+    let [r, c] = cell;
+    let R = house.rows;
+    let C = house.cols;
+    if (mirror) c = C - 1 - c;
+    for (let i = 0; i < turns; i++) {
+      [r, c] = [c, R - 1 - r];
+      [R, C] = [C, R];
+    }
+    rows = R;
+    cols = C;
+    return [r, c];
+  };
+  const rooms: Room[] = house.rooms.map((room) => ({
+    ...room,
+    cells: room.cells.map(move).sort((a, b) => a[0] - b[0] || a[1] - b[1]),
+  }));
+  return { ...house, id: `${house.id}/${suffix}`, rows, cols, rooms };
+}
+
 /** Map coordinate label for a cell, e.g. [0, 0] -> "A1" (column letter, row number). */
 export function cellLabel([r, c]: Cell): string {
   return `${String.fromCharCode(65 + c)}${r + 1}`;

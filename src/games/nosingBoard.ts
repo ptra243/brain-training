@@ -2,6 +2,7 @@
 // snakes, question squares and bonuses. Pure and seeded; content is passed in.
 
 import { Rng, hashSeed } from '../engine/rng.ts';
+import { roomAdjacency } from '../engine/house.ts';
 import type { House } from '../engine/types.ts';
 
 export type NosingLevel = 'easy' | 'medium' | 'hard';
@@ -29,6 +30,12 @@ export interface NosingLevelSpec {
   catFinds: number;
   /** The fewest question squares she must land on, even answering everything wrong. */
   minQuestions: number;
+  /** The path ends once (search clues + this) rooms are entered, capped at the room count; absent = every room. */
+  enterExtra?: number;
+  /** ...but never more than this many rooms. */
+  enterMax?: number;
+  /** The path never ends in a room it has walked fewer squares of than this; absent = no rule. */
+  minEndRoom?: number;
 }
 
 export const NOSING_LEVELS: Readonly<Record<NosingLevel, NosingLevelSpec>> = {
@@ -36,6 +43,13 @@ export const NOSING_LEVELS: Readonly<Record<NosingLevel, NosingLevelSpec>> = {
   medium: { n: 2, dice: 2, len: [80, 90], ladders: 3, ladderGain: [5, 9], snakes: 2, snakeDrop: [4, 8], turns: [10, 16], obstacles: 25, speed: 2, catFinds: 4, minQuestions: 3 },
   hard: { n: 2, dice: 2, len: [80, 90], ladders: 3, ladderGain: [5, 9], snakes: 4, snakeDrop: [5, 9], turns: [10, 16], obstacles: 25, speed: 2, catFinds: 4, minQuestions: 3 },
 };
+
+/** The spec of a level in a house: the stock level plus the house's overrides (the manor has none: the stock object itself). */
+export function nosingSpec(house: House, level: NosingLevel): NosingLevelSpec {
+  const o = house.nosing;
+  if (!o) return NOSING_LEVELS[level];
+  return { ...NOSING_LEVELS[level], ...o.all, ...o[level] };
+}
 
 export type SquareKind = 'plain' | 'ladder' | 'snake' | 'obstacle' | 'search' | 'speed' | 'catFind';
 
@@ -98,6 +112,8 @@ function gridFor(house: House, n: number): Grid {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) room.push(owner.get(`${Math.floor(y / n)},${Math.floor(x / n)}`) ?? '');
   }
+  // Only a house with doors limits where the path may cross from room to room (without doors, touching rooms are open).
+  const touching = house.doors ? roomAdjacency(house) : null;
   const nb = (s: number): number[] => {
     const y = Math.floor(s / width);
     const x = s % width;
@@ -106,17 +122,25 @@ function gridFor(house: House, n: number): Grid {
     if (y < height - 1) out.push(s + width);
     if (x > 0) out.push(s - 1);
     if (x < width - 1) out.push(s + 1);
-    // Squares of a void cell (no room owns it) are walls.
-    return out.filter((t) => room[t] !== '');
+    // Squares of a void cell (no room owns it) are walls; so is a wall between rooms with no door.
+    return out.filter((t) => room[t] !== '' && (room[t] === room[s] || !touching || touching.get(room[s])?.has(room[t])));
   };
   return { width, height, room, nb };
 }
 
 /** Room-by-room randomised DFS: fill the current room, then move to a room not yet entered. */
-function windingPath(lv: NosingLevelSpec, grid: Grid, rng: Rng): number[] | null {
+function windingPath(lv: NosingLevelSpec, grid: Grid, rng: Rng, searchClues: number): number[] | null {
   const { width, height, room, nb } = grid;
   const target = lv.len[0] + rng.int(lv.len[1] - lv.len[0] + 1);
-  const roomCount = new Set(room.filter((r) => r !== '')).size;
+  const allRooms = new Set(room.filter((r) => r !== '')).size;
+  const roomCount = lv.enterExtra === undefined ? allRooms : Math.min(allRooms, searchClues + lv.enterExtra, lv.enterMax ?? allRooms);
+  /** Squares at the end of the path that are in the last room. */
+  const endRun = (): number => {
+    const last = room[path[path.length - 1]];
+    let k = 0;
+    while (k < path.length && room[path[path.length - 1 - k]] === last) k++;
+    return k;
+  };
   const edge: number[] = [];
   for (let s = 0; s < width * height; s++) if (room[s] !== '' && nb(s).length < 4) edge.push(s);
   const start = rng.pick(edge);
@@ -128,7 +152,7 @@ function windingPath(lv: NosingLevelSpec, grid: Grid, rng: Rng): number[] | null
   const dfs = (): boolean => {
     if (--budget < 0) return false;
     const cur = path[path.length - 1];
-    if (path.length >= target && new Set(entered).size === roomCount) return true;
+    if (path.length >= target && new Set(entered).size >= roomCount && (lv.minEndRoom === undefined || endRun() >= lv.minEndRoom)) return true;
     if (path.length >= lv.len[1]) return false;
     const here = room[cur];
     const opts = rng.shuffle(nb(cur).filter((t) => !used.has(t)));
@@ -264,13 +288,13 @@ export function nosingRollSeed(seed: string, attempt: number): string {
 }
 
 /** The dice roll for a turn (turns count from 1). Same seed and turn, same roll. */
-export function rollFor(seed: string, level: NosingLevel, turn: number): number {
-  return diceSum(`${seed}-roll-${turn}`, NOSING_LEVELS[level].dice);
+export function rollFor(seed: string, spec: NosingLevelSpec, turn: number): number {
+  return diceSum(`${seed}-roll-${turn}`, spec.dice);
 }
 
 /** The replacement roll if she uses a re-roll on this turn. */
-export function rerollFor(seed: string, level: NosingLevel, turn: number): number {
-  return diceSum(`${seed}-reroll-${turn}`, NOSING_LEVELS[level].dice);
+export function rerollFor(seed: string, spec: NosingLevelSpec, turn: number): number {
+  return diceSum(`${seed}-reroll-${turn}`, spec.dice);
 }
 
 function diceSum(text: string, dice: number): number {
@@ -341,12 +365,12 @@ export function pickDogSquare(board: NosingBoard, seed: string): number {
   return new Rng(hashSeed(`${seed}-dog`)).pick(heads);
 }
 
-export function nosingBounds(board: NosingBoard, seed: string, level: NosingLevel): NosingBounds {
+export function nosingBounds(board: NosingBoard, seed: string, spec: NosingLevelSpec): NosingBounds {
   const len = board.path.length;
   const rollSeed = nosingRollSeed(seed, board.attempt);
   const rolls: number[] = [0];
   const roll = (t: number) => {
-    while (rolls.length <= t) rolls.push(rollFor(rollSeed, level, rolls.length));
+    while (rolls.length <= t) rolls.push(rollFor(rollSeed, spec, rolls.length));
     return rolls[t];
   };
   // One mask bit per snake and per square whose "spent" state can matter.
@@ -424,11 +448,11 @@ export function nosingBounds(board: NosingBoard, seed: string, level: NosingLeve
 
 export function buildNosingBoard(opts: NosingBoardOptions): NosingBoard {
   const { house, level, seed, sceneRoom, searchClues, ladders, snakes } = opts;
-  const lv = NOSING_LEVELS[level];
+  const lv = nosingSpec(house, level);
   const grid = gridFor(house, lv.n);
   for (let attempt = 0; attempt < NOSING_ATTEMPTS; attempt++) {
     const rng = new Rng(hashSeed(nosingRollSeed(seed, attempt)));
-    const path = windingPath(lv, grid, rng);
+    const path = windingPath(lv, grid, rng, searchClues);
     if (!path) continue;
     const roomOf = path.map((s) => grid.room[s]);
     const jumps = placeJumps(lv, path.length, (i) => roomOf[i], ladders, snakes, rng);
@@ -445,7 +469,7 @@ export function buildNosingBoard(opts: NosingBoardOptions): NosingBoard {
       clueRooms: laid.clueRooms,
       attempt,
     };
-    const b = nosingBounds(board, seed, level);
+    const b = nosingBounds(board, seed, lv);
     if (b.minTurns < lv.turns[0] || b.maxTurns > lv.turns[1] || b.minQuestions < lv.minQuestions) continue;
     return board;
   }

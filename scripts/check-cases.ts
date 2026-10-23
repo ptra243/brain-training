@@ -28,12 +28,13 @@ import { TAROT_MAX_PAIRS, tarotClueCards } from '../src/engine/tarotCards.ts';
 import { JOKER, buildTarot, flip, resolveTurn, tarotHint, tarotInitial, tarotSolved } from '../src/games/tarot.ts';
 import { nosingLadders, nosingSnakes } from '../src/content/nosing.ts';
 import { buildNosing, nosingInitial, nosingSeed, nosingSplit, nosingStep, nosingView, type NosingPuzzle } from '../src/games/nosing.ts';
-import { NOSING_LEVELS, nosingBounds } from '../src/games/nosingBoard.ts';
+import { nosingBounds, nosingSpec } from '../src/games/nosingBoard.ts';
 import { lockHand } from '../src/games/lock.ts';
 import { dogApply, dogSimView, dogStart } from '../src/games/dogFight.ts';
 import { evaluateGrid, solveGrid } from '../src/games/numberGrid.ts';
 import { countCatSolutions, generateCats, solvableBySimpleSteps } from '../src/games/cats.ts';
 import { CROSSWORD_SIZE, solutionAt } from '../src/games/crossword.ts';
+import { otherHouses, variantsOf } from '../src/content/houses.ts';
 import { LEVELS as NOSING_LEVELS_LIST, botSeed as nosingBotSeed, dogSquareSeed as nosingDogSquareSeed } from '../src/games/nosingSweeps.ts';
 import { BOARD_SEEDS, boardSeed as nosingBoardSeed } from '../src/games/nosingBoardSweeps.ts';
 import { LEVELS as DOG_LEVELS, challengeSeed as dogChallengeSeed, dogPlaysSeed, doubleSeed as dogDoubleSeed, hintBotSeed as dogHintBotSeed, redealSeed as dogRedealSeed, smallestBotSeed as dogSmallestBotSeed } from '../src/games/dogFightSweeps.ts';
@@ -135,11 +136,11 @@ function dogProblems(p: NosingPuzzle): string[] {
 /** Everything that makes a Nosing around puzzle unfair. */
 function nosingProblems(p: NosingPuzzle, sceneRoom: string, clueCount: number): string[] {
   const out: string[] = [];
-  const lv = NOSING_LEVELS[p.level];
+  const lv = nosingSpec(p.house, p.level);
   const { board, lock } = p;
   const len = board.path.length;
   // The board: the exact turn and question bounds sit inside the level's ranges.
-  const b = clock('nosing bounds', () => nosingBounds(board, p.seed, p.level));
+  const b = clock('nosing bounds', () => nosingBounds(board, p.seed, lv));
   if (b.minTurns < lv.turns[0] || b.maxTurns > lv.turns[1]) out.push(`nosing turns ${b.minTurns}-${b.maxTurns} outside ${lv.turns.join('-')}`);
   if (b.minQuestions < lv.minQuestions) out.push(`nosing has only ${b.minQuestions} questions`);
   if (len < lv.len[0] || len > lv.len[1]) out.push(`nosing path of ${len} squares`);
@@ -628,7 +629,7 @@ for (const perPuzzle of [3, 2, 1] as const) for (const difficulty of DIFFICULTIE
         const tooMany = c.games.filter((g) => !g.unlocksScene && (g.clues.length < 1 || g.clues.length > perPuzzle));
         const budgetBad = c.campaign!.budget !== roundBudget(ref) ? [`budget ${c.campaign!.budget}, expected ${roundBudget(ref)}`] : [];
         const sizeProblems = [...budgetBad, ...tooMany.map((g) => `${g.kind} holds ${g.clues.length} clues of ${perPuzzle} (${sizes.join(' ')})`)];
-        for (const p of [...sizeProblems, ...roundProblems(content, c), ...puzzleProblems(c)]) {
+        for (const p of [...sizeProblems, ...roundProblems(c), ...puzzleProblems(c)]) {
           failures++;
           console.log(`  FAIL ${where}: ${p}`);
         }
@@ -642,8 +643,8 @@ for (const perPuzzle of [3, 2, 1] as const) for (const difficulty of DIFFICULTIE
           if (!FULL) break;
         }
         // The killer with the wrong weapon walks free and a seeded innocent non-decoy dies: quick walks that path too.
-        const walked = walkedFreeVictim(content, ref, c);
-        const decoys = roundSuspects(content, c, c.clues.map((cl) => cl.fact));
+        const walked = walkedFreeVictim(ref, c);
+        const decoys = roundSuspects(c, c.clues.map((cl) => cl.fact));
         if (walked === cast.killer || !c.suspects.includes(walked) || (!c.campaign!.last && decoys.includes(walked))) {
           failures++;
           console.log(`  FAIL ${where}: walked-free victim ${walked} is the killer, not alive or a decoy`);
@@ -729,7 +730,31 @@ section('nosing bots');
       built++;
     }
   }
-  console.log(`Nosing boards: ${built} boards satisfy every rule (${FULL ? BOARD_SEEDS : 24} seeds per level)`);
+  // Every other house at every level: builds within the attempt cap, turn bounds hold, doors respected.
+  for (const house of otherHouses) {
+    for (const level of NOSING_LEVELS_LIST) {
+      for (const i of seedsOf(0, BOARD_SEEDS, 24)) {
+        holds('nosing boards', `nosing board ${house.id} ${level} seed ${i}`, () => nosingBoardSeed(level, i, house));
+        built++;
+      }
+      for (const i of seedsOf(0, 100, 3)) holds('nosing bots', `nosing bots ${house.id} ${level} seed ${i}`, () => nosingBotSeed(level, i, house));
+    }
+  }
+  // ...and each turned or mirrored variant of every other house (the manor is never turned).
+  let variantBoards = 0;
+  for (const layout of otherHouses) {
+    for (const [v, variant] of variantsOf(layout).entries()) {
+      if (v === 0) continue;
+      for (const level of NOSING_LEVELS_LIST) {
+        for (const i of seedsOf(v, 100, 6)) {
+          holds('nosing boards', `nosing board ${variant.id} ${level} seed ${i}`, () => nosingBoardSeed(level, i, variant));
+          variantBoards++;
+        }
+        for (const i of seedsOf(v, 10, 1)) holds('nosing bots', `nosing bots ${variant.id} ${level} seed ${i}`, () => nosingBotSeed(level, i, variant));
+      }
+    }
+  }
+  console.log(`Nosing boards: ${built} boards satisfy every rule (${FULL ? BOARD_SEEDS : 24} seeds per level and house; bots on ${FULL ? 100 : 3} seeds per other house and level); ${variantBoards} more on the 7 variants of each (${FULL ? 100 : 6} seeds per level, bots on ${FULL ? 10 : 1})`);
 }
 section('nosing boards');
 

@@ -30,6 +30,25 @@ export interface House {
    * Cells in the grid that no room owns are outside the house (not part of it).
    */
   doors?: readonly (readonly [string, string])[];
+  /** Nosing around overrides for this house (the manor has none). `all` applies to every level, then the level's own. */
+  nosing?: Partial<Record<'all' | 'easy' | 'medium' | 'hard', NosingOverride>>;
+}
+
+/** Plain numbers that replace fields of a Nosing level's spec (see `nosingSpec`). */
+export interface NosingOverride {
+  /** Squares per floor-plan cell side. */
+  n?: number;
+  dice?: number;
+  len?: readonly [number, number];
+  turns?: readonly [number, number];
+  /** Obstacle squares (a small house cannot hold the stock 25 in a short path). */
+  obstacles?: number;
+  /** The path ends once (search clues + this) rooms are entered (capped at the room count); absent = every room. */
+  enterExtra?: number;
+  /** ...but never more than this many rooms (a long list of clues must still fit the short stock length). */
+  enterMax?: number;
+  /** The path never ends in a room it has walked fewer squares of than this. */
+  minEndRoom?: number;
 }
 
 /**

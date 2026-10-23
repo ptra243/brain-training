@@ -2,9 +2,10 @@
 // Everything is rebuilt from the case's seed, so the same case is always the
 // same house; none of it depends on who the killer is.
 
+import { houseOf } from '../content/houses.ts';
 import { isInterrogation, isSceneGame } from '../engine/gameKinds.ts';
 import { Rng, hashSeed } from '../engine/rng.ts';
-import type { Case, Content, GameKind, Room } from '../engine/types.ts';
+import type { Case, GameKind, Room } from '../engine/types.ts';
 import { gameDone, type Progress } from './state.ts';
 import { questioningOf } from './talk.ts';
 
@@ -34,9 +35,9 @@ export function roundPuzzles(c: Case) {
 }
 
 /** Who is where, what is there to look at and which puzzles stand in which room. Only rooms in play. */
-export function roomContents(content: Content, details: readonly string[], c: Case): Record<string, RoomContents> {
+export function roomContents(details: readonly string[], c: Case): Record<string, RoomContents> {
   const out: Record<string, RoomContents> = Object.fromEntries(c.rooms.map((r) => [r, { looks: [], objects: [], guests: [] }]));
-  const house = new Map(content.house.rooms.map((r) => [r.id, r]));
+  const house = new Map(houseOf(c).rooms.map((r) => [r.id, r]));
 
   // Guests: each on its own stream, so adding or removing one never moves the others.
   for (const s of c.suspects) out[new Rng(hashSeed(`${c.seed}-explore-guests-${s}`)).pick(c.rooms)].guests.push(s);

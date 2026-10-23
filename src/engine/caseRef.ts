@@ -1,7 +1,7 @@
 // Which case she's playing, by mode. Each mode seeds from its own text, so a
 // quick case never repeats a numbered one. A Quick start case code like
 // "K7QF2-MN" (the code, then difficulty and length, and a B for the big cast)
-// rebuilds the case exactly, so a case can be replayed from #dev. A Play case
+// rebuilds the case exactly, so a case can be replayed from #dev/cases. A Play case
 // is its bare code ("K7QF2") alone: the code rolls the levels too
 // (`playLevels`). A case name says the same as the code in words; names now
 // read back as Play cases, and old Quick start cases replay by their code.

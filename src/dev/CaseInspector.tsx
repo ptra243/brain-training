@@ -2,6 +2,7 @@
 // hidden answer and the clue set, and confirm each case has one solution.
 // The real casebook UI replaces this as the home screen in phase 3.
 
+import { houseOf } from '../content/houses.ts';
 import { useMemo, useState } from 'react';
 import { content } from '../content/index.ts';
 import { caseContext, caseSpace } from '../engine/caseFacts.ts';
@@ -15,14 +16,12 @@ import { countMatching } from '../engine/search.ts';
 import type { Difficulty, House } from '../engine/types.ts';
 import { emptyProgress } from '../game/state.ts';
 import { saveQuick, saveScreen } from '../game/storage.ts';
-import { PortraitGallery } from './PortraitGallery.tsx';
-import { DogFightStates } from './DogFightStates.tsx';
 
 const ROOM_COLOURS = ['#e8d7c3', '#cfdcc8', '#d6d3e6', '#ecd0cf', '#cfe0e6', '#ece2bf'];
 const nameOf = <T extends { id: string; name: string }>(list: readonly T[], id: string) =>
   list.find((x) => x.id === id)?.name ?? id;
 
-export function CaseInspector({ house = content.house }: { house?: House } = {}) {
+export function CaseInspector({ house: houseProp }: { house?: House } = {}) {
   const [number, setNumber] = useState(1);
   const [difficulty, setDifficulty] = useState<Difficulty | 'campaign'>('campaign');
   const [length, setLength] = useState<Length>('normal');
@@ -38,6 +37,8 @@ export function CaseInspector({ house = content.house }: { house?: House } = {})
     return generateCase(content, number, { ...PRESETS[preset ?? campaignDifficulty(number)], length });
   }, [ref, number, difficulty, length]);
 
+  const house = houseProp ?? houseOf(c);
+
   const play = () => {
     if (!ref) return;
     saveQuick({ ref, progress: emptyProgress() });
@@ -46,7 +47,7 @@ export function CaseInspector({ house = content.house }: { house?: House } = {})
   };
   const solutions = useMemo(
     () =>
-      countMatching(caseSpace(c), c.clues.map((cl) => cl.fact), caseContext(content.house, c), 2),
+      countMatching(caseSpace(c), c.clues.map((cl) => cl.fact), caseContext(houseOf(c), c), 2),
     [c],
   );
 
@@ -55,6 +56,9 @@ export function CaseInspector({ house = content.house }: { house?: House } = {})
 
   return (
     <main className="inspector">
+      <a className="dev-back" href="#dev" aria-label="Back to dev pages">
+        ‹
+      </a>
       <header>
         <h1>Case {c.code}</h1>
         <p className="muted">
@@ -176,9 +180,6 @@ export function CaseInspector({ house = content.house }: { house?: House } = {})
           </table>
         )}
       </section>
-
-      <PortraitGallery />
-      <DogFightStates />
     </main>
   );
 }

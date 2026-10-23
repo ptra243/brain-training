@@ -14,7 +14,7 @@ import {
   type NosingState,
   type NosingView,
 } from '../../games/nosing.ts';
-import { NOSING_LEVELS } from '../../games/nosingBoard.ts';
+import { nosingSpec } from '../../games/nosingBoard.ts';
 import { HintButton, HintNote } from './Hints.tsx';
 import { NosingBoardView } from './NosingBoardView.tsx';
 import { NosingDog, NosingDogResult } from './NosingDog.tsx';
@@ -169,7 +169,7 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
   const done = finished !== null || view.finished !== null;
   /** The fight just ended and she has not pressed Continue. */
   const showEnd = !!view.dog?.over && seenEnd !== data.moves.length;
-  const level = NOSING_LEVELS[puzzle.level];
+  const level = nosingSpec(puzzle.house, puzzle.level);
   const q = view.question;
   const held = (Object.keys(view.bonuses) as (keyof typeof view.bonuses)[]).filter((k) => view.bonuses[k] > 0);
 

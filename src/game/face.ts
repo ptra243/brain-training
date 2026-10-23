@@ -4,7 +4,7 @@
 
 import { faceLines } from '../content/talk.ts';
 import { Rng, hashSeed } from '../engine/rng.ts';
-import type { Case, Content } from '../engine/types.ts';
+import type { Case } from '../engine/types.ts';
 import { currentRound, updateRound, type CampaignSave, type Verdict } from './campaign.ts';
 import { unlockedClueIds, type Progress } from './state.ts';
 
@@ -22,12 +22,12 @@ export function holdRound(save: CampaignSave, progress: Progress): CampaignSave 
 }
 
 /** What the held accusation does: the same result `updateRound` gave when the accusation was made. */
-export function resolveHeld(content: Content, held: CampaignSave, c: Case): { save: CampaignSave; verdict?: Verdict } {
+export function resolveHeld(held: CampaignSave, c: Case): { save: CampaignSave; verdict?: Verdict } {
   const i = currentRound(held);
   const progress = held.rounds[i];
   const before = { ...progress, accusations: progress.accusations.slice(0, -1) };
   const rounds = held.rounds.map((p, k) => (k === i ? before : p));
-  return updateRound(content, { ...held, rounds }, c, progress);
+  return updateRound({ ...held, rounds }, c, progress);
 }
 
 /** The clue ids she has found this round, for the `face` job. */

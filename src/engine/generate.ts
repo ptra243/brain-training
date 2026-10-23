@@ -8,6 +8,7 @@ import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
 import { BOARD_SHARE, CLUE_SOURCE, PLAY_GAMES_MAX, PLAY_GAMES_MIN, NOSING_SHARE, ROTATION, SCENE_GAMES, TAROT_SHARE } from './gameKinds.ts';
 import { tarotClueCards, tarotPairsFor } from './tarotCards.ts';
 import { boardPuzzle } from './caseBoard.ts';
+import { chooseHouse } from '../content/houses.ts';
 import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
 import { buildNosing, nosingSeed } from '../games/nosing.ts';
 import type { Case, Clue, ClueDelivery, ClueFact, ClueType, Content, Difficulty, GameKind, GameSpec, Interrogation, RotatingKind, SceneKind, Solution, CampaignRound } from './types.ts';
@@ -36,6 +37,11 @@ export function generateCase(
  * only label it.
  */
 export function buildCase(content: Content, seedText: string, caseNumber: number, code: string, levels: CaseLevels): Case {
+  return buildCaseIn({ ...content, house: chooseHouse(seedText) }, seedText, caseNumber, code, levels);
+}
+
+/** `buildCase` in the house `content.house`, without choosing one. */
+export function buildCaseIn(content: Content, seedText: string, caseNumber: number, code: string, levels: CaseLevels): Case {
   const seed = hashSeed(seedText);
   const rng = new Rng(seed);
   const settings = caseSettings(levels);
@@ -69,6 +75,18 @@ export function buildPlayCase(
   code: string,
   levels: CaseLevels,
   /** Picked cases: the games she chose. Any failure of one of them throws; extras (to leave each game a clue room) may be swapped or dropped. */
+  picks?: readonly GameKind[],
+): Case {
+  return buildPlayCaseIn({ ...content, house: chooseHouse(seedText) }, seedText, caseNumber, code, levels, picks);
+}
+
+/** `buildPlayCase` in the house `content.house`, without choosing one. */
+export function buildPlayCaseIn(
+  content: Content,
+  seedText: string,
+  caseNumber: number,
+  code: string,
+  levels: CaseLevels,
   picks?: readonly GameKind[],
 ): Case {
   const seed = hashSeed(seedText);

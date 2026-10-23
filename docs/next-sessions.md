@@ -260,7 +260,7 @@ Reads first: "Why sessions ran long" below, the "Token budget" section of `CLAUD
 When: every few weeks, or once "Why sessions ran long" has three or more new lines since the last review.
 Goal: look for causes that repeat, and change a rule only for those; a cause seen once stays a note.
 Check whether the 250k-token reminder fires at the right moment (it was a 1 MB transcript size
-until 2026-10-23; tune it with `SESSION_REMIND_TOKENS`). Compare the token totals the dated lines quote, not just their causes. Use the `explain-usage` skill on a session only if a cause is unclear. Mark the
+until 2026-10-23; tune it with `SESSION_REMIND_TOKENS`). Compare the token totals and the minutes the dated lines quote, not just their causes: a session can be cheap in tokens and still slow (long agent runs, full checks), and the fixes differ. Use the `explain-usage` skill on a session only if a cause is unclear. Mark the
 lines you reviewed with the date.
 Starting prompt:
 ```
@@ -271,6 +271,8 @@ Read "Why sessions ran long" in docs/next-sessions.md and the Token budget secti
 
 One dated line per long session, added when the split is written up (the session-length hook asks for
 it). Not a menu entry; the review session above reads it.
+Each line should also say where the minutes went: per agent run (the task notification gives its
+duration), each full check, and how many ran in order versus alongside. Older lines have tokens only.
 
 - 2026-10-22, Nosing around grid and dog: one session did design plus four builds. Briefs bundled
   engine and UI, the dog tuning took three rounds instead of one sweep, and follow-ups were piled onto
@@ -285,3 +287,29 @@ it). Not a menu entry; the review session above reads it.
   read in the main session before the design questions, and two implementer hand-backs were reviewed
   here on one task. Totals: main 22 replies, 2.1M read from cache, 60k written, 14k output, context
   115k; subagents (2) 60 replies, 4.4M read from cache, 165k written; transcript 1.0 MB.
+- 2026-10-23, Houses (plumbing, nosing per house, rotation and new shapes): the main session stayed small
+  but the wall clock did not. Minutes: plumbing agent 6, nosing-per-house agent 24.5 (61 tool calls, 105k
+  tokens), `check-cases --full` 7.6, rotation/long house/T lodge agent 49.6 (75 tool calls, 123k tokens; it reported no
+  trouble; its stop rule arrived by message mid-run and was not needed). The steps ran in order on purpose (same files), so nothing overlapped. Causes: (1) tuning was
+  inside the implementer's brief, so the agent built throwaway measuring scripts, ran them and rebuilt
+  them (the diagnosis scripts were a copy of the real code, which can drift from it); (2) no progress
+  signal: the main session cannot see an agent until it reports, so "slow" and "going in circles"
+  look the same, and it feared the sweep said one thing while the implementation could never match;
+  (3) mechanism problems (`enterMax`, the lodge's early stop) surfaced mid-tuning, which a data-only
+  tuner would have had to hand back. Rules added to CLAUDE.md: tuning is its own brief with a
+  grid sweep script on the real builders, a stop rule (two rounds without improvement means stop and
+  write "stuck"), a progress line per round in the handoff file, `npm run checks` decides done, and
+  "none passes" goes to the main session before a fresh implementer. The rotation agent's brief
+  predated those rules, so its stop rule was sent mid-run by message. Open question for the review:
+  does the split (tuner apart from implementer) cost more in re-reads than it saves? Compare this
+  session's minutes with the first run that follows the new rule.
+  The rotation agent's own retrospective (from memory, not measured): about 25% waiting on checks and
+  e2e (quick `check-cases` ran 4 times at 65-90s, one sweep hit the 600s foreground limit), 20% tuning
+  sweeps, 15% rework. Detours: stock 25 obstacles cannot fit a 40-square path (the handoff's "25 fit"
+  note covered one house only); a dead-end library (one door on a 1-cell wall) failed 14 of 120
+  builds; an explicit `undefined` override overwrote stock values (528 failures). It guessed the
+  variant id grammar, mirror direction and grid swap. What would have helped: a ready tuning script
+  taking house, length, turns and obstacles, with a time cap; a handoff line "the path needs about
+  obstacles + ladders + snakes + 8 plain squares, and a room with one 1-cell door can only end the
+  path"; and `check-cases --only nosing` so a tuning loop does not rerun the whole quick check.
+  Mostly missing tools and unstated constraints, not unclear goals.

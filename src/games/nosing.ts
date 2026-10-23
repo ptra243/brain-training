@@ -10,6 +10,7 @@ import {
   buildNosingBoard,
   pickDogSquare,
   nosingRollSeed,
+  nosingSpec,
   rerollFor,
   rollFor,
   STEPS_BONUS,
@@ -623,7 +624,7 @@ function act(p: NosingPuzzle, sim: Sim, move: NosingMove): boolean {
       if (sim.phase === 'rolled') {
         moveCat(p, sim, sim.pendingRoll!);
       } else {
-        const r = rollFor(nosingRollSeed(p.seed, p.board.attempt), p.level, sim.turn);
+        const r = rollFor(nosingRollSeed(p.seed, p.board.attempt), nosingSpec(p.house, p.level), sim.turn);
         // Always stop after rolling, so the UI can show where the cat would land before it moves.
         sim.lastRoll = r;
         sim.pendingRoll = r;
@@ -638,7 +639,7 @@ function act(p: NosingPuzzle, sim: Sim, move: NosingMove): boolean {
       sim.working = null;
       sim.fight = null;
       sim.bonuses.reroll--;
-      moveCat(p, sim, rerollFor(nosingRollSeed(p.seed, p.board.attempt), p.level, sim.turn));
+      moveCat(p, sim, rerollFor(nosingRollSeed(p.seed, p.board.attempt), nosingSpec(p.house, p.level), sim.turn));
       break;
     }
     case 'answer': {

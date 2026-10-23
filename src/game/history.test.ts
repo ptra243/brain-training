@@ -67,7 +67,7 @@ const cref: CampaignRef = { mode: 'campaign', code: codeFor(31_337), difficulty:
 function caught(): { save: CampaignSave; cases: ReturnType<typeof roundCase>[] } {
   let save = newCampaign(cref);
   const c = roundCase(content, save, currentRound(save));
-  save = updateRound(content, save, c, reduce(c, save.rounds[0], { type: 'accuse', suspect: c.murderer, item: c.weapon })).save;
+  save = updateRound(save, c, reduce(c, save.rounds[0], { type: 'accuse', suspect: c.murderer, item: c.weapon })).save;
   return { save, cases: save.rounds.map((_, i) => roundCase(content, save, i)) };
 }
 

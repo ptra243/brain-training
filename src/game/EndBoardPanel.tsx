@@ -1,3 +1,4 @@
+import { houseOf } from '../content/houses.ts';
 import { useMemo } from 'react';
 import { content } from '../content/index.ts';
 import { UNKNOWN } from '../engine/boardTypes.ts';
@@ -48,7 +49,7 @@ export function EndBoardPanel({ c, progress, dispatch, helper, readOnly, onAccus
   const placed = c.suspects.filter((s) => placedBy(s) && board.truth[placedBy(s)!].section !== UNKNOWN);
   const open = c.suspects.filter((s) => !placed.includes(s));
   const found = c.clues.filter((cl) => unlocked.has(cl.id)).map((cl) => cl.fact);
-  const killers = scene ? possibleKillers(caseSpace(c), found, caseContext(content.house, c), c.sceneRoom) : [];
+  const killers = scene ? possibleKillers(caseSpace(c), found, caseContext(houseOf(c), c), c.sceneRoom) : [];
 
   const summary = (
     <div className="end-board-summary">

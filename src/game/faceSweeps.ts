@@ -1,4 +1,5 @@
 // Face-to-face questioning checks over many campaign seeds (called from scripts/check-cases.ts; the test uses a few).
+import { houseOf } from '../content/houses.ts';
 import { content } from '../content/index.ts';
 import type { CampaignRef } from '../engine/campaign.ts';
 import { campaignRound } from '../engine/campaign.ts';
@@ -24,7 +25,7 @@ export interface FaceStats {
 export function faceSeed(seed: number, stats?: FaceStats): void {
   const ref = faceRef(seed);
   const c = campaignRound(content, ref, []);
-  const cf = caseFacts(content.house, c);
+  const cf = caseFacts(houseOf(c), c);
   const ids = c.clues.map((cl) => cl.id);
   const innocents = c.suspects.filter((s) => s !== c.murderer).slice(0, 2);
   for (const found of [ids, []]) {

@@ -3,7 +3,7 @@
 // her clues settle, then show why (the clue, or her own marks), then mark it.
 // Only clues she has found count, so a hint never jumps ahead of her casebook.
 
-import { content } from '../content/index.ts';
+import { houseOf } from '../content/houses.ts';
 import { caseContext, caseSpace } from '../engine/caseFacts.ts';
 import { compileClue } from '../engine/clues.ts';
 import { anyMatching } from '../engine/search.ts';
@@ -69,13 +69,13 @@ export function allCells(c: Case): GridCell[] {
 }
 
 /** What a square really is. */
-export function truth(c: Case, cell: GridCell, ctx = caseContext(content.house, c)): Mark {
+export function truth(c: Case, cell: GridCell, ctx = caseContext(houseOf(c), c)): Mark {
   return compileClue(cellFact(cell, 'o'), ctx)(c.solution) ? 'o' : 'x';
 }
 
 /** Her marks that are wrong and haven't been pointed out yet (or have changed since). */
 export function newlyWrong(c: Case, p: Progress, flagged: Record<string, Mark> = {}): Record<string, Mark> {
-  const ctx = caseContext(content.house, c);
+  const ctx = caseContext(houseOf(c), c);
   const out: Record<string, Mark> = {};
   for (const cell of allCells(c)) {
     const key = markKey(cell.kind, cell.row, cell.col);
@@ -96,7 +96,7 @@ interface Settled {
 
 /** What she knows: her right marks as facts, and a test for whether facts can all be true. */
 function knowledge(c: Case, p: Progress) {
-  const ctx = caseContext(content.house, c);
+  const ctx = caseContext(houseOf(c), c);
   const space = caseSpace(c);
   const markFacts = allCells(c).flatMap((cell) => {
     const m = p.marks[markKey(cell.kind, cell.row, cell.col)];

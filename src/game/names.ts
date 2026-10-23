@@ -1,3 +1,4 @@
+import { allHouses } from '../content/houses.ts';
 import { content } from '../content/index.ts';
 import { caseNameWords } from '../content/caseNames.ts';
 import { hasPortrait } from './portrait.ts';
@@ -10,7 +11,9 @@ const find = <T extends { id: string; name: string }>(list: readonly T[], id: st
 
 /** What a guest is called at this dinner (`Case.guests`): a lone heir is "The Heir". */
 export const suspectName = (id: string, guests: readonly string[]) => guestName(content, guests, id);
-export const roomName = (id: string) => find(content.house.rooms, id);
+/** Rooms shared by houses have one name and tint, so the first house that has the room answers. */
+const anyRoom = (id: string) => allHouses.flatMap((h) => h.rooms).find((r) => r.id === id);
+export const roomName = (id: string) => anyRoom(id)?.name ?? id;
 export const itemName = (id: string) => find(content.items, id);
 
 /** Short label for a suspect counter: "The Butler" -> "Bu". */
@@ -35,7 +38,7 @@ export function suspectColour(id: string) {
 }
 
 /** Floor-plan colour for a room, from the content file. */
-export const roomTint = (id: string) => content.house.rooms.find((r) => r.id === id)?.tint ?? '#ddd6c6';
+export const roomTint = (id: string) => anyRoom(id)?.tint ?? '#ddd6c6';
 
 /** "The Sunken Jaguar Scandal at Stonewick": the case's name, which also replays it. */
 export const caseTitle = (ref: CaseRef) => caseName(ref, caseNameWords);

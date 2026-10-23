@@ -27,9 +27,9 @@ test('each round is fair down a path of wrong accusations, on every difficulty',
       assert.equal(c.murderer, cast.killer, 'same killer every round');
       assert.ok(victims.every((v) => !c.suspects.includes(v)), 'the dead are gone');
       assert.deepEqual(c.campaign, { round, rounds: ROUNDS, budget: BUDGET[difficulty], last: round === ROUNDS - 1, victims });
-      assert.deepEqual(roundProblems(content, c), [], `${difficulty} round ${round + 1}`);
+      assert.deepEqual(roundProblems(c), [], `${difficulty} round ${round + 1}`);
       // A wrong accusation: someone her clues still allow, if there is one.
-      const wrong = roundSuspects(content, c, c.clues.map((cl) => cl.fact)).find((s) => s !== cast.killer) ?? c.suspects.find((s) => s !== cast.killer)!;
+      const wrong = roundSuspects(c, c.clues.map((cl) => cl.fact)).find((s) => s !== cast.killer) ?? c.suspects.find((s) => s !== cast.killer)!;
       victims = [...victims, wrong];
     }
   }
@@ -64,7 +64,7 @@ test('fewer clues per puzzle: more puzzles of the right kinds, each holding at m
         assert.deepEqual(puzzles.map((g) => g.kind).sort(), [...ROUND_PUZZLES[perPuzzle]].sort(), `${perPuzzle} ${difficulty}`);
         for (const g of puzzles) assert.ok(g.clues.length >= 1 && g.clues.length <= perPuzzle, `${g.kind} holds ${g.clues.length}`);
         assert.equal(c.campaign!.budget, roundBudget(r));
-        assert.deepEqual(roundProblems(content, c), [], `${perPuzzle} ${difficulty} ${n}`);
+        assert.deepEqual(roundProblems(c), [], `${perPuzzle} ${difficulty} ${n}`);
       }
     }
   }

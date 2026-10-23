@@ -1,5 +1,5 @@
+import { houseOf } from '../content/houses.ts';
 import { useState } from 'react';
-import { content } from '../content/index.ts';
 import { caseFacts } from '../engine/caseFacts.ts';
 import { disproves } from '../engine/interrogation.ts';
 import type { Case, Interrogation } from '../engine/types.ts';
@@ -28,7 +28,7 @@ export function FaceToFace({ c, interrogation, killer, rightWeapon, found, onDon
   const [data, setData] = useState<InterrogationData>(interrogationInitial);
   const [finished, setFinished] = useState<'won' | 'revealed' | null>(null);
   const evidence = c.clues.filter((cl) => found.includes(cl.id) && cl.delivery !== 'finale');
-  const cf = caseFacts(content.house, c);
+  const cf = caseFacts(houseOf(c), c);
   const seed = `${c.seed}-face-${interrogation.suspect}`;
   const kind = endingKind(killer, rightWeapon, interrogation.cracks);
   const finish = (status: 'won' | 'revealed') => setFinished(status);

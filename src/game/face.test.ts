@@ -22,12 +22,12 @@ test('a held accusation resolves to what updateRound gives, and nothing is pendi
     [cast.killer, c.items.find((i) => i !== c.weapon)!],
   ] as const) {
     const progress = reduce(c, save.rounds[0], { type: 'accuse', suspect, item });
-    const direct = updateRound(content, save, c, progress);
+    const direct = updateRound(save, c, progress);
     const held = holdRound(save, progress);
     assert.deepEqual(pendingAccusation(held), { accused: suspect });
     assert.equal(held.victims.length, 0, 'the verdict is not applied yet');
     assert.equal(currentRound(held), 0);
-    assert.deepEqual(resolveHeld(content, held, c), direct);
+    assert.deepEqual(resolveHeld(held, c), direct);
   }
 });
 

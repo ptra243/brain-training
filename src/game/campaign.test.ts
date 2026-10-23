@@ -13,7 +13,7 @@ const innocents = cast.suspects.filter((s) => s !== cast.killer);
 /** Play an action in the current round and let the campaign react. */
 function act(save: CampaignSave, action: Action) {
   const c = roundCase(content, save, currentRound(save));
-  return updateRound(content, save, c, reduce(c, save.rounds[currentRound(save)], action));
+  return updateRound(save, c, reduce(c, save.rounds[currentRound(save)], action));
 }
 
 test('a wrong person is the next body; the killer gets away after the last round', () => {
@@ -41,7 +41,7 @@ test('the right person with the wrong weapon ends the round: a seeded innocent n
   const body = tried.victims[0];
   assert.notEqual(body, cast.killer);
   assert.ok(c.suspects.includes(body));
-  const possible = roundSuspects(content, c, c.clues.map((cl) => cl.fact));
+  const possible = roundSuspects(c, c.clues.map((cl) => cl.fact));
   assert.ok(!possible.includes(body), 'never a decoy');
   assert.equal(act(save, { type: 'accuse', suspect: c.murderer, item: wrongWeapon }).save.victims[0], body, 'same body every time');
   // The round after it is the same one a wrong guess at that body would lead to.
@@ -85,10 +85,10 @@ test('the budget: puzzles she picks count, word games are always free', () => {
 test('still possible: everyone alive until she knows the scene, then whoever her clues allow', () => {
   let save = newCampaign(ref);
   const c = roundCase(content, save, 0);
-  assert.deepEqual(stillPossible(content, save, [c]), c.suspects);
+  assert.deepEqual(stillPossible(save, [c]), c.suspects);
   // Solve the word game and every puzzle: the round's clues leave 2 or 3, the killer among them.
   for (const g of c.games) save = act(save, { type: 'game-finish', kind: g.kind, status: 'revealed', data: null }).save;
-  const left = stillPossible(content, save, [c]);
+  const left = stillPossible(save, [c]);
   assert.ok(left.includes(c.murderer));
   assert.ok(left.length >= 2 && left.length <= 3, `${left.length} left`);
 });

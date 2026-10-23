@@ -15,6 +15,7 @@
 //   plus a grey piece for each puzzle she hasn't played, and the body once she
 //   knows the scene. It shows what her clues prove before she accuses.
 
+import { houseById } from '../content/houses.ts';
 import { buildBoard } from './board.ts';
 import { UNKNOWN, type Board, type BoardPiecePlan, type BoardPlan } from './boardTypes.ts';
 import { caseContext, caseSpace } from './caseFacts.ts';
@@ -30,9 +31,9 @@ type BoardClue = Pick<Clue, 'id' | 'fact' | 'delivery'>;
 const MAX_PIECES_PER_GUEST = 2;
 
 /** What the facts prove: each guest's and weapon's room, or UNKNOWN. */
-export function provenSections(content: Content, c: Pick<Case, 'suspects' | 'rooms' | 'items' | 'shared'>, facts: readonly ClueFact[]): Record<string, string> {
+export function provenSections(content: Content, c: Pick<Case, 'suspects' | 'rooms' | 'items' | 'shared'> & { houseId?: string }, facts: readonly ClueFact[]): Record<string, string> {
   const space = caseSpace(c);
-  const ctx = caseContext(content.house, c);
+  const ctx = caseContext(c.houseId ? houseById(c.houseId) : content.house, c);
   const only = (test: (room: string) => ClueFact) => {
     const rooms = c.rooms.filter((room) => anyMatching(space, [...facts, test(room)], ctx));
     return rooms.length === 1 ? rooms[0] : UNKNOWN;
