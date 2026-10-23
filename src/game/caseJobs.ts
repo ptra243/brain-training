@@ -8,7 +8,7 @@ import { Rng, hashSeed } from '../engine/rng.ts';
 import { caseFor, codeFor, newPickCase, newPlayCase, newQuickCase, type Cast, type CaseRef, type PickedGame, type PlayRef, type QuickRef } from '../engine/caseRef.ts';
 import type { Length } from '../engine/settings.ts';
 import type { Case, Content, Difficulty, Interrogation } from '../engine/types.ts';
-import { newCampaign, roundCase, type CampaignSave } from './campaign.ts';
+import { newCampaign, roundCase, type CampaignSave } from './campaignSave.ts';
 
 export type CaseJob =
   | { kind: 'case'; ref: CaseRef }
@@ -88,7 +88,7 @@ export function faceToFace(content: Content, ref: CampaignRef, victims: readonly
   const killer = accused === c.murderer;
   return buildInterrogation({
     cf: caseFacts(houseOf(c), c),
-    content: guestContent(content, c.guests),
+    content: guestContent({ ...content, house: houseOf(c) }, c.guests),
     rng: new Rng(hashSeed(`${c.seed}-face-${accused}`)),
     idPrefix: 'fq-',
     delivery: 'finale',

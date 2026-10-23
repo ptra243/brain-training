@@ -41,3 +41,23 @@ test('a campaign keeps its house for every round, and without one means the mano
   const plain = campaignRound(content, { mode: 'campaign', code: 'AB2CD', difficulty: 'easy' }, []);
   assert.equal(plain.houseId, manor.id);
 });
+
+test('questionings in the lodge name its rooms, never their ids', async () => {
+  const { campaignRound } = await import('../engine/campaign.ts');
+  const { faceToFace } = await import('../game/caseJobs.ts');
+  let mentions = 0;
+  for (const code of ['AB2CD', 'EF3GH', 'JK4MN', 'PQ5RS', 'TV6WX', 'YZ7AB']) {
+    const ref = { mode: 'campaign', code, difficulty: 'hard', houseId: 'lodge' } as const;
+    const round = campaignRound(content, ref, []);
+    const rooms = houseOf(round).rooms.filter((r) => r.id !== r.name.toLowerCase());
+    for (const accused of round.suspects) {
+      const face = faceToFace(content, ref, [], accused, round.clues.map((c) => c.id));
+      const text = JSON.stringify(face.questions);
+      for (const r of rooms) {
+        assert.ok(!new RegExp(`\b${r.id}\b`).test(text), `${code} ${accused}: the id "${r.id}" shows`);
+        if (text.includes(r.name)) mentions++;
+      }
+    }
+  }
+  assert.ok(mentions > 0, 'some question names a room, so this check is not vacuous');
+});

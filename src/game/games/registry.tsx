@@ -237,7 +237,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
     blurb: 'Fit the clues together as a jigsaw.',
     titles: { won: 'What the pieces proved', revealed: 'Solved for you. What the pieces proved' },
     build(c, spec) {
-      const board = boardPuzzle(content, c, spec);
+      const board = boardPuzzle({ ...content, house: houseOf(c) }, c, spec);
       // The generator only hands a case this game when its board builds.
       if (!board) throw new Error(`Case ${c.code}: no case board for these clues`);
       return board;
