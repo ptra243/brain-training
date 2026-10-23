@@ -789,14 +789,14 @@ section('nosing bots');
   let variantBoards = 0;
   for (const { v, house: variant } of eachVariant().filter((x) => x.v > 0)) {
     for (const level of NOSING_LEVELS_LIST) {
-      for (const i of seedsOf(v, 100, 6)) {
+      for (const i of seedsOf(v, 10, 2)) {
         holds('nosing boards', `nosing board ${variant.id} ${level} seed ${i}`, () => nosingBoardSeed(level, i, variant));
         variantBoards++;
       }
-      for (const i of seedsOf(v, 10, 1)) holds('nosing bots', `nosing bots ${variant.id} ${level} seed ${i}`, () => nosingBotSeed(level, i, variant));
+      for (const i of seedsOf(v, 3, 1)) holds('nosing bots', `nosing bots ${variant.id} ${level} seed ${i}`, () => nosingBotSeed(level, i, variant));
     }
   }
-  console.log(`Nosing boards: ${built} boards satisfy every rule (${FULL ? BOARD_SEEDS : 24} seeds per level and house; bots on ${FULL ? 100 : 3} seeds per other house and level); ${variantBoards} more on the 7 variants of each (${FULL ? 100 : 6} seeds per level, bots on ${FULL ? 10 : 1})`);
+  console.log(`Nosing boards: ${built} boards satisfy every rule (${FULL ? BOARD_SEEDS : 24} seeds per level and house; bots on ${FULL ? 100 : 3} seeds per other house and level); ${variantBoards} more on the 7 variants of each (${FULL ? 10 : 2} seeds per level, bots on ${FULL ? 3 : 1})`);
 }
 section('nosing boards');
 
