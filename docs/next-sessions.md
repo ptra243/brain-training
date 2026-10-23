@@ -185,12 +185,13 @@ Read the Grid cases build plan doc, go through its open questions with me, then 
 ## Session: CSS Modules for game styles
 Last touched: 2026-10-23
 Reads first: `docs/css-modules.md` (why, decision, done so far, what to watch).
-Goal: move the remaining games (cat puzzle, sudoku, then the rest) to `<Game>.module.css`, one or two per
-commit, following `TarotGame.module.css`. Move e2e class selectors to roles or `data-testid`; check each
-screen at 360px.
+Goal: move the remaining games (nosing lock / key / speed / board, number grid, typing) to
+`<Game>.module.css`, one or two per commit, following `TarotGame.module.css`. Move e2e class selectors to
+roles or `data-testid`; check each screen at 360px. Done so far: Tarot, dog fight, Wordle, crossword, word
+search, cat puzzle, sudoku, interrogation.
 Starting prompt:
 ```
-Read docs/css-modules.md, then move the next games (cat puzzle, sudoku) to CSS modules. Delegate each to the implementer, then run e2e and a 360px look check.
+Read docs/css-modules.md, then move the nosing views to CSS modules (settle the shared numpad / question rules first). Delegate each to the implementer, then run e2e and a 360px look check.
 ```
 
 ## Session: Target or another word game (exploratory)

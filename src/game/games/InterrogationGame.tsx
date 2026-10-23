@@ -7,6 +7,7 @@ import { suspectColour, suspectName } from '../names.ts';
 import { SuspectCounterFace } from '../SuspectCounterFace.tsx';
 import type { InterrogationData } from '../state.ts';
 import type { GameProps } from './types.ts';
+import styles from './InterrogationGame.module.css';
 
 interface Props extends GameProps<Interrogation, InterrogationData> {
   /** Everyone at dinner (`Case.guests`), so a lone heir is called "The Heir". */
@@ -85,8 +86,8 @@ export function InterrogationGame({ puzzle, data, guests, finished, onChange, on
   const need = Math.max(1, puzzle.proof.length);
 
   return (
-    <div className="interrogation">
-      <section className="chair card">
+    <div className={styles.interrogation}>
+      <section className={`${styles.chair} card`}>
         <span className="counter static" style={{ '--counter': suspectColour(who) } as CSSProperties} aria-hidden="true">
           <SuspectCounterFace id={who} guests={guests} />
         </span>
@@ -118,18 +119,18 @@ export function InterrogationGame({ puzzle, data, guests, finished, onChange, on
       )}
 
       {(asked.length > 0 || finished) && (
-        <section className="transcript" aria-live="polite">
+        <section className={styles.transcript} aria-live="polite">
           <h2>What {mid(who)} said</h2>
           {(finished ? puzzle.questions.filter((q) => data.asked.includes(q.id) || q.lie) : asked).map((q) => {
             const isLie = finished && q.lie;
             return (
-              <div key={q.id} className={`exchange ${isLie ? 'lie' : ''}`}>
-                <p className="q">{q.ask}</p>
-                <p className="a">
-                  “{q.answer.body}”{isLie && <span className="lie-tag">Lie</span>}
+              <div key={q.id} className={`${styles.exchange} ${isLie ? styles.lie : ''}`} data-testid="exchange">
+                <p className={styles.q}>{q.ask}</p>
+                <p className={styles.a}>
+                  “{q.answer.body}”{isLie && <span className={styles.lieTag}>Lie</span>}
                 </p>
                 {!finished && (
-                  <button className="challenge" onClick={() => setChallenging(q)}>
+                  <button className={styles.challenge} onClick={() => setChallenging(q)}>
                     Challenge
                   </button>
                 )}
@@ -137,7 +138,7 @@ export function InterrogationGame({ puzzle, data, guests, finished, onChange, on
             );
           })}
           {finished && data.caught && !face && (
-            <p className="crack">
+            <p className={styles.crack}>
               {name(who)} goes pale. “All right. I'll tell you what I really know.”
             </p>
           )}
@@ -150,14 +151,14 @@ export function InterrogationGame({ puzzle, data, guests, finished, onChange, on
       {reply && !finished && <p className="game-message">{reply}</p>}
 
       {!finished && (
-        <section className="questions">
+        <section className={styles.questions}>
           <h2>Ask</h2>
           {left <= 0 && <p className="muted small">No questions left. Challenge an answer, or press Solve.</p>}
-          <div className="question-list">
+          <div className={styles.questionList}>
             {puzzle.questions
               .filter((q) => !data.asked.includes(q.id))
               .map((q) => (
-                <button key={q.id} className="question" disabled={left <= 0} onClick={() => ask(q)}>
+                <button key={q.id} className={styles.question} data-testid="question" disabled={left <= 0} onClick={() => ask(q)}>
                   {q.ask}
                 </button>
               ))}
@@ -166,7 +167,7 @@ export function InterrogationGame({ puzzle, data, guests, finished, onChange, on
       )}
 
       {!finished && face && (
-        <section className="face-actions">
+        <section className={styles.faceActions}>
           <button className="primary" onClick={face.onStop}>
             Their story holds
           </button>
@@ -179,7 +180,7 @@ export function InterrogationGame({ puzzle, data, guests, finished, onChange, on
         </section>
       )}
 
-      <section className="evidence">
+      <section>
         <h2>{puzzle.useCaseClues ? 'Your casebook' : 'Evidence on the table'}</h2>
         <ul className="clue-list">
           {evidence.map((e) => (
@@ -231,12 +232,12 @@ export function InterrogationGame({ puzzle, data, guests, finished, onChange, on
               return (
                 <li key={e.id}>
                   <button
-                    className={`pick ${on ? 'on' : ''}`}
+                    className={`${styles.pick} ${on ? styles.on : ''}`}
                     aria-pressed={on}
                     disabled={!on && picked.length >= need}
                     onClick={() => setPicked(on ? picked.filter((x) => x !== e.id) : [...picked, e.id])}
                   >
-                    <span className="tick" aria-hidden="true">
+                    <span className={styles.tick} aria-hidden="true">
                       {on ? '✓' : ''}
                     </span>
                     <ClueCard clue={e} guests={guests} compact />

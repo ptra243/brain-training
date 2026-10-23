@@ -28,8 +28,8 @@ test('accusing an innocent opens the questioning; skipping goes to the next-body
 
 test('asking a question and saying the story holds shows a closing line, then the verdict', async ({ page }) => {
   await accuseFirstGuest(page);
-  await page.locator('.question').first().click();
-  await expect(page.locator('.transcript .exchange')).toHaveCount(1);
+  await page.getByTestId('question').first().click();
+  await expect(page.getByTestId('exchange')).toHaveCount(1);
   await page.getByRole('button', { name: 'Their story holds' }).click();
   await expect(page.locator('.face-line')).toBeVisible();
   await checkScreen(page, 'face to face, ending');
