@@ -45,16 +45,25 @@ export interface WallLine {
   y2: number;
 }
 
-/** The wall segments: every edge between two different rooms, or a room and outside. */
-export function wallLines(squares: readonly RoomSquare[], width: number, height: number): WallLine[] {
+/**
+ * The wall segments: every edge between two different rooms, or a room and outside. `open` says two rooms are
+ * joined by a door: the wall between them is left out, since the path may cross it anywhere along it.
+ */
+export function wallLines(
+  squares: readonly RoomSquare[],
+  width: number,
+  height: number,
+  open?: (a: string, b: string) => boolean,
+): WallLine[] {
   const at = (x: number, y: number) => (x < 0 || y < 0 || x >= width || y >= height ? null : squares[y * width + x].room);
+  const wall = (room: string, other: string | null) => other !== room && !(other && open?.(room, other));
   const out: WallLine[] = [];
   for (const s of squares) {
     if (!s.room) continue;
-    if (at(s.x + 1, s.y) !== s.room) out.push({ x1: s.x + 1, y1: s.y, x2: s.x + 1, y2: s.y + 1 });
-    if (at(s.x - 1, s.y) !== s.room) out.push({ x1: s.x, y1: s.y, x2: s.x, y2: s.y + 1 });
-    if (at(s.x, s.y + 1) !== s.room) out.push({ x1: s.x, y1: s.y + 1, x2: s.x + 1, y2: s.y + 1 });
-    if (at(s.x, s.y - 1) !== s.room) out.push({ x1: s.x, y1: s.y, x2: s.x + 1, y2: s.y });
+    if (wall(s.room, at(s.x + 1, s.y))) out.push({ x1: s.x + 1, y1: s.y, x2: s.x + 1, y2: s.y + 1 });
+    if (wall(s.room, at(s.x - 1, s.y))) out.push({ x1: s.x, y1: s.y, x2: s.x, y2: s.y + 1 });
+    if (wall(s.room, at(s.x, s.y + 1))) out.push({ x1: s.x, y1: s.y + 1, x2: s.x + 1, y2: s.y + 1 });
+    if (wall(s.room, at(s.x, s.y - 1))) out.push({ x1: s.x, y1: s.y, x2: s.x + 1, y2: s.y });
   }
   return out;
 }

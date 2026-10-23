@@ -1,4 +1,5 @@
 import { useMemo, type MouseEvent } from 'react';
+import { roomAdjacency } from '../../engine/house.ts';
 import { nosingLanding, type NosingPuzzle, type NosingView } from '../../games/nosing.ts';
 import { MarkIcon, Paw } from './NosingIcons.tsx';
 import { markKinds, nearestMark, pawTrail, roomSquares, squareCentre, wallLines, woolPath } from './nosingUi.ts';
@@ -26,7 +27,10 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false, spent, s
   const last = board.path.length - 1;
   const unit = board.n === 1 ? 1.5 : 1; // marks are drawn a little bigger when squares are big
   const rooms = useMemo(() => roomSquares(house, board), [house, board]);
-  const walls = useMemo(() => wallLines(rooms, board.width, board.height), [rooms, board]);
+  const walls = useMemo(() => {
+    const adj = house.doors ? roomAdjacency(house) : null;
+    return wallLines(rooms, board.width, board.height, adj && ((a, b) => adj.get(a)?.has(b) ?? false));
+  }, [rooms, board, house]);
   const centres = useMemo(() => board.path.map((_, i) => squareCentre(board, i)), [board]);
   const tint = (id: string | null) => house.rooms.find((r) => r.id === id)?.tint;
   const cat = centres[catAt];

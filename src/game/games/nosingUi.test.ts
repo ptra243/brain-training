@@ -1,5 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { otherHouses } from '../../content/houses.ts';
+import { roomAdjacency } from '../../engine/house.ts';
 import { content } from '../../content/index.ts';
 import { nosingLadders, nosingObstacleLines, nosingSnakes } from '../../content/nosing.ts';
 import { buildNosing, nosingInitial, nosingStep, nosingView, searchLine } from '../../games/nosing.ts';
@@ -174,4 +176,26 @@ test('view.spent: right answers and played speed rounds are in it, wrong answers
   for (const i of spent) assert.ok(['obstacle', 'search', 'speed', 'catFind'].includes(p.board.squares[i].kind));
   for (const i of right) if (['obstacle', 'search'].includes(p.board.squares[i].kind)) assert.ok(spent.has(i), `square ${i} answered right`);
   for (const i of wrong) if (['obstacle', 'search'].includes(p.board.squares[i].kind)) assert.ok(!spent.has(i), `square ${i} answered wrong`);
+});
+
+test('on a house with doors, the cat never steps across a drawn wall, and door-joined rooms are open', () => {
+  for (const h of otherHouses) {
+    const adj = roomAdjacency(h);
+    const open = (a: string, b: string) => adj.get(a)?.has(b) ?? false;
+    for (const level of ['easy', 'medium', 'hard'] as const) {
+      const p = buildNosing({ house: h, seed: `ui-doors-${h.id}-${level}`, level, sceneRoom: h.rooms[0].id, clues: ['a', 'b', 'c', 'd'], ladders: nosingLadders, snakes: nosingSnakes });
+      const squares = roomSquares(h, p.board);
+      const { width, height } = p.board;
+      const walls = wallLines(squares, width, height, open);
+      assert.ok(walls.length < wallLines(squares, width, height).length, `${h.id}: some walls are open`);
+      const has = (x1: number, y1: number, x2: number, y2: number) => walls.some((w) => w.x1 === x1 && w.y1 === y1 && w.x2 === x2 && w.y2 === y2);
+      for (let i = 1; i < p.board.path.length; i++) {
+        const a = p.board.path[i - 1];
+        const b = p.board.path[i];
+        const [ax, ay, bx, by] = [a % width, Math.floor(a / width), b % width, Math.floor(b / width)];
+        const crossed = bx > ax ? has(bx, ay, bx, ay + 1) : bx < ax ? has(ax, ay, ax, ay + 1) : by > ay ? has(ax, by, ax + 1, by) : has(ax, ay, ax + 1, ay);
+        assert.ok(!crossed, `${h.id} ${level}: step ${i} crosses a wall`);
+      }
+    }
+  }
 });
