@@ -17,6 +17,11 @@ status changes** (built, blocked, unblocked, done): move it to its place, don't 
 stands. A blocked entry keeps its rank and names its blocker in the heading.
 
 
+**Keep entries short (about 8 lines, under 1 KB).** An entry is a menu item: heading, `Last touched`,
+`Reads first`, a one- or two-sentence `Goal`, and the starting prompt. Design detail, decisions and
+open questions go in a linked `docs/<slug>.md`, and the entry points to it. An exploratory idea with no
+settled design may stay as a short stub; give it a doc when someone starts it.
+
 ## Session: Run history
 Last touched: 2026-10-23
 Reads first: `docs/run-history.md` (settled design), `src/game/CLAUDE.md` (saves), then
@@ -33,7 +38,7 @@ Read docs/run-history.md and brief piece 1 (the snapshot and its tests). After i
 ## Session: Portraits, parametric faceted cast
 Last touched: 2026-10-23
 Reads first: `docs/portraits.md` (settled style, parts model and open items), `src/content/portraits.ts`
-and `src/game/portrait*.ts` (built), and the `#dev` gallery.
+and `src/game/portrait*.ts` (built), and the `#dev/portraits` gallery.
 Built: the parts model, all ten guests, the player, the cat and dog, the gallery, and portraits on
 counters, the person screen, the questioning chair and the dog fight header.
 Left: (1) where the player's portrait appears (case intro or a profile; ask the owner); (2) whether the
@@ -42,36 +47,17 @@ gallery, checking the 32px and 52px counters and the large view at 360px through
 (4) facial expressions (brows, mouth facet, head tilt) as a later layer.
 Starting prompt:
 ```
-Read docs/portraits.md, then open the #dev gallery through browser-check and tune the ten guests at 32px, 52px and the large view. Ask me where the player's portrait should appear.
+Read docs/portraits.md, then open #dev/portraits through browser-check and tune the ten guests at 32px, 52px and the large view. Ask me where the player's portrait should appear.
 ```
 
 ## Session: Tarot card faces
 Last touched: 2026-10-23
-Reads first: `src/content/tarotArt.ts` (today's faces), `src/engine/tarotCards.ts` (case cards are
-`major-i` by order: suspects, items, rooms), `src/content/dogCards.ts`, `docs/theme-draft.md`
-("Hidden tarot layer", "Major arcana coverage") and "Settled" in `docs/portraits.md`.
-Decided 2026-10-23: the tarot match keeps drawn tarot faces, **not portraits** (only suspects have
-portraits, busts are hard to pair at a glance on a 25-card board, and the deal always holds the
-reward clue's cards, so portraits would show who the clue names before she wins). Today's faces are
-fixed shape + colour per id, not random; the dog fight shows the same faces, so "Seven of cups" is a
-coloured shape. Code-drawn SVG in `tarotArt.ts`, like the portraits; no case or storage change.
-Plan:
-1. **Minor arcana pips** (first; also fixes the dog fight). Four suit emblems (cup, wand, sword, coin),
-   one colour per suit; ranks 1 to 10 lay out that many emblems like a playing card; page, knight,
-   queen and king show one emblem plus a letter. Same-suit cards are harder to tell apart than
-   shapes: decide whether that's fine at medium and hard, or whether easy deals decoys spread across
-   suits and ranks. Screen-reader labels become "Seven of cups".
-2. **Major arcana emblems.** 22 flat emblems (tower, moon, sun, star, wheel, scales…) in the portrait
-   style, each on its own background colour so pairs still read at a glance. No names or numerals in
-   normal play (case cards go by order, not by home card, so a name would mislead or hint at the
-   hidden layer).
-3. **Follow-on, with tarot mode:** map each suspect to their home card (the Butler gets the
-   Hierophant) and show card names. Check first that `rng.shuffle` positions depend only on the seed
-   and the count, so saved boards keep their layout.
-Check the board (easy and hard pair counts) and the dog fight hand at 360px through `browser-check`.
+Reads first: `docs/tarot-faces.md` (decision, plan, what to check), `src/content/tarotArt.ts`.
+Goal: draw real tarot faces for the match board and dog fight: minor arcana pips first, then 22 major
+emblems. Portraits are ruled out (see the doc).
 Starting prompt:
 ```
-Read the "Tarot card faces" entry in docs/next-sessions.md and src/content/tarotArt.ts, settle the pip layout and suit colours with me, then brief the implementer on step 1.
+Read docs/tarot-faces.md and src/content/tarotArt.ts, settle the pip layout and suit colours with me, then brief the implementer on step 1.
 ```
 
 ## Session: Theme content, tarot cast and line pools
@@ -122,94 +108,25 @@ Read the Guest pool and Confidants sections of docs/theme-draft.md, then help me
 
 ## Session: Campaign opening, meeting the guests
 Last touched: 2026-10-23
-Reads first: `docs/campaign-opening.md` (the settled build plan), `docs/talk-threads.md` (Talk, beats,
-mood), `docs/theme-draft.md` (Confidants, opening and ending), `src/engine/campaign.ts` (free clues per round).
-Idea (owner, 2026-10-22): a skippable first phase of a campaign where she talks to every guest once and
-gets her starting clues from those conversations. Each conversation can set up story beats (the guest's
-thread or Confidant chapter) or just be filler. While talking to a guest later she can review their beats
-so far as a short story summary, in case she forgot or skipped the opening.
-- Clues: round 1 already starts with free clues (`src/engine/campaign.ts`, "Free clues"). Proposed: the
-  opening delivers those same clues as conversations, so cases don't change. Which guest says which
-  clue must not depend on the killer (rule 5), and a witness never vouches for themselves.
-- No lie for now: every clue stays true. The owner's "2 truths and a lie" waits for "The killer lies"
-  (exploratory, below), which settles how a lie can stay fair.
-- Decided (owner, 2026-10-23): skipping costs nothing in clues (the free clues land in the casebook as
-  today) but shows a summary of what she missed (how many clues she got, which guests she didn't talk to);
-  one beat per guest; quick play untouched; later rounds' free clues stay as today (only round 1 gets the
-  opening scene).
-- Beat review, both places: (A) a short "so far" line per guest at the top of their Talk sheet (the Talk log
-  there already lists heard beats; the summary line per thread is content), and (B) a "Story so far" page in
-  the casebook with every guest's line in one place.
-- Decided (owner, 2026-10-23), scene details:
-  - Free order for now.
-  - Each conversation also has one line on the guest's relationship with the victim. That content belongs
-    to "Victim threads" in the Relationships entry below (so the opening line is that thread's opener, not
-    an extra beat); until that is built, use placeholder lines per relationship type.
-  - A testimony clue is told by its speaker. An evidence clue (about an object or a room, not a guest) is
-    delivered by the cat as a last "Talk" after the guests ("found the candlestick in the bedroom"); the
-    cat is the speaker and the clue stays evidence. Open: a rule says a witness never vouches for themselves,
-    so "a guest says the clue if it's about them" is read as "its existing speaker says it", never as a guest
-    clearing themselves.
-  - Staging (owner, 2026-10-23): if the map is visible during the opening, all seven guests stand in the
-    body's room with her. The scene opens on a line like "Someone in this room is the culprit." (true
-    whatever the case, and says nothing about who). When she has spoken to everyone, or skips, they
-    disperse to their rooms for the exploration round (the seeded placement in `explore.ts`).
-  - The gathering room (the body's room; the scene room unless the body was moved) gives
-    nothing away: campaign rounds already know the scene from the start and she starts each round there
-    (`docs/exploration-mode.md`, "The scene is known from the start"). The opening should end with the body
-    found in that room. The scene room is the room the engine built for round 1, not killer-dependent.
-  - Moved body (owner chose option B, 2026-10-23): in some rounds the body is found in another room with a
-    visible sign it was moved (drag marks) that points to the scene, so the scene is still known at the
-    start. UI and copy only: no engine change, no case change, no fairness change. Whether a round's body
-    is moved is rolled from the campaign seed and round only, never the killer. Decided: she starts the
-    round at the body, and the map marks the scene at once. A harder mode
-    where the scene must be deduced (option C) is a separate, larger idea; the engine would have to bring
-    back the scene word game or a scene clue.
+Reads first: `docs/campaign-opening.md` (the settled build plan, with every owner decision),
+`docs/talk-threads.md`, `docs/theme-draft.md` (Confidants, opening and ending), `src/engine/campaign.ts`.
+Goal: a skippable first phase of a campaign where she talks to every guest once and gets round 1's free
+clues from those conversations (cases unchanged), plus beat review ("so far" lines, a "Story so far"
+page) and the moved-body variant.
 Starting prompt:
 ```
-Read docs/campaign-opening.md (the settled build plan) and the "Campaign opening" entry in docs/next-sessions.md, write the handoff file, then build it piece by piece with implementer agents, in the order the plan gives.
+Read docs/campaign-opening.md (the settled build plan), write the handoff file, then build it piece by piece with implementer agents, in the order the plan gives.
 ```
 
 ## Session: Relationships between characters
 Last touched: 2026-10-23
-Reads first: `docs/theme-draft.md` (Follow-up threads, Model), the cast and who-knows-whom map from
-"The cast" session. The trigger list is settled in `docs/talk-threads.md`.
-Goal: make characters react to each other, without anything depending on the killer (rule 5). Explore:
-- Card pairs: tarot pairs (Emperor and Empress, Magician and High Priestess, Devil and Lovers) open a
-  thread between the two people holding them ("{other} won't look at me tonight").
-- Hand-picked pairs, not every combination (21 pairs × 4 reading combinations for the core 7 cards is
-  about 250 lines, mostly never seen). Start with 4 to 6 pairs whose roles already suggest a story: Host +
-  Hostess (the marriage), Elder heir + Younger heir (rivals for the house), Host + Elder heir
-  (succession), Host + Uncle (the old quarrel), Host + Financier (debt), Detective + Conjurer (the one
-  who sees through tricks and the one who makes them). A pair thread only comes up when both are seated
-  (10-guest pool, 7 seated). Beats 1 and 2 are
-  shared; the two readings pick only beat 3 (both upright: they make up; both reversed: they fall out
-  for good; one of each: only one of them still cares). Check how a pair thread fits with "one thread
-  per suspect" in `docs/talk-threads.md`.
-- Shared card: two suspects can't share a home card (tarot mode labels would clash), but they can
-  share tonight's secondary card. Their upright/reversed rolls decide how it goes: both upright,
-  kindred spirits; both reversed, rivals who are too alike; one of each, one-sided. Aim for about one
-  case in three having a pair; start with the 4 or 5 most borrowed cards (about 3 lines per type each).
-- A `heard` trigger: hearing about B from A opens B's next beat ("The Financier has been very generous
-  lately" opens the Financier's thread). It uses only what she has seen, so it's safe.
-- No alibis: relationship lines say how people feel, never where they were or when (rule 3; a witness
-  never vouches for themselves).
-- Victim threads (owner, 2026-10-22; **campaign only**): each seated guest has a thread about how they
-  knew the victim, the whodunit "everyone had a reason". Fixed by who the guest is and who died, never
-  by the killer, and every guest gets one so the killer's doesn't stand out (rule 5). Victims get
-  no roll of their own: round 1's is the next guest in the seating shuffle (built 2026-10-22, the 8th in
-  a campaign), rounds 2 and 3 are her wrong accusations, so a victim thread gives nothing away.
-  Proposed size: a few relationship types (owes them money, old rival, secret fondness, family), each a
-  2 or 3 beat thread per reading with `{victim}`; the pair's type comes from the who-knows-whom map or
-  the cards, not 90 hand-written pairs. Decide how it shares the thread slot with the guest's own thread.
-  The campaign opening (2026-10-23) also needs one short victim-relationship line per guest, said in their
-  first conversation: make the thread's first beat work as that line.
-- Quick play stays puzzles first: guests are window dressing there, with loose lines and their own
-  thread only; no pair or victim threads. Its victim is named (`Case.victim`, 2026-10-22). Threads
-  still are not built on who it is.
+Reads first: `docs/relationships.md` (the ideas to settle), `docs/theme-draft.md` (Follow-up threads,
+Model, the cast), `docs/talk-threads.md` (trigger list, settled).
+Goal: make characters react to each other without anything depending on the killer: card-pair and
+shared-card threads, the `heard` trigger, and campaign-only victim threads (needed by the campaign opening).
 Starting prompt:
 ```
-Read the "Relationships between characters" entry in docs/next-sessions.md and docs/theme-draft.md, then help me design card-pair and shared-card threads, campaign victim threads and the heard trigger.
+Read docs/relationships.md and docs/theme-draft.md, then help me design card-pair and shared-card threads, campaign victim threads and the heard trigger.
 ```
 
 ## Session: Two-storey houses, picked per case
@@ -266,47 +183,22 @@ Read the Grid cases build plan doc, go through its open questions with me, then 
 
 ## Session: CSS Modules for game styles
 Last touched: 2026-10-23
-Reads first: `src/styles.css` (one ~1,040-line global sheet, sections marked `/* ---------- X ---------- */`),
-`src/game/CLAUDE.md`, `e2e/CLAUDE.md`, commit 37870b2.
-Why: global class names collide across games. In 37870b2 the dog fight reused `.tarot-card`, and its
-later `.tarot-card svg { 22px }` rule shrank every Tarot match card's art. A scan on 2026-10-23 found
-18 selectors with rules in more than one place, most of them harmless additions a few lines apart.
-Decided: CSS Modules (built into Vite, no new dependency), adopted gradually. Tailwind and
-CSS-in-JS were ruled out as too big a move from the CSS-variable look. Shared pieces stay global in
-`styles.css`: colour and type variables, buttons, hint notes, `Dialog`, layout. Each game's own styles
-move to a `<Game>.module.css` next to its component and are used as `styles.x`.
-Done (commit 7909bba): Tarot match and the dog fight; then Wordle, crossword and word search (2026-10-23), plus the rule in `src/game/CLAUDE.md` and `e2e/CLAUDE.md`.
-Copy `TarotGame.module.css` / `NosingDog.module.css` as the pattern. Next: move the other games one at a
-time (cat puzzle, sudoku, then the rest), one or two per commit.
-Watch: e2e uses about 33 class selectors (`locator('.x')`). Scoped names break them, so move those
-to roles, labels or `data-testid`. Check each moved screen at 360px (`browser-check`). Add the rule
-"new game styles go in a CSS module" to `src/game/CLAUDE.md`.
+Reads first: `docs/css-modules.md` (why, decision, done so far, what to watch).
+Goal: move the remaining games (cat puzzle, sudoku, then the rest) to `<Game>.module.css`, one or two per
+commit, following `TarotGame.module.css`. Move e2e class selectors to roles or `data-testid`; check each
+screen at 360px.
 Starting prompt:
 ```
-Read the "CSS Modules for game styles" entry in docs/next-sessions.md, then move the next games (Wordle, crossword, word search) to CSS modules, following TarotGame.module.css. Delegate each to the implementer, then run e2e and a 360px look check.
+Read docs/css-modules.md, then move the next games (cat puzzle, sudoku) to CSS modules. Delegate each to the implementer, then run e2e and a 360px look check.
 ```
 
 ## Session: Target or another word game (exploratory)
 Last touched: 2026-10-23
-Reads first: `src/games/CLAUDE.md`, `scripts/build-words.ts`, `src/games/dictionary.ts` and
-`src/game/games/WordleGame.tsx` (how the guess list is fetched).
-Goal: design, then build, a Target-style game (a 3×3 grid around one 9-letter word, find 4+ letter
-words that use the centre letter), or another word game if that fits better. Proposed approach:
-- Two lists. Guesses are checked against a big list: `build-words.ts` also writes
-  `public/words-4-9.txt` (the old 4–9 filter on `word-list`) and Wordle keeps its 5-letter file.
-  The puzzle is built from a common-word list generated from SCOWL tiers (`wordlist-english`
-  on npm; install it on the owner's machine), 4–9 letters, no proper nouns, plus a small blocklist.
-  It is committed to `src/content/` and lazily imported by the game.
-- The seed 9-letter word comes from the most common tiers only, and never a room, suspect or item name.
-- Goals, the Solve answer and the cat's hints come from the common list. A guess that's only in the big
-  list counts as a bonus word, not toward the goals.
-- Editing the common list changes cases: bump the storage prefix in `src/game/storage.ts`, and add a
-  golden test (one seed, its word and goal counts).
-Settle first: Target or another game, goal levels, what the clue reward is, and whether it joins the
-case rotation.
+Reads first: `docs/target-game.md` (proposed approach, what to settle), `src/games/CLAUDE.md`.
+Goal: design, then build, a Target-style word game (or another that fits better), with two word lists.
 Starting prompt:
 ```
-Read the "Target or another word game" entry in docs/next-sessions.md and help me design the game: confirm Target or pick another, settle goals, hints and the clue reward, then plan the two word lists.
+Read docs/target-game.md and help me design the game: confirm Target or pick another, settle goals, hints and the clue reward, then plan the two word lists.
 ```
 
 ## Session: The dog card deck builder (exploratory)
@@ -351,26 +243,14 @@ Read docs/code-review-followups.md section 5 and scripts/check-cases.ts, then tr
 ```
 
 ## Session: The killer lies, in hard mode (exploratory)
-Last touched: 2026-10-20
-Reads first: `src/engine/CLAUDE.md` (one solution, own seed stream, interrogations, campaign),
-`src/engine/clues.ts`, `src/engine/solver.ts`, `src/engine/search.ts`, `src/engine/wording.ts`.
-Low priority: only if hard cases feel too easy.
-Idea: a new optional hard logic level where everyone tells the truth except the killer, and everything
-the killer says is false. She reasons "if the Butler did it, their story is false; does that still fit?"
-It's the one form of casebook lie that stays fair. Lies inside a minigame (the interrogation) already exist
-and are unaffected; outside this level, "every clue is true" stays.
-Explore and settle:
-- Clue model: testimony becomes a claim ("the Butler says X"), evidence stays fact. How the casebook
-  shows claims; whether "a witness never vouches for themselves" still holds or the lie replaces it.
-- Solver: try each suspect as the killer with their claims negated; exactly one suspect must fit, with
-  a minimal clue set. Cost for 7 guests (already needs `search.ts`).
-- Fairness: the killer must make at least one claim she can prove false, so she never has to guess.
-- Scope at first: no case board, no campaign; how map and grid hints treat claims.
-- New level on its own seed stream, after the existing draw; presets, campaigns and the golden
-  snapshot stay unchanged. `check-cases` covers the new level.
+Last touched: 2026-10-23
+Reads first: `docs/killer-lies.md` (variants A and B, why guests lie, what to settle),
+`src/engine/CLAUDE.md`. Low priority: only if hard cases feel too easy.
+Goal: decide whether a hard level where the killer's claims are all false is worth building, and sketch
+the clue model and solver change (build A first, then B).
 Starting prompt:
 ```
-Read "The killer lies" entry in docs/next-sessions.md and src/engine/CLAUDE.md, then help me decide whether it's worth building and sketch the clue model and solver change.
+Read docs/killer-lies.md and src/engine/CLAUDE.md, then help me decide whether it's worth building and sketch the clue model and solver change.
 ```
 
 ## Session: Session hygiene review (exploratory)
