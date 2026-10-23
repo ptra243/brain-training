@@ -593,7 +593,7 @@ body.dev { background: #f2f1ec; color: #222; }
   background: var(--pencil); color: #fff; font-family: var(--sans); font-size: 0.7rem; font-weight: 700;
 }
 .challenge {
-  justify-self: start; min-height: 2.5rem; padding: 0 0.9rem; margin-top: 0.15rem; cursor: pointer;
+  justify-self: start; min-height: 2.75rem; padding: 0 0.9rem; margin-top: 0.15rem; cursor: pointer;
   border: 1.5px solid var(--pencil); border-radius: 999px; background: transparent; color: var(--pencil); font-weight: 600;
 }
 .crack { margin: 0; padding: 0.7rem 0.8rem; background: #3d6b4f; color: #fff; border-radius: 0.35rem; font-family: var(--serif); }
