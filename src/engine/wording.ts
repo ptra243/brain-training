@@ -19,7 +19,10 @@ const TESTIMONY: Record<ClueType, readonly string[]> = {
   'item-room': ['The {i} was in the {r} when I looked in.', 'I noticed the {i} lying in the {r}.'],
   'item-not-room': ["There was no {i} in the {r}. I'm certain of it.", 'I looked all round the {r}. No {i} anywhere.'],
   'suspect-either-room': ["{S} was in the {r} or the {r2}. I couldn't say which."],
-  'suspect-next-to-room': ['I heard {s} through the wall of the {r}, from a room next door.'],
+  'suspect-next-to-room': [
+    'I saw {s} going into one of the rooms off the {r}. Not the {r} itself, the one beside it.',
+    '{S} told me they spent the evening in a room next to the {r}. Not in the {r} itself.',
+  ],
   'suspects-adjacent': ['I could hear {b} through the wall all evening.', '{B} was in the room next to mine.'],
   'suspects-not-adjacent': ["{B} wasn't in a room next to mine. I didn't hear a sound from them."],
   'suspects-together': ['{B} and I were in the same room all evening.', '{B} was with me the whole time.'],
