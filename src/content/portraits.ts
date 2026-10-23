@@ -123,3 +123,20 @@ export const catCoats: readonly CatCoat[] = [
   { base: '#3a3a42', shade: '#24242a', stripe: '#17171c', chest: '#5a5a63', nose: '#a8727a' },
   { base: '#efe8da', shade: '#cdc4b0', stripe: '#a8764a', chest: '#fbf8f0', nose: '#e8a4a0' },
 ];
+
+export type DogCoat = {
+  /** The lit side of the head. */
+  base: string;
+  /** The shadow side. */
+  shade: string;
+  ear: string;
+  /** Muzzle, blaze and chest. */
+  muzzle: string;
+  nose: string;
+  collar: string;
+};
+
+/** The one dog of the dog fight: a golden hound. */
+export const dogCoat: DogCoat = {
+  base: '#d6b074', shade: '#a98544', ear: '#8c5f2e', muzzle: '#f1e4c6', nose: '#2a2226', collar: '#a83a32',
+};

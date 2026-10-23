@@ -2,6 +2,8 @@
 .fight, .result { display: grid; gap: 0.6rem; }
 .fight p, .result p, .result h2 { margin: 0; }
 .top { display: flex; justify-content: space-between; gap: 0.5rem; }
+.side { display: grid; justify-items: center; gap: 0.3rem; min-width: 0; }
+.face { display: block; width: 64px; height: 64px; border: 3px solid var(--brass); border-radius: 50%; overflow: hidden; box-sizing: border-box; background: var(--card-edge); }
 .lives { display: flex; align-items: center; gap: 0.3rem; font-size: 0.85rem; color: var(--ink-soft); }
 .lives .life { width: 0.8rem; height: 0.8rem; border-radius: 50%; border: 2px solid var(--brass-deep); box-sizing: border-box; }
 .lives .life.on { background: var(--brass); }

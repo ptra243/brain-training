@@ -1,6 +1,6 @@
-import type { CatCoat, PortraitParts } from '../content/portraits.ts';
+import type { CatCoat, DogCoat, PortraitParts } from '../content/portraits.ts';
 import {
-  catCropBox, catShapes, hasPortrait, FULL_VIEW_BOX, guestCropBox, portraitShapes, transformAttr, type Layer, type Tint,
+  catCropBox, catShapes, dogCropBox, dogShapes, hasPortrait, FULL_VIEW_BOX, guestCropBox, portraitShapes, transformAttr, type Layer, type Tint,
 } from './portrait.ts';
 import type { Shape } from './portraitParts.ts';
 
@@ -14,7 +14,11 @@ type Props = {
   /** Decorative (aria-hidden) unless a label is given. */
   label?: string;
   className?: string;
-} & ({ parts: PortraitParts; coat?: undefined } | { coat: CatCoat; parts?: undefined });
+} & (
+  | { parts: PortraitParts; coat?: undefined; dog?: undefined }
+  | { coat: CatCoat; parts?: undefined; dog?: undefined }
+  | { dog: DogCoat; parts?: undefined; coat?: undefined }
+);
 
 const f = (n: number) => String(Math.round(n * 100) / 100);
 
@@ -45,9 +49,9 @@ function drawLayer(l: Layer) {
 }
 
 /** A faceted portrait: `full` is the whole 100 x 120 card art, `counter` the head crop (the counter's CSS clips it to a circle). */
-export function Portrait({ parts, coat, view, tint = 'none', label, className }: Props) {
-  const layers = parts ? portraitShapes(parts, tint) : catShapes(coat, tint);
-  const viewBox = view === 'full' ? FULL_VIEW_BOX : parts ? guestCropBox(parts) : catCropBox();
+export function Portrait({ parts, coat, dog, view, tint = 'none', label, className }: Props) {
+  const layers = parts ? portraitShapes(parts, tint) : dog ? dogShapes(dog, tint) : catShapes(coat, tint);
+  const viewBox = view === 'full' ? FULL_VIEW_BOX : parts ? guestCropBox(parts) : dog ? dogCropBox() : catCropBox();
   return (
     <svg
       className={className}

@@ -2,7 +2,7 @@
 // the three mood tints, the large view, the player and the cat coats.
 
 import { cats } from '../content/index.ts';
-import { catCoats, playerPortrait, portraits } from '../content/portraits.ts';
+import { catCoats, dogCoat, playerPortrait, portraits } from '../content/portraits.ts';
 import { Portrait } from '../game/Portrait.tsx';
 
 const roleName = (id: string) => {
@@ -73,6 +73,27 @@ export function PortraitGallery() {
             </div>
             <figcaption>{cats[i]}</figcaption>
             <Counters>{() => <Portrait coat={coat} view="counter" />}</Counters>
+          </figure>
+        ))}
+      </div>
+
+      <h3>The dog</h3>
+      <div className="pg-row">
+        <figure className="pg-card">
+          <div className="pg-art">
+            <Portrait dog={dogCoat} view="full" label="The dog" />
+          </div>
+          <figcaption>The dog</figcaption>
+          <Counters>{() => <Portrait dog={dogCoat} view="counter" />}</Counters>
+        </figure>
+      </div>
+      <div className="pg-row">
+        {(['hostile', 'none', 'warm'] as const).map((tint) => (
+          <figure key={tint} className="pg-card">
+            <div className="pg-art">
+              <Portrait dog={dogCoat} view="full" tint={tint} label={`The dog, ${tint}`} />
+            </div>
+            <figcaption>{tint}</figcaption>
           </figure>
         ))}
       </div>

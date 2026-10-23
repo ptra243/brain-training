@@ -315,7 +315,7 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
 
       {!walking && !done && view.phase === 'dog' && view.dog && (
         <div className="card">
-          <NosingDog view={view.dog} hints={hintBlock} onMove={play} />
+          <NosingDog view={view.dog} helper={helper} hints={hintBlock} onMove={play} />
         </div>
       )}
 

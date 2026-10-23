@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { cats } from '../content/index.ts';
-import { catCoats, playerPortrait, portraits, type PortraitParts } from '../content/portraits.ts';
+import { catCoats, dogCoat, playerPortrait, portraits, type PortraitParts } from '../content/portraits.ts';
 import {
-  catShapes, FRAME, GUEST_CROP, guestCropBox, portraitShapes, type Layer, type Tint,
+  catShapes, dogShapes, FRAME, GUEST_CROP, guestCropBox, portraitShapes, type Layer, type Tint,
 } from './portrait.ts';
 import { accentStyles, costumeStyles, hairStyles, headwearStyles, shade, skinTones } from './portraitParts.ts';
 
@@ -66,6 +66,7 @@ test('all points sit in a sane box', () => {
     checkLayers(portraitShapes(parts, 'hostile'), id);
   }
   for (const coat of catCoats) checkLayers(catShapes(coat, 'warm'), 'cat');
+  for (const tint of ['hostile', 'none', 'warm'] as const) checkLayers(dogShapes(dogCoat, tint), 'dog');
 });
 
 test('the tint overlay is only there for warm and hostile', () => {

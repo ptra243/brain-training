@@ -2,7 +2,11 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { nosingDog } from '../../content/nosing.ts';
 import { tarotArt } from '../../content/tarotArt.ts';
 import { CAT_LIVES, DOG_LIVES, type DogChallenge, type DogTurnResult, type DogView } from '../../games/dogFight.ts';
+import { cats } from '../../content/index.ts';
+import { catCoats, dogCoat } from '../../content/portraits.ts';
 import { Dialog } from '../Dialog.tsx';
+import { Portrait } from '../Portrait.tsx';
+import type { Tint } from '../portrait.ts';
 import { OP_NAME, OP_SIGN } from './nosingUi.ts';
 import type { NosingMove } from '../../games/nosing.ts';
 import { gridLines, type Hand, type OpRef, type Slot } from '../../games/numberGrid.ts';
@@ -53,15 +57,31 @@ function Lives({ label, left, total }: { label: string; left: number; total: num
   );
 }
 
+/** One side of the fight: a round portrait above its lives. */
+function Side({ portrait, testId, children }: { portrait: ReactNode; testId: string; children: ReactNode }) {
+  return (
+    <div className={styles.side}>
+      <span className={styles.face} data-testid={testId} aria-hidden="true">
+        {portrait}
+      </span>
+      {children}
+    </div>
+  );
+}
+
 interface Props {
   view: DogView;
+  /** The house cat's name; its index in `cats` picks the cat's coat. */
+  helper?: string;
   /** The hint button and note. */
   hints: ReactNode;
   onMove: (move: NosingMove) => void;
 }
 
 /** The dog fight: both sides' lives, the dog's play, then her grid and cards. */
-export function NosingDog({ view, hints, onMove }: Props) {
+export function NosingDog({ view, helper, hints, onMove }: Props) {
+  const catCoat = catCoats[Math.max(0, cats.indexOf(helper ?? '')) % catCoats.length];
+  const dogTint: Tint = view.role === 'defend' ? 'hostile' : view.last && view.last.dogLost > 0 ? 'warm' : 'none';
   const toggle = (list: number[], i: number) => (list.includes(i) ? list.filter((x) => x !== i) : [...list, i]);
   const hand = useMemo<Hand>(() => ({ numbers: view.numbers.map((c) => c.value), ops: view.ops.map((o) => o.op) }), [view.numbers, view.ops]);
   const dogLines = useMemo(() => gridLines({ numbers: view.dog.numbers, ops: view.dog.ops }, view.dog.fill), [view.dog]);
@@ -92,8 +112,12 @@ export function NosingDog({ view, hints, onMove }: Props) {
   return (
     <div className={styles.fight} data-testid="dog-fight">
       <div className={styles.top}>
-        <Lives label={nosingDog.catLives} left={view.catLives} total={CAT_LIVES} />
-        <Lives label={nosingDog.dogLives} left={view.dogLives} total={DOG_LIVES} />
+        <Side portrait={<Portrait coat={catCoat} view="counter" />} testId="dog-fight-cat">
+          <Lives label={nosingDog.catLives} left={view.catLives} total={CAT_LIVES} />
+        </Side>
+        <Side portrait={<Portrait dog={dogCoat} view="counter" tint={dogTint} />} testId="dog-fight-dog">
+          <Lives label={nosingDog.dogLives} left={view.dogLives} total={DOG_LIVES} />
+        </Side>
       </div>
       <p className={styles.role}>{view.role === 'attack' ? nosingDog.attack(view.dog.value) : nosingDog.defend(view.dog.value)}</p>
       {view.last && (

@@ -2,9 +2,9 @@
 // parts into layered groups in the 100 x 120 frame; `catShapes(coat)` does the cat.
 // Plain data, so it is node-tested; `Portrait.tsx` only draws it.
 
-import { portraits, type CatCoat, type PortraitParts } from '../content/portraits.ts';
+import { portraits, type CatCoat, type DogCoat, type PortraitParts } from '../content/portraits.ts';
 import {
-  accentStyles, costumeStyles, faceShapes, hairStyles, headwearStyles, neckShapes, poly, shade, skinTones,
+  accentStyles, circle, costumeStyles, faceShapes, hairStyles, headwearStyles, neckShapes, poly, shade, skinTones,
   type Shape,
 } from './portraitParts.ts';
 
@@ -26,11 +26,14 @@ export const TINT_FILL: Record<'warm' | 'hostile', { fill: string; o: number }> 
 /** Counter crops: the head of a person, nearly the whole frame for the cat. */
 export const GUEST_CROP: readonly [number, number, number, number] = [25, 20, 50, 50];
 export const CAT_CROP: readonly [number, number, number, number] = [4, 6, 92, 92];
+export const DOG_CROP: readonly [number, number, number, number] = [4, 6, 92, 92];
 export const FULL_VIEW_BOX = `0 0 ${FRAME.width} ${FRAME.height}`;
 
 export const cropViewBox = (crop: readonly number[]): string => crop.join(' ');
 export const guestCropBox = (parts: PortraitParts): string => cropViewBox(parts.crop ?? GUEST_CROP);
 export const catCropBox = (): string => cropViewBox(CAT_CROP);
+
+export const dogCropBox = (): string => cropViewBox(DOG_CROP);
 
 export const transformAttr = (t: Transform): string =>
   t.sx === t.sy ? `translate(${t.tx},${t.ty}) scale(${t.sx})` : `translate(${t.tx},${t.ty}) scale(${t.sx},${t.sy})`;
@@ -110,4 +113,34 @@ export function catShapes(coat: CatCoat, tint: Tint = 'none'): Layer[] {
     poly('44,53 54,53 49,59', nose),
   ];
   return [{ id: 'cat', shapes }, ...tintLayer(tint)];
+}
+
+/** The dog is its own figure too (a golden hound with floppy ears), faceless like the rest. */
+export function dogShapes(coat: DogCoat, tint: Tint = 'none'): Layer[] {
+  const { base, shade: dark, ear, muzzle, nose, collar } = coat;
+  const shapes: Shape[] = [
+    ...background(['#566478', '#68768b']),
+    // body mound, chest, collar and tag
+    poly('0,120 2,96 18,78 82,78 98,96 100,120', shade(base, 0.92)),
+    poly('50,84 82,78 98,96 100,120 46,120', shade(dark, 0.9)),
+    poly('30,88 70,88 64,120 34,120', muzzle),
+    poly('50,90 70,88 64,120 50,120', shade(muzzle, 0.9)),
+    poly('26,84 74,84 76,92 24,92', collar),
+    poly('50,84 74,84 76,92 50,92', shade(collar, 0.8)),
+    circle(50, 98, 4.5, '#d9b24a'),
+    // floppy ears hang beside the head
+    poly('8,30 22,26 26,46 22,80 10,72 5,50', ear),
+    poly('78,26 92,30 95,50 90,72 78,80 74,46', shade(ear, 0.8)),
+    // head: lit left, shadow right, brow highlight
+    poly('18,50 24,28 40,16 50,14 52,50 48,86 34,84 22,72', base),
+    poly('50,14 62,16 76,28 82,50 78,72 66,84 48,86 52,50', dark),
+    poly('24,28 40,16 50,14 42,34', shade(base, 1.07)),
+    // pale blaze, muzzle, chin, nose
+    poly('46,15 54,15 53,46 47,46', muzzle),
+    poly('32,56 50,52 52,72 48,84 36,80 30,68', shade(muzzle, 1.02)),
+    poly('50,52 68,56 70,68 64,80 52,84 52,72', shade(muzzle, 0.9)),
+    poly('42,78 58,78 54,88 46,88', muzzle),
+    poly('42,52 58,52 54,64 46,64', nose),
+  ];
+  return [{ id: 'dog', shapes }, ...tintLayer(tint)];
 }
