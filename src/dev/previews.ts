@@ -18,6 +18,13 @@ export const PREVIEWS: readonly PreviewInfo[] = [
   { id: 'midnight', about: 'The locked map at midnight', look: 'game' },
   { id: 'houses', about: 'The lodge, courtyard house and steps on the floor plan', look: 'game' },
   { id: 'portraits', about: 'The portrait gallery', look: 'plain' },
+  { id: 'dogfight', about: 'The dog fight board in each state, with any cat helper', look: 'plain' },
+];
+
+/** What the plain #dev page lists: the case inspector, then every preview. */
+export const DEV_PAGES: readonly { id: string; about: string }[] = [
+  { id: 'cases', about: 'Case inspector: step through cases, see the map, clues and answer, play a case code' },
+  ...PREVIEWS,
 ];
 
 /** The id in `#dev/<id>`, or null for the plain `#dev` page. */

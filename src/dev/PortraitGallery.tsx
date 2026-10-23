@@ -1,4 +1,4 @@
-// The #dev gallery of the faceted portraits (docs/portraits.md): cards, counters,
+// The #dev/portraits gallery of the faceted portraits (docs/portraits.md): cards, counters,
 // the three mood tints, the large view, the player and the cat coats.
 
 import { cats } from '../content/index.ts';

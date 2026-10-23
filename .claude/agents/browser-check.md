@@ -9,7 +9,9 @@ If the brief gives a URL, open it and judge that page. Do not play through the
 game to reach the screen.
 If the brief names a screen instead, read `src/dev/CLAUDE.md`. When that screen
 has a `#dev/<id>`, open `<server in the brief>/#dev/<id>` and judge it. Do not
-play through the game to reach it.
+play through the game to reach it. To judge a state you must play from (not just
+look at), open `<server>/#dev/load/<id>` for a scenario listed there and press
+"Load it".
 
 Click by `ref` from `find` or `read_page`, not by coordinate; a coordinate
 click fails until you've taken a screenshot. Refs go stale after the page

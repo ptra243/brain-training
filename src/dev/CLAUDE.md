@@ -1,16 +1,35 @@
 # Dev pages (`#dev`)
 
-`#dev` loads the case inspector and, below it, the portrait gallery. Her game
-does not open this hash. A look check opens a preview URL instead of playing
+`#dev` is an index listing every dev page with a link (built from
+`DEV_PAGES` in `src/dev/previews.ts`). `#dev/cases` is the case inspector.
+Her game does not open this hash. A look check opens a preview URL instead of playing
 through to the screen. A test that proves a click loads a save one real
 action before that click (`e2e/CLAUDE.md`).
+
+## When to add or update one
+
+Decide at the end of any task that adds or changes a screen or a game state:
+
+- **New screen a save cannot show** (a scene, an ending, a dialog, a state
+  that needs solving puzzles first): add a preview.
+- **New game state that takes more than a couple of real actions to reach**
+  (a mid-way minigame, a late campaign round, a finished run): add a scenario.
+- **Changed a screen that already has a preview or scenario:** update its
+  sample or builder in the same change, and its "what a look check judges"
+  line below. A format or content change that breaks a builder shows up as a
+  failing `e2e/scenarios.spec.ts`.
+- **A screen her save reaches in one click:** neither; `browser-check` goes
+  there through the save.
+
+Add the id here so the index, the docs and `browser-check` agree.
 
 ## Previews
 
 A screen the save cannot show gets its own `#dev/<id>`, rendering the
 component with sample lines. So does a screen a look check would otherwise
 reach by solving puzzles. Register the id in `src/dev/previews.ts`, render it
-in `DevPreview.tsx`, add it here and add a landmark to `e2e/previews.spec.ts`.
+in `DevPreview.tsx`, add it here and add a landmark to `e2e/previews.spec.ts`. The index lists it
+automatically.
 Sample names come from `src/content` (`suspectName`, `itemName`); buttons do
 nothing and nothing is saved. An unknown id lists the real ones.
 
@@ -27,13 +46,37 @@ What a look check judges on each:
   (N games left)" header, room list, tab bar.
 - `midnight`: the same round at midnight with the map locked: Midnight header,
   a disabled room, a greyed room list.
-- `houses`: the lodge, courtyard house and steps stacked, each on the real map
-  with nobody placed: footprint readable, void cells unpainted, door gaps
+- `houses`: every layout (lodge, courtyard, steps, long house, T lodge) in all 8
+  orientations (`lodge/r90`, `lodge/m`...), each on the real map with nobody
+  placed; a tall plan is narrowed, not stretched: footprint readable, void cells unpainted, door gaps
   (ivory with a brass dashed line) visible and not clipped, room labels
   readable at 360px, no sideways scroll.
 - `portraits`: the portrait gallery on its own (light dev page).
+- `dogfight`: the dog fight board in each state, with a cat helper picker
+  (light dev page).
+- `cases` (not a preview): the case inspector.
 
 A save cannot show a click's result, so a test that proves a click still
 loads a save one action before the click. A save can show a campaign round,
 midnight (enough games marked done), and a minigame mid-way. Build that save
 on the run. Do not commit one.
+
+## Scenarios (`#dev/load/<id>`)
+
+A scenario writes a save, then opens the real game on it, so you can play from
+that state. Each builds its save on the run with the engine and the app's own
+functions (`src/dev/scenarios.ts`), never a committed file. Loading asks first
+(an in-app `Dialog`) because it replaces the game saved in this browser. e2e
+builds the same states from the same builders; add a test to
+`e2e/scenarios.spec.ts` for each new one.
+
+- `campaign-start`: a new campaign, round 1, nothing played.
+- `campaign-midnight`: round 1 with every puzzle played, map locked.
+- `campaign-last-round`: round 3 after two wrong accusations; the next wrong
+  one lets the killer escape.
+- `finished-runs`: Home with a solved Quick case and a caught campaign, both
+  in Your record.
+
+Not yet: a Nosing around game mid-way. The bot that plays it
+(`src/games/nosingSweeps.ts`) imports `node:assert`, so it must be split
+into a browser-safe module first.

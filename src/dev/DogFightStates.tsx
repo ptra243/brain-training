@@ -1,4 +1,4 @@
-// The #dev "Dog fight states" panel: a real NosingDog screen on fixed views, so the arena
+// The #dev/dogfight "Dog fight states" panel: a real NosingDog screen on fixed views, so the arena
 // band can be judged in each situation (who attacks, lives, the last-turn line).
 
 import { useState } from 'react';
@@ -95,7 +95,7 @@ export function DogFightStates() {
       </div>
       <label>
         Cat{' '}
-        <select value={helper} onChange={(e) => setHelper(e.target.value)}>
+        <select style={{ minHeight: 44 }} value={helper} onChange={(e) => setHelper(e.target.value)}>
           {cats.map((c) => (
             <option key={c} value={c}>
               {c}

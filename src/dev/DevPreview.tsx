@@ -6,7 +6,7 @@ import { isSceneGame } from '../engine/gameKinds.ts';
 import { generateCase } from '../engine/generate.ts';
 import { midSentence } from '../engine/text.ts';
 import type { Case } from '../engine/types.ts';
-import { otherHouses } from '../content/houses.ts';
+import { otherHouses, variantsOf } from '../content/houses.ts';
 import { Casebook } from '../game/Casebook.tsx';
 import { MapPanel } from '../game/MapPanel.tsx';
 import { Dialog } from '../game/Dialog.tsx';
@@ -15,7 +15,9 @@ import { ROUND_TIMES } from '../game/labels.ts';
 import { itemName, suspectName } from '../game/names.ts';
 import { NextMurderScene } from '../game/NextMurderScene.tsx';
 import { emptyProgress, type Progress } from '../game/state.ts';
+import { DogFightStates } from './DogFightStates.tsx';
 import { PortraitGallery } from './PortraitGallery.tsx';
+import { DevList } from './DevList.tsx';
 import { PREVIEWS } from './previews.ts';
 
 const noop = () => {};
@@ -127,20 +129,25 @@ function CasebookPreview({ midnight }: { midnight: boolean }) {
   );
 }
 
-/** The three other houses stacked, each drawn by the real map with nobody placed. */
+/** Every layout in all 8 orientations (turned and mirrored), each drawn by the real map with nobody placed. */
 function HousesPreview() {
   const base = generateCase(content, 1, 'medium');
   return (
     <main className="panel">
-      {otherHouses.map((h) => {
-        const c: Case = { ...base, suspects: [], items: [], rooms: h.rooms.map((r) => r.id), sceneRoom: h.rooms[0].id };
-        return (
-          <section key={h.id} aria-label={h.name}>
-            <h2 style={{ color: '#f4f0e4' }}>{h.name}</h2>
-            <MapPanel c={c} progress={emptyProgress()} dispatch={noop} onAccused={noop} house={h} />
-          </section>
-        );
-      })}
+      {otherHouses.map((layout) => (
+        <section key={layout.id} aria-label={layout.name}>
+          <h2 style={{ color: '#f4f0e4' }}>{layout.name}</h2>
+          {variantsOf(layout).map((h) => {
+            const c: Case = { ...base, suspects: [], items: [], rooms: h.rooms.map((r) => r.id), sceneRoom: h.rooms[0].id };
+            return (
+              <div key={h.id} data-testid={`house-${h.id}`}>
+                <h3 style={{ color: '#d8ccb0' }}>{h.id}</h3>
+                <MapPanel c={c} progress={emptyProgress()} dispatch={noop} onAccused={noop} house={h} />
+              </div>
+            );
+          })}
+        </section>
+      ))}
     </main>
   );
 }
@@ -154,6 +161,7 @@ const SCREENS: Record<string, () => ReactNode> = {
   explore: () => <CasebookPreview midnight={false} />,
   midnight: () => <CasebookPreview midnight />,
   portraits: () => <PortraitGallery />,
+  dogfight: () => <DogFightStates />,
 };
 
 export function DevPreview({ id }: { id: string }) {
@@ -169,15 +177,16 @@ export function DevPreview({ id }: { id: string }) {
     return (
       <main className="inspector">
         <h1>No preview called "{id}"</h1>
-        <ul>
-          {PREVIEWS.map((p) => (
-            <li key={p.id}>
-              <a href={`#dev/${p.id}`}>{p.id}</a> <span className="muted">{p.about}</span>
-            </li>
-          ))}
-        </ul>
+        <DevList />
       </main>
     );
   }
-  return <>{render()}</>;
+  return (
+    <>
+      <a className="dev-back" href="#dev" aria-label="Back to dev pages">
+        ‹
+      </a>
+      {render()}
+    </>
+  );
 }

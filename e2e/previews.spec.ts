@@ -45,6 +45,8 @@ test('houses preview', async ({ page }) => {
   await page.goto('/#dev/houses');
   await expect(page.getByRole('heading', { name: 'The Courtyard House' })).toBeVisible();
   await expect(page.locator('.door-gap').first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'long/m270' })).toBeAttached();
+  await expect(page.getByRole('heading', { name: 'tlodge/r90' })).toBeAttached();
   await checkScreen(page, 'preview houses');
 });
 
@@ -52,6 +54,12 @@ test('portraits preview', async ({ page }) => {
   await page.goto('/#dev/portraits');
   await expect(page.locator('.pg-art svg').first()).toBeVisible();
   await checkScreen(page, 'preview portraits');
+});
+
+test('dogfight preview', async ({ page }) => {
+  await page.goto('/#dev/dogfight');
+  await expect(page.getByRole('heading', { name: 'Dog fight states' })).toBeVisible();
+  await checkScreen(page, 'preview dogfight');
 });
 
 test('an unknown preview lists the real ones', async ({ page }) => {

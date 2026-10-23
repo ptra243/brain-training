@@ -52,7 +52,7 @@ Decided 2026-10-22 from the "You and the cat" board on the same canvas (its SVG 
   Elder heir, Younger heir, Detective), keyed by the ids the theme content will use: `host`, `hostess`,
   `butler`, `conjurer`, `housekeeper`, `financier`, `uncle`, `elder-heir`, `younger-heir`, `detective`.
   The theme session must keep these ids. A guest id with no parts keeps today's initials counter, so
-  only the Butler shows a portrait until the theme lands; the `#dev` inspector has a gallery of all 10.
+  only the Butler shows a portrait until the theme lands; `#dev/portraits` has a gallery of all 10.
 - **The portrait sits in an ivory card frame** on the person screen, with the role name under it. Normal
   play never shows a tarot card. When tarot mode exists, only the label changes (card numeral and name).
 - **Mood tint follows the greeting:** the step is `min(mood + beats heard, top)` (`greeting` in
