@@ -13,22 +13,22 @@ import { capital, fillIn, midSentence } from './text.ts';
 
 const TESTIMONY: Record<ClueType, readonly string[]> = {
   'suspect-room': ['I saw {s} in the {r} all evening.', '{S} was in the {r}. I took them a cup of tea there.'],
-  'suspect-not-room': ['{S} never came into the {r}. I would have noticed.', 'I was watching the door of the {r}. {S} never went in.'],
+  'suspect-not-room': ['{S} never set foot in the {r}. Ask anyone.', "Not the {r}. Wherever {s} was, it wasn't in there."],
   'suspect-item': ['{S} had the {i} with them all evening.', 'I saw {s} carrying the {i}.'],
-  'suspect-not-item': ['{S} never touched the {i}.', "Whatever {s} was holding, it wasn't the {i}."],
+  'suspect-not-item': ['{S} never touched the {i}.', "{S} never had the {i}. I'd swear to that."],
   'item-room': ['The {i} was in the {r} when I looked in.', 'I noticed the {i} lying in the {r}.'],
   'item-not-room': ["There was no {i} in the {r}. I'm certain of it.", 'I looked all round the {r}. No {i} anywhere.'],
   'suspect-either-room': ["{S} was in the {r} or the {r2}. I couldn't say which."],
   'suspect-next-to-room': [
-    'I saw {s} going into one of the rooms off the {r}. Not the {r} itself, the one beside it.',
-    '{S} told me they spent the evening in a room next to the {r}. Not in the {r} itself.',
+    'I saw {s} going into a room beside the {r}. Not into it, the one next door.',
+    '{S} told me they spent the evening in a room next to the {r}, not in it.',
   ],
   'suspects-adjacent': ['I could hear {b} through the wall all evening.', '{B} was in the room next to mine.'],
-  'suspects-not-adjacent': ["{B} wasn't in a room next to mine. I didn't hear a sound from them."],
+  'suspects-not-adjacent': ["{B} wasn't in a room next to mine. I'd have heard them through the wall."],
   'suspects-together': ['{B} and I were in the same room all evening.', '{B} was with me the whole time.'],
   'suspects-apart': ["{B} wasn't in my room. I'd have seen them."],
   'suspect-alone': ['{S} was on their own all evening. Nobody went in to them.', 'Nobody else was in the room with {s}.'],
-  'suspect-empty-handed': ['{S} had nothing in their hands. No weapon at all.', "I saw {s} all evening. They weren't carrying anything."],
+  'suspect-empty-handed': ['{S} had nothing in their hands. No weapon at all.', 'Every time I caught sight of {s}, their hands were empty. No weapon at all.'],
 };
 
 const EVIDENCE: Record<ClueType, readonly string[]> = {
