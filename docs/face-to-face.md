@@ -1,6 +1,6 @@
 # Face to face: questioning the accused (campaign)
 
-Settled design, 2026-10-21. Campaign only for now; Quick and preset cases keep their finale as it is.
+Settled design, 2026-10-21. **Built (all four pieces), 2026-10-23.** Every scene has 8 questions, 6 asked, so innocent and killer look alike. Campaign only for now; Quick and preset cases keep their finale as it is.
 
 ## What she sees
 
