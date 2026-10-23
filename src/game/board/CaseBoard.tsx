@@ -101,6 +101,7 @@ export function CaseBoard(props: CaseBoardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const fired = useRef(false);
   const panelRef = useRef<HTMLElement>(null);
+  const doneRef = useRef<HTMLElement>(null);
   const revealPanel = useRef(false);
 
   // ---------- Size: as big as fits, up to 40px a square ----------
@@ -304,6 +305,18 @@ export function CaseBoard(props: CaseBoardProps) {
     const t = setTimeout(() => dispatch({ type: 'say', toast: null }), 6000);
     return () => clearTimeout(t);
   }, [toast]);
+
+  // The last piece going in can leave "The pieces fit" below the fold: bring it up so she sees it's solved.
+  // Not on first render, so reopening a finished board stays where it is.
+  const wasComplete = useRef(complete);
+  useEffect(() => {
+    if (complete && !wasComplete.current) {
+      const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      doneRef.current?.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+      say({ kind: 'good', text: 'The pieces fit! Scroll down to see how they fit together.' });
+    }
+    wasComplete.current = complete;
+  }, [complete]);
 
   // Tell the parent once when the board becomes complete.
   const completeNow = !finished && isComplete(rules, props.save);
@@ -629,7 +642,7 @@ export function CaseBoard(props: CaseBoardProps) {
       {!finished && unmet && <p className="cb-note">Every square is full, but some matching symbols aren't touching yet.</p>}
 
       {complete && (
-        <section className="cb-done" aria-live="polite">
+        <section ref={doneRef} className="cb-done" aria-live="polite">
           <h2>The pieces fit</h2>
           {doneContent}
           {!finished && save.hintCount > 0 && <p className="cb-muted" style={{ color: 'var(--ink-soft)' }}>You asked {helper} {save.hintCount} time{save.hintCount === 1 ? '' : 's'}.</p>}
