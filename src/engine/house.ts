@@ -1,16 +1,23 @@
-import type { Cell, House, Room } from './types.ts';
+import type { Cell, DoorSpot, House, Room } from './types.ts';
 
 type RoomMeta = Omit<Room, 'cells'>;
 
+/** The layout letter for a cell no room owns (outside the house). */
+const VOID = '.';
+
 /**
  * Build a house from an ASCII layout: one letter per grid cell, rows separated
- * by newlines, spaces ignored. Each letter maps to a room in `legend`.
+ * by newlines, spaces ignored. Each letter maps to a room in `legend`; `.` is a
+ * void cell outside the house. `doors` (optional) lists door pairs as
+ * space-separated two-letter legend pairs ("HC HD"): with it only door-joined
+ * rooms touch (see `roomAdjacency`); without it, rooms sharing a wall touch.
  */
 export function houseFromLayout(
   id: string,
   name: string,
   layout: string,
   legend: Record<string, RoomMeta>,
+  doors?: string,
 ): House {
   const grid = layout
     .trim()
@@ -19,13 +26,16 @@ export function houseFromLayout(
   const rows = grid.length;
   const cols = grid[0].length;
   const cellsByLetter = new Map<string, Cell[]>();
+  const footprint: Cell[] = [];
   grid.forEach((line, r) => {
     if (line.length !== cols) throw new Error(`Layout row ${r} has ${line.length} cells, expected ${cols}`);
     line.forEach((letter, c) => {
+      if (letter === VOID) return;
       if (!legend[letter]) throw new Error(`Layout letter "${letter}" has no room in the legend`);
       const list = cellsByLetter.get(letter) ?? [];
       list.push([r, c]);
       cellsByLetter.set(letter, list);
+      footprint.push([r, c]);
     });
   });
   const rooms: Room[] = Object.entries(legend).map(([letter, meta]) => {
@@ -37,7 +47,44 @@ export function houseFromLayout(
   for (const room of rooms) {
     if (!isContiguous(room.cells)) throw new Error(`Room "${room.name}" is not contiguous`);
   }
-  return house;
+  if (!isContiguous(footprint)) throw new Error(`House "${name}": the footprint (cells that are not void) is not contiguous`);
+  if (doors === undefined) return house;
+
+  const idOf = new Map(Object.entries(legend).map(([letter, meta]) => [letter, meta.id]));
+  const pairs: [string, string][] = doors.split(/\s+/).filter(Boolean).map((token) => {
+    if (token.length !== 2) throw new Error(`Door "${token}" must be two legend letters`);
+    const [la, lb] = token.split('');
+    const a = idOf.get(la);
+    const b = idOf.get(lb);
+    if (!a) throw new Error(`Door "${token}": "${la}" is not in the legend`);
+    if (!b) throw new Error(`Door "${token}": "${lb}" is not in the legend`);
+    if (a === b) throw new Error(`Door "${token}" joins a room to itself`);
+    return [a, b];
+  });
+  const withDoors: House = { ...house, doors: pairs };
+  const walls = sharedWallAdjacency(house);
+  const seenPair = new Set<string>();
+  for (const [a, b] of pairs) {
+    if (!walls.get(a)!.has(b)) throw new Error(`Door ${a}-${b}: the rooms do not share a wall`);
+    const key = [a, b].sort().join('|');
+    if (seenPair.has(key)) throw new Error(`Door ${a}-${b} is listed twice`);
+    seenPair.add(key);
+  }
+  const adj = roomAdjacency(withDoors);
+  const start = rooms[0].id;
+  const reached = new Set<string>([start]);
+  const queue = [start];
+  while (queue.length) {
+    for (const n of adj.get(queue.pop()!)!) {
+      if (!reached.has(n)) {
+        reached.add(n);
+        queue.push(n);
+      }
+    }
+  }
+  const lost = rooms.filter((r) => !reached.has(r.id)).map((r) => r.id);
+  if (lost.length) throw new Error(`Doors do not connect every room; unreachable: ${lost.join(', ')}`);
+  return withDoors;
 }
 
 function isContiguous(cells: readonly Cell[]): boolean {
@@ -58,8 +105,8 @@ function isContiguous(cells: readonly Cell[]): boolean {
   return seen.size === all.size;
 }
 
-/** Room id -> set of room ids sharing at least one cell edge with it. */
-export function roomAdjacency(house: House): Map<string, Set<string>> {
+/** Room id -> set of room ids sharing at least one cell edge with it (ignores doors). */
+export function sharedWallAdjacency(house: House): Map<string, Set<string>> {
   const owner = new Map<string, string>();
   for (const room of house.rooms) for (const [r, c] of room.cells) owner.set(`${r},${c}`, room.id);
   const adj = new Map<string, Set<string>>(house.rooms.map((room) => [room.id, new Set<string>()]));
@@ -75,6 +122,38 @@ export function roomAdjacency(house: House): Map<string, Set<string>> {
     }
   }
   return adj;
+}
+
+/** Room id -> rooms that touch it: the door pairs when the house has doors, else rooms sharing a wall. */
+export function roomAdjacency(house: House): Map<string, Set<string>> {
+  if (!house.doors) return sharedWallAdjacency(house);
+  const adj = new Map<string, Set<string>>(house.rooms.map((room) => [room.id, new Set<string>()]));
+  for (const [a, b] of house.doors) {
+    adj.get(a)!.add(b);
+    adj.get(b)!.add(a);
+  }
+  return adj;
+}
+
+/** One spot per door: the middle cell (row-major) of the wall the two rooms share. */
+export function doorSpots(house: House): DoorSpot[] {
+  const owner = new Map<string, string>();
+  for (const room of house.rooms) for (const [r, c] of room.cells) owner.set(`${r},${c}`, room.id);
+  return (house.doors ?? []).map(([a, b]) => {
+    const edges: { row: number; col: number; side: 'right' | 'bottom' }[] = [];
+    for (const room of house.rooms) {
+      if (room.id !== a && room.id !== b) continue;
+      const other = room.id === a ? b : a;
+      for (const [r, c] of room.cells) {
+        if (owner.get(`${r},${c + 1}`) === other) edges.push({ row: r, col: c, side: 'right' });
+        if (owner.get(`${r + 1},${c}`) === other) edges.push({ row: r, col: c, side: 'bottom' });
+      }
+    }
+    if (!edges.length) throw new Error(`Door ${a}-${b}: the rooms do not share a wall`);
+    edges.sort((x, y) => x.row - y.row || x.col - y.col || (x.side === y.side ? 0 : x.side === 'right' ? -1 : 1));
+    const mid = edges[Math.floor(edges.length / 2)];
+    return { a, b, ...mid };
+  });
 }
 
 /** Map coordinate label for a cell, e.g. [0, 0] -> "A1" (column letter, row number). */

@@ -1,6 +1,8 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { content, houseDetails } from '../content/index.ts';
-import type { Case, GameKind, Room } from '../engine/types.ts';
+import type { Case, GameKind, House } from '../engine/types.ts';
+import { DoorGaps } from './DoorGaps.tsx';
+import { labelClass, ownerMap, tileWalls } from './plan.ts';
 import { playerPortrait, portraits, type PortraitParts } from '../content/portraits.ts';
 import { talk } from '../content/talk.ts';
 import { Dialog } from './Dialog.tsx';
@@ -27,6 +29,8 @@ interface Props {
   /** Midnight: the map shows, but she can't move and nothing in the room opens. */
   locked?: boolean;
   onPlay: (kind: GameKind) => void;
+  /** The house to draw (default: the manor). */
+  house?: House;
 }
 
 type PersonTab = 'talk' | 'minigame' | 'clues';
@@ -90,8 +94,7 @@ function PersonClues({ c, progress, dispatch, suspect }: { c: Case; progress: Pr
 }
 
 /** The campaign's map: her room, where the body was found, a mark over rooms with something to play, and what is in her room. */
-export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPlay }: Props) {
-  const { house } = content;
+export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPlay, house = content.house }: Props) {
   const contents = useMemo(() => roomContents(content, houseDetails, c), [c]);
   const here = whereAmI(c, progress);
   const frozen = !!readOnly || !!locked;
@@ -106,13 +109,8 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
     setPerson(id);
   };
 
-  const owner = useMemo(() => {
-    const m = new Map<string, Room>();
-    for (const room of house.rooms) for (const [r, col] of room.cells) m.set(`${r},${col}`, room);
-    return m;
-  }, [house]);
-  const roomAtCell = (r: number, col: number) => owner.get(`${r},${col}`)!;
-  const wall = (r: number, col: number, dr: number, dc: number) => roomAtCell(r, col) !== owner.get(`${r + dr},${col + dc}`);
+  const owner = useMemo(() => ownerMap(house), [house]);
+  const roomAtCell = (r: number, col: number) => owner.get(`${r},${col}`);
   const pct = (r: number, col: number) => ({ top: `${(r / house.rows) * 100}%`, left: `${(col / house.cols) * 100}%` });
 
   const open = (kind: GameKind) => {
@@ -177,6 +175,7 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
             {Array.from({ length: house.rows }, (_, r) =>
               Array.from({ length: house.cols }, (_, col) => {
                 const room = roomAtCell(r, col);
+                if (!room) return <div key={`${r}-${col}`} className="tile void" aria-hidden="true" />;
                 const inPlay = c.rooms.includes(room.id);
                 const isLabel = room.cells[0][0] === r && room.cells[0][1] === col;
                 const todo = inPlay && !locked && !readOnly && openPuzzlesIn(c, progress, contents[room.id], picked, left).length > 0;
@@ -185,16 +184,10 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
                     key={`${r}-${col}`}
                     className={`tile ${inPlay ? '' : 'closed'} ${room.id === c.sceneRoom ? 'scene' : ''} ${room.id === here ? 'here' : ''}`}
                     onClick={inPlay ? () => go(room.id) : undefined}
-                    style={{
-                      background: roomTint(room.id),
-                      borderTopWidth: wall(r, col, -1, 0) ? 3 : 0,
-                      borderLeftWidth: wall(r, col, 0, -1) ? 3 : 0,
-                      borderBottomWidth: r === house.rows - 1 ? 3 : 0,
-                      borderRightWidth: col === house.cols - 1 ? 3 : 0,
-                    }}
+                    style={{ background: roomTint(room.id), ...tileWalls(owner, r, col) }}
                   >
                     {isLabel && (
-                      <span className="room-name">
+                      <span className={labelClass(house, room)}>
                         {room.name}
                         {room.id === c.sceneRoom && <span className="body-mark"> ✕ body</span>}
                       </span>
@@ -215,6 +208,7 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
                 );
               }),
             )}
+            <DoorGaps house={house} />
 
             {house.rooms.map((room) => {
               if (!c.rooms.includes(room.id) || locked || readOnly) return null;

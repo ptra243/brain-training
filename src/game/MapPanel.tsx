@@ -1,6 +1,8 @@
 import { useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { content } from '../content/index.ts';
-import type { Case, GameKind, Room } from '../engine/types.ts';
+import type { Case, GameKind, House, Room } from '../engine/types.ts';
+import { DoorGaps } from './DoorGaps.tsx';
+import { labelClass, ownerMap, tileWalls } from './plan.ts';
 import { ClueCard } from './ClueCard.tsx';
 import { cellOf, showsWrong } from './gridHints.ts';
 import { Dialog } from './Dialog.tsx';
@@ -31,6 +33,8 @@ interface Props {
   pawedSquare?: string;
   /** Open a guest's questioning game from their sheet (absent where games can't be opened). */
   onQuestion?: (kind: GameKind) => void;
+  /** The house to draw (default: the manor). */
+  house?: House;
 }
 
 type Piece = { kind: 'suspect' | 'item'; id: string };
@@ -65,7 +69,7 @@ const SPREAD: [number, number][][] = [
   [[-0.27, -0.3], [-0.27, 0.3], [0.27, -0.3], [0.27, 0.3], [0, 0]],
 ];
 
-export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQuestion }: Props) {
+export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQuestion, house = content.house }: Props) {
   // The cat's hint: the person or weapon and the room (or weapon) its square is about.
   const hint = pawedSquare ? cellOf(pawedSquare) : null;
   const hintedPiece = (p: Piece) => !!hint && hint.row === p.id;
@@ -76,17 +80,12 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
   const wrongItem = (i: string) =>
     c.rooms.some((r) => progress.marks[markKey('item-room', i, r)] === 'o' && showsWrong(progress, progress.gridHints, markKey('item-room', i, r))) ||
     c.suspects.some((s) => progress.marks[markKey('suspect-item', s, i)] === 'o' && showsWrong(progress, progress.gridHints, markKey('suspect-item', s, i)));
-  const { house } = content;
   const mapRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [open, setOpen] = useState<Piece | null>(null);
   const [confirming, setConfirming] = useState(false);
 
-  const owner = useMemo(() => {
-    const m = new Map<string, Room>();
-    for (const room of house.rooms) for (const [r, col] of room.cells) m.set(`${r},${col}`, room);
-    return m;
-  }, [house]);
+  const owner = useMemo(() => ownerMap(house), [house]);
   const roomAtCell = (r: number, col: number) => owner.get(`${r},${col}`);
 
   const roomAtPoint = (x: number, y: number): Room | null => {
@@ -148,9 +147,6 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
     placeSuspect(selected, roomAtCell(r, col) ?? null);
     setSelected(null);
   };
-
-  // Walls: a thick edge wherever the neighbouring square is another room or outside.
-  const wall = (r: number, col: number, dr: number, dc: number) => roomAtCell(r, col) !== roomAtCell(r + dr, col + dc);
 
   const lifted = (p: Piece) => held?.kind === p.kind && held.id === p.id;
 
@@ -228,7 +224,8 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
           >
             {Array.from({ length: house.rows }, (_, r) =>
               Array.from({ length: house.cols }, (_, col) => {
-                const room = roomAtCell(r, col)!;
+                const room = roomAtCell(r, col);
+                if (!room) return <div key={`${r}-${col}`} className="tile void" aria-hidden="true" />;
                 const inPlay = c.rooms.includes(room.id);
                 const isLabel = room.cells[0][0] === r && room.cells[0][1] === col;
                 return (
@@ -236,16 +233,10 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
                     key={`${r}-${col}`}
                     className={`tile ${inPlay ? '' : 'closed'} ${room.id === scene ? 'scene' : ''} ${hintedRoom(room.id) ? 'hinted' : ''}`}
                     onClick={() => onMapTap(r, col)}
-                    style={{
-                      background: roomTint(room.id),
-                      borderTopWidth: wall(r, col, -1, 0) ? 3 : 0,
-                      borderLeftWidth: wall(r, col, 0, -1) ? 3 : 0,
-                      borderBottomWidth: r === house.rows - 1 ? 3 : 0,
-                      borderRightWidth: col === house.cols - 1 ? 3 : 0,
-                    }}
+                    style={{ background: roomTint(room.id), ...tileWalls(owner, r, col) }}
                   >
                     {isLabel && (
-                      <span className="room-name">
+                      <span className={labelClass(house, room)}>
                         {room.name}
                         {room.id === scene && <span className="body-mark"> ✕ body</span>}
                       </span>
@@ -254,6 +245,7 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
                 );
               }),
             )}
+            <DoorGaps house={house} />
 
             {house.rooms.map((room) => {
               const { people, things } = anchors(room);

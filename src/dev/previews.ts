@@ -16,6 +16,7 @@ export const PREVIEWS: readonly PreviewInfo[] = [
   { id: 'time-card', about: 'The time card after a puzzle', look: 'game' },
   { id: 'explore', about: 'An explored round on the map, at 9pm', look: 'game' },
   { id: 'midnight', about: 'The locked map at midnight', look: 'game' },
+  { id: 'houses', about: 'The lodge, courtyard house and steps on the floor plan', look: 'game' },
   { id: 'portraits', about: 'The portrait gallery', look: 'plain' },
 ];
 

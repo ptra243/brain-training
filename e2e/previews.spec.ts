@@ -41,6 +41,13 @@ test('midnight preview', async ({ page }) => {
   await checkScreen(page, 'preview midnight');
 });
 
+test('houses preview', async ({ page }) => {
+  await page.goto('/#dev/houses');
+  await expect(page.getByRole('heading', { name: 'The Courtyard House' })).toBeVisible();
+  await expect(page.locator('.door-gap').first()).toBeVisible();
+  await checkScreen(page, 'preview houses');
+});
+
 test('portraits preview', async ({ page }) => {
   await page.goto('/#dev/portraits');
   await expect(page.locator('.pg-art svg').first()).toBeVisible();

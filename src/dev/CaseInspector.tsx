@@ -12,7 +12,7 @@ import { isSceneGame } from '../engine/gameKinds.ts';
 import { campaignDifficulty, generateCase } from '../engine/generate.ts';
 import { PRESETS, type Length } from '../engine/settings.ts';
 import { countMatching } from '../engine/search.ts';
-import type { Difficulty } from '../engine/types.ts';
+import type { Difficulty, House } from '../engine/types.ts';
 import { emptyProgress } from '../game/state.ts';
 import { saveQuick, saveScreen } from '../game/storage.ts';
 import { PortraitGallery } from './PortraitGallery.tsx';
@@ -22,7 +22,7 @@ const ROOM_COLOURS = ['#e8d7c3', '#cfdcc8', '#d6d3e6', '#ecd0cf', '#cfe0e6', '#e
 const nameOf = <T extends { id: string; name: string }>(list: readonly T[], id: string) =>
   list.find((x) => x.id === id)?.name ?? id;
 
-export function CaseInspector() {
+export function CaseInspector({ house = content.house }: { house?: House } = {}) {
   const [number, setNumber] = useState(1);
   const [difficulty, setDifficulty] = useState<Difficulty | 'campaign'>('campaign');
   const [length, setLength] = useState<Length>('normal');
@@ -50,7 +50,6 @@ export function CaseInspector() {
     [c],
   );
 
-  const { house } = content;
   const roomAt = (r: number, col: number) =>
     house.rooms.findIndex((room) => room.cells.some(([rr, cc]) => rr === r && cc === col));
 
@@ -116,6 +115,7 @@ export function CaseInspector() {
             ...Array.from({ length: house.cols }, (_, col) => {
               const i = roomAt(r, col);
               const room = house.rooms[i];
+              if (!room) return <span key={`${r}-${col}`} className="cell void" />;
               const first = room.cells[0][0] === r && room.cells[0][1] === col;
               const inPlay = c.rooms.includes(room.id);
               return (

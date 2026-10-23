@@ -115,6 +115,14 @@ h1, h2 { font-family: var(--serif); font-weight: 600; margin: 0; }
 .tile.closed {
   background-image: repeating-linear-gradient(135deg, rgba(42, 38, 32, 0.22) 0 2px, transparent 2px 7px) !important;
 }
+.tile.void { background: none; }
+.door-gap {
+  position: absolute; z-index: 1; pointer-events: none; background-color: var(--card);
+  background-repeat: no-repeat; background-position: center;
+}
+.door-gap.v { width: 5px; background-size: 1px 100%; background-image: repeating-linear-gradient(to bottom, var(--brass-deep) 0 3px, transparent 3px 5px); }
+.door-gap.h { height: 5px; background-size: 100% 1px; background-image: repeating-linear-gradient(to right, var(--brass-deep) 0 3px, transparent 3px 5px); }
+.room-name.tight { font-size: 0.56rem; }
 .room-name {
   position: absolute; top: 0.2rem; left: 0.3rem; right: 0.1rem;
   font-family: var(--serif); font-size: 0.7rem; font-weight: 600; color: var(--wall);
@@ -638,6 +646,16 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
 .home .card .muted { margin-bottom: 0.8rem; }
 .home-soon { opacity: 0.7; }
 .home-soon .muted { margin: 0; }
+
+/* ---------- Your record ---------- */
+.record-main { display: grid; gap: 0.85rem; padding: 0 1rem 1rem; }
+.record-section { display: grid; gap: 0.6rem; }
+.record-section h2, .record-section p { margin: 0; }
+.record-totals { font-family: var(--serif); font-size: 1.05rem; line-height: 1.4; }
+.record-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.7rem; }
+.record-rows li { display: grid; gap: 0.15rem; padding-top: 0.7rem; border-top: 1px solid var(--card-edge); overflow-wrap: anywhere; }
+.record-name { font-family: var(--serif); font-size: 1.1rem; }
+.home-record { margin-top: 0.5rem; }
 
 /* ---------- Campaign ---------- */
 .round-tabs { display: flex; justify-content: center; gap: 0.4rem; padding: 0 1rem 0.75rem; }

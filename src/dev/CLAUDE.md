@@ -27,6 +27,10 @@ What a look check judges on each:
   (N games left)" header, room list, tab bar.
 - `midnight`: the same round at midnight with the map locked: Midnight header,
   a disabled room, a greyed room list.
+- `houses`: the lodge, courtyard house and steps stacked, each on the real map
+  with nobody placed: footprint readable, void cells unpainted, door gaps
+  (ivory with a brass dashed line) visible and not clipped, room labels
+  readable at 360px, no sideways scroll.
 - `portraits`: the portrait gallery on its own (light dev page).
 
 A save cannot show a click's result, so a test that proves a click still

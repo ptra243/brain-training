@@ -6,7 +6,9 @@ import { isSceneGame } from '../engine/gameKinds.ts';
 import { generateCase } from '../engine/generate.ts';
 import { midSentence } from '../engine/text.ts';
 import type { Case } from '../engine/types.ts';
+import { otherHouses } from '../content/houses.ts';
 import { Casebook } from '../game/Casebook.tsx';
+import { MapPanel } from '../game/MapPanel.tsx';
 import { Dialog } from '../game/Dialog.tsx';
 import { clockTime, gamesLeft } from '../game/explore.ts';
 import { ROUND_TIMES } from '../game/labels.ts';
@@ -125,7 +127,26 @@ function CasebookPreview({ midnight }: { midnight: boolean }) {
   );
 }
 
+/** The three other houses stacked, each drawn by the real map with nobody placed. */
+function HousesPreview() {
+  const base = generateCase(content, 1, 'medium');
+  return (
+    <main className="panel">
+      {otherHouses.map((h) => {
+        const c: Case = { ...base, suspects: [], items: [], rooms: h.rooms.map((r) => r.id), sceneRoom: h.rooms[0].id };
+        return (
+          <section key={h.id} aria-label={h.name}>
+            <h2 style={{ color: '#f4f0e4' }}>{h.name}</h2>
+            <MapPanel c={c} progress={emptyProgress()} dispatch={noop} onAccused={noop} house={h} />
+          </section>
+        );
+      })}
+    </main>
+  );
+}
+
 const SCREENS: Record<string, () => ReactNode> = {
+  houses: () => <HousesPreview />,
   'next-murder': () => <NextMurderPreview />,
   escaped: () => <EscapedPreview />,
   'guess-now': () => <GuessNowPreview />,

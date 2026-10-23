@@ -106,7 +106,8 @@ function gridFor(house: House, n: number): Grid {
     if (y < height - 1) out.push(s + width);
     if (x > 0) out.push(s - 1);
     if (x < width - 1) out.push(s + 1);
-    return out;
+    // Squares of a void cell (no room owns it) are walls.
+    return out.filter((t) => room[t] !== '');
   };
   return { width, height, room, nb };
 }
@@ -115,9 +116,9 @@ function gridFor(house: House, n: number): Grid {
 function windingPath(lv: NosingLevelSpec, grid: Grid, rng: Rng): number[] | null {
   const { width, height, room, nb } = grid;
   const target = lv.len[0] + rng.int(lv.len[1] - lv.len[0] + 1);
-  const roomCount = new Set(room).size;
+  const roomCount = new Set(room.filter((r) => r !== '')).size;
   const edge: number[] = [];
-  for (let s = 0; s < width * height; s++) if (nb(s).length < 4) edge.push(s);
+  for (let s = 0; s < width * height; s++) if (room[s] !== '' && nb(s).length < 4) edge.push(s);
   const start = rng.pick(edge);
   const path: number[] = [start];
   const used = new Set<number>([start]);

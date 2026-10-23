@@ -24,6 +24,25 @@ export interface House {
   rows: number;
   cols: number;
   rooms: readonly Room[];
+  /**
+   * Room id pairs joined by a door. Absent = no doors: rooms that share a wall
+   * count as touching (the manor). With doors, only door-joined rooms touch.
+   * Cells in the grid that no room owns are outside the house (not part of it).
+   */
+  doors?: readonly (readonly [string, string])[];
+}
+
+/**
+ * Where a door is drawn: on the right edge of cell (row, col) when `side` is
+ * 'right' (between it and (row, col + 1)), or its bottom edge when 'bottom'
+ * (between it and (row + 1, col)). `a` and `b` are the two room ids.
+ */
+export interface DoorSpot {
+  a: string;
+  b: string;
+  row: number;
+  col: number;
+  side: 'right' | 'bottom';
 }
 
 export interface Suspect {
