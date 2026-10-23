@@ -80,10 +80,13 @@ test('turning four times is the layout, and the variants are 8 different footpri
   }
 });
 
-test('a long house turned a quarter swaps rows and columns', () => {
-  assert.deepEqual([longHouse.rows, longHouse.cols], [4, 12]);
-  const t = houseById('long/r90');
-  assert.deepEqual([t.rows, t.cols], [12, 4]);
+test('no plan is much taller than wide: every house and turn fits 10 to 12 squares each way', () => {
+  for (const h of allHouses) {
+    for (const v of variantsOf(h)) {
+      if (h === manor) assert.equal(v.rows, v.cols, v.id);
+      else assert.ok(v.rows >= 10 && v.rows <= 12 && v.cols >= 10 && v.cols <= 12, `${v.id} is ${v.rows}x${v.cols}`);
+    }
+  }
 });
 
 test('houseById resolves variant ids and round trips; an unknown suffix throws', () => {
@@ -107,8 +110,8 @@ test('the new layouts have rooms at least 2 cells across and sensible sizes', ()
       assert.ok(rows.size >= 2 && cols.size >= 2, `${h.id} ${room.id} is thinner than 2 cells`);
     }
   }
-  assert.equal(longHouse.cols, 12);
-  assert.ok(longHouse.rows >= 3 && longHouse.rows <= 4);
+  const longRows = new Set(longHouse.rooms.flatMap((r) => r.cells.map((c) => c[0])));
+  assert.ok(longRows.size >= 3 && longRows.size <= 4, 'the long house is 3 or 4 rows deep');
   assert.equal(longHouse.rooms.length, 8);
   assert.ok(tLodge.rooms.length >= 9 && tLodge.rooms.length <= 10);
   assert.ok(otherHouses.includes(longHouse) && otherHouses.includes(tLodge));

@@ -108,15 +108,23 @@ export const steps: House = withNosing(houseFromLayout(
   'AB AC CD CE DE DF EG FG FH GH',
 ), { len: [58, 66], turns: [7, 15] });
 
-/** Twelve squares wide, four deep: a row of four rooms over a hall and three more. */
+/** Twelve squares wide, four deep, centred in the 12x12 grid like every house: a row of four rooms over a hall and three more. */
 export const longHouse: House = withNosing(houseFromLayout(
   'long',
   'The Long House',
   `
+  . . . . . . . . . . . .
+  . . . . . . . . . . . .
+  . . . . . . . . . . . .
+  . . . . . . . . . . . .
   A A A D D D K K K S S S
   A A A D D D K K K S S S
   C C H H H H H H V V B B
   C C H H H H H H V V B B
+  . . . . . . . . . . . .
+  . . . . . . . . . . . .
+  . . . . . . . . . . . .
+  . . . . . . . . . . . .
   `,
   legend({ A: 'library', D: 'dining', K: 'kitchen', S: 'study', C: 'cloakroom', H: 'hall', V: 'conservatory', B: 'bedroom' }),
   'HA HD HK HC HV AD KS SB VB',

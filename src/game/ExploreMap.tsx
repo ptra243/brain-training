@@ -3,7 +3,7 @@ import { useMemo, useState, type CSSProperties } from 'react';
 import { houseDetails } from '../content/index.ts';
 import type { Case, GameKind, House } from '../engine/types.ts';
 import { DoorGaps } from './DoorGaps.tsx';
-import { frameStyle, labelClass, ownerMap, tileWalls } from './plan.ts';
+import { labelClass, ownerMap, tileWalls } from './plan.ts';
 import { playerPortrait, portraits, type PortraitParts } from '../content/portraits.ts';
 import { talk } from '../content/talk.ts';
 import { Dialog } from './Dialog.tsx';
@@ -152,7 +152,7 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
             : 'Tap a room to walk there. A red mark means something to do.'}
       </p>
 
-      <div className="floorplan-frame explore" style={frameStyle(house)}>
+      <div className="floorplan-frame explore">
         <div className="plan-axes" style={{ gridTemplateColumns: `1rem repeat(${house.cols}, 1fr)` }} aria-hidden="true">
           <span />
           {Array.from({ length: house.cols }, (_, col) => (
