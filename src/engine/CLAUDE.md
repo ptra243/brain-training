@@ -115,6 +115,18 @@
   the same every round; only their mood moves, rolled per guest from the campaign seed and round number.
   Talk content lives in `src/content/talk.ts`, outside `Content`: the golden hash covers the whole
   `Case`, so never add talk fields to `Case` or `Content`.
+- **Seed sweeps go in `check-cases`, not `npm test`.** A node test checks a
+  few fixed seeds per level and stays under ~5 s alone. Checks over many seeds
+  (bots, "rare" or "sometimes" rates) live in a `*Sweeps.ts` helper next to
+  the code, called from `scripts/check-cases.ts`: quick samples seeds the test
+  doesn't use, `--full` runs them all. Its closing "Time by section" and
+  "Time by work" lines show where a slow run goes.
+- **`check-cases:full` runs once, in the main session**, after generator
+  changes (CI runs it too). Delegated pieces run only the quick check. Once
+  they're all back, start the full run in the background and review, write
+  docs and draft the commit message meanwhile. If it fails, fix generator
+  failures in the main session; delegate only a failure with an obvious cause
+  (a test expectation, a check-script bug).
 - **Golden snapshot** (`golden.ts`, `golden.json`): hashes of 77 fixed cases
   across presets, campaign rounds, Play and Quick. If `golden.test.ts` fails on
   an unintended change, fix the code. If the change is intended (say, a

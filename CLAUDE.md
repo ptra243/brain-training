@@ -4,19 +4,17 @@ Brain-training games for one player (the owner's wife) plus a murder-mystery
 campaign: each minigame she wins unlocks a clue, and she solves the case on a
 floor-plan map and logic grids. Played mostly on her phone.
 
-Plan, design decisions and status: the "Murder Mystery Mode — What's Left" doc
-(https://claude.ai/code/artifact/0af63967-9517-43d8-89a2-6c09dd2e2a71), the
-"Questioning variants — Build Plan" doc
-(https://claude.ai/code/artifact/d133c2ba-5666-435a-a751-3a388c6c3fa2), the
-"Grid cases — Build Plan" doc for the Murdoku-style mode
-(https://claude.ai/artifact/Vkrc5ipo8cJ91ofWiUbmAj; read all three with the
-Claude Docs reader, not WebFetch) and the README (setup, layout,
-how a case is made). The original "Murder Mystery Mode — Build Plan"
-(https://claude.ai/code/artifact/d0571578-5078-425b-8c62-56b3b55a1326) is
-history and about 16k tokens: read one section with a search, never whole.
+Plan, design decisions and status live in three Claude Docs: "Murder Mystery
+Mode — What's Left" (https://claude.ai/code/artifact/0af63967-9517-43d8-89a2-6c09dd2e2a71),
+"Questioning variants — Build Plan"
+(https://claude.ai/code/artifact/d133c2ba-5666-435a-a751-3a388c6c3fa2) and
+"Grid cases — Build Plan" (https://claude.ai/artifact/Vkrc5ipo8cJ91ofWiUbmAj).
+Read them with the Claude Docs reader, not WebFetch; how to edit them is in
+`docs/plan-docs.md`. The README covers setup, layout and how a case is made.
+
 Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
 `src/games/CLAUDE.md` (minigame puzzles), `src/game/CLAUDE.md` (casebook UI),
-`e2e/CLAUDE.md` (Playwright tests).
+`src/dev/CLAUDE.md` (dev previews and scenarios), `e2e/CLAUDE.md` (Playwright).
 
 ## Rules that apply everywhere
 
@@ -61,153 +59,60 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
 - Keep logic in plain TS (`src/engine/`, `src/games/`, `src/game/*.ts`) with
   node tests next to it; React components stay thin. Tests run with Node's
   type stripping, so that TS must be erasable syntax only.
-- Checks before committing: `npm run checks` runs these in parallel, one
-  pass/fail line each (`-- --full` for the full case check): `npm run lint`
-  (ESLint with the React Compiler hooks rules: no ref writes during render,
-  use `useEffectEvent` for "latest handler" listeners; an `eslint-disable`
-  needs a reason beside it), `npm test` (includes the golden case snapshot),
-  `npm run check-cases` (the quick run), `npm run build`. While fixing one
-  failure, re-run just that check.
-  For UI changes also run `npm run e2e` (Playwright: layout rules and main flows at phone size).
-- **Seed sweeps go in `check-cases`, not `npm test`.** A node test checks a
-  few fixed seeds per level and stays under ~5 s alone. Checks over many seeds
-  (bots, "rare" or "sometimes" rates) live in a `*Sweeps.ts` helper next to
-  the code, called from `scripts/check-cases.ts`: quick samples seeds the test
-  doesn't use, `--full` runs them all. Its closing "Time by section" and
-  "Time by work" lines show where a slow run goes.
-- **`check-cases:full` runs once, in the main session**, after generator
-  changes (CI runs it too). Delegated pieces run only the quick check. Once
-  they're all back, start the full run in the background and review, write
-  docs and draft the commit message meanwhile. If it fails, fix generator
-  failures here (this session has the context); delegate only a failure
-  with an obvious cause (a test expectation, a check-script bug).
-- **Don't re-run what a hand-back already passed.** When the implementer
-  reports `npm run checks` passing after its last edit, re-run only what
-  your own later edits could affect: docs need nothing, engine code needs
-  `npm test` and `check-cases`.
-- **Design questions: read the code first, then ask once with a proposal.**
-  Make the recommended option concrete (the numbers, a table of what each
-  setting does, what stays unchanged), with the alternatives beside it, so
-  one round of questions settles the design.
-  Needs Node 22.18 or newer (the owner's machine has Node 24): run scripts
-  directly, e.g. `node scripts/check-cases.ts`.
-- Python isn't installed. Edit files with the Edit tool; for scripted bulk
-  edits, use a Node script in the scratchpad.
-- Write any script longer than a line to a file in the scratchpad and run
-  it; never inline it with `node -e "…"` or a heredoc (`$`, backticks and
-  apostrophes break the shell quoting).
+- Before committing, run `npm run checks` (parallel, one pass/fail line each;
+  `-- --full` for the full case check): `npm run lint` (React Compiler hooks
+  rules: no ref writes during render, `useEffectEvent` for "latest handler"
+  listeners; an `eslint-disable` needs a reason beside it), `npm test`
+  (includes the golden snapshot), `npm run check-cases`, `npm run build`.
+  Re-run just the failing check while fixing. For UI changes also run
+  `npm run e2e`. Generator changes: see `src/engine/CLAUDE.md`.
+- Design questions: read the code first, then ask once with a concrete
+  proposal (the numbers, a table of what each setting does, what stays
+  unchanged) and the alternatives beside it.
+- Needs Node 22.18 or newer (the owner has 24): run scripts directly, e.g.
+  `node scripts/check-cases.ts`. Python isn't installed. Edit with the Edit
+  tool; for bulk edits, or any script longer than a line, write a Node script
+  to the scratchpad and run it (never `node -e` or a heredoc: `$`, backticks
+  and apostrophes break the quoting).
 - `git add -p` and other interactive commands don't work here. To commit only
   some of a file's changes, ask the owner or commit the whole file.
 - The repo is in OneDrive, which can touch files mid-session: if Edit says the
   file changed since it was read, re-read it once; if the dev server misses an
   edit, reload it.
-- After pushing, check the deploy with `gh run list --limit 1` (then
-  `gh run watch <id> --exit-status` in the background).
-- Claude Docs edits (the plan docs): target a block by its id rather than
-  quoting text; if a quote must be used, quote a long distinctive phrase or add
-  `nth`. One paragraph per block, no newlines inside one. On a `deny`, read
-  `detail` and change the call; never resend the same payload.
+- Pushing to `main` runs tests, the case check and the build, then deploys to
+  https://ptra243.github.io/brain-training/. Check with `gh run list --limit 1`
+  (then `gh run watch <id> --exit-status` in the background). `#dev` lists the
+  dev pages; `#dev/cases` is the case inspector and can load and play a code.
 - Cloud sessions can't reach the npm registry: add new dependencies on the
   owner's machine or via CI. Without `node_modules`, at least run the global
   `tsc` over the non-React files with `--strict --noUnusedLocals
-  --noUnusedParameters`; CI catches the rest.
-- Pushing to `main` runs tests, the case check and the build, then deploys to
-  https://ptra243.github.io/brain-training/. `#dev` lists the dev pages and
-  `#dev/cases` is the case inspector, which can also load and play a case code.
+  --noUnusedParameters`.
 - Add a rule here (or in the folder's CLAUDE.md) whenever a decision changes
   how code should be written. Keep status in the README, not here.
 
 ## Token budget
 
 Long sessions re-read their whole context every turn, so keep them short.
+Details, with the reasons, are in `docs/workflow.md`: read it before briefing
+an agent or proposing a split.
 
-- **Delegating is authorised and expected, even mid-iteration.** Once the
-  design decisions for a task are settled, and before writing the code, stop
-  and list the pieces. Hand each well-defined piece to the `implementer`
-  agent (Sonnet, never `general`) with a full brief (files, behaviour, how to
-  test); it starts with no context. Claude Code reads `model: sonnet` from
-  `.claude/agents/implementer.md`; leave that line as it is. In Cursor, pass
-  one of the following on the sub-session instead of inheriting this chat:
-  Composer 2.5 for a mechanical brief (CSS, copy, content lists, test
-  updates), or Grok 4.7 with Fast off when the brief touches the generator,
-  seeds, or saves. Any change to more than two code files
-  (`.ts`, `.tsx`, `.css`, tests; not `.md`), anything you can describe in a few
-  sentences, and any bug fix with a known cause goes to it. Edit directly only
-  for one-line tweaks, for docs, or while you're still working out the design.
-  A `PostToolUse` hook (`.claude/hooks/delegate-reminder.mjs`) reminds you
-  after the 3rd distinct code file you edit yourself; it is a reminder, not a
-  rule that replaces judgement. Always delegate:
-  - content lists (word lists, clues, theme text) of more than ~20 entries
-  - test updates after a rule change, once the new rule is decided
-  - CSS and copy changes you can describe exactly
-  Keep in the main session: design decisions, generator tuning that needs
-  experiments, ambiguous bugs, cross-cutting refactors.
-  Say in one line which pieces you're delegating and which you're keeping.
-- **Keep briefs small.** One layer per brief (engine and checks, then UI and
-  e2e on a finished engine). Ask for reports of about 8 lines (detail goes in the handoff file). Brief tuning
-  as one sweep with a results table (every setting combination), not one
-  setting per round. A follow-up goes to a fresh agent with its own brief;
-  don't resume an agent past about 100k tokens or pile new work onto one
-  that's running.
-- **Tuning is its own brief, with a stop rule.** The implementer builds the
-  mechanism and a sweep script (a grid, not a random walk) that imports the real
-  builders and bots, starts from values derived by rule (e.g. path length about
-  85% of cells; turn bounds from sampled percentiles), and reports a baseline.
-  A tuning brief edits data only, runs the sweep once or twice, and ends with a
-  results table. Rules for it: the agent first runs one row the sweep calls
-  passing through the real path (`check-cases`) to prove they agree; a round
-  that does not improve the headline number twice running means stop and write
-  "stuck" with the rejection counts; after each round it appends one line to the
-  handoff file; `npm run checks` decides done, not its own script. A "none
-  passes" result goes to the main session as a design call, then to a fresh
-  implementer, never back to the old one. Dated lines in "Why sessions ran
-  long" quote minutes (per agent run, per full check), not only tokens.
-- **Hand over what you already know in a handoff file.** Before briefing,
-  write `.claude/handoff/<task-slug>.md` (gitignored) and give its absolute
-  path in the brief, so an agent in a worktree can read it too. Put in it
-  what the agent would otherwise redo: measurements with the command, the
-  commit or working-tree state and the numbers (baselines, timings, "Time by
-  section" lines), what was tried and ruled out and why, decisions taken, and
-  `file:line` pointers. Say in the brief which numbers to trust rather than
-  re-measure. The agent appends its own findings, so a follow-up agent reads
-  one file instead of a chat history. It also adds "Review notes" (what each
-  file's change is for, the risky spots as `file:line`, departures from the
-  brief, what the tests miss, whether cases changed); its reply stays to
-  status and the path. For mechanical pieces (CSS, copy, content lists,
-  test updates after a rule change) say "no review notes" in the brief. Read
-  the notes only when reviewing logic, then review from them and the diff of
-  the spots they name, not by re-reading every changed file. Delete the file
-  once the task is committed.
-- **Split once the design is settled and the first piece lands.** Before
-  briefing the rest, suggest starting a session for it that reads the plan
-  doc, delegates to implementers itself and commits; this session keeps only
-  the design.
-- Keep design decisions, ambiguous bugs and cross-cutting refactors in the
-  main session.
-- Keep command output small: run tests, builds and `check-cases` quietly
-  (`2>&1 | tail -20`, or a pass/fail count) and only re-run with full output
-  when something fails. Never dump a whole file or log into context to look
-  at one part; use Grep or Read with offset and limit.
-- Run layout rules and flows with `npm run e2e`. Run look checks through the `browser-check` agent and ask
-  for a short pass/fail report, so screenshots stay out of the main context.
-- **Short path to a screen.** Looking: open `#dev/<id>` when `src/dev/CLAUDE.md` lists a preview, and give `browser-check` that URL only. Playing, or proving one click: load a save built on that run that lands on the screen, or one real action before the click. Do not solve puzzles, walk rooms, or play earlier rounds to get there. The click being proved still goes through the real UI. To *play* from a state, open `#dev/load/<id>` (a scenario in `src/dev/scenarios.ts`) instead of playing earlier rounds. When a task adds or changes a screen or state, add or update its preview or scenario: `src/dev/CLAUDE.md` says when. See `e2e/CLAUDE.md`.
-- After each commit, or when context is large, suggest starting a new session.
-  Also suggest it when the topic changes (say, from one minigame's rules to
-  theme content). Suggest only; don't write handoff files or split unasked.
-  The suggestion names the handoff documents worth writing (file name and
-  what goes in each; skip what's already in the repo) and the sessions to
-  start (what each does, which docs it reads first, a one-line starting
-  prompt). A `UserPromptSubmit` hook (`.claude/hooks/session-length.mjs`)
-  adds a reminder when the context passes 250k tokens (the ~80k base of
-  tools and system prompt included); it is a reminder, not
-  a rule that replaces judging topic drift.
-  Session ideas worth starting fresh live in `docs/next-sessions.md`, each
-  with a `Last touched` date and a starting prompt; a `SessionStart` hook
-  (`stale-sessions.mjs`) shows them as a numbered menu on a fresh session
-  ("start 3" runs that entry's starting prompt) and flags entries untouched
-  for 14 days. Keep each heading short: it is the menu line. When they pick
-  one, by number or name or through /next, rename this session to that
-  heading before starting the work. In Cursor call rename_chat
-  (cursor-app-control); in the desktop app call set_session_title. The owner
-  asked for this so several open sessions stay distinguishable. When you
-  suggest a split, offer to add or refresh the entry.
+- **Delegate.** Once the design is settled, list the pieces and hand each
+  well-defined one to the `implementer` agent (Sonnet, never `general`) with a
+  full brief. Anything touching more than two code files, anything you can
+  describe in a few sentences, and any bug fix with a known cause goes to it.
+  Edit directly only for one-line tweaks, docs, or while working out the
+  design. Say in one line what you delegate and what you keep.
+- **Write a handoff file first** (`.claude/handoff/<task-slug>.md`,
+  gitignored) with what the agent would otherwise redo; give its absolute path
+  in the brief.
+- **Keep output small:** run checks quietly (`2>&1 | tail -20`), and read part
+  of a file with Grep or Read offset and limit, never the whole thing.
+- **Looking at a screen:** open `#dev/<id>` when `src/dev/CLAUDE.md` lists a
+  preview and give `browser-check` that URL only; to play from a state open
+  `#dev/load/<id>`. Never solve puzzles or play earlier rounds to get there.
+  When a task adds or changes a screen or state, add or update its preview or
+  scenario.
+- **Suggest a new session** after each commit, when context is large, or when
+  the topic changes. Suggest only; don't write handoff files or split unasked.
+  Ideas worth starting fresh live in `docs/next-sessions.md`; the
+  `SessionStart` hook shows them as a menu.
