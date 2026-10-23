@@ -5,6 +5,7 @@ import { TypingInput } from './TypingInput.tsx';
 import { focusTyping, hasFinePointer } from './typing.ts';
 import type { WordleData } from './saveData.ts';
 import type { GameProps } from './types.ts';
+import styles from './WordleGame.module.css';
 
 export interface WordlePuzzle {
   answer: string;
@@ -62,11 +63,11 @@ export function WordleGame({ puzzle, data, finished, onChange, onFinish }: GameP
     <div className="wordle">
       {puzzle.teaser && <p className="teaser-line">{puzzle.teaser}</p>}
       <div className="typing-host">
-        <div className="wordle-board" role="grid" aria-label="Guesses">
+        <div className={styles.board} role="grid" aria-label="Guesses">
           {rows.map((row, r) => (
             <div
               key={r}
-              className={`wordle-row ${row.current ? 'current' : ''} ${row.current && focused ? 'active' : ''}`}
+              className={`${styles.row} ${row.current ? styles.current : ''}`}
               role="row"
               onClick={row.current ? () => focusTyping(inputRef) : undefined}
             >
@@ -78,7 +79,7 @@ export function WordleGame({ puzzle, data, finished, onChange, onFinish }: GameP
                   <span
                     key={i}
                     role="gridcell"
-                    className={`wordle-tile ${score ?? (letter ? 'typed' : '')} ${cursor ? 'cursor' : ''}`}
+                    className={`${styles.tile} ${score ? styles[score] : letter ? styles.typed : ''} ${cursor ? styles.cursor : ''}`}
                     aria-label={letter ? `${letter}${score ? `, ${score === 'hit' ? 'right place' : score === 'near' ? 'wrong place' : 'not in word'}` : ''}` : 'empty'}
                   >
                     {letter}

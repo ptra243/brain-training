@@ -1,0 +1,14 @@
+/* Wordle board. Class names are local to this file (CSS Modules), so nothing here can restyle another game. */
+.board { display: grid; gap: 0.35rem; width: min(100%, 17.5rem); margin: 0 auto; }
+.row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.35rem; }
+.tile {
+  aspect-ratio: 1; display: grid; place-items: center;
+  border: 2px solid var(--baize-line); font-family: var(--serif); font-weight: 700; font-size: 1.6rem; color: var(--on-baize);
+}
+.tile.typed { border-color: var(--on-baize-soft); }
+.tile.hit { background: #4f8a5f; border-color: #4f8a5f; color: #fff; }
+.tile.near { background: var(--brass); border-color: var(--brass); color: #2a2109; }
+.tile.miss { background: #5a625c; border-color: #5a625c; color: #e9e4d2; }
+.row.current { cursor: text; }
+.row.current .tile:not(.typed) { border-color: #6f8f82; }
+.tile.cursor { border-color: var(--brass); box-shadow: inset 0 -4px 0 var(--brass); }

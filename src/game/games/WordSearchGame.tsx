@@ -4,6 +4,7 @@ import { TypingInput } from './TypingInput.tsx';
 import { focusTyping } from './typing.ts';
 import type { WordSearchData } from './saveData.ts';
 import type { GameProps } from './types.ts';
+import styles from './WordSearchGame.module.css';
 
 const same = (a: Pos | null, b: Pos | null) => !!a && !!b && a[0] === b[0] && a[1] === b[1];
 
@@ -98,7 +99,7 @@ export function WordSearchGame({ puzzle, data, finished, onChange, onFinish }: G
         top, spell what the body was lying by.
       </p>
       <div
-        className="ws-grid"
+        className={styles.grid}
         role="grid"
         aria-label="Word search"
         style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}
@@ -112,14 +113,14 @@ export function WordSearchGame({ puzzle, data, finished, onChange, onFinish }: G
         {grid.map((row, r) =>
           [...row].map((letter, c) => {
             const k = `${r},${c}`;
-            if (letter === '.') return <span key={k} className="ws-cell blank" aria-hidden="true" />;
+            if (letter === '.') return <span key={k} className={`${styles.cell} ${styles.blank}`} aria-hidden="true" />;
             const reveal = (finished || allFound) && secretCells.has(k);
             return (
               <button
                 key={k}
                 data-r={r}
                 data-c={c}
-                className={`ws-cell ${foundCells.has(k) ? 'found' : ''} ${previewCells.has(k) ? 'picking' : ''} ${reveal ? 'secret' : ''}`}
+                className={`${styles.cell} ${foundCells.has(k) ? styles.found : ''} ${previewCells.has(k) ? styles.picking : ''} ${reveal ? styles.secret : ''}`}
                 aria-label={`${letter}, row ${r + 1}, column ${c + 1}${same(start, [r, c]) ? ', selected' : ''}`}
                 onPointerDown={down}
                 disabled={!!finished}
@@ -133,20 +134,20 @@ export function WordSearchGame({ puzzle, data, finished, onChange, onFinish }: G
       <p className="game-message" role="status">
         {finished ? `The leftover letters spell ${answer}.` : message || `Found ${found.size} of ${words.length}.`}
       </p>
-      <ul className="ws-words">
+      <ul className={styles.words}>
         {words.map((w) => (
-          <li key={w.word} className={found.has(w.word) ? 'found' : ''}>
+          <li key={w.word} className={found.has(w.word) ? styles.found : ''}>
             {w.word}
           </li>
         ))}
       </ul>
       {!finished && (
-        <section className="card ws-guess">
+        <section className={`card ${styles.guess}`}>
           <h2>Know the hidden word already?</h2>
           <div className="typing-host">
-            <div className="ws-guess-boxes" onClick={() => focusTyping(guessRef)} style={{ gridTemplateColumns: `repeat(${answer.length}, minmax(0, 1fr))` }}>
+            <div className={styles.guessBoxes} onClick={() => focusTyping(guessRef)} style={{ gridTemplateColumns: `repeat(${answer.length}, minmax(0, 1fr))` }}>
               {Array.from({ length: answer.length }, (_, i) => (
-                <span key={i} className={`ws-guess-box ${guessFocused && i === Math.min(guess.length, answer.length - 1) ? 'cursor' : ''}`}>
+                <span key={i} className={`${styles.guessBox} ${guessFocused && i === Math.min(guess.length, answer.length - 1) ? styles.cursor : ''}`}>
                   {guess[i] ?? ''}
                 </span>
               ))}

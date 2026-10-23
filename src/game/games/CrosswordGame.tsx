@@ -20,6 +20,7 @@ import { TypingInput } from './TypingInput.tsx';
 import { focusTyping, hasFinePointer } from './typing.ts';
 import { crosswordInitial, type CrosswordData } from './saveData.ts';
 import type { GameProps } from './types.ts';
+import styles from './CrosswordGame.module.css';
 
 interface Cursor {
   r: number;
@@ -220,21 +221,21 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
   const wide = cols > CROSSWORD_SIZE;
 
   const clueList = (dir: Direction) => (
-    <section className="crossword-clue-group">
+    <section className={styles.clueGroup}>
       <h3>{dir === 'across' ? 'Across' : 'Down'}</h3>
-      <ol className="crossword-clues">
+      <ol className={styles.clues}>
         {entries
           .filter((e) => e.dir === dir)
           .map((e) => (
             <li key={label(e)}>
               <button
-                className={`crossword-clue-row ${!finished && e === active ? 'current' : ''} ${entrySolved(e, letters) ? 'solved' : ''}`}
+                className={`${styles.clueRow} ${!finished && e === active ? styles.current : ''} ${entrySolved(e, letters) ? styles.solved : ''}`}
                 onPointerDown={(ev) => ev.preventDefault()}
                 onClick={() => selectEntry(e)}
                 disabled={!!finished}
               >
                 <b>{e.number}.</b> {e.clue}
-                {finished && <span className="crossword-answer"> {e.word}</span>}
+                {finished && <span className={styles.answer}> {e.word}</span>}
               </button>
             </li>
           ))}
@@ -243,25 +244,25 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
   );
 
   return (
-    <div className="crossword">
+    <div>
       <p className="hint dark">
         The numbered shaded squares spell what the body was lying by: 1 is its first letter. Once you can read it you can take the clue, or
         finish the grid first.
       </p>
       {!finished && (
-        <div className="crossword-top">
-          <div className="crossword-clue">
+        <div className={styles.top}>
+          <div className={styles.clue}>
             <p aria-live="polite">
               <b>
                 {active.number} {active.dir}.
               </b>{' '}
-              {active.clue} <span className="muted-on-card">({active.word.length})</span>
+              {active.clue} <span className={styles.mutedOnCard}>({active.word.length})</span>
             </p>
             <HintButton helper={helper} onAsk={askHint} />
           </div>
           {note && <HintNote text={note} onClose={() => setNote(null)} />}
           {wordRead && (
-            <div className="crossword-read">
+            <div className={styles.read}>
               <p>
                 The shaded squares spell <b>{answer}</b>. Finish the grid, or take the clue now.
               </p>
@@ -272,10 +273,10 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
           )}
         </div>
       )}
-      <div className={`typing-host ${wide ? 'crossword-scroll' : ''}`}>
+      <div className={`typing-host ${wide ? styles.scroll : ''}`}>
         <div
           ref={gridRef}
-          className={`crossword-grid ${wide ? 'wide' : ''}`}
+          className={`${styles.grid} ${wide ? styles.wide : ''}`}
           role="grid"
           aria-label="Crossword"
           style={
@@ -289,7 +290,7 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
               const r = top + y;
               const c = left + x;
               const here = squares.get(cellKey(r, c));
-              if (!here) return <span key={`${r}-${c}`} className="crossword-gap" />;
+              if (!here) return <span key={`${r}-${c}`} className={styles.gap} />;
               const letter = letterAt(letters, r, c);
               const isCursor = !finished && focused && cursor.r === r && cursor.c === c;
               const inWord = !finished && activeCells.some(([ar, ac]) => ar === r && ac === c);
@@ -300,7 +301,7 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
                 <button
                   key={`${r}-${c}`}
                   data-cell={cellKey(r, c)}
-                  className={`crossword-cell ${here.shaded ? 'shaded' : ''} ${inWord ? 'in-row' : ''} ${isCursor ? 'cursor' : ''} ${solved ? 'solved' : ''} ${wrong ? 'wrong' : ''}`}
+                  className={`${styles.cell} ${here.shaded ? styles.shaded : ''} ${inWord ? styles.inRow : ''} ${isCursor ? styles.cursor : ''} ${solved ? styles.solved : ''} ${wrong ? styles.wrong : ''}`}
                   aria-label={`${words}${letter ? `, ${letter}` : ''}${wrong ? ', crossed out as wrong' : ''}${here.shaded ? `, shaded square ${here.shaded}` : ''}`}
                   // Keep the keyboard up while moving between squares.
                   onPointerDown={(e) => e.preventDefault()}
@@ -308,12 +309,12 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
                   disabled={!!finished}
                 >
                   {here.number && (
-                    <span className="crossword-num" aria-hidden="true">
+                    <span className={styles.num} aria-hidden="true">
                       {here.number}
                     </span>
                   )}
                   {here.shaded && (
-                    <span className="crossword-order" aria-hidden="true">
+                    <span className={styles.order} aria-hidden="true">
                       {here.shaded}
                     </span>
                   )}
@@ -351,7 +352,7 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
                 : 'Tap a square to type. Tap it again to switch between across and down.'}
       </p>
       {finished === null && spelled.some(Boolean) && (
-        <p className="crossword-shaded" aria-label="Shaded letters so far">
+        <p className={styles.shadedWord} aria-label="Shaded letters so far">
           {spelled.map((l, k) => (
             <span key={k}>{l || '·'}</span>
           ))}

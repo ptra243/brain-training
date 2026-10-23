@@ -1,0 +1,25 @@
+/* Word search: the letter grid, the word list and the hidden-word boxes. */
+.grid {
+  display: grid; gap: 2px; width: 100%; max-width: 24rem; margin: 0 auto; touch-action: none; user-select: none;
+  -webkit-user-select: none;
+}
+.cell {
+  aspect-ratio: 1; padding: 0; border: 0; border-radius: 0.25rem; cursor: pointer;
+  background: var(--card); color: var(--ink); font-family: var(--serif); font-weight: 700; font-size: 1.3rem;
+}
+.cell.blank { background: var(--baize-deep); cursor: default; }
+.cell.found { background: #c9dcc7; color: #2f5a3d; }
+.cell.picking { background: var(--brass); color: var(--ink); }
+.cell.secret { background: var(--pencil); color: #fff7ee; }
+.cell:disabled { cursor: default; opacity: 1; }
+.words { list-style: none; margin: 0.4rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.35rem 0.9rem; justify-content: center; }
+.words li { font-size: 0.95rem; letter-spacing: 0.04em; color: var(--on-baize); }
+.words li.found { color: var(--on-baize-soft); text-decoration: line-through; text-decoration-color: var(--brass); text-decoration-thickness: 2px; }
+.guess { margin-top: 1rem; display: grid; gap: 0.6rem; }
+.guess h2 { font-size: 1.05rem; }
+.guessBoxes { display: grid; gap: 0.25rem; cursor: text; }
+.guessBox {
+  display: grid; place-items: center; height: 2.75rem; border: 2px solid var(--card-edge); border-radius: 0.2rem;
+  background: #fffcf3; font-family: var(--serif); font-weight: 700; font-size: 1.2rem;
+}
+.guessBox.cursor { border-color: var(--brass); box-shadow: inset 0 -4px 0 var(--brass); }
