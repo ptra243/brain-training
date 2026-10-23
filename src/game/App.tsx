@@ -11,16 +11,22 @@ import type { CampaignSave } from './campaign.ts';
 import { generate } from './caseClient.ts';
 import { Home } from './Home.tsx';
 import { PickGames } from './PickGames.tsx';
+import { RecordView } from './RecordView.tsx';
 import { Shuffling } from './Shuffling.tsx';
 import { caseTitle } from './names.ts';
 import { emptyProgress, type Progress } from './state.ts';
-import { loadCampaign, loadQuick, loadScreen, saveCampaign, saveQuick, saveScreen, type Screen } from './storage.ts';
+import { campaignPending, quickPending, recordCampaign, recordQuick } from './history.ts';
+import { localDate } from './runRecord.ts';
+import { loadCampaign, loadHistory, loadQuick, loadScreen, saveCampaign, saveHistory, saveQuick, saveScreen, type Screen } from './storage.ts';
 
 interface Current {
   ref: CaseRef;
   c: Case;
   progress: Progress;
+  historyId?: string;
 }
+
+const newHistoryId = () => crypto.randomUUID();
 
 /** Codes come from the browser's random numbers; the engine itself stays seeded. */
 const randomNumber = () => crypto.getRandomValues(new Uint32Array(1))[0];
@@ -67,11 +73,45 @@ export function App() {
     if (!booting) saveScreen(screen);
   }, [screen, booting]);
   useEffect(() => {
-    if (current) saveQuick({ ref: current.ref, progress: current.progress });
+    if (current) saveQuick({ ref: current.ref, progress: current.progress, historyId: current.historyId });
   }, [current]);
   useEffect(() => {
     if (campaign) saveCampaign(campaign);
   }, [campaign]);
+
+  // A finished Quick case is recorded once in the run history (also a finished save from before it existed).
+  // The id is written to the save before the row, so a reload can't add it twice.
+  useEffect(() => {
+    if (booting || !current) return;
+    const save = { ref: current.ref, progress: current.progress, historyId: current.historyId };
+    const history = loadHistory();
+    if (!quickPending(save, history)) return;
+    const done = recordQuick(save, current.c, history, newHistoryId, localDate(new Date()));
+    saveQuick(done.save);
+    saveHistory(done.history);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- stores the minted id once; the next run sees it and stops
+    setCurrent((cur) => (cur === current ? { ...cur, historyId: done.save.historyId } : cur));
+  }, [booting, current]);
+  // The same for a finished campaign; its rounds come from the worker's cached build.
+  useEffect(() => {
+    if (booting || !campaign || !campaignPending(campaign, loadHistory())) return;
+    let live = true;
+    generate({ kind: 'campaign-rounds', save: campaign }).then(
+      (cases) => {
+        if (!live) return;
+        const history = loadHistory();
+        if (!campaignPending(campaign, history)) return;
+        const done = recordCampaign(campaign, cases, history, newHistoryId, localDate(new Date()));
+        saveCampaign(done.save);
+        saveHistory(done.history);
+        setCampaign((cur) => (cur === campaign ? done.save : cur));
+      },
+      (err) => console.error(err),
+    );
+    return () => {
+      live = false;
+    };
+  }, [booting, campaign]);
 
   const go = (s: Screen) => {
     setScreen(s);
@@ -125,6 +165,8 @@ export function App() {
     body = <CampaignView save={campaign} onSave={setCampaign} onHome={() => go('home')} />;
   } else if (screen === 'pick') {
     body = <PickGames random={randomNumber} onHome={() => go('home')} onStart={startPick} />;
+  } else if (screen === 'record') {
+    body = <RecordView history={loadHistory()} onHome={() => go('home')} />;
   } else if (screen === 'campaign-setup') {
     body = <CampaignSetup campaign={campaign} onHome={() => go('home')} onStart={startCampaign} />;
   } else if (screen === 'case' && current) {
@@ -149,7 +191,8 @@ export function App() {
         onContinue={() => go('case')}
         onStart={startPlay}
         onChoose={() => go('pick')}
-        campaign={<CampaignCard campaign={campaign} onContinue={() => go('campaign')} onNew={() => go('campaign-setup')} />}
+        onRecord={() => go('record')}
+        campaign={<CampaignCard campaign={campaign} onContinue={() => go('campaign')} onNew={() => go('campaign-setup')} onRecord={() => go('record')} />}
       />
     );
   }

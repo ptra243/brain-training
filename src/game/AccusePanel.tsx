@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Dialog } from './Dialog.tsx';
 import type { Case } from '../engine/types.ts';
 import { itemName, roomName, suspectName } from './names.ts';
+import { effortLines, hintTotal, puzzleCounts } from './runRecord.ts';
 import { ACCUSATION_PARTS, sceneUnlocked, type Action, type Progress } from './state.ts';
 
 interface Props {
@@ -18,6 +19,8 @@ interface Props {
   stillPointing?: number;
   /** Exploring: it's midnight and she must name someone. */
   midnight?: boolean;
+  /** The hint and puzzle sentences under the verdict, when they cover more than this one case (a campaign: every round). */
+  effort?: string;
 }
 
 export function Picker({
@@ -47,7 +50,7 @@ export function Picker({
   );
 }
 
-export function AccusePanel({ c, progress, dispatch, onNextCase, campaign, suspects = c.suspects, nextLabel = 'Start a new case', stillPointing = 0, midnight }: Props) {
+export function AccusePanel({ c, progress, dispatch, onNextCase, campaign, suspects = c.suspects, nextLabel = 'Start a new case', stillPointing = 0, midnight, effort }: Props) {
   const [suspect, setSuspect] = useState('');
   const [item, setItem] = useState('');
   const scene = sceneUnlocked(c, progress);
@@ -57,6 +60,7 @@ export function AccusePanel({ c, progress, dispatch, onNextCase, campaign, suspe
 
   if (progress.solved) {
     const tries = progress.accusations.length;
+    const counts = puzzleCounts(c, progress);
     return (
       <section className="panel">
         <article className="card verdict">
@@ -65,6 +69,9 @@ export function AccusePanel({ c, progress, dispatch, onNextCase, campaign, suspe
             {suspectName(c.murderer, c.guests)}, in the {roomName(c.sceneRoom)}, with the {itemName(c.weapon)}.
           </p>
           <p className="muted">Solved {tries === 1 ? 'on the first accusation' : `in ${tries} accusations`}.</p>
+          <p className="muted" data-testid="closing-effort">
+            {effort ?? effortLines({ hints: hintTotal(progress), solvedForHer: counts.revealed, solvedYourself: counts.won, puzzles: counts.total })}
+          </p>
           <table className="answer">
             <tbody>
               {c.suspects.map((s, i) => (

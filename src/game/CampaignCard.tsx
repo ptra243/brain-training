@@ -8,10 +8,12 @@ interface Props {
   onContinue: () => void;
   /** Open the campaign setup screen. */
   onNew: () => void;
+  /** Open "Your record". */
+  onRecord: () => void;
 }
 
 /** The home screen's campaign card: the one in progress, and a way to set up a fresh one. */
-export function CampaignCard({ campaign, onContinue, onNew }: Props) {
+export function CampaignCard({ campaign, onContinue, onNew, onRecord }: Props) {
   const unfinished = campaign?.outcome === 'playing';
 
   const status = !campaign
@@ -44,6 +46,9 @@ export function CampaignCard({ campaign, onContinue, onNew }: Props) {
       )}
       <button className={unfinished ? 'secondary' : 'primary'} onClick={onNew}>
         New campaign
+      </button>
+      <button className="secondary home-record" onClick={onRecord}>
+        Your record
       </button>
     </article>
   );

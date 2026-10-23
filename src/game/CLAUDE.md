@@ -91,6 +91,9 @@
   on its own, a bad game record resets that game, and a game's bad data goes
   through `savedOr` in the registry (start over, or its answer if finished). A
   new game or saved field needs its guard and a malformed-save test.
+  A `history` key (same prefix) keeps finished runs: 30 rows each for Quick and campaign plus
+  running totals (`history.ts`, `sanitizeHistory`). A finished save gets a `historyId` and its
+  row is recorded once (`recordQuick` / `recordCampaign`, from `App.tsx`). `clearSaves` leaves it.
 - **Cases are built in a worker.** UI code never calls `caseFor`,
   `newPlayCase`, `newPickCase`, `newQuickCase` or `roundCase` directly: add a
   job to `caseJobs.ts` and `await generate(job)` (`caseClient.ts`) behind the

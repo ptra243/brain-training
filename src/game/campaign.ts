@@ -18,6 +18,8 @@ export interface CampaignSave {
   /** The puzzles she chose to play in each round. */
   picked: GameKind[][];
   outcome: Outcome;
+  /** Id of its run-history row once recorded (`history.ts`). */
+  historyId?: string;
 }
 
 export const newCampaign = (ref: CampaignRef): CampaignSave => ({ ref, victims: [], rounds: [emptyProgress()], picked: [[]], outcome: 'playing' });

@@ -4,7 +4,8 @@
 
 import { PICK_ORDER, pickedInOrder, type CaseRef, type PickedGame } from '../engine/caseRef.ts';
 import type { CampaignSave } from './campaign.ts';
-import { PLAY_VERSION, sanitizeCampaign, sanitizeQuick } from './saveGuards.ts';
+import type { History } from './history.ts';
+import { PLAY_VERSION, sanitizeCampaign, sanitizeHistory, sanitizeQuick } from './saveGuards.ts';
 import type { Progress } from './state.ts';
 
 // v5: the case board puzzle stands in for a game in some cases, which changes those cases.
@@ -34,6 +35,8 @@ function write(key: string, value: unknown) {
 export interface QuickSave {
   ref: CaseRef;
   progress: Progress;
+  /** Id of its run-history row once recorded (`history.ts`). */
+  historyId?: string;
 }
 
 // What comes back is checked in `saveGuards.ts`; a bad save is dropped or repaired there.
@@ -46,12 +49,17 @@ export const loadCampaign = (): CampaignSave | null => sanitizeCampaign(read('ca
 
 export const saveCampaign = (c: CampaignSave) => write('campaign', c);
 
+/** Finished runs (rows and running totals). Kept when the saves are cleared; a damaged one reads as empty. */
+export const loadHistory = (): History => sanitizeHistory(read('history'));
+
+export const saveHistory = (h: History) => write('history', h);
+
 /** Where she was: the home screen, her Quick start case or her campaign, so reopening the app goes back there. */
-export type Screen = 'home' | 'case' | 'campaign' | 'campaign-setup' | 'pick';
+export type Screen = 'home' | 'case' | 'campaign' | 'campaign-setup' | 'pick' | 'record';
 
 export const loadScreen = (): Screen => {
   const s = read('screen');
-  // 'campaign-setup' and 'pick' are never restored: reopening the app lands on home.
+  // 'campaign-setup', 'pick' and 'record' are never restored: reopening the app lands on home.
   return s === 'case' || s === 'campaign' ? s : 'home';
 };
 

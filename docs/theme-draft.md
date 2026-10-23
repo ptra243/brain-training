@@ -150,7 +150,7 @@ Keeper of the household's traditions and proprieties; takes in the old Solicitor
   - B: "Some bottles in the wine cellar are better left uncounted."
 
 ### The Conjurer: The Magician
-A guest with quick hands and a quicker tongue. Reversed: recklessness and bluff. Home guest only.
+The entertainer the host hired for the evening, with quick hands and a quicker tongue. Reversed: recklessness and bluff. Home guest only.
 - Upright
   - B: "Give me a pack of cards and I'll make a room full of friends. Give me two and I'll make a rival."
   - N: "A good trick is about making them look the other way. Works on relatives too."

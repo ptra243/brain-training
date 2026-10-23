@@ -18,7 +18,7 @@ stands. A blocked entry keeps its rank and names its blocker in the heading.
 
 
 ## Session: Run history
-Last touched: 2026-10-22
+Last touched: 2026-10-23
 Reads first: `docs/run-history.md` (settled design), `src/game/CLAUDE.md` (saves), then
 `src/game/storage.ts`, `src/game/saveGuards.ts`, `src/game/AccusePanel.tsx`, `src/game/CampaignView.tsx`.
 Goal: record a finished Quick play case and a finished campaign, and show them. Piece 1 is the

@@ -16,6 +16,8 @@ interface Props {
   onStart: () => void;
   /** Open the game picker. */
   onChoose: () => void;
+  /** Open "Your record". */
+  onRecord: () => void;
   /** The campaign card, below Quick play. */
   campaign: ReactNode;
 }
@@ -33,7 +35,7 @@ function caseLine(ref: CaseRef, c: Case, progress: Progress) {
 }
 
 /** Where she starts: her case in progress, a new Quick play case, and the campaign. */
-export function Home({ current, onContinue, onStart, onChoose, campaign }: Props) {
+export function Home({ current, onContinue, onStart, onChoose, onRecord, campaign }: Props) {
   const [confirming, setConfirming] = useState<'new' | 'choose' | null>(null);
   const unfinished = current !== null && !current.progress.solved;
 
@@ -63,6 +65,9 @@ export function Home({ current, onContinue, onStart, onChoose, campaign }: Props
         </button>
         <button className="secondary home-choose" onClick={() => (unfinished ? setConfirming('choose') : onChoose())}>
           Choose games
+        </button>
+        <button className="secondary home-record" onClick={onRecord}>
+          Your record
         </button>
       </article>
 

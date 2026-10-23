@@ -20,7 +20,9 @@ import {
   sanitizeCampaign,
   sanitizeProgress,
   sanitizeQuick,
+  sanitizeHistory,
 } from './saveGuards.ts';
+import { emptyHistory } from './history.ts';
 import { emptyProgress, type Progress } from './state.ts';
 
 const filled: Progress = {
@@ -146,4 +148,33 @@ test('garbage at the top level never throws', () => {
     assert.equal(sanitizeCampaign(v), null);
     assert.deepEqual(sanitizeProgress(v), emptyProgress());
   }
+});
+
+test('a malformed run history repairs field by field or reads as empty', () => {
+  for (const junk of [null, 'x', 5, [], undefined]) assert.deepEqual(sanitizeHistory(junk), emptyHistory());
+  const row = { id: 'a', ref: { mode: 'play', code: 'K7QF2' }, date: '2026-10-23', accusations: 2, hints: 3, solvedForHer: 1, solvedYourself: 2, puzzles: 4 };
+  const good = { ...emptyHistory(), quick: [row], quickTotals: { cases: 1, first: 0, hints: 3, solvedForHer: 1, solvedYourself: 2, puzzles: 4 } };
+  assert.deepEqual(sanitizeHistory(JSON.parse(JSON.stringify(good))), good);
+  const bad = sanitizeHistory({
+    quick: [row, { ...row, id: 5 }, { ...row, ref: { mode: 'play' } }, { ...row, date: 'soon' }, 'junk', { ...row, id: 'b', hints: 'many', puzzles: -2 }],
+    campaign: [{ id: 'c', ref: 'x', ending: 'caught' }, { id: 'd', ref: { mode: 'campaign', code: 'AAAAA', difficulty: 'easy' }, date: '2026-01-02', ending: 'won' }],
+    quickTotals: { cases: 'x', first: 2.7, hints: -1 },
+    campaignTotals: 'junk',
+  });
+  assert.deepEqual(bad.quick.map((r) => r.id), ['a', 'b']);
+  assert.equal(bad.quick[1].hints, 0);
+  assert.equal(bad.quick[1].puzzles, 0);
+  assert.deepEqual(bad.campaign, []);
+  assert.equal(bad.quickTotals.cases, 0);
+  assert.equal(bad.quickTotals.first, 2);
+  assert.equal(bad.quickTotals.hints, 0);
+  assert.deepEqual(bad.campaignTotals, emptyHistory().campaignTotals);
+  assert.equal(sanitizeHistory({ quick: Array.from({ length: 50 }, (_, i) => ({ ...row, id: `r${i}` })) }).quick.length, 30);
+});
+
+test('historyId survives load only when it is a string', () => {
+  const ref = { mode: 'play' as const, code: 'K7QF2' };
+  const q = { ref, progress: emptyProgress(), playVersion: PLAY_VERSION };
+  assert.equal(sanitizeQuick({ ...q, historyId: 'abc' })?.historyId, 'abc');
+  assert.equal('historyId' in (sanitizeQuick({ ...q, historyId: 4 }) ?? {}), false);
 });

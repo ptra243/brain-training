@@ -16,6 +16,7 @@ import type { BoardSave, PlacedPiece } from './board/boardSave.ts';
 import type { CampaignSave, Outcome } from './campaign.ts';
 import type { CatsData, CrosswordData, SudokuData, WordSearchData, WordleData } from './games/saveData.ts';
 import type { GridHintState } from './gridHints.ts';
+import { HISTORY_CAP, emptyHistory, type CampaignEntry, type History, type QuickEntry } from './history.ts';
 import { emptyProgress, type Accusation, type GameRecord, type InterrogationData, type Mark, type Progress } from './state.ts';
 import type { QuickSave } from './storage.ts';
 
@@ -222,7 +223,7 @@ export function sanitizeQuick(v: unknown): QuickSave | null {
   if (isPlayRef(v.ref)) {
     if (v.playVersion !== PLAY_VERSION) return null;
   } else if (!isQuickRef(v.ref)) return null;
-  return { ref: v.ref as QuickRef | PlayRef, progress: sanitizeProgress(v.progress) };
+  return { ref: v.ref as QuickRef | PlayRef, progress: sanitizeProgress(v.progress), ...(isString(v.historyId) && { historyId: v.historyId }) };
 }
 
 const KINDS: readonly GameKind[] = [...PICK_ORDER, 'finale'];
@@ -238,5 +239,60 @@ export function sanitizeCampaign(v: unknown): CampaignSave | null {
     rounds: v.rounds.map(sanitizeProgress),
     picked: v.rounds.map((_, i) => (isKinds(picked[i]) ? picked[i] : [])),
     outcome: oneOf<Outcome>('playing', 'caught', 'escaped')(v.outcome) ? v.outcome : 'playing',
+    ...(isString(v.historyId) && { historyId: v.historyId }),
+  };
+}
+
+// ---------- Run history ----------
+
+const count = (v: unknown): number => (isNum(v) && v >= 0 ? Math.floor(v) : 0);
+const isDate = (v: unknown): v is string => isString(v) && /^\d{4}-\d{2}-\d{2}$/.test(v);
+
+const effortFields = (v: Record<string, unknown>) => ({
+  hints: count(v.hints),
+  solvedForHer: count(v.solvedForHer),
+  solvedYourself: count(v.solvedYourself),
+  puzzles: count(v.puzzles),
+});
+
+function sanitizeQuickEntry(v: unknown): QuickEntry | null {
+  if (!isObject(v) || !isString(v.id) || !isDate(v.date) || !(isPlayRef(v.ref) || isQuickRef(v.ref))) return null;
+  return { id: v.id, ref: v.ref as QuickRef | PlayRef, date: v.date, accusations: count(v.accusations), ...effortFields(v) };
+}
+
+function sanitizeCampaignEntry(v: unknown): CampaignEntry | null {
+  if (!isObject(v) || !isString(v.id) || !isDate(v.date) || !isCampaignRef(v.ref)) return null;
+  if (v.ending !== 'caught' && v.ending !== 'escaped') return null;
+  return {
+    id: v.id,
+    ref: v.ref,
+    date: v.date,
+    ending: v.ending,
+    round: Math.min(Math.max(count(v.round), 1), 3),
+    wrongWeaponTries: count(v.wrongWeaponTries),
+    wrongPeople: count(v.wrongPeople),
+    ...effortFields(v),
+  };
+}
+
+const entries = <T>(v: unknown, one: (e: unknown) => T | null): T[] =>
+  Array.isArray(v) ? v.map(one).filter((e): e is T => e !== null).slice(0, HISTORY_CAP) : [];
+
+/** The run history on disk. A bad row is dropped, a bad total field reads 0, a damaged blob reads as empty. */
+export function sanitizeHistory(v: unknown): History {
+  if (!isObject(v)) return emptyHistory();
+  const qt = isObject(v.quickTotals) ? v.quickTotals : {};
+  const ct = isObject(v.campaignTotals) ? v.campaignTotals : {};
+  return {
+    quick: entries(v.quick, sanitizeQuickEntry),
+    campaign: entries(v.campaign, sanitizeCampaignEntry),
+    quickTotals: { ...effortFields(qt), cases: count(qt.cases), first: count(qt.first) },
+    campaignTotals: {
+      ...effortFields(ct),
+      campaigns: count(ct.campaigns),
+      caught: count(ct.caught),
+      escaped: count(ct.escaped),
+      caughtAt9: count(ct.caughtAt9),
+    },
   };
 }

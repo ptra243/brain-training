@@ -16,6 +16,7 @@ import { generate } from './caseClient.ts';
 import { roundsKey } from './caseJobs.ts';
 import { NextMurderScene } from './NextMurderScene.tsx';
 import { Shuffling } from './Shuffling.tsx';
+import { campaignRow, effortLines } from './runRecord.ts';
 import { reduce, unlockedClueIds, type Action, type Progress } from './state.ts';
 
 interface Props {
@@ -214,6 +215,9 @@ function CampaignRounds({ save, cases: built, onSave, onHome }: RoundsProps) {
   );
 
   const killer = campaignCast(content, save.ref).killer;
+  // The closing lines read the finished save itself, summed over every round (not the history list).
+  const finished = save.outcome === 'caught' || save.outcome === 'escaped';
+  const effort = finished ? effortLines(campaignRow(save, built, '')) : undefined;
   const walkedFree = !isNow && save.rounds[viewing].accusations.at(-1)?.suspect === killer;
   const accuse = !isNow ? (
     <section className="panel">
@@ -234,6 +238,7 @@ function CampaignRounds({ save, cases: built, onSave, onHome }: RoundsProps) {
           It was {midSentence(suspectName(killer, c.guests))}, with the {itemName(c.weapon)}.
         </p>
         <p className="muted">Three wrong guesses, and by dawn they were gone.</p>
+        <p className="muted" data-testid="closing-effort">{effort}</p>
         <button className="primary" onClick={onHome}>
           Back to the start
         </button>
@@ -246,6 +251,7 @@ function CampaignRounds({ save, cases: built, onSave, onHome }: RoundsProps) {
       dispatch={dispatch}
       onNextCase={onHome}
       campaign
+      effort={effort}
       suspects={allowed}
       stillPointing={possible.length}
       midnight={atMidnight(c, progress)}
