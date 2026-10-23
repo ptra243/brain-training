@@ -2,14 +2,14 @@ import { houseOf } from '../content/houses.ts';
 import { useMemo, useState, type CSSProperties } from 'react';
 import { houseDetails } from '../content/index.ts';
 import type { Case, GameKind, House } from '../engine/types.ts';
-import { DoorGaps } from './DoorGaps.tsx';
-import { labelClass, ownerMap, tileWalls } from './plan.ts';
+import { PlanFrame } from './PlanFrame.tsx';
+import { ownerMap } from './plan.ts';
 import { playerPortrait, portraits, type PortraitParts } from '../content/portraits.ts';
 import { talk } from '../content/talk.ts';
 import { Dialog } from './Dialog.tsx';
 import { canOpen, centreCell, clockAfterNext, minutesPerGame, openPuzzlesIn, roomContents, roomsSeen, standSpots, whereAmI } from './explore.ts';
 import { GAMES } from './games/registry.tsx';
-import { faceClass, roomName, roomTint, suspectColour, suspectInitials, suspectName } from './names.ts';
+import { faceClass, roomName, suspectColour, suspectInitials, suspectName } from './names.ts';
 import { hasPortrait, Portrait } from './Portrait.tsx';
 import type { Tint } from './portrait.ts';
 import { SuspectCounterFace } from './SuspectCounterFace.tsx';
@@ -111,7 +111,6 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
   };
 
   const owner = useMemo(() => ownerMap(house), [house]);
-  const roomAtCell = (r: number, col: number) => owner.get(`${r},${col}`);
   const pct = (r: number, col: number) => ({ top: `${(r / house.rows) * 100}%`, left: `${(col / house.cols) * 100}%` });
 
   const open = (kind: GameKind) => {
@@ -152,65 +151,33 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
             : 'Tap a room to walk there. A red mark means something to do.'}
       </p>
 
-      <div className="floorplan-frame explore">
-        <div className="plan-axes" style={{ gridTemplateColumns: `1rem repeat(${house.cols}, 1fr)` }} aria-hidden="true">
-          <span />
-          {Array.from({ length: house.cols }, (_, col) => (
-            <span key={col}>{col + 1}</span>
-          ))}
-        </div>
-        <div className="plan-body">
-          <div className="plan-rows" style={{ gridTemplateRows: `repeat(${house.rows}, 1fr)` }} aria-hidden="true">
-            {Array.from({ length: house.rows }, (_, r) => (
-              <span key={r}>{r + 1}</span>
-            ))}
-          </div>
-          <div
-            className="floorplan explore"
-            style={{
-              gridTemplateColumns: `repeat(${house.cols}, minmax(0, 1fr))`,
-              gridTemplateRows: `repeat(${house.rows}, minmax(0, 1fr))`,
-              aspectRatio: `${house.cols} / ${house.rows}`,
-            }}
-          >
-            {Array.from({ length: house.rows }, (_, r) =>
-              Array.from({ length: house.cols }, (_, col) => {
-                const room = roomAtCell(r, col);
-                if (!room) return <div key={`${r}-${col}`} className="tile void" aria-hidden="true" />;
-                const inPlay = c.rooms.includes(room.id);
-                const isLabel = room.cells[0][0] === r && room.cells[0][1] === col;
-                const todo = inPlay && !locked && !readOnly && openPuzzlesIn(c, progress, contents[room.id], picked, left).length > 0;
-                return (
-                  <div
-                    key={`${r}-${col}`}
-                    className={`tile ${inPlay ? '' : 'closed'} ${room.id === c.sceneRoom ? 'scene' : ''} ${room.id === here ? 'here' : ''}`}
-                    onClick={inPlay ? () => go(room.id) : undefined}
-                    style={{ background: roomTint(room.id), ...tileWalls(owner, r, col) }}
-                  >
-                    {isLabel && (
-                      <span className={labelClass(house, room)}>
-                        {room.name}
-                        {room.id === c.sceneRoom && <span className="body-mark"> ✕ body</span>}
-                      </span>
-                    )}
-                    {isLabel && inPlay && (
-                      <button
-                        className="tile-hit"
-                        disabled={frozen}
-                        aria-label={`${room.name}${room.id === c.sceneRoom ? ', where the body was found' : ''}${room.id === here ? ', you are here' : ''}${todo ? ', something to do' : ''}`}
-                        aria-current={room.id === here ? 'location' : undefined}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          go(room.id);
-                        }}
-                      />
-                    )}
-                  </div>
-                );
-              }),
-            )}
-            <DoorGaps house={house} />
-
+      <PlanFrame
+        house={house}
+        owner={owner}
+        inPlay={c.rooms}
+        variant="explore"
+        tile={(room, _r, _col, isLabel) => {
+          const inPlay = c.rooms.includes(room.id);
+          const todo = inPlay && !locked && !readOnly && openPuzzlesIn(c, progress, contents[room.id], picked, left).length > 0;
+          return {
+            className: `${room.id === c.sceneRoom ? 'scene' : ''} ${room.id === here ? 'here' : ''}`,
+            onClick: inPlay ? () => go(room.id) : undefined,
+            labelSuffix: room.id === c.sceneRoom && <span className="body-mark"> ✕ body</span>,
+            labelChildren: isLabel && inPlay && (
+              <button
+                className="tile-hit"
+                disabled={frozen}
+                aria-label={`${room.name}${room.id === c.sceneRoom ? ', where the body was found' : ''}${room.id === here ? ', you are here' : ''}${todo ? ', something to do' : ''}`}
+                aria-current={room.id === here ? 'location' : undefined}
+                onClick={(ev) => {
+                  ev.stopPropagation();
+                  go(room.id);
+                }}
+              />
+            ),
+          };
+        }}
+      >
             {house.rooms.map((room) => {
               if (!c.rooms.includes(room.id) || locked || readOnly) return null;
               if (!openPuzzlesIn(c, progress, contents[room.id], picked, left).length) return null;
@@ -249,9 +216,7 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
             <span className="you-marker" style={pct(marker.r, marker.col)} aria-hidden="true">
               <Portrait parts={playerPortrait} view="counter" />
             </span>
-          </div>
-        </div>
-      </div>
+      </PlanFrame>
 
       <p className="legend">
         Shaded rooms are empty tonight: {house.rooms.filter((r) => !c.rooms.includes(r.id)).map((r) => roomName(r.id)).join(', ')}.

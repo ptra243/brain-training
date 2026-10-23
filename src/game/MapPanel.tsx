@@ -1,12 +1,12 @@
 import { houseOf } from '../content/houses.ts';
 import { useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import type { Case, GameKind, House, Room } from '../engine/types.ts';
-import { DoorGaps } from './DoorGaps.tsx';
-import { labelClass, ownerMap, tileWalls } from './plan.ts';
+import { PlanFrame } from './PlanFrame.tsx';
+import { ownerMap } from './plan.ts';
 import { ClueCard } from './ClueCard.tsx';
 import { cellOf, showsWrong } from './gridHints.ts';
 import { Dialog } from './Dialog.tsx';
-import { itemName, roomName, roomTint, suspectColour, suspectName, faceClass } from './names.ts';
+import { itemName, roomName, suspectColour, suspectName, faceClass } from './names.ts';
 import { SuspectCounterFace } from './SuspectCounterFace.tsx';
 import {
   heldItem,
@@ -200,53 +200,18 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
           : 'Drag people and weapons into rooms. Drop a weapon on someone to hand it to them. Tap anything to see its clues.'}
       </p>
 
-      <div className="floorplan-frame">
-        <div className="plan-axes" style={{ gridTemplateColumns: `1rem repeat(${house.cols}, 1fr)` }} aria-hidden="true">
-          <span />
-          {Array.from({ length: house.cols }, (_, col) => (
-            <span key={col}>{col + 1}</span>
-          ))}
-        </div>
-        <div className="plan-body">
-          <div className="plan-rows" style={{ gridTemplateRows: `repeat(${house.rows}, 1fr)` }} aria-hidden="true">
-            {Array.from({ length: house.rows }, (_, r) => (
-              <span key={r}>{r + 1}</span>
-            ))}
-          </div>
-          <div
-            ref={mapRef}
-            className={`floorplan ${selected ? 'awaiting' : ''}`}
-            style={{
-              gridTemplateColumns: `repeat(${house.cols}, minmax(0, 1fr))`,
-              gridTemplateRows: `repeat(${house.rows}, minmax(0, 1fr))`,
-              aspectRatio: `${house.cols} / ${house.rows}`,
-            }}
-          >
-            {Array.from({ length: house.rows }, (_, r) =>
-              Array.from({ length: house.cols }, (_, col) => {
-                const room = roomAtCell(r, col);
-                if (!room) return <div key={`${r}-${col}`} className="tile void" aria-hidden="true" />;
-                const inPlay = c.rooms.includes(room.id);
-                const isLabel = room.cells[0][0] === r && room.cells[0][1] === col;
-                return (
-                  <div
-                    key={`${r}-${col}`}
-                    className={`tile ${inPlay ? '' : 'closed'} ${room.id === scene ? 'scene' : ''} ${hintedRoom(room.id) ? 'hinted' : ''}`}
-                    onClick={() => onMapTap(r, col)}
-                    style={{ background: roomTint(room.id), ...tileWalls(owner, r, col) }}
-                  >
-                    {isLabel && (
-                      <span className={labelClass(house, room)}>
-                        {room.name}
-                        {room.id === scene && <span className="body-mark"> ✕ body</span>}
-                      </span>
-                    )}
-                  </div>
-                );
-              }),
-            )}
-            <DoorGaps house={house} />
-
+      <PlanFrame
+        house={house}
+        owner={owner}
+        inPlay={c.rooms}
+        planClass={selected ? 'awaiting' : ''}
+        planRef={mapRef}
+        tile={(room, r, col) => ({
+          className: `${room.id === scene ? 'scene' : ''} ${hintedRoom(room.id) ? 'hinted' : ''}`,
+          onClick: () => onMapTap(r, col),
+          labelSuffix: room.id === scene && <span className="body-mark"> ✕ body</span>,
+        })}
+      >
             {house.rooms.map((room) => {
               const { people, things } = anchors(room);
               const here = placed.filter((p) => p.room === room.id).map((p) => p.suspect);
@@ -270,9 +235,7 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
                 ),
               ];
             })}
-          </div>
-        </div>
-      </div>
+      </PlanFrame>
 
       <div className="tray card">
         <h2>Not on the map yet</h2>
