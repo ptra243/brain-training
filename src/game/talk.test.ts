@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
-import { talk } from '../content/talk.ts';
+import { faceLines, talk } from '../content/talk.ts';
 import { campaignCast, campaignRound } from '../engine/campaign.ts';
 import { moodFor } from '../engine/sets.ts';
 import type { Case } from '../engine/types.ts';
@@ -154,4 +154,12 @@ test('mood shifts are about 50% stay, 25% warmer, 25% colder when not clamped', 
   }
   assert.ok(Math.abs(up / n - 0.25) < 0.03, `up ${up / n}`);
   assert.ok(Math.abs(down / n - 0.25) < 0.03, `down ${down / n}`);
+});
+
+test('face lines: each pool has 8 distinct non-empty lines', () => {
+  for (const [pool, lines] of Object.entries(faceLines)) {
+    assert.equal(lines.length, 8, pool);
+    assert.equal(new Set(lines).size, 8, pool);
+    for (const l of lines) assert.ok(l.trim().length > 0 && !/[{}]/.test(l), pool);
+  }
 });

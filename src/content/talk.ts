@@ -524,3 +524,49 @@ export const talk: TalkContent = {
     warm: ['Oh, hello. Do sit down.', 'Back again? Good.', 'Come in, come in.'],
   },
 };
+
+// Closing lines for face-to-face questioning (placeholders). No names, no
+// placeholders; said to her. `innocent` is the narrator/cat voice, the others
+// are the guest speaking.
+export const faceLines = {
+  innocent: [
+    "It all lines up. Maybe they're innocent.",
+    "Every answer held together. I can't fault a word of it.",
+    'Nothing here is out of place. Perhaps you have the wrong person.',
+    'The story is tidy and the nerves are steady. That is rarely a guilty mix.',
+    'No cracks anywhere. This one may simply be telling the truth.',
+    'Everything checks out, down to the last detail.',
+    'There is nothing here to catch. Best look elsewhere.',
+    'It all fits, and not a single thing was forced. Innocent, I think.',
+  ],
+  confession: [
+    "All right. It was me. I'm tired of pretending.",
+    "You've got me. I won't insult you by denying it.",
+    'Yes. I did it. There, I said it.',
+    "I knew you'd work it out. I just hoped it would take longer.",
+    "It was me, and I'm not proud of it.",
+    "Enough. I can't keep this up. I did it.",
+    "You were never going to believe the rest, so here is the truth. It was me.",
+    "I'm done lying. It was me, and that's all there is to it.",
+  ],
+  dodge: [
+    "Fine, I was there. But you'll never pin that on me.",
+    "All right, I wasn't telling the whole truth. That proves nothing.",
+    "So I fibbed a little. It doesn't make me guilty.",
+    "Yes, I was nearby. Being nearby is not a crime.",
+    "You caught me out. Still, you've got the wrong idea about the rest.",
+    "I'll give you that one. You haven't got the rest.",
+    "Very clever. I'll admit the slip, and nothing more.",
+    "Fine, I stretched the truth. You still can't prove a thing.",
+  ],
+  retort: [
+    "That doesn't contradict anything.",
+    "I don't see how that changes what I said.",
+    "That fits my story perfectly well, thank you.",
+    "Is that all? It doesn't prove anything of the sort.",
+    "You'll have to do better than that.",
+    "That says nothing against me. Try again.",
+    "I've said nothing that clashes with that.",
+    "I'm afraid that doesn't catch me out at all.",
+  ],
+};

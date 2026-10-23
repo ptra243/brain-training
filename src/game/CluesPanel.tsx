@@ -60,7 +60,7 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly, fres
       {play && <GetClue c={c} progress={progress} readOnly={readOnly} onPlay={onPlay} />}
       {!play && (
       <article className="card puzzles">
-        <p className="case-victim">{victimLine(c)}</p>
+        {!c.campaign && <p className="case-victim">{victimLine(c)}</p>}
         <h2>Tonight's puzzles</h2>
         {gate && gate.budget < puzzles.length && (
           <p className="muted small budget-note">

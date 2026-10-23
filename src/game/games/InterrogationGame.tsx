@@ -14,9 +14,24 @@ interface Props extends GameProps<Interrogation, InterrogationData> {
   evidence: readonly Clue[];
   /** Whether these pieces of evidence, together, prove the answer is a lie. */
   disproves: (evidence: readonly Clue[], answer: Question) => boolean;
+  /**
+   * Face to face (campaign): the accused is questioned after the accusation. No strikes and no clues; wrong
+   * evidence only draws a retort; she may stop, skip or reveal the lie.
+   */
+  face?: {
+    /** The accused's reply to evidence that proves nothing; `n` counts her wrong tries. */
+    retort: (n: number) => string;
+    /** She is satisfied with their story. */
+    onStop: () => void;
+    /** Straight to the verdict. */
+    onSkip: () => void;
+    /** Show the lie (after she confirms). */
+    onSolve: () => void;
+  };
 }
 
-export function InterrogationGame({ puzzle, data, guests, finished, onChange, onFinish, evidence, disproves }: Props) {
+export function InterrogationGame({ puzzle, data, guests, finished, onChange, onFinish, evidence, disproves, face }: Props) {
+  const [confirming, setConfirming] = useState(false);
   const name = (id: string) => suspectName(id, guests);
   const mid = (id: string) => midSentence(name(id));
   const [challenging, setChallenging] = useState<Question | null>(null);
@@ -45,6 +60,11 @@ export function InterrogationGame({ puzzle, data, guests, finished, onChange, on
     }
     const strikes = data.strikes + 1;
     const next = { ...data, strikes };
+    if (face) {
+      setReply(face.retort(data.strikes));
+      onChange(next);
+      return;
+    }
     if (strikes >= puzzle.strikes) {
       setReply(`${name(who)} refuses to say another word.`);
       onFinish('revealed', next);
@@ -58,10 +78,10 @@ export function InterrogationGame({ puzzle, data, guests, finished, onChange, on
     onChange(next);
   };
 
-  const lie = puzzle.questions.find((q) => q.lie)!;
+  const lie = puzzle.questions.find((q) => q.lie);
   // She presents exactly as many pieces as the lie needs; otherwise showing
   // the whole casebook would always win.
-  const need = puzzle.proof.length;
+  const need = Math.max(1, puzzle.proof.length);
 
   return (
     <div className="interrogation">
@@ -76,12 +96,20 @@ export function InterrogationGame({ puzzle, data, guests, finished, onChange, on
               ? data.caught
                 ? 'Caught out.'
                 : 'Questioning over.'
-              : `${left} question${left === 1 ? '' : 's'} left. ${strikesLeft} wrong challenge${strikesLeft === 1 ? '' : 's'} before they stop talking.`}
+              : face
+                ? `${left} question${left === 1 ? '' : 's'} left.`
+                : `${left} question${left === 1 ? '' : 's'} left. ${strikesLeft} wrong challenge${strikesLeft === 1 ? '' : 's'} before they stop talking.`}
           </p>
         </div>
       </section>
 
-      {!finished && (
+      {!finished && face && (
+        <p className="hint dark">
+          {name(who)} is waiting for your questions. Ask what you like, then challenge an answer with the clues you have
+          found, or say their story holds.
+        </p>
+      )}
+      {!finished && !face && (
         <p className="hint dark">
           Everything {mid(who)} says is true except one answer. Ask your questions, then challenge the lie with the
           evidence that proves it.
@@ -107,12 +135,12 @@ export function InterrogationGame({ puzzle, data, guests, finished, onChange, on
               </div>
             );
           })}
-          {finished && data.caught && (
+          {finished && data.caught && !face && (
             <p className="crack">
               {name(who)} goes pale. “All right. I'll tell you what I really know.”
             </p>
           )}
-          {finished && !data.caught && !data.asked.includes(lie.id) && (
+          {finished && !data.caught && lie && !data.asked.includes(lie.id) && (
             <p className="muted small">You didn't ask the question they lied about.</p>
           )}
         </section>
@@ -136,6 +164,20 @@ export function InterrogationGame({ puzzle, data, guests, finished, onChange, on
         </section>
       )}
 
+      {!finished && face && (
+        <section className="face-actions">
+          <button className="primary" onClick={face.onStop}>
+            Their story holds
+          </button>
+          <button className="secondary" onClick={() => setConfirming(true)}>
+            Solve
+          </button>
+          <button className="link-button" onClick={face.onSkip}>
+            Skip to the verdict
+          </button>
+        </section>
+      )}
+
       <section className="evidence">
         <h2>{puzzle.useCaseClues ? 'Your casebook' : 'Evidence on the table'}</h2>
         <ul className="clue-list">
@@ -146,6 +188,27 @@ export function InterrogationGame({ puzzle, data, guests, finished, onChange, on
           ))}
         </ul>
       </section>
+
+      {confirming && face && (
+        <Dialog placement="center" labelId="face-solve-title" onClose={() => setConfirming(false)}>
+          <h2 id="face-solve-title">Solve this?</h2>
+          <p className="dialog-text">Are you sure? This can't be undone. You'll see where the story breaks, if it does.</p>
+          <div className="dialog-actions">
+            <button data-autofocus className="secondary" onClick={() => setConfirming(false)}>
+              Keep asking
+            </button>
+            <button
+              className="primary"
+              onClick={() => {
+                setConfirming(false);
+                face.onSolve();
+              }}
+            >
+              Solve it
+            </button>
+          </div>
+        </Dialog>
+      )}
 
       {challenging && (
         <Dialog labelId="present-title" onClose={() => setChallenging(null)}>

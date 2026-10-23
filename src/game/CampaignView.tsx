@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { content } from '../content/index.ts';
 import { ROUNDS, campaignCast } from '../engine/campaign.ts';
-import type { Case } from '../engine/types.ts';
+import type { Case, Interrogation } from '../engine/types.ts';
 import { midSentence } from '../engine/text.ts';
 import { AccusePanel } from './AccusePanel.tsx';
 import { Casebook } from './Casebook.tsx';
 import { Dialog } from './Dialog.tsx';
+import { FaceToFace } from './FaceToFace.tsx';
+import { foundIds, holdRound, pendingAccusation, resolveHeld } from './face.ts';
 import { atMidnight } from './explore.ts';
 import { DIFFICULTY_LABEL, ROUND_TIMES } from './labels.ts';
 import { itemName, suspectName, victimLine } from './names.ts';
-import { currentRound, pick, puzzlesLeft, stillPossible, updateRound, type CampaignSave, type Verdict } from './campaign.ts';
+import { currentRound, pick, puzzlesLeft, stillPossible, type CampaignSave, type Verdict } from './campaign.ts';
 import { generate } from './caseClient.ts';
 import { roundsKey } from './caseJobs.ts';
 import { NextMurderScene } from './NextMurderScene.tsx';
@@ -29,6 +31,7 @@ interface Props {
 export function CampaignView({ save, onSave, onHome }: Props) {
   const [built, setBuilt] = useState<{ key: string; cases: Case[] } | null>(null);
   const [notice, setNotice] = useState<Verdict | null>(null);
+  const [face, setFace] = useState<{ key: string; interrogation: Interrogation } | null>(null);
 
   // Each round is rebuilt from the campaign and the victims before it; only rebuild when they change.
   const key = roundsKey(save);
@@ -49,6 +52,36 @@ export function CampaignView({ save, onSave, onHome }: Props) {
 
   const ready = built && built.key === key ? built.cases : null;
   const now = currentRound(save);
+
+  // An accusation is saved when she makes it but its verdict waits for the questioning (`face.ts`). A reload
+  // finds the accusation still held and replays the questioning.
+  const pending = pendingAccusation(save);
+  const faceKey = pending ? `${key}|${pending.accused}` : null;
+  const resolve = (cases: readonly Case[]) => {
+    const { save: next, verdict } = resolveHeld(content, save, cases[now]);
+    onSave(next);
+    if (verdict === 'next-body' || verdict === 'wrong-weapon' || verdict === 'escaped') setNotice(verdict);
+  };
+  useEffect(() => {
+    if (!ready || !pending || !faceKey) return;
+    let live = true;
+    generate({ kind: 'face', ref: save.ref, victims: save.victims, accused: pending.accused, found: foundIds(ready[now], save.rounds[now]) }).then(
+      (interrogation) => {
+        if (live) setFace({ key: faceKey, interrogation });
+      },
+      (err) => {
+        // Never lose the accusation: with no questioning to play, go straight to the verdict.
+        console.error(err);
+        if (live) resolve(ready);
+      },
+    );
+    return () => {
+      live = false;
+    };
+    // The questioning depends on the round, the accused and her found clues, which `faceKey` and `ready` cover; `resolve` only runs on failure.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [faceKey, ready]);
+  const activeFace = ready && pending && face && face.key === faceKey ? face.interrogation : null;
   const victim = save.victims.at(-1);
   const killer = campaignCast(content, save.ref).killer;
   // When the killer escapes the round doesn't change, so the last built case has the weapon.
@@ -58,7 +91,24 @@ export function CampaignView({ save, onSave, onHome }: Props) {
 
   return (
     <>
-      {ready ? <CampaignRounds save={save} cases={ready} onSave={onSave} onHome={onHome} setNotice={setNotice} /> : <Shuffling />}
+      {ready && pending && activeFace ? (
+        <FaceToFace
+          key={faceKey}
+          c={ready[now]}
+          interrogation={activeFace}
+          killer={pending.accused === killer}
+          rightWeapon={save.rounds[now].accusations.at(-1)?.item === ready[now].weapon}
+          found={foundIds(ready[now], save.rounds[now])}
+          onDone={() => {
+            resolve(ready);
+            window.scrollTo(0, 0);
+          }}
+        />
+      ) : ready && !pending ? (
+        <CampaignRounds save={save} cases={ready} onSave={onSave} onHome={onHome} />
+      ) : (
+        <Shuffling />
+      )}
 
       {(notice === 'next-body' || notice === 'wrong-weapon') && victim && guests && (
         <NextMurderScene
@@ -94,10 +144,9 @@ export function CampaignView({ save, onSave, onHome }: Props) {
 
 interface RoundsProps extends Props {
   cases: Case[];
-  setNotice: (verdict: Verdict) => void;
 }
 
-function CampaignRounds({ save, cases: built, onSave, onHome, setNotice }: RoundsProps) {
+function CampaignRounds({ save, cases: built, onSave, onHome }: RoundsProps) {
   // Every campaign round is explored: the scene is known from the start (a flag on the copy, not the engine's case).
   const cases = useMemo(() => built.map((rc): Case => ({ ...rc, explore: true })), [built]);
   const now = currentRound(save);
@@ -116,9 +165,8 @@ function CampaignRounds({ save, cases: built, onSave, onHome, setNotice }: Round
 
   const onProgress = (update: (p: Progress) => Progress) => {
     if (readOnly) return;
-    const { save: next, verdict } = updateRound(content, save, cases[now], update(save.rounds[now]));
-    onSave(next);
-    if (verdict === 'next-body' || verdict === 'wrong-weapon' || verdict === 'escaped') setNotice(verdict);
+    // An accusation is only held here; its verdict comes after the questioning (CampaignView).
+    onSave(holdRound(save, update(save.rounds[now])));
   };
   const dispatch = (a: Action) => onProgress((p) => reduce(c, p, a));
 

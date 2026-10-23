@@ -138,6 +138,8 @@ test.describe('exploring a campaign round', () => {
     await page.getByRole('group', { name: 'With what' }).getByRole('button').first().click();
     await page.getByRole('button', { name: 'Make the accusation' }).click();
     await page.getByRole('dialog', { name: 'Guess now?' }).getByRole('button', { name: /guess/i }).click();
+    // The accused is questioned first.
+    await page.getByRole('button', { name: 'Skip to the verdict' }).click();
 
     const scene = page.getByRole('dialog', { name: /wasn't the killer$/ });
     await expect(scene).toBeVisible();
