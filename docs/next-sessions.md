@@ -22,19 +22,6 @@ stands. A blocked entry keeps its rank and names its blocker in the heading.
 open questions go in a linked `docs/<slug>.md`, and the entry points to it. An exploratory idea with no
 settled design may stay as a short stub; give it a doc when someone starts it.
 
-## Session: Run history
-Last touched: 2026-10-23
-Reads first: `docs/run-history.md` (settled design), `src/game/CLAUDE.md` (saves), then
-`src/game/storage.ts`, `src/game/saveGuards.ts`, `src/game/AccusePanel.tsx`, `src/game/CampaignView.tsx`.
-Goal: record a finished Quick play case and a finished campaign, and show them. Piece 1 is the
-pure snapshot and its tests. Piece 2 is the `history` save (no storage-prefix bump). Piece 3 is
-the closing line and the Your record screen, then `npm run e2e` and a `browser-check` at 360px.
-One layer per brief. Cases stay as they are.
-Starting prompt:
-```
-Read docs/run-history.md and brief piece 1 (the snapshot and its tests). After it lands, brief piece 2, then piece 3.
-```
-
 ## Session: Portraits, parametric faceted cast
 Last touched: 2026-10-23
 Reads first: `docs/portraits.md` (settled style, parts model and open items), `src/content/portraits.ts`
@@ -256,8 +243,15 @@ Read docs/killer-lies.md and src/engine/CLAUDE.md, then help me decide whether i
 ## Session: Session hygiene review (exploratory)
 Last touched: 2026-10-22
 Reads first: "Why sessions ran long" below, the "Token budget" section of `CLAUDE.md`,
-`.claude/agents/implementer.md`, `.claude/hooks/session-length.mjs`.
-When: every few weeks, or once "Why sessions ran long" has three or more new lines since the last review.
+`docs/workflow.md`, `.claude/agents/implementer.md`, `.claude/hooks/session-length.mjs`.
+When: once a week at most, or once "Why sessions ran long" has three or more new lines since the last review. Not in between.
+Time box: one short session, no more than about six steps. When the checklist is done, stop; don't audit the audit.
+Weekly checklist:
+1. Run `/context` in a fresh session and note the startup tokens (it was about 81k on 2026-10-23: tools 38k, MCP 21k, memory 5k). A rise of 10k or more means something new is loading.
+2. Check the weekly usage figure and whether any limit was hit.
+3. Skim the new "Why sessions ran long" lines for a cause that appears twice or more.
+4. Change a rule only for a repeat cause; anything seen once stays a note.
+5. Note what you reviewed and the date, then close the session.
 Goal: look for causes that repeat, and change a rule only for those; a cause seen once stays a note.
 Check whether the 250k-token reminder fires at the right moment (it was a 1 MB transcript size
 until 2026-10-23; tune it with `SESSION_REMIND_TOKENS`). Compare the token totals and the minutes the dated lines quote, not just their causes: a session can be cheap in tokens and still slow (long agent runs, full checks), and the fixes differ. Use the `explain-usage` skill on a session only if a cause is unclear. Mark the
