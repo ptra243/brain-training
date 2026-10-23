@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect } from './fixtures.ts';
 import { content } from '../src/content/index.ts';
+import { houseOf } from '../src/content/houses.ts';
 import { nosingLadders, nosingSnakes } from '../src/content/nosing.ts';
 import { caseFor, type CaseRef } from '../src/engine/caseRef.ts';
 import { buildNosing, nosingSeed, type NosingPhase, type NosingView } from '../src/games/nosing.ts';
@@ -52,7 +53,7 @@ export async function openNosingAt(page: Page, phase: Exclude<NosingPhase, 'open
   const spec = c.games.find((g) => g.kind === 'nosing');
   if (!spec || spec.kind !== 'nosing') throw new Error('the case has no Nosing around game');
   const puzzle = buildNosing({
-    house: content.house,
+    house: houseOf(c),
     seed: nosingSeed(spec.seed),
     level: spec.level!,
     sceneRoom: c.sceneRoom,

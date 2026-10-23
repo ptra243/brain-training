@@ -44,7 +44,7 @@ Settled design, 2026-10-21. **Built (all four pieces), 2026-10-23.** Every scene
 ## The engine change: a wrong weapon ends the round
 
 Today the right person with the wrong weapon costs nothing (`src/engine/campaign.ts`,
-`src/game/campaign.ts` verdict `wrong-weapon`). New rule: it ends the round like a wrong guess, and the
+`src/game/campaignSave.ts` verdict `wrong-weapon`). New rule: it ends the round like a wrong guess, and the
 next body is a seeded pick among the innocent guests who are not decoys. `campaignRound` currently
 assumes every victim is someone she accused; it needs a "killed while the killer walked free" victim.
 Old saves have no such victim, so their rounds must rebuild the same. Generator change: run

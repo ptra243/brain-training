@@ -5,7 +5,7 @@
 import type { CampaignRef } from '../engine/campaign.ts';
 import type { CaseRef } from '../engine/caseRef.ts';
 import type { Case } from '../engine/types.ts';
-import type { CampaignSave } from './campaign.ts';
+import type { CampaignSave } from './campaignSave.ts';
 import type { Progress } from './state.ts';
 import type { QuickSave } from './storage.ts';
 

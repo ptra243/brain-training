@@ -1,3 +1,4 @@
+import { houseOf } from '../content/houses.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
@@ -65,7 +66,7 @@ test('7-guest cases: shared rooms, two empty hands, the killer alone with the we
     assert.equal(c.solution.room.filter((r) => r === c.sceneRoom).length, 1, 'alone at the scene');
     assert.equal(c.solution.item[k], c.weapon);
     const space = { suspects: c.suspects, rooms: c.rooms, items: c.items, shared: true };
-    assert.equal(countMatching(space, c.clues.map((cl) => cl.fact), { suspects: c.suspects, adjacency }, 2), 1, `case ${n}`);
+    assert.equal(countMatching(space, c.clues.map((cl) => cl.fact), { suspects: c.suspects, adjacency: roomAdjacency(houseOf(c)) }, 2), 1, `case ${n}`);
   }
 });
 

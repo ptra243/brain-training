@@ -4,7 +4,7 @@ import type { CampaignRef } from '../engine/campaign.ts';
 import { tarotInitial } from '../games/tarot.ts';
 import { nosingInitial } from '../games/nosing.ts';
 import { boardInitial } from './board/boardSave.ts';
-import { newCampaign } from './campaign.ts';
+import { newCampaign } from './campaignSave.ts';
 import { catsInitial, crosswordInitial, interrogationInitial, wordSearchInitial, wordleInitial } from './games/saveData.ts';
 import {
   PLAY_VERSION,

@@ -14,6 +14,7 @@ import {
 } from '../../games/cats.ts';
 import { HintButton, HintNote, Paw } from './Hints.tsx';
 import type { CatsData } from './saveData.ts';
+import styles from './CatsGame.module.css';
 import type { GameProps } from './types.ts';
 
 const ZONE_TINTS = ['#e9c99a', '#b9d29a', '#b7b6e3', '#eab2a8', '#a9d4d9', '#f0e08e', '#dcb0d6', '#c4c7b8'];
@@ -21,10 +22,10 @@ const ZONE_NAMES = ['tan', 'green', 'lilac', 'pink', 'blue', 'yellow', 'mauve', 
 
 function CatIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="cat-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className={styles.icon} aria-hidden="true">
       <path d="M5 4 L9 8.5 H15 L19 4 L19.5 12.5 A7.5 7 0 0 1 4.5 12.5 Z" />
-      <circle cx="9.3" cy="13" r="1.2" className="eye" />
-      <circle cx="14.7" cy="13" r="1.2" className="eye" />
+      <circle cx="9.3" cy="13" r="1.2" className={styles.eye} />
+      <circle cx="14.7" cy="13" r="1.2" className={styles.eye} />
     </svg>
   );
 }
@@ -143,7 +144,7 @@ export function CatsGame({ puzzle, data, finished, helper = 'The cat', onChange,
   const zone = (r: number, c: number) => (r < 0 || c < 0 || r >= n || c >= n ? -1 : puzzle.zones[r][c]);
 
   return (
-    <div className="cats">
+    <div>
       <p className="hint dark">
         Put one cat in every row, every column and every colour. Cats can't touch, not even corner to corner. Tap once
         for a dot (your note that no cat goes there), twice for a cat. Each cat dots the squares it rules out for you.
@@ -155,7 +156,7 @@ export function CatsGame({ puzzle, data, finished, helper = 'The cat', onChange,
         </div>
       )}
       <div
-        className="cat-grid"
+        className={styles.grid}
         style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${n}, minmax(0, 1fr))` }} role="grid" aria-label="Cat puzzle">
         {Array.from({ length: n }, (_, r) =>
           Array.from({ length: n }, (_, c) => {
@@ -171,7 +172,7 @@ export function CatsGame({ puzzle, data, finished, helper = 'The cat', onChange,
               <button
                 key={`${r}-${c}`}
                 role="gridcell"
-                className={`cat-cell ${bad.has(key) && !wrong ? 'clash' : ''} ${wrong ? 'wrong' : ''} ${inUnit ? 'hint-unit' : ''}`}
+                className={[styles.cell, bad.has(key) && !wrong && styles.clash, wrong && styles.wrong, inUnit && styles.hintUnit].filter(Boolean).join(' ')}
                 style={{
                   background: ZONE_TINTS[z % ZONE_TINTS.length],
                   borderTopWidth: wall(-1, 0),
@@ -182,7 +183,7 @@ export function CatsGame({ puzzle, data, finished, helper = 'The cat', onChange,
                 aria-label={`Row ${r + 1}, column ${c + 1}, ${ZONE_NAMES[z % ZONE_NAMES.length]}: ${mark === 'cat' ? 'cat' : mark === 'dot' ? 'dot' : 'empty'}${wrong ? ', crossed out as wrong' : ''}${target ? `, ${helper} is pointing here` : ''}`}
                 onClick={() => tap(r, c)}
               >
-                {mark === 'cat' ? <CatIcon /> : mark === 'dot' ? <span className={`dot ${own ? '' : 'auto'}`} /> : null}
+                {mark === 'cat' ? <CatIcon /> : mark === 'dot' ? <span className={own ? styles.dot : `${styles.dot} ${styles.auto}`} /> : null}
                 {target && <Paw />}
               </button>
             );

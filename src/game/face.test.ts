@@ -4,7 +4,7 @@ import { content } from '../content/index.ts';
 import { faceLines } from '../content/talk.ts';
 import { campaignCast, type CampaignRef } from '../engine/campaign.ts';
 import { codeFor } from '../engine/caseRef.ts';
-import { currentRound, newCampaign, roundCase, updateRound } from './campaign.ts';
+import { currentRound, newCampaign, roundCase, updateRound } from './campaignSave.ts';
 import { endingKind, faceLine, holdRound, pendingAccusation, resolveHeld } from './face.ts';
 import { reduce } from './state.ts';
 

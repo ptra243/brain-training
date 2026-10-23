@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { buildCaseIn } from '../engine/generate.ts';
 import { PRESETS } from '../engine/settings.ts';
-import { allHouses, chooseHouse, houseById, houseOf, lodge, playableHouses } from './houses.ts';
+import { allHouses, chooseHouse, houseById, houseOf, lodge, otherHouses, playableHouses } from './houses.ts';
 import { content, house as manor } from './index.ts';
 
 test('houseById and houseOf round trip, unknown ids throw', () => {
@@ -14,10 +14,12 @@ test('houseById and houseOf round trip, unknown ids throw', () => {
   assert.throws(() => houseOf({ houseId: 'nowhere' }));
 });
 
-test('only the manor is playable for now', () => {
-  assert.deepEqual(playableHouses, [manor]);
-  assert.equal(chooseHouse('anything'), manor);
+test('every layout is playable, and the roll reaches each of them, the manor included', () => {
+  assert.deepEqual(playableHouses, [manor, ...otherHouses]);
   assert.equal(allHouses.length, 6);
+  const layouts = new Set<string>();
+  for (let i = 0; i < 120; i++) layouts.add(chooseHouse(`roll-${i}`).id.split('/')[0]);
+  assert.deepEqual([...layouts].sort(), allHouses.map((h) => h.id).sort());
 });
 
 test('a case built in the lodge has its houseId and lodge rooms', () => {
@@ -29,9 +31,9 @@ test('a case built in the lodge has its houseId and lodge rooms', () => {
   assert.ok(ids.has(c.sceneRoom));
 });
 
-test('the default build is in the manor', async () => {
+test('the default build is in the house its seed text rolls', async () => {
   const { buildCase } = await import('../engine/generate.ts');
-  assert.equal(buildCase(content, 'case-1-easy', 1, '1', PRESETS.easy).houseId, manor.id);
+  assert.equal(buildCase(content, 'case-1-easy', 1, '1', PRESETS.easy).houseId, chooseHouse('case-1-easy').id);
 });
 
 test('a campaign keeps its house for every round, and without one means the manor', async () => {

@@ -406,7 +406,7 @@ test('Solve puts the cat at the end, opens the lock and gives every clue', () =>
 });
 
 for (const level of LEVELS) {
-  test(`${level}: following hints always wins with every clue, and always-wrong and random bots finish within the turn bounds`, () => {
+  test(`${level}: right, always-wrong and random walks meet the dog, stay within the turn bounds and reach the lock`, () => {
     for (const i of BOT_SEEDS) botSeed(level, i);
   });
 }

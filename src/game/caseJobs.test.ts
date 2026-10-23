@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
 import { campaignRound, type CampaignRef } from '../engine/campaign.ts';
 import { caseFor, codeFor, newPickCase, newPlayCase, newQuickCase, type CaseRef } from '../engine/caseRef.ts';
-import { newCampaign, roundCase } from './campaign.ts';
+import { newCampaign, roundCase } from './campaignSave.ts';
 import { roundsKey, runCaseJob } from './caseJobs.ts';
 
 const seq = (...ns: number[]) => {

@@ -6,7 +6,7 @@
 // (`playLevels`). A case name says the same as the code in words; names now
 // read back as Play cases, and old Quick start cases replay by their code.
 
-import { buildCase, buildPlayCase } from './generate.ts';
+import { buildCase, buildCaseIn, buildPlayCase, buildPlayCaseIn } from './generate.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { PRESETS, levelsKey, type CaseLevels, type Length } from './settings.ts';
 import { capital } from './text.ts';
@@ -132,10 +132,19 @@ export function parseCaseCode(text: string): CaseRef | null {
 
 /** The case a ref names. Same ref, same case. */
 export function caseFor(content: Content, ref: CaseRef): Case {
-  if (ref.mode === 'play' && ref.games) return pickedCase(content, ref.code, ref.games);
-  if (ref.mode === 'play') return buildPlayCase(content, `play-${ref.code}`, codeNumber(ref.code), ref.code, playLevels(ref.code));
+  return caseVia(content, ref, buildCase, buildPlayCase);
+}
+
+/** `caseFor` in the house `content.house`, without choosing one (the case check uses it for every house). */
+export function caseForIn(content: Content, ref: CaseRef): Case {
+  return caseVia(content, ref, buildCaseIn, buildPlayCaseIn);
+}
+
+function caseVia(content: Content, ref: CaseRef, build: typeof buildCase, buildPlay: typeof buildPlayCase): Case {
+  if (ref.mode === 'play' && ref.games) return pickedCase(content, ref.code, ref.games, buildPlay);
+  if (ref.mode === 'play') return buildPlay(content, `play-${ref.code}`, codeNumber(ref.code), ref.code, playLevels(ref.code));
   const levels = quickLevels(ref);
-  return buildCase(content, `quick-${ref.code}-${levelsKey(levels)}`, codeNumber(ref.code), ref.code, levels);
+  return build(content, `quick-${ref.code}-${levelsKey(levels)}`, codeNumber(ref.code), ref.code, levels);
 }
 
 /** How many seed suffixes a picked case tries (`pick-<code>-<letters>`, then `-1`, `-2`, ...). */
@@ -145,13 +154,13 @@ const PICK_TRIES = 30;
  * A picked case: the same code and so the same levels she saw, with the first
  * seed text that builds. Deterministic, so the same ref is always the same case.
  */
-function pickedCase(content: Content, code: string, games: readonly PickedGame[]): Case {
+function pickedCase(content: Content, code: string, games: readonly PickedGame[], buildPlay: typeof buildPlayCase = buildPlayCase): Case {
   const letters = pickedInOrder(games).map((g) => PICK_LETTER[g]).join('');
   const levels = playLevels(code);
   let last: unknown;
   for (let i = 0; i < PICK_TRIES; i++) {
     try {
-      return buildPlayCase(content, `pick-${code}-${letters}${i ? `-${i}` : ''}`, codeNumber(code), code, levels, pickedInOrder(games));
+      return buildPlay(content, `pick-${code}-${letters}${i ? `-${i}` : ''}`, codeNumber(code), code, levels, pickedInOrder(games));
     } catch (e) {
       last = e;
     }

@@ -3,7 +3,7 @@
 // still works without it, just without remembering.
 
 import { PICK_ORDER, pickedInOrder, type CaseRef, type PickedGame } from '../engine/caseRef.ts';
-import type { CampaignSave } from './campaign.ts';
+import type { CampaignSave } from './campaignSave.ts';
 import type { History } from './history.ts';
 import { PLAY_VERSION, sanitizeCampaign, sanitizeHistory, sanitizeQuick } from './saveGuards.ts';
 import type { Progress } from './state.ts';
@@ -12,7 +12,8 @@ import type { Progress } from './state.ts';
 // v6: Nosing around deals its question wordings from a shuffled deck, which changes those puzzles.
 // v7: Nosing around medium and hard boards are shorter, every roll stops first, and a wrong obstacle answer backs the cat off.
 // v8: the real cast of 10 guests, and every case has a named victim; seating changes every case.
-const PREFIX = 'brain-training:v8:';
+// v9: cases are set in one of six houses (rotated or mirrored), which changes every case.
+const PREFIX = 'brain-training:v9:';
 
 function read(key: string): unknown {
   try {

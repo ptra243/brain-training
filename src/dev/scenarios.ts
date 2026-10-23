@@ -7,7 +7,7 @@ import { ROUNDS, type CampaignRef } from '../engine/campaign.ts';
 import { caseFor, codeFor, type QuickRef } from '../engine/caseRef.ts';
 import { isSceneGame } from '../engine/gameKinds.ts';
 import type { Case } from '../engine/types.ts';
-import { newCampaign, pick, roundCase, updateRound, type CampaignSave } from '../game/campaign.ts';
+import { newCampaign, pick, roundCase, updateRound, type CampaignSave } from '../game/campaignSave.ts';
 import { emptyHistory, recordCampaign, recordQuick } from '../game/history.ts';
 import { localDate } from '../game/runRecord.ts';
 import { emptyProgress, type Progress } from '../game/state.ts';

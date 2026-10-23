@@ -3,7 +3,7 @@ import { useMemo, useState, type CSSProperties } from 'react';
 import { houseDetails } from '../content/index.ts';
 import type { Case, GameKind, House } from '../engine/types.ts';
 import { PlanFrame } from './PlanFrame.tsx';
-import { ownerMap } from './plan.ts';
+import { ownerMap, tapRect } from './plan.ts';
 import { playerPortrait, portraits, type PortraitParts } from '../content/portraits.ts';
 import { talk } from '../content/talk.ts';
 import { Dialog } from './Dialog.tsx';
@@ -156,7 +156,16 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
         owner={owner}
         inPlay={c.rooms}
         variant="explore"
-        tile={(room, _r, _col, isLabel) => {
+        tile={(room, labelR, labelCol, isLabel) => {
+          // The tap target is the room's biggest rectangle, not just the label cell (a cell is ~23px on the 12-cell houses).
+          const rect = tapRect(room);
+          const hitStyle: CSSProperties = {
+            inset: 'auto',
+            top: `${(rect.r - labelR) * 100}%`,
+            left: `${(rect.col - labelCol) * 100}%`,
+            height: `${rect.h * 100}%`,
+            width: `${rect.w * 100}%`,
+          };
           const inPlay = c.rooms.includes(room.id);
           const todo = inPlay && !locked && !readOnly && openPuzzlesIn(c, progress, contents[room.id], picked, left).length > 0;
           return {
@@ -166,6 +175,7 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
             labelChildren: isLabel && inPlay && (
               <button
                 className="tile-hit"
+                style={hitStyle}
                 disabled={frozen}
                 aria-label={`${room.name}${room.id === c.sceneRoom ? ', where the body was found' : ''}${room.id === here ? ', you are here' : ''}${todo ? ', something to do' : ''}`}
                 aria-current={room.id === here ? 'location' : undefined}

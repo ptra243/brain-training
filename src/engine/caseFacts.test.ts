@@ -1,3 +1,4 @@
+import { houseOf } from '../content/houses.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
@@ -35,14 +36,14 @@ function subsets<T>(list: readonly T[], size: number): T[][] {
 test('case facts carry the shared-rooms flag, so checks use the real rules', () => {
   const cases = bigCases();
   assert.ok(cases.length >= 8, `only ${cases.length} big cases with interrogations`);
-  for (const c of cases) assert.equal(caseFacts(content.house, c).shared, true);
-  assert.equal(caseFacts(content.house, caseFor(content, { mode: 'quick', code: codeFor(7), difficulty: 'easy', length: 'long', cast: 'classic' })).shared, false);
+  for (const c of cases) assert.equal(caseFacts(houseOf(c), c).shared, true);
+  assert.equal((() => { const q = caseFor(content, { mode: 'quick', code: codeFor(7), difficulty: 'easy', length: 'long', cast: 'classic' }); return caseFacts(houseOf(q), q); })().shared, false);
 });
 
 test('7 guests: the cards the game accepts are exactly those that disprove the lie with rooms shared', () => {
   let rejectedByRealRules = 0;
   for (const c of bigCases()) {
-    const cf = caseFacts(content.house, c);
+    const cf = caseFacts(houseOf(c), c);
     const classic = { ...cf, shared: false };
     for (const g of c.games.filter(isInterrogation)) {
       const it = g.interrogation;

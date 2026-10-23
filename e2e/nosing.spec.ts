@@ -66,6 +66,8 @@ const playToQuestion = async (page: Page) => {
   await expect(question).toBeVisible();
 };
 test.describe('nosing around', () => {
+  // Seed 12345 now lands on a house whose short board meets the dog before any question: seed 2 asks one first.
+  test.use({ seed: 2 });
   test('Solve is hidden before the first roll', async ({ page }) => {
     await openNosing(page);
     await expect(page.getByRole('button', { name: 'Roll', exact: true })).toBeVisible();
@@ -198,7 +200,7 @@ test.describe('nosing around', () => {
 
   // Seed 12345's hint run has no speed square; seed 1's case has a run that reaches one.
   test.describe('a run with a speed round', () => {
-  test.use({ seed: 1 });
+  test.use({ seed: 3 });
   test('the speed round: the screen fits and the 60 seconds end the round', async ({ page }) => {
     await openNosingAt(page, 'speed');
     const speedStart = page.getByRole('button', { name: /^Start the \d+ seconds$/ });

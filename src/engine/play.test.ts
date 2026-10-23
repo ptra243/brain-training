@@ -1,3 +1,4 @@
+import { houseOf } from '../content/houses.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
@@ -53,7 +54,7 @@ test('Play cases have one solution, no free clues and a blanked clue per word ga
   for (const code of codes(40)) {
     const c = play(code);
     assert.equal(c.sceneGiven, true, code);
-    assert.equal(countMatching(caseSpace(c), c.clues.map((cl) => cl.fact), caseContext(content.house, c), 2), 1, code);
+    assert.equal(countMatching(caseSpace(c), c.clues.map((cl) => cl.fact), caseContext(houseOf(c), c), 2), 1, code);
     assert.ok(c.clues.every((cl) => cl.delivery !== 'given'), code);
     for (const g of c.games) if (g.kind !== 'finale') assert.ok(g.clues.length >= 1, `${code} ${g.kind}`);
     for (const g of c.games.filter((x) => WORD_GAMES.includes(x.kind as SceneKind))) {
@@ -66,9 +67,9 @@ test('Play cases have one solution, no free clues and a blanked clue per word ga
       assert.equal(cl.blank!.answer, g.scene.answer, code);
       assert.equal(g.scene.text, cl.text, code);
       assert.ok(canLocateRoom(cl), code);
-      const room = content.house.rooms.find((r) => r.id === (cl.fact as { room: string }).room)!;
+      const room = houseOf(c).rooms.find((r) => r.id === (cl.fact as { room: string }).room)!;
       assert.ok((g.kind === 'wordle' ? room.objects : room.things).includes(g.scene.answer), `${code} ${g.kind}`);
-      for (const r of content.house.rooms) assert.ok(!cl.blank!.teaser.includes(r.name), `${code} teaser names ${r.name}`);
+      for (const r of houseOf(c).rooms) assert.ok(!cl.blank!.teaser.includes(r.name), `${code} teaser names ${r.name}`);
       assert.ok(!cl.blank!.teaser.toLowerCase().includes(g.scene.answer.toLowerCase()), code);
     }
     assert.equal(c.clues.filter((cl) => cl.blank).length, c.games.filter((g) => WORD_GAMES.includes(g.kind as SceneKind)).length, code);

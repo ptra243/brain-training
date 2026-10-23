@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { doorSpots, rotateHouse, roomAdjacency, VARIANTS } from '../engine/house.ts';
 import type { Cell, House } from '../engine/types.ts';
+import { eachVariant } from './houseSweeps.ts';
 import { allHouses, chooseHouse, houseById, longHouse, otherHouses, tLodge, variantsOf } from './houses.ts';
 import { house as manor } from './index.ts';
 
@@ -81,20 +82,16 @@ test('turning four times is the layout, and the variants are 8 different footpri
 });
 
 test('no plan is much taller than wide: every house and turn fits 10 to 12 squares each way', () => {
-  for (const h of allHouses) {
-    for (const v of variantsOf(h)) {
-      if (h === manor) assert.equal(v.rows, v.cols, v.id);
-      else assert.ok(v.rows >= 10 && v.rows <= 12 && v.cols >= 10 && v.cols <= 12, `${v.id} is ${v.rows}x${v.cols}`);
-    }
+  for (const { layout: h, house: v } of eachVariant(allHouses)) {
+    if (h === manor) assert.equal(v.rows, v.cols, v.id);
+    else assert.ok(v.rows >= 10 && v.rows <= 12 && v.cols >= 10 && v.cols <= 12, `${v.id} is ${v.rows}x${v.cols}`);
   }
 });
 
 test('houseById resolves variant ids and round trips; an unknown suffix throws', () => {
-  for (const layout of allHouses) {
-    for (const [i, v] of variantsOf(layout).entries()) {
-      assert.equal(v.id, i === 0 ? layout.id : `${layout.id}/${VARIANTS[i].suffix}`);
-      assert.equal(houseById(v.id), v, 'cached: the same object every time');
-    }
+  for (const { layout, v: i, house: v } of eachVariant(allHouses)) {
+    assert.equal(v.id, i === 0 ? layout.id : `${layout.id}/${VARIANTS[i].suffix}`);
+    assert.equal(houseById(v.id), v, 'cached: the same object every time');
   }
   for (const id of ['lodge/m', 'lodge/m90', 'lodge/r180', 'lodge/r270']) assert.equal(houseById(id).id, id);
   for (const id of ['lodge/', 'lodge/r45', 'lodge/r0', 'lodge/r90/r90', 'lodge/x', 'nowhere/r90']) {
@@ -118,7 +115,6 @@ test('the new layouts have rooms at least 2 cells across and sensible sizes', ()
 });
 
 test('chooseHouse never turns the manor, and rolls a variant for the others on its own stream', () => {
-  assert.equal(chooseHouse('x'), manor);
   assert.equal(chooseHouse('x', [manor]), manor);
   const seen = new Set<string>();
   for (let i = 0; i < 60; i++) {

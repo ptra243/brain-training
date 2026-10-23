@@ -15,6 +15,7 @@ import {
 import { ClueCard } from '../ClueCard.tsx';
 import { HintButton, HintNote, Paw } from './Hints.tsx';
 import type { SudokuData } from './saveData.ts';
+import styles from './SudokuGame.module.css';
 import type { GameProps } from './types.ts';
 
 /** A statement unlocked by two marked squares: their digits are a row and column on the floor plan. */
@@ -136,7 +137,7 @@ export function SudokuGame({
   const remaining = (d: number) => size - data.grid.filter((x) => x === d).length;
 
   return (
-    <div className="sudoku">
+    <div>
       <p className="hint dark">
         Fill the grid so every row, column and box has 1 to {size} once each. Tap a square, then a number.
         {statements.length > 0 &&
@@ -157,7 +158,7 @@ export function SudokuGame({
         </div>
       )}
       <div
-        className={`sudoku-grid size-${size}`}
+        className={`${styles.grid} ${styles[`size${size}`]}`}
         style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${size}, minmax(0, 1fr))` }}
         role="grid"
         aria-label="Sudoku"
@@ -168,16 +169,18 @@ export function SudokuGame({
           const cellNotes = shownNotes(i);
           const wrong = !finished && !!d && flagged[i] === d;
           const classes = [
-            'sudoku-cell',
-            givens[i] ? 'given' : 'entry',
-            i === sel ? 'selected' : sameUnit(i) ? 'peer' : '',
-            d && d === selDigit && i !== sel ? 'same' : '',
-            bad.has(i) && !givens[i] ? 'clash' : '',
-            tags.has(i) ? 'tagged' : '',
-            wrong ? 'wrong' : '',
-            hintUnit.has(i) ? 'hint-unit' : '',
-            i === nudged ? 'nudged' : '',
-          ].join(' ');
+            styles.cell,
+            givens[i] && styles.given,
+            i === sel ? styles.selected : sameUnit(i) && styles.peer,
+            d && d === selDigit && i !== sel && styles.same,
+            bad.has(i) && !givens[i] && styles.clash,
+            tags.has(i) && styles.tagged,
+            wrong && styles.wrong,
+            hintUnit.has(i) && styles.hintUnit,
+            i === nudged && styles.nudged,
+          ]
+            .filter(Boolean)
+            .join(' ');
           return (
             <button
               key={i}
@@ -192,12 +195,12 @@ export function SudokuGame({
               aria-label={`Row ${r + 1}, column ${c + 1}: ${d || 'empty'}${givens[i] ? ', given' : ''}${wrong ? ', crossed out as wrong' : ''}${i === nudged ? `, ${helper} is sitting here` : ''}${tags.has(i) ? `, square ${tags.get(i)}` : ''}${cellNotes.length ? `, notes ${cellNotes.join(', ')}` : ''}`}
               onClick={() => !finished && setSelected(i)}
             >
-              {tags.has(i) && <span className="cell-tag">{tags.get(i)}</span>}
+              {tags.has(i) && <span className={styles.cellTag}>{tags.get(i)}</span>}
               {d || ''}
               {cellNotes.length > 0 && (
-                <span className={`cell-notes size-${size}`} aria-hidden="true">
+                <span className={`${styles.notes} ${styles[`size${size}`]}`} data-testid="cell-notes" aria-hidden="true">
                   {Array.from({ length: size }, (_, k) => k + 1).map((n) => (
-                    <span key={n} className={n === selDigit && cellNotes.includes(n) ? 'same' : ''}>
+                    <span key={n} className={n === selDigit && cellNotes.includes(n) ? styles.noteSame : undefined}>
                       {cellNotes.includes(n) ? n : ''}
                     </span>
                   ))}
@@ -209,16 +212,16 @@ export function SudokuGame({
         })}
       </div>
       {!finished && (
-        <div className="number-pad" style={{ gridTemplateColumns: `repeat(${size === 6 ? 4 : 6}, 1fr)` }}>
+        <div className={styles.numberPad} style={{ gridTemplateColumns: `repeat(${size === 6 ? 4 : 6}, 1fr)` }}>
           {Array.from({ length: size }, (_, k) => k + 1).map((d) => (
-            <button key={d} className="pad-key" disabled={!notesOn && remaining(d) === 0} onClick={() => put(d)}>
+            <button key={d} className={styles.padKey} disabled={!notesOn && remaining(d) === 0} onClick={() => put(d)}>
               {d}
             </button>
           ))}
-          <button className="pad-key erase" aria-label="Clear square" onClick={clear}>
+          <button className={`${styles.padKey} ${styles.erase}`} aria-label="Clear square" onClick={clear}>
             Clear
           </button>
-          <button className={`pad-key notes-key ${notesOn ? 'on' : ''}`} aria-pressed={notesOn} onClick={() => setNotesOn(!notesOn)}>
+          <button className={`${styles.padKey} ${styles.notesKey} ${notesOn ? styles.on : ''}`} aria-pressed={notesOn} onClick={() => setNotesOn(!notesOn)}>
             Notes
           </button>
         </div>
@@ -227,13 +230,13 @@ export function SudokuGame({
         {finished ? (finished === 'won' ? 'Solved.' : 'Here is the finished grid.') : bad.size ? 'Some numbers clash.' : ''}
       </p>
       {(statements.length > 0 || finishClues.length > 0) && (
-        <section className="statements">
+        <section className={styles.statements}>
           <h2>Statements</h2>
           {statements.map((st) => {
             const digit = (i: number) => (data.grid[i] ? data.grid[i] : null);
             return (
-              <div key={st.clue.id} className={`statement ${st.found ? 'found' : ''}`}>
-                <span className="statement-label" aria-hidden="true">
+              <div key={st.clue.id} className={`${styles.statement} ${st.found ? styles.found : ''}`}>
+                <span className={styles.statementLabel} aria-hidden="true">
                   {st.label}
                 </span>
                 <ClueCard
@@ -246,19 +249,19 @@ export function SudokuGame({
             );
           })}
           {finishClues.map((clue) => (
-            <div key={clue.id} className={`statement ${finished ? 'found' : 'locked'}`}>
+            <div key={clue.id} className={`${styles.statement} ${finished ? styles.found : ''}`}>
               {/* No letter: no square in the grid points at this one. */}
-              <span className="statement-label" aria-hidden="true">
+              <span className={styles.statementLabel} aria-hidden="true">
                 {finished ? (
                   '✓'
                 ) : (
-                  <svg className="statement-lock" viewBox="0 0 16 16">
+                  <svg className={styles.statementLock} viewBox="0 0 16 16">
                     <rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor" />
                     <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" strokeWidth="1.6" />
                   </svg>
                 )}
               </span>
-              {finished ? <ClueCard clue={clue} guests={guests} compact /> : <p className="statement-locked">Finish the grid to hear this one.</p>}
+              {finished ? <ClueCard clue={clue} guests={guests} compact /> : <p className={styles.statementLocked}>Finish the grid to hear this one.</p>}
             </div>
           ))}
         </section>

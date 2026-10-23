@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
 import { ROUNDS, campaignCast, roundSuspects, type CampaignRef } from '../engine/campaign.ts';
 import { codeFor } from '../engine/caseRef.ts';
-import { canPlay, currentRound, newCampaign, pick, puzzlesLeft, roundCase, stillPossible, updateRound, type CampaignSave } from './campaign.ts';
+import { canPlay, currentRound, newCampaign, pick, puzzlesLeft, roundCase, stillPossible, updateRound, type CampaignSave } from './campaignSave.ts';
 import { reduce, type Action } from './state.ts';
 
 const ref: CampaignRef = { mode: 'campaign', code: codeFor(31_337), difficulty: 'medium' };

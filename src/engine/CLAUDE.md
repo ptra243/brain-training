@@ -48,7 +48,7 @@
   together. Their clues are the suspect's confession, in their own voice.
   True answers she drew out and the evidence cards join her casebook; the lie
   never does.
-- **The campaign** (`campaign.ts`; saved play in `src/game/campaign.ts`): 7
+- **The campaign** (`campaign.ts`; saved play in `src/game/campaignSave.ts`): 7
   guests, one killer, up to 3 rounds, each a body later in the night, built
   from the campaign and the victims before it. Round 1's victim is the next
   guest after the seated seven in that same shuffle (`seating[CAST]`). A wrong

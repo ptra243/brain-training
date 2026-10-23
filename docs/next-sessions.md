@@ -139,7 +139,7 @@ Read the "Two-storey houses" entry in docs/next-sessions.md, help me settle the 
 ## Session: Hunting the weapon (campaign)
 Last touched: 2026-10-20
 Reads first: the "Hunting the weapon" item in the Murder Mystery Mode — What's Left doc (link in
-`CLAUDE.md`), `src/engine/CLAUDE.md`, `src/engine/campaign.ts`, `src/game/campaign.ts`.
+`CLAUDE.md`), `src/engine/CLAUDE.md`, `src/engine/campaign.ts`, `src/game/campaignSave.ts`.
 Goal: make the weapon matter in the campaign. One weapon all night (today it's rolled each round);
 loose either-or weapon clues on night 1; a new puzzle at the start of night 2 that gives a shortlist
 of 2–3 weapons; night 3 settles the killer and the weapon; a wrong weapon costs a body like a wrong

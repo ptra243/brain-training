@@ -111,7 +111,7 @@ test.describe('sudoku notes', () => {
     await expect(notesKey).toHaveAttribute('aria-pressed', 'true');
     await page.getByRole('button', { name: '1', exact: true }).click();
     await expect(page.getByRole('gridcell', { name: /: empty.*notes 1$/ })).toHaveCount(1);
-    await expect(page.locator('.cell-notes').first()).toContainText('1');
+    await expect(page.getByTestId('cell-notes').first()).toContainText('1');
 
     // The checkbox shows candidates in squares she hasn't marked.
     const before = await page.getByRole('gridcell', { name: /notes/ }).count();

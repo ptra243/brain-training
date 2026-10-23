@@ -7,7 +7,7 @@ import { CampaignCard } from './CampaignCard.tsx';
 import { CampaignSetup } from './CampaignSetup.tsx';
 import { CampaignView } from './CampaignView.tsx';
 import { Casebook } from './Casebook.tsx';
-import type { CampaignSave } from './campaign.ts';
+import type { CampaignSave } from './campaignSave.ts';
 import { generate } from './caseClient.ts';
 import { Home } from './Home.tsx';
 import { PickGames } from './PickGames.tsx';

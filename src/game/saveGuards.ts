@@ -14,7 +14,7 @@ import type { Op } from '../games/lock.ts';
 import type { LegacyNosingMove, NosingMove, SavedNosingState } from '../games/nosing.ts';
 import type { TarotState } from '../games/tarot.ts';
 import type { BoardSave, PlacedPiece } from './board/boardSave.ts';
-import type { CampaignSave, Outcome } from './campaign.ts';
+import type { CampaignSave, Outcome } from './campaignSave.ts';
 import type { CatsData, CrosswordData, SudokuData, WordSearchData, WordleData } from './games/saveData.ts';
 import type { GridHintState } from './gridHints.ts';
 import { HISTORY_CAP, emptyHistory, type CampaignEntry, type History, type QuickEntry } from './history.ts';

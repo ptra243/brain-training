@@ -29,7 +29,7 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false, spent, s
   const rooms = useMemo(() => roomSquares(house, board), [house, board]);
   const walls = useMemo(() => {
     const adj = house.doors ? roomAdjacency(house) : null;
-    return wallLines(rooms, board.width, board.height, adj && ((a, b) => adj.get(a)?.has(b) ?? false));
+    return wallLines(rooms, board.width, board.height, adj ? (a, b) => adj.get(a)?.has(b) ?? false : undefined);
   }, [rooms, board, house]);
   const centres = useMemo(() => board.path.map((_, i) => squareCentre(board, i)), [board]);
   const tint = (id: string | null) => house.rooms.find((r) => r.id === id)?.tint;

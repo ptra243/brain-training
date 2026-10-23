@@ -11,7 +11,7 @@ import { foundIds, holdRound, pendingAccusation, resolveHeld } from './face.ts';
 import { atMidnight } from './explore.ts';
 import { DIFFICULTY_LABEL, ROUND_TIMES } from './labels.ts';
 import { itemName, suspectName, victimLine } from './names.ts';
-import { currentRound, pick, puzzlesLeft, stillPossible, type CampaignSave, type Verdict } from './campaign.ts';
+import { currentRound, pick, puzzlesLeft, stillPossible, type CampaignSave, type Verdict } from './campaignSave.ts';
 import { generate } from './caseClient.ts';
 import { roundsKey } from './caseJobs.ts';
 import { NextMurderScene } from './NextMurderScene.tsx';

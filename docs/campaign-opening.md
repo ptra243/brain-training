@@ -63,7 +63,7 @@ Quick play, rounds 2 and 3 and every case's clues stay exactly as they are.
 - `whereAmI` (`src/game/explore.ts:127`) defaults to `c.sceneRoom`; `sceneText` (`state.ts:258`) says "The body
   was found in the {scene room}." for explore cases.
 - `NextMurderScene.tsx` is the precedent for a full-screen scene (a `Dialog` with `placement="scene"`).
-- New campaign progress comes from `newCampaign` (`src/game/campaign.ts:23`).
+- New campaign progress comes from `newCampaign` (`src/game/campaignSave.ts:23`).
 
 ## The pieces
 Do them in this order. Each piece ends with `npm run checks` passing; pieces 1 and 2 can run together (different

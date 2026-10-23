@@ -34,7 +34,9 @@ import { dogApply, dogSimView, dogStart } from '../src/games/dogFight.ts';
 import { evaluateGrid, solveGrid } from '../src/games/numberGrid.ts';
 import { countCatSolutions, generateCats, solvableBySimpleSteps } from '../src/games/cats.ts';
 import { CROSSWORD_SIZE, solutionAt } from '../src/games/crossword.ts';
-import { otherHouses, variantsOf } from '../src/content/houses.ts';
+import { houseOf } from '../src/content/houses.ts';
+import { eachVariant, sampledVariants, spreadSeeds } from '../src/content/houseSweeps.ts';
+import { houseCaseSweep } from '../src/engine/houseCaseSweeps.ts';
 import { LEVELS as NOSING_LEVELS_LIST, botSeed as nosingBotSeed, dogSquareSeed as nosingDogSquareSeed } from '../src/games/nosingSweeps.ts';
 import { BOARD_SEEDS, boardSeed as nosingBoardSeed } from '../src/games/nosingBoardSweeps.ts';
 import { LEVELS as DOG_LEVELS, challengeSeed as dogChallengeSeed, dogPlaysSeed, doubleSeed as dogDoubleSeed, hintBotSeed as dogHintBotSeed, redealSeed as dogRedealSeed, smallestBotSeed as dogSmallestBotSeed } from '../src/games/dogFightSweeps.ts';
@@ -47,7 +49,16 @@ import { everyWordOnce, leftovers } from '../src/games/wordsearch.ts';
 import type { Case, Difficulty } from '../src/engine/types.ts';
 
 const FULL = process.argv.includes('--full');
-console.log(FULL ? 'Full check' : 'Quick check (pass --full for every sample)');
+// `--only nosing` runs just the nosing sections (scan, boards on every house, walkers, dog fights, locks) while tuning;
+// `npm run checks` stays the whole check.
+const onlyAt = process.argv.indexOf('--only');
+const ONLY = onlyAt < 0 ? null : process.argv[onlyAt + 1];
+if (ONLY !== null && ONLY !== 'nosing') {
+  console.log(`Unknown --only ${ONLY ?? ''} (only "nosing" is supported)`);
+  process.exit(1);
+}
+const NOSING_ONLY = ONLY === 'nosing';
+console.log(`${FULL ? 'Full check' : 'Quick check (pass --full for every sample)'}${NOSING_ONLY ? ', nosing sections only' : ''}`);
 const PER_PRESET = FULL ? 100 : 20;
 const PER_COMBINATION = FULL ? 10 : 1;
 let failures = 0;
@@ -174,8 +185,9 @@ function nosingProblems(p: NosingPuzzle, sceneRoom: string, clueCount: number): 
       else if (c.rooms !== 'any' && !c.rooms.includes(board.roomOf[i])) out.push(`nosing ${sq.kind} ${c.id} sits in ${board.roomOf[i]}`);
     }
   });
-  // One search square in every room; the clue squares match the split; the lock is in a clue room, never the scene room.
-  const rooms = new Set(p.house.rooms.map((r) => r.id));
+  // One search square in every room the path enters (all rooms for the manor; the bigger houses enter only some on easy); the clue squares match the split; the lock is in a clue room, never the scene room.
+  const rooms = new Set(board.roomOf);
+  if (lv.enterExtra === undefined && rooms.size !== p.house.rooms.length) out.push('nosing path misses a room');
   const searchRooms = board.squares.flatMap((sq, i) => (sq.kind === 'search' ? [board.roomOf[i]] : []));
   if (searchRooms.length !== rooms.size || new Set(searchRooms).size !== rooms.size || searchRooms.some((r) => !rooms.has(r))) out.push('nosing: not one search square in every room');
   const idx = board.squares.flatMap((sq) => (sq.kind === 'search' && sq.clueIndex != null ? [sq.clueIndex] : [])).sort();
@@ -215,7 +227,7 @@ function tarotHintsWin(board: readonly string[], seed: number): boolean {
 function problems(c: Case): string[] {
   const out: string[] = [];
   const facts = c.clues.map((cl) => cl.fact);
-  const solutions = clock('one solution', () => countMatching(caseSpace(c), facts, caseContext(content.house, c), 2));
+  const solutions = clock('one solution', () => countMatching(caseSpace(c), facts, caseContext(houseOf(c), c), 2));
   if (solutions !== 1) out.push(`${solutions} solutions`);
   // The killer was alone at the scene, holding the weapon.
   const k = c.suspects.indexOf(c.murderer);
@@ -258,7 +270,7 @@ function playProblems(c: Case): string[] {
       continue;
     }
     const { fact, blank } = blanked[0];
-    const room = 'room' in fact ? content.house.rooms.find((r) => r.id === fact.room) : undefined;
+    const room = 'room' in fact ? houseOf(c).rooms.find((r) => r.id === fact.room) : undefined;
     if (!room) out.push(`${g.kind} blanks a clue that names no one room`);
     else if (!(g.kind === 'wordle' ? room.objects : room.things).includes(blank!.answer)) out.push(`${g.kind} hides ${blank!.answer}, not an object of the ${room.name}`);
     if (blank!.answer !== g.scene.answer) out.push(`${g.kind} hides ${g.scene.answer} but its clue needs ${blank!.answer}`);
@@ -272,7 +284,7 @@ function playProblems(c: Case): string[] {
 /** What's unfair about the minigames themselves: interrogations, word games, cat puzzles. */
 function puzzleProblems(c: Case): string[] {
   const out: string[] = [];
-  const cf = caseFacts(content.house, c);
+  const cf = caseFacts(houseOf(c), c);
   clock('interrogations', () => {
     // Every interrogation: one lie, and its proof really disproves it.
     for (const g of c.games.filter(isInterrogation)) {
@@ -325,7 +337,7 @@ function puzzleProblems(c: Case): string[] {
     }
     if (g.clues.length < 1 || g.clues.length > 7) out.push(`nosing holds ${g.clues.length} clues`);
     try {
-      const p = clock('nosing build', () => buildNosing({ house: content.house, seed: nosingSeed(g.seed), level, sceneRoom: c.sceneRoom, clues: g.clues.slice(), ladders: nosingLadders, snakes: nosingSnakes }));
+      const p = clock('nosing build', () => buildNosing({ house: houseOf(c), seed: nosingSeed(g.seed), level, sceneRoom: c.sceneRoom, clues: g.clues.slice(), ladders: nosingLadders, snakes: nosingSnakes }));
       out.push(...nosingProblems(p, c.sceneRoom, g.clues.length));
     } catch (e) {
       out.push(`nosing does not build: ${(e as Error).message}`);
@@ -401,167 +413,175 @@ function run(levels: CaseLevels, count: number) {
   return { counts, types, ms: (performance.now() - started) / count };
 }
 
-for (const difficulty of ['easy', 'medium', 'hard'] as Difficulty[]) {
-  const { counts, types, ms } = run(PRESETS[difficulty], PER_PRESET);
-  const avg = counts.reduce((a, b) => a + b, 0) / counts.length;
-  console.log(
-    `${difficulty.padEnd(6)} clues min ${Math.min(...counts)}  avg ${avg.toFixed(1)}  max ${Math.max(...counts)}  ` +
-      `(${ms.toFixed(1)} ms per case)`,
-  );
-  console.log('        ' + [...types].sort((a, b) => b[1] - a[1]).map(([t, k]) => `${t} ${k}`).join(', '));
-}
-section('presets');
-
-// Every other combination of levels, so any of them can be offered.
 const others = allLevels().filter((l) => !presetOf(l));
-let slowest = { label: '', ms: 0 };
-for (const levels of others) {
-  const { ms } = run(levels, PER_COMBINATION);
-  if (ms > slowest.ms) slowest = { label: levelsKey(levels), ms };
-}
-console.log(`\n${others.length} other combinations × ${PER_COMBINATION} cases (slowest ${slowest.label}, ${slowest.ms.toFixed(1)} ms per case)`);
-section('other combinations');
+if (!NOSING_ONLY) {
+  for (const difficulty of ['easy', 'medium', 'hard'] as Difficulty[]) {
+    const { counts, types, ms } = run(PRESETS[difficulty], PER_PRESET);
+    const avg = counts.reduce((a, b) => a + b, 0) / counts.length;
+    console.log(
+      `${difficulty.padEnd(6)} clues min ${Math.min(...counts)}  avg ${avg.toFixed(1)}  max ${Math.max(...counts)}  ` +
+        `(${ms.toFixed(1)} ms per case)`,
+    );
+    console.log('        ' + [...types].sort((a, b) => b[1] - a[1]).map(([t, k]) => `${t} ${k}`).join(', '));
+  }
+  section('presets');
 
-// Quick start: every difficulty, length and cast she can pick, from codes spread over the range.
+  // Every other combination of levels, so any of them can be offered.
+  let slowest = { label: '', ms: 0 };
+  for (const levels of others) {
+    const { ms } = run(levels, PER_COMBINATION);
+    if (ms > slowest.ms) slowest = { label: levelsKey(levels), ms };
+  }
+  console.log(`\n${others.length} other combinations × ${PER_COMBINATION} cases (slowest ${slowest.label}, ${slowest.ms.toFixed(1)} ms per case)`);
+  section('other combinations');
+}
+
 const PER_QUICK = FULL ? 20 : 2;
 const CASTS: Cast[] = ['classic', 'big'];
-for (const difficulty of DIFFICULTIES) {
-  for (const length of LENGTHS) {
-    for (const cast of CASTS) {
-    for (let i = 1; i <= PER_QUICK; i++) {
-      const ref: QuickRef = { mode: 'quick', code: codeFor(i * 1_215_773), difficulty, length, cast };
-      try {
-        for (const p of problems(clock('generate', () => caseFor(content, ref)))) {
-          failures++;
-          console.log(`  FAIL quick ${caseCode(ref)}: ${p}`);
-        }
-      } catch (err) {
-        failures++;
-        console.log(`  FAIL quick ${caseCode(ref)}: ${(err as Error).message}`);
-      }
-    }
-    }
-  }
-}
 const QUICK_CHOICES = DIFFICULTIES.length * LENGTHS.length * CASTS.length;
-console.log(`${QUICK_CHOICES} Quick start choices × ${PER_QUICK} codes`);
-section('Quick start');
+if (!NOSING_ONLY) {
+  // Quick start: every difficulty, length and cast she can pick, from codes spread over the range.
+  for (const difficulty of DIFFICULTIES) {
+    for (const length of LENGTHS) {
+      for (const cast of CASTS) {
+      for (let i = 1; i <= PER_QUICK; i++) {
+        const ref: QuickRef = { mode: 'quick', code: codeFor(i * 1_215_773), difficulty, length, cast };
+        try {
+          for (const p of problems(clock('generate', () => caseFor(content, ref)))) {
+            failures++;
+            console.log(`  FAIL quick ${caseCode(ref)}: ${p}`);
+          }
+        } catch (err) {
+          failures++;
+          console.log(`  FAIL quick ${caseCode(ref)}: ${(err as Error).message}`);
+        }
+      }
+      }
+    }
+  }
+  console.log(`${QUICK_CHOICES} Quick start choices × ${PER_QUICK} codes`);
+  section('Quick start');
+}
 
-// Quick play: the code alone rolls the levels.
 const PER_PLAY = FULL ? 50 : 15;
-const playStarted = performance.now();
-for (let i = 1; i <= PER_PLAY; i++) {
-  const ref: PlayRef = { mode: 'play', code: codeFor(i * 1_215_773) };
-  try {
-    for (const p of problems(clock('generate', () => caseFor(content, ref)))) {
-      failures++;
-      console.log(`  FAIL play ${caseCode(ref)}: ${p}`);
-    }
-  } catch (err) {
-    failures++;
-    console.log(`  FAIL play ${caseCode(ref)}: ${(err as Error).message}`);
-  }
-}
-console.log(
-  `${PER_PLAY} Quick play codes (${((performance.now() - playStarted) / PER_PLAY).toFixed(0)} ms per case): ` +
-    `${play.sceneBlanks} of ${play.blanks} word games blank a scene-room clue; games drawn ${[...play.games].sort((a, b) => a[0] - b[0]).map(([n, k]) => `${n}: ${k}`).join(', ')}`,
-);
-
-section('Quick play');
-
-// Picked cases ("Choose games"): her games plus any top-ups, checked like any Play case.
-const PER_PICK = FULL ? 40 : 10;
-for (let i = 1; i <= PER_PICK; i++) {
-  const rng = new Rng(hashSeed(`check-pick-${i}`));
-  const games = rng.shuffle([...PICK_ORDER]).slice(0, 3 + rng.int(PICK_ORDER.length - 2));
-  const ref: PlayRef = { mode: 'play', code: codeFor(i * 2_654_435), games: pickedInOrder(games) };
-  try {
-    const c = clock('generate', () => caseFor(content, ref));
-    for (const p of problems(c)) {
-      failures++;
-      console.log(`  FAIL picked ${caseCode(ref)}: ${p}`);
-    }
-    for (const g of ref.games!) {
-      if (!c.games.some((x) => x.kind === g)) {
+if (!NOSING_ONLY) {
+  // Quick play: the code alone rolls the levels.
+  const playStarted = performance.now();
+  for (let i = 1; i <= PER_PLAY; i++) {
+    const ref: PlayRef = { mode: 'play', code: codeFor(i * 1_215_773) };
+    try {
+      for (const p of problems(clock('generate', () => caseFor(content, ref)))) {
         failures++;
-        console.log(`  FAIL picked ${caseCode(ref)}: missing ${g}`);
+        console.log(`  FAIL play ${caseCode(ref)}: ${p}`);
+      }
+    } catch (err) {
+      failures++;
+      console.log(`  FAIL play ${caseCode(ref)}: ${(err as Error).message}`);
+    }
+  }
+  console.log(
+    `${PER_PLAY} Quick play codes (${((performance.now() - playStarted) / PER_PLAY).toFixed(0)} ms per case): ` +
+      `${play.sceneBlanks} of ${play.blanks} word games blank a scene-room clue; games drawn ${[...play.games].sort((a, b) => a[0] - b[0]).map(([n, k]) => `${n}: ${k}`).join(', ')}`,
+  );
+
+  section('Quick play');
+
+  // Picked cases ("Choose games"): her games plus any top-ups, checked like any Play case.
+  const PER_PICK = FULL ? 40 : 10;
+  for (let i = 1; i <= PER_PICK; i++) {
+    const rng = new Rng(hashSeed(`check-pick-${i}`));
+    const games = rng.shuffle([...PICK_ORDER]).slice(0, 3 + rng.int(PICK_ORDER.length - 2));
+    const ref: PlayRef = { mode: 'play', code: codeFor(i * 2_654_435), games: pickedInOrder(games) };
+    try {
+      const c = clock('generate', () => caseFor(content, ref));
+      for (const p of problems(c)) {
+        failures++;
+        console.log(`  FAIL picked ${caseCode(ref)}: ${p}`);
+      }
+      for (const g of ref.games!) {
+        if (!c.games.some((x) => x.kind === g)) {
+          failures++;
+          console.log(`  FAIL picked ${caseCode(ref)}: missing ${g}`);
+        }
+      }
+    } catch (err) {
+      failures++;
+      console.log(`  FAIL picked ${caseCode(ref)}: ${(err as Error).message}`);
+    }
+  }
+  console.log(`${PER_PICK} picked cases`);
+  section('picked');
+
+  // Every combination of three or more picked games builds with every picked game in it (picked.test.ts checks every 12th).
+  // Full: all of them; quick: every 12th, offset by 6 so the test's sample is not repeated.
+  {
+    const codes = ['K7QF2', 'B3M9X', 'Z4HRT'];
+    let combos = 0;
+    let checked = 0;
+    for (let m = 1; m < 1 << PICK_ORDER.length; m++) {
+      const games = PICK_ORDER.filter((_, i) => m & (1 << i));
+      if (games.length < 3) continue;
+      const stress = games.length === PICK_ORDER.length || (games.length === 3 && games.includes('tarot') && games.includes('board'));
+      const some = stress ? codes : [codes[combos % codes.length]];
+      const mine = FULL || combos % 12 === 6;
+      combos++;
+      if (!mine) continue;
+      for (const code of some) {
+        checked++;
+        const ref: PlayRef = { mode: 'play', code, games };
+        try {
+          const c = clock('generate', () => caseFor(content, ref));
+          for (const g of games) {
+            if (!c.games.some((x) => x.kind === g)) {
+              failures++;
+              console.log(`  FAIL combination ${caseCode(ref)}: missing ${g}`);
+            }
+          }
+          for (const g of c.games) {
+            if (g.kind !== 'finale' && (g.clues.length < 1 || g.clues.length > 7)) {
+              failures++;
+              console.log(`  FAIL combination ${caseCode(ref)}: ${g.kind} has ${g.clues.length} clues`);
+            }
+          }
+        } catch (err) {
+          failures++;
+          console.log(`  FAIL combination ${caseCode(ref)}: ${(err as Error).message}`);
+        }
       }
     }
-  } catch (err) {
-    failures++;
-    console.log(`  FAIL picked ${caseCode(ref)}: ${(err as Error).message}`);
+    console.log(`${checked} picked-game cases from ${FULL ? 'all' : 'every 12th of'} ${combos} combinations of three or more games`);
   }
+  section('picked combinations');
 }
-console.log(`${PER_PICK} picked cases`);
-section('picked');
 
-// Every combination of three or more picked games builds with every picked game in it (picked.test.ts checks every 12th).
-// Full: all of them; quick: every 12th, offset by 6 so the test's sample is not repeated.
-{
-  const codes = ['K7QF2', 'B3M9X', 'Z4HRT'];
-  let combos = 0;
-  let checked = 0;
-  for (let m = 1; m < 1 << PICK_ORDER.length; m++) {
-    const games = PICK_ORDER.filter((_, i) => m & (1 << i));
-    if (games.length < 3) continue;
-    const stress = games.length === PICK_ORDER.length || (games.length === 3 && games.includes('tarot') && games.includes('board'));
-    const some = stress ? codes : [codes[combos % codes.length]];
-    const mine = FULL || combos % 12 === 6;
-    combos++;
-    if (!mine) continue;
-    for (const code of some) {
-      checked++;
-      const ref: PlayRef = { mode: 'play', code, games };
-      try {
-        const c = clock('generate', () => caseFor(content, ref));
-        for (const g of games) {
-          if (!c.games.some((x) => x.kind === g)) {
-            failures++;
-            console.log(`  FAIL combination ${caseCode(ref)}: missing ${g}`);
-          }
-        }
-        for (const g of c.games) {
-          if (g.kind !== 'finale' && (g.clues.length < 1 || g.clues.length > 7)) {
-            failures++;
-            console.log(`  FAIL combination ${caseCode(ref)}: ${g.kind} has ${g.clues.length} clues`);
-          }
-        }
-      } catch (err) {
+if (!NOSING_ONLY) {
+  // Tarot match: keep drawing Play codes until every level has a few cases (each checked above like any case).
+  const TAROT_WANT = 5;
+  let tarotCodes = 0;
+  for (let i = 1000; i < 3000 && DIFFICULTIES.some((d) => tarotChecked[d] < TAROT_WANT); i++) {
+    const ref: PlayRef = { mode: 'play', code: codeFor(i * 1_215_773) };
+    tarotCodes++;
+    try {
+      const c = clock('generate', () => caseFor(content, ref));
+      if (!c.games.some((g) => g.kind === 'tarot')) continue;
+      for (const p of problems(c)) {
         failures++;
-        console.log(`  FAIL combination ${caseCode(ref)}: ${(err as Error).message}`);
+        console.log(`  FAIL play ${caseCode(ref)}: ${p}`);
       }
-    }
-  }
-  console.log(`${checked} picked-game cases from ${FULL ? 'all' : 'every 12th of'} ${combos} combinations of three or more games`);
-}
-section('picked combinations');
-
-// Tarot match: keep drawing Play codes until every level has a few cases (each checked above like any case).
-const TAROT_WANT = 5;
-let tarotCodes = 0;
-for (let i = 1000; i < 3000 && DIFFICULTIES.some((d) => tarotChecked[d] < TAROT_WANT); i++) {
-  const ref: PlayRef = { mode: 'play', code: codeFor(i * 1_215_773) };
-  tarotCodes++;
-  try {
-    const c = clock('generate', () => caseFor(content, ref));
-    if (!c.games.some((g) => g.kind === 'tarot')) continue;
-    for (const p of problems(c)) {
+    } catch (err) {
       failures++;
-      console.log(`  FAIL play ${caseCode(ref)}: ${p}`);
+      console.log(`  FAIL play ${caseCode(ref)}: ${(err as Error).message}`);
     }
-  } catch (err) {
-    failures++;
-    console.log(`  FAIL play ${caseCode(ref)}: ${(err as Error).message}`);
   }
-}
-for (const d of DIFFICULTIES) {
-  if (tarotChecked[d] < TAROT_WANT) {
-    failures++;
-    console.log(`  FAIL tarot: only ${tarotChecked[d]} ${d} cases in ${tarotCodes} Play codes`);
+  for (const d of DIFFICULTIES) {
+    if (tarotChecked[d] < TAROT_WANT) {
+      failures++;
+      console.log(`  FAIL tarot: only ${tarotChecked[d]} ${d} cases in ${tarotCodes} Play codes`);
+    }
   }
+  console.log(`Tarot match: easy ${tarotChecked.easy}, medium ${tarotChecked.medium}, hard ${tarotChecked.hard} cases checked (${tarotCodes} extra Play codes scanned)`);
+  section('tarot scan');
 }
-console.log(`Tarot match: easy ${tarotChecked.easy}, medium ${tarotChecked.medium}, hard ${tarotChecked.hard} cases checked (${tarotCodes} extra Play codes scanned)`);
-section('tarot scan');
 
 // Nosing around: keep drawing Play codes until every level has a few cases, then force every scene room at every level.
 const NOSING_WANT = 5;
@@ -610,65 +630,91 @@ for (const level of DIFFICULTIES) {
 console.log(`Nosing around: easy ${inCases.easy}, medium ${inCases.medium}, hard ${inCases.hard} Play cases checked (${nosingCodes} extra Play codes scanned), plus ${forced} forced boards (every scene room at every level)`);
 section('nosing scan and forced boards');
 
-// Campaigns: every path of wrong accusations, each round fair for any puzzles she picks.
-const PER_DIFFICULTY = FULL ? 3 : 1;
 let rounds = 0;
-const campaignStarted = performance.now();
-let campaigns = 0;
-for (const perPuzzle of [3, 2, 1] as const) for (const difficulty of DIFFICULTIES) {
-  for (let i = 1; i <= PER_DIFFICULTY; i++) {
-    campaigns++;
-    const ref: CampaignRef = { mode: 'campaign', code: codeFor(i * 2_654_435), difficulty, ...(perPuzzle !== 3 && { perPuzzle }) };
-    const cast = campaignCast(content, ref);
-    const walk = (victims: string[]) => {
-      rounds++;
-      const where = `campaign ${ref.code}-${difficulty} after [${victims.join(', ')}]`;
-      try {
-        const c = clock('generate', () => campaignRound(content, ref, victims));
-        const sizes = c.games.filter((g) => !g.unlocksScene).map((g) => `${g.kind}:${g.clues.length}`);
-        const tooMany = c.games.filter((g) => !g.unlocksScene && (g.clues.length < 1 || g.clues.length > perPuzzle));
-        const budgetBad = c.campaign!.budget !== roundBudget(ref) ? [`budget ${c.campaign!.budget}, expected ${roundBudget(ref)}`] : [];
-        const sizeProblems = [...budgetBad, ...tooMany.map((g) => `${g.kind} holds ${g.clues.length} clues of ${perPuzzle} (${sizes.join(' ')})`)];
-        for (const p of [...sizeProblems, ...roundProblems(c), ...puzzleProblems(c)]) {
+if (!NOSING_ONLY) {
+  // Campaigns: every path of wrong accusations, each round fair for any puzzles she picks.
+  const PER_DIFFICULTY = FULL ? 3 : 1;
+  const campaignStarted = performance.now();
+  let campaigns = 0;
+  /** Walks a campaign's rounds: every wrong accusation when `exhaustive`, else the first one and the walked-free path. */
+  function walkCampaign(ref: CampaignRef, name: string, exhaustive: boolean) {
+      const perPuzzle = ref.perPuzzle ?? 3;
+      const cast = campaignCast(content, ref);
+      const walk = (victims: string[]) => {
+        rounds++;
+        const where = `${name} after [${victims.join(', ')}]`;
+        try {
+          const c = clock('generate', () => campaignRound(content, ref, victims));
+          const sizes = c.games.filter((g) => !g.unlocksScene).map((g) => `${g.kind}:${g.clues.length}`);
+          const tooMany = c.games.filter((g) => !g.unlocksScene && (g.clues.length < 1 || g.clues.length > perPuzzle));
+          const budgetBad = c.campaign!.budget !== roundBudget(ref) ? [`budget ${c.campaign!.budget}, expected ${roundBudget(ref)}`] : [];
+          const sizeProblems = [...budgetBad, ...tooMany.map((g) => `${g.kind} holds ${g.clues.length} clues of ${perPuzzle} (${sizes.join(' ')})`)];
+          for (const p of [...sizeProblems, ...roundProblems(c), ...puzzleProblems(c)]) {
+            failures++;
+            console.log(`  FAIL ${where}: ${p}`);
+          }
+          if (c.campaign!.last) return;
+          // She may accuse anyone alive; a wrong guess makes them the next body. Quick follows the first one only.
+          let firstWrong: string | undefined;
+          for (const s of c.suspects) {
+            if (s === cast.killer) continue;
+            walk([...victims, s]);
+            firstWrong ??= s;
+            if (!exhaustive) break;
+          }
+          // The killer with the wrong weapon walks free and a seeded innocent non-decoy dies: quick walks that path too.
+          const walked = walkedFreeVictim(ref, c);
+          const decoys = roundSuspects(c, c.clues.map((cl) => cl.fact));
+          if (walked === cast.killer || !c.suspects.includes(walked) || (!c.campaign!.last && decoys.includes(walked))) {
+            failures++;
+            console.log(`  FAIL ${where}: walked-free victim ${walked} is the killer, not alive or a decoy`);
+          } else if (!exhaustive && walked !== firstWrong) {
+            walk([...victims, walked]);
+          }
+        } catch (err) {
           failures++;
-          console.log(`  FAIL ${where}: ${p}`);
+          console.log(`  FAIL ${where}: ${(err as Error).message}`);
         }
-        if (c.campaign!.last) return;
-        // She may accuse anyone alive; a wrong guess makes them the next body. Quick follows the first one only.
-        let firstWrong: string | undefined;
-        for (const s of c.suspects) {
-          if (s === cast.killer) continue;
-          walk([...victims, s]);
-          firstWrong ??= s;
-          if (!FULL) break;
-        }
-        // The killer with the wrong weapon walks free and a seeded innocent non-decoy dies: quick walks that path too.
-        const walked = walkedFreeVictim(ref, c);
-        const decoys = roundSuspects(c, c.clues.map((cl) => cl.fact));
-        if (walked === cast.killer || !c.suspects.includes(walked) || (!c.campaign!.last && decoys.includes(walked))) {
-          failures++;
-          console.log(`  FAIL ${where}: walked-free victim ${walked} is the killer, not alive or a decoy`);
-        } else if (!FULL && walked !== firstWrong) {
-          walk([...victims, walked]);
-        }
-      } catch (err) {
-        failures++;
-        console.log(`  FAIL ${where}: ${(err as Error).message}`);
-      }
-    };
-    walk([]);
+      };
+      walk([]);
   }
+  for (const perPuzzle of [3, 2, 1] as const) for (const difficulty of DIFFICULTIES) {
+    for (let i = 1; i <= PER_DIFFICULTY; i++) {
+      campaigns++;
+      const ref: CampaignRef = { mode: 'campaign', code: codeFor(i * 2_654_435), difficulty, ...(perPuzzle !== 3 && { perPuzzle }) };
+      walkCampaign(ref, `campaign ${ref.code}-${difficulty}`, FULL);
+    }
+  }
+  console.log(`${campaigns} campaigns (1, 2 and 3 clues per puzzle), ${FULL ? 'every wrong-guess path' : 'one wrong-guess path each'}: ${rounds} rounds (${((performance.now() - campaignStarted) / rounds).toFixed(0)} ms per round)`);
+  section('campaigns');
+
+  // Cases on the other houses: the same checks as above (problems, puzzleProblems, campaign rounds), built through the *In variants.
+  {
+    const roundsBefore = rounds;
+    const counts = houseCaseSweep({
+      full: FULL,
+      check(label, make) {
+        try {
+          for (const p of problems(clock('generate', make))) {
+            failures++;
+            console.log(`  FAIL house ${label}: ${p}`);
+          }
+        } catch (err) {
+          failures++;
+          console.log(`  FAIL house ${label}: ${(err as Error).message}`);
+        }
+      },
+      campaign: (label, ref) => walkCampaign(ref, `house ${label}`, false),
+    });
+    console.log(`Other houses (${sampledVariants(FULL).length} of ${eachVariant().length} variants): ${Object.entries(counts).map(([d, c]) => `${d} ${c.cases} cases on ${c.houses} houses`).join(', ')}; ${rounds - roundsBefore} campaign rounds`);
+  }
+  section('other houses');
 }
-console.log(`${campaigns} campaigns (1, 2 and 3 clues per puzzle), ${FULL ? 'every wrong-guess path' : 'one wrong-guess path each'}: ${rounds} rounds (${((performance.now() - campaignStarted) / rounds).toFixed(0)} ms per round)`);
-section('campaigns');
 
 // Seed sweeps moved out of `npm test` (src/**/*Sweeps.ts): the tests keep a few fixed seeds, quick takes a sample
 // spread over the rest (so never the tests' own seeds), and --full takes every seed the tests used to check.
 /** Seed numbers 0..total-1 for --full; otherwise `count` of them spread over [from, total), where `from` is how many npm test runs. */
-function seedsOf(from: number, total: number, count: number): number[] {
-  if (FULL) return Array.from({ length: total }, (_, i) => i);
-  return Array.from({ length: count }, (_, k) => from + Math.floor((k * (total - from)) / count));
-}
+const seedsOf = (from: number, total: number, count: number): number[] => spreadSeeds(FULL, from, total, count);
 /** Runs one seed's assertions (timed under `kind`); a thrown one is a failure. */
 function holds<T>(kind: string, where: string, f: () => T): { ok: true; value: T } | { ok: false } {
   try {
@@ -686,36 +732,35 @@ function bound(ok: boolean, what: string) {
   console.log(`  FAIL ${what}`);
 }
 
-// Fast search against the old exhaustive one on random small cases (search.test.ts keeps seeds 0-29).
-{
-  const r = holds('search vs oracle', 'search vs oracle', () => compareSearch(seedsOf(30, 3000, 150)));
-  if (r.ok) {
-    for (const m of r.value.mismatches.slice(0, 5)) {
-      failures++;
-      console.log(`  FAIL search vs oracle: ${m}`);
+if (!NOSING_ONLY) {
+  // Fast search against the old exhaustive one on random small cases (search.test.ts keeps seeds 0-29).
+  {
+    const r = holds('search vs oracle', 'search vs oracle', () => compareSearch(seedsOf(30, 3000, 150)));
+    if (r.ok) {
+      for (const m of r.value.mismatches.slice(0, 5)) {
+        failures++;
+        console.log(`  FAIL search vs oracle: ${m}`);
+      }
+      bound(SEARCH_FACT_TYPES.every((t) => (r.value.types.get(t) ?? 0) > 0), 'search vs oracle: some fact type never came up');
+      console.log(`Search vs old search: ${r.value.instances} random cases, ${r.value.comparisons} counts agree (${r.value.none} no answer, ${r.value.one} one, ${r.value.many} several; fast ${(r.value.fastMs / 1000).toFixed(1)}s, old ${(r.value.oracleMs / 1000).toFixed(1)}s)`);
     }
-    bound(SEARCH_FACT_TYPES.every((t) => (r.value.types.get(t) ?? 0) > 0), 'search vs oracle: some fact type never came up');
-    console.log(`Search vs old search: ${r.value.instances} random cases, ${r.value.comparisons} counts agree (${r.value.none} no answer, ${r.value.one} one, ${r.value.many} several; fast ${(r.value.fastMs / 1000).toFixed(1)}s, old ${(r.value.oracleMs / 1000).toFixed(1)}s)`);
   }
+  section('search vs oracle');
 }
-section('search vs oracle');
 
-// Nosing around bots: hints win with every clue, the always-wrong and random bots finish within the turn bounds
-// (nosing.test.ts keeps seeds 0-6 per level). The always-wrong bot loses most dog fights.
+// Nosing around walkers: right, wrong and random answers meet the dog, stay in the turn window and reach the lock
+// (nosing.test.ts keeps seeds 0-6 per level). The card fight and the lock are not played here: the dog-fight section
+// (the smallest bot loses most fights) and the lock tests do that.
 {
   const parts: string[] = [];
   for (const level of NOSING_LEVELS_LIST) {
-    let lost = 0;
     let ran = 0;
     for (const i of seedsOf(7, 100, 6)) {
       const r = holds('nosing bots', `nosing bots ${level} seed ${i}`, () => nosingBotSeed(level, i));
-      if (!r.ok) continue;
-      ran++;
-      if (r.value.lostFight) lost++;
+      if (r.ok) ran++;
     }
-    bound(lost >= ran * 0.8, `nosing ${level}: the always-wrong bot lost only ${lost}/${ran} dog fights (needs 80%)`);
     for (const i of seedsOf(10, 100, 20)) holds('nosing dog square', `nosing dog square ${level} seed ${i}`, () => nosingDogSquareSeed(level, i));
-    parts.push(`${level} ${ran} seeds (wrong bot lost ${lost}/${ran})`);
+    parts.push(`${level} ${ran} seeds`);
   }
   console.log(`Nosing bots: ${parts.join(', ')}; dog square ${FULL ? 100 : 20} seeds per level`);
 }
@@ -731,7 +776,7 @@ section('nosing bots');
     }
   }
   // Every other house at every level: builds within the attempt cap, turn bounds hold, doors respected.
-  for (const house of otherHouses) {
+  for (const { house } of eachVariant().filter((x) => x.v === 0)) {
     for (const level of NOSING_LEVELS_LIST) {
       for (const i of seedsOf(0, BOARD_SEEDS, 24)) {
         holds('nosing boards', `nosing board ${house.id} ${level} seed ${i}`, () => nosingBoardSeed(level, i, house));
@@ -742,16 +787,13 @@ section('nosing bots');
   }
   // ...and each turned or mirrored variant of every other house (the manor is never turned).
   let variantBoards = 0;
-  for (const layout of otherHouses) {
-    for (const [v, variant] of variantsOf(layout).entries()) {
-      if (v === 0) continue;
-      for (const level of NOSING_LEVELS_LIST) {
-        for (const i of seedsOf(v, 100, 6)) {
-          holds('nosing boards', `nosing board ${variant.id} ${level} seed ${i}`, () => nosingBoardSeed(level, i, variant));
-          variantBoards++;
-        }
-        for (const i of seedsOf(v, 10, 1)) holds('nosing bots', `nosing bots ${variant.id} ${level} seed ${i}`, () => nosingBotSeed(level, i, variant));
+  for (const { v, house: variant } of eachVariant().filter((x) => x.v > 0)) {
+    for (const level of NOSING_LEVELS_LIST) {
+      for (const i of seedsOf(v, 100, 6)) {
+        holds('nosing boards', `nosing board ${variant.id} ${level} seed ${i}`, () => nosingBoardSeed(level, i, variant));
+        variantBoards++;
       }
+      for (const i of seedsOf(v, 10, 1)) holds('nosing bots', `nosing bots ${variant.id} ${level} seed ${i}`, () => nosingBotSeed(level, i, variant));
     }
   }
   console.log(`Nosing boards: ${built} boards satisfy every rule (${FULL ? BOARD_SEEDS : 24} seeds per level and house; bots on ${FULL ? 100 : 3} seeds per other house and level); ${variantBoards} more on the 7 variants of each (${FULL ? 100 : 6} seeds per level, bots on ${FULL ? 10 : 1})`);
@@ -773,7 +815,7 @@ section('nosing boards');
       if (small.ok && small.value) lost++;
     }
     const mean = turns.reduce((a, b) => a + b, 0) / Math.max(1, turns.length);
-    bound(lost > 0, `dog smallest bot ${level}: never lost in ${fights} fights`);
+    bound(lost >= fights * 0.8, `dog smallest bot ${level}: lost only ${lost}/${fights} fights (needs 80%)`);
     const tot = { plays: 0, fallbacks: 0, redeals: 0 };
     for (const i of seedsOf(6, 100, 10)) {
       const r = holds('dog fights', `dog plays ${level} seed ${i}`, () => dogPlaysSeed(level, i));
@@ -830,67 +872,69 @@ section('dog fights');
 }
 section('locks');
 
-// Scene word games: every room thing hidden in a crossword (the test uses each at one size; quick every other thing at another, --full all),
-// and the word games of cases 1-10 per difficulty (the test builds cases 1-2).
-{
-  const things = roomThings();
-  let grids = 0;
-  things.forEach((answer, k) => {
-    if (!FULL && k % 2) return; // quick: every other thing, at a size the test did not use
-    const sizes = FULL ? CROSSWORD_SIZES : [CROSSWORD_SIZES[(k + 1) % CROSSWORD_SIZES.length]];
-    for (const [size] of sizes) {
-      for (let seed = 1; seed <= (size === CROSSWORD_SIZE ? 2 : 1); seed++) {
-        holds('crossword grids', `crossword ${answer} size ${size} seed ${seed}`, () => crosswordGridSeed(answer, size, seed));
-        grids++;
+if (!NOSING_ONLY) {
+  // Scene word games: every room thing hidden in a crossword (the test uses each at one size; quick every other thing at another, --full all),
+  // and the word games of cases 1-10 per difficulty (the test builds cases 1-2).
+  {
+    const things = roomThings();
+    let grids = 0;
+    things.forEach((answer, k) => {
+      if (!FULL && k % 2) return; // quick: every other thing, at a size the test did not use
+      const sizes = FULL ? CROSSWORD_SIZES : [CROSSWORD_SIZES[(k + 1) % CROSSWORD_SIZES.length]];
+      for (const [size] of sizes) {
+        for (let seed = 1; seed <= (size === CROSSWORD_SIZE ? 2 : 1); seed++) {
+          holds('crossword grids', `crossword ${answer} size ${size} seed ${seed}`, () => crosswordGridSeed(answer, size, seed));
+          grids++;
+        }
+      }
+    });
+    let cases = 0;
+    for (const difficulty of DIFFICULTIES) {
+      for (const n of FULL ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] : [5, 10]) {
+        holds('scene games', `scene games ${difficulty} case ${n}`, () => sceneCaseSeed(difficulty, n));
+        cases++;
       }
     }
-  });
-  let cases = 0;
-  for (const difficulty of DIFFICULTIES) {
-    for (const n of FULL ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] : [5, 10]) {
-      holds('scene games', `scene games ${difficulty} case ${n}`, () => sceneCaseSeed(difficulty, n));
-      cases++;
-    }
+    console.log(`Scene games: ${things.length} room things in ${grids} crossword grids, ${cases} cases' word games`);
   }
-  console.log(`Scene games: ${things.length} room things in ${grids} crossword grids, ${cases} cases' word games`);
-}
-section('scene games');
+  section('scene games');
 
-// Fast crossword and word search builders against the oracle (today's builders): the same puzzle for the same seed
-// (wordBuilders.test.ts keeps a few fixed answers at seed 1). Quick: every other room thing at one size/level, seed 3;
-// --full: every room thing at every size and level for seeds 1 and 2.
-{
-  let crosswords = 0;
-  let searches = 0;
-  roomThings().forEach((answer, k) => {
-    if (!FULL && k % 2) return;
-    const j = (k >> 1) + 1;
-    const sizes = FULL ? CROSSWORD_BUILD_SIZES : [CROSSWORD_BUILD_SIZES[j % CROSSWORD_BUILD_SIZES.length]];
-    const levels = FULL ? WORDSEARCH_LEVELS : [WORDSEARCH_LEVELS[j % WORDSEARCH_LEVELS.length]];
-    for (const seed of FULL ? [1, 2] : [3]) {
-      for (const size of sizes) {
-        holds('builders vs oracle', `crossword vs oracle ${answer} size ${size} seed ${seed}`, () => crosswordSameSeed(answer, size, seed));
-        crosswords++;
+  // Fast crossword and word search builders against the oracle (today's builders): the same puzzle for the same seed
+  // (wordBuilders.test.ts keeps a few fixed answers at seed 1). Quick: every other room thing at one size/level, seed 3;
+  // --full: every room thing at every size and level for seeds 1 and 2.
+  {
+    let crosswords = 0;
+    let searches = 0;
+    roomThings().forEach((answer, k) => {
+      if (!FULL && k % 2) return;
+      const j = (k >> 1) + 1;
+      const sizes = FULL ? CROSSWORD_BUILD_SIZES : [CROSSWORD_BUILD_SIZES[j % CROSSWORD_BUILD_SIZES.length]];
+      const levels = FULL ? WORDSEARCH_LEVELS : [WORDSEARCH_LEVELS[j % WORDSEARCH_LEVELS.length]];
+      for (const seed of FULL ? [1, 2] : [3]) {
+        for (const size of sizes) {
+          holds('builders vs oracle', `crossword vs oracle ${answer} size ${size} seed ${seed}`, () => crosswordSameSeed(answer, size, seed));
+          crosswords++;
+        }
+        for (const level of levels) {
+          holds('builders vs oracle', `word search vs oracle ${answer} level ${level} seed ${seed}`, () => wordSearchSameSeed(answer, level, seed));
+          searches++;
+        }
       }
-      for (const level of levels) {
-        holds('builders vs oracle', `word search vs oracle ${answer} level ${level} seed ${seed}`, () => wordSearchSameSeed(answer, level, seed));
-        searches++;
-      }
-    }
-  });
-  console.log(`Word builders vs oracle: ${crosswords} crosswords and ${searches} word searches match the old builders`);
-}
-section('builders vs oracle');
+    });
+    console.log(`Word builders vs oracle: ${crosswords} crosswords and ${searches} word searches match the old builders`);
+  }
+  section('builders vs oracle');
 
-// Face to face (src/game/faceSweeps.ts): the test keeps seeds 0-2.
-{
-  const stats: FaceStats = { killers: 0, cracks: 0, innocents: 0 };
-  for (const seed of seedsOf(3, 60, 10)) holds('face to face', `face to face seed ${seed}`, () => faceSeed(seed, stats));
-  console.log(`Face to face: ${stats.killers} killer and ${stats.innocents} innocent questionings fair (${stats.cracks} killers crack: no clue catches a lie)`);
+  // Face to face (src/game/faceSweeps.ts): the test keeps seeds 0-2.
+  {
+    const stats: FaceStats = { killers: 0, cracks: 0, innocents: 0 };
+    for (const seed of seedsOf(3, 60, 10)) holds('face to face', `face to face seed ${seed}`, () => faceSeed(seed, stats));
+    console.log(`Face to face: ${stats.killers} killer and ${stats.innocents} innocent questionings fair (${stats.cracks} killers crack: no clue catches a lie)`);
+  }
+  section('face to face');
 }
-section('face to face');
 
-console.log(`Talk: ${talkChecked.guests} guests have a thread; ${talkChecked.short} still have a beat waiting for the solved case once every game is done`);
+if (!NOSING_ONLY) console.log(`Talk: ${talkChecked.guests} guests have a thread; ${talkChecked.short} still have a beat waiting for the solved case once every game is done`);
 console.log(`Case boards:${boards.puzzles} puzzles and ${boards.ends} end boards built (slowest ${boards.slowest.toFixed(0)} ms)`);
 
 // Built cases are a small sample of dog fights (about 140 plays on the quick run). The 2%
@@ -909,6 +953,8 @@ const total = 3 * PER_PRESET + others.length * PER_COMBINATION + QUICK_CHOICES *
 console.log(
   failures
     ? `\n${failures} problems`
-    : `\nAll ${total} cases have exactly one solution, every interrogation can be caught fairly, every cat puzzle is fair, every word game spells its word, every case board builds, every game unlocks a fair share of clues, every Quick play word game hides an object of the room its clue names, and every campaign round is fair whatever she picks.`,
+    : NOSING_ONLY
+      ? '\nThe nosing sections pass. This was not the whole check: run npm run checks before reporting.'
+      : `\nAll ${total} cases have exactly one solution, every interrogation can be caught fairly, every cat puzzle is fair, every word game spells its word, every case board builds, every game unlocks a fair share of clues, every Quick play word game hides an object of the room its clue names, and every campaign round is fair whatever she picks.`,
 );
 process.exit(failures ? 1 : 0);

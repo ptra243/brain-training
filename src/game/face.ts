@@ -5,7 +5,7 @@
 import { faceLines } from '../content/talk.ts';
 import { Rng, hashSeed } from '../engine/rng.ts';
 import type { Case } from '../engine/types.ts';
-import { currentRound, updateRound, type CampaignSave, type Verdict } from './campaign.ts';
+import { currentRound, updateRound, type CampaignSave, type Verdict } from './campaignSave.ts';
 import { unlockedClueIds, type Progress } from './state.ts';
 
 /** The accusation waiting for its questioning: the current round holds one and the campaign has not moved on. */

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
 import { codeFor, caseFor, type CaseRef } from '../engine/caseRef.ts';
 import type { CampaignRef } from '../engine/campaign.ts';
-import { currentRound, newCampaign, roundCase, updateRound, type CampaignSave } from './campaign.ts';
+import { currentRound, newCampaign, roundCase, updateRound, type CampaignSave } from './campaignSave.ts';
 import { HISTORY_CAP, campaignPending, emptyHistory, quickPending, recordCampaign, recordQuick } from './history.ts';
 import { emptyProgress, reduce } from './state.ts';
 import { clearSaves, loadHistory, saveHistory } from './storage.ts';
@@ -96,7 +96,7 @@ test('clearSaves leaves the history alone', () => {
   try {
     const h = recordQuick(solved(), qc, emptyHistory(), mint, DATE).history;
     saveHistory(h);
-    for (const k of ['quick', 'campaign', 'screen']) store.set(`brain-training:v8:${k}`, '{}');
+    for (const k of ['quick', 'campaign', 'screen']) store.set(`brain-training:v9:${k}`, '{}');
     clearSaves();
     assert.deepEqual(loadHistory(), h);
     assert.deepEqual([...store.keys()].filter((k) => !k.endsWith(':history')), []);

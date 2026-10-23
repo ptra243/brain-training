@@ -9,6 +9,7 @@ import {
   buildNosing,
   nosingHint,
   nosingInitial,
+  nosingSolveStep,
   nosingStep,
   nosingView,
   dogReward,
@@ -136,37 +137,53 @@ export function drive(p: NosingPuzzle, policy: Policy, stop?: (v: NosingView) =>
 }
 
 /**
+ * Walks the board with real rolls and answers but without the card games: a question, speed round,
+ * ladder, snake or bonus gets the real answer move (right, wrong or random per `policy`), the dog is
+ * won with the Solve move, and the walk stops at the lock. It never deals the dog's cards (`gridValues`)
+ * or fills the lock, which is what makes `drive` slow.
+ */
+export function walk(p: NosingPuzzle, policy: Policy, salt = ''): { s: NosingState; v: NosingView; sawDog: boolean } {
+  let s = nosingInitial();
+  let sawDog = false;
+  const rng = new Rng(hashSeed(`${p.seed}-walk${salt}`));
+  for (let n = 0; n < 2000; n++) {
+    const v = nosingView(p, s);
+    if (v.phase === 'dog') sawDog = true;
+    if (v.finished || v.phase === 'lock') return { s, v, sawDog };
+    let after: NosingState;
+    if (v.phase === 'roll' || v.phase === 'rolled') after = nosingStep(p, s, { t: 'roll' });
+    else if (v.phase === 'speed') after = nosingStep(p, s, { t: 'speed', right: policy === 'hints' ? 40 : policy === 'wrong' ? 0 : rng.int(41) });
+    else if (v.phase === 'question') {
+      const right = policy === 'hints' || (policy === 'mixed' && rng.int(2) === 1);
+      after = nosingStep(p, s, { t: 'answer', value: v.question!.q.answer + (right ? 0 : 1) });
+    } else after = nosingSolveStep(p, s); // the dog
+    assert.notEqual(after, s, `${p.seed}: the walker was stuck in ${v.phase}`);
+    s = after;
+  }
+  throw new Error('the walker did not reach the lock');
+}
+
+/**
  * The per-seed sweeps behind the slow Nosing tests. `npm test` runs a few fixed seeds of each;
  * `scripts/check-cases.ts` runs a sample (quick) or all of them (--full). A failed assertion throws.
  */
 
-/** Hints win with every clue; the always-wrong and random bots finish within the turn bounds. Returns whether the always-wrong bot lost its dog fight. */
-export function botSeed(level: NosingLevel, i: number, at: House = house): { lostFight: boolean } {
-  const share = 1 + (i % 7);
-  const p = make(level, i, share, at);
+/**
+ * Three walks (right answers, always wrong, random) meet the dog, stay inside the turn window and end on the last square
+ * ready for the lock. Winning the card fight, the wrong bot losing most fights and every clue being found are not played
+ * here: see the dog-fight sweep (`dogFightSweeps.ts`, `smallestBotSeed`) and `nosing.test.ts` (the Solve and search-square tests).
+ */
+export function botSeed(level: NosingLevel, i: number, at: House = house): void {
+  const p = make(level, i, 1 + (i % 7), at);
   const lv = nosingSpec(p.house, level);
-  const all = p.clues.slice().sort();
-
-  const good = drive(p, 'hints');
-  assert.equal(good.v.finished, 'won', `${p.seed}: hints win`);
-  assert.ok(good.sawDog, `${p.seed}: the hint bot meets the dog`);
-  assert.equal(good.dog, 'won', `${p.seed}: the hint bot wins the dog fight`);
-  assert.deepEqual(good.v.found.slice().sort(), all, `${p.seed}: every clue found`);
-  assert.ok(good.s.hints > 0);
-
-  const bad = drive(p, 'wrong');
-  assert.ok(bad.sawDog, `${p.seed}: the always-wrong bot meets the dog`);
-  assert.ok(bad.dog, `${p.seed}: the fight ends`);
-  assert.ok(bad.v.finished === 'revealed' || bad.v.finished === 'won', `${p.seed}: wrong bot finishes`);
-  assert.deepEqual(bad.v.found.slice().sort(), all, `${p.seed}: every clue found even when wrong`);
-  const mixed = drive(p, 'mixed');
-  assert.ok(mixed.sawDog && mixed.dog, `${p.seed}: the random bot meets the dog and the fight ends`);
-  assert.ok(mixed.v.finished === 'revealed' || mixed.v.finished === 'won', `${p.seed}: mixed bot finishes`);
-  for (const [name, run] of [['hints', good], ['wrong', bad], ['mixed', mixed]] as const) {
+  for (const policy of ['hints', 'wrong', 'mixed'] as const) {
+    const run = walk(p, policy);
+    assert.ok(run.sawDog, `${p.seed}: the ${policy} walk meets the dog`);
+    assert.equal(run.v.phase, 'lock', `${p.seed}: the ${policy} walk ends at the lock`);
+    assert.equal(run.v.pos, p.board.squares.length - 1, `${p.seed}: the ${policy} walk ends on the last square`);
     const turns = run.v.turn - 1;
-    assert.ok(turns <= lv.turns[1] && turns >= lv.turns[0], `${p.seed}: ${name} bot took ${turns} turns`);
+    assert.ok(turns <= lv.turns[1] && turns >= lv.turns[0], `${p.seed}: ${policy} walk took ${turns} turns`);
   }
-  return { lostFight: bad.dog === 'lost' };
 }
 
 /** The dog waits on a snake head, which has no question, and never pays out steps. */

@@ -2,7 +2,7 @@
 // live in `storage.ts` / `saveGuards.ts`; the snapshot and copy in `runRecord.ts`.
 
 import type { Case } from '../engine/types.ts';
-import type { CampaignSave } from './campaign.ts';
+import type { CampaignSave } from './campaignSave.ts';
 import {
   addCampaignRow,
   addQuickRow,

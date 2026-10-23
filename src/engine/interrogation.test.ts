@@ -1,3 +1,4 @@
+import { houseOf } from '../content/houses.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
@@ -8,7 +9,7 @@ import { disproves } from './interrogation.ts';
 import { isInterrogation } from './gameKinds.ts';
 import type { Case } from './types.ts';
 
-const factsOf = (c: Case) => caseFacts(content.house, c);
+const factsOf = (c: Case) => caseFacts(houseOf(c), c);
 
 test('interrogations: exactly one lie, every other answer true, and the proof disproves the lie', () => {
   let checked = 0;

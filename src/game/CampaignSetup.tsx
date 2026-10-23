@@ -6,7 +6,7 @@ import { Picker } from './AccusePanel.tsx';
 import { DIFFICULTY_LABEL } from './labels.ts';
 import { Dialog } from './Dialog.tsx';
 import { FINISHES, FINISH_HINT, FINISH_LABEL, type Finish } from './labels.ts';
-import type { CampaignSave } from './campaign.ts';
+import type { CampaignSave } from './campaignSave.ts';
 
 const PER_PUZZLE_LABEL: Record<string, string> = { 3: 'Three', 2: 'Two', 1: 'One' };
 type Accusing = 'anyone' | 'possible';

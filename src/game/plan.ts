@@ -29,3 +29,20 @@ export function labelClass(house: House, room: Room): string {
   const row = room.cells[0][0];
   return room.cells.filter(([r]) => r === row).length <= 3 ? 'room-name tight' : 'room-name';
 }
+
+/** The biggest full rectangle of a room's cells (top row, left col, rows, cols): the room's tap target. */
+export function tapRect(room: Room): { r: number; col: number; h: number; w: number } {
+  const has = new Set(room.cells.map(([r, c]) => `${r},${c}`));
+  let best = { r: room.cells[0][0], col: room.cells[0][1], h: 1, w: 1 };
+  for (const [r0, c0] of room.cells) {
+    for (let h = 1; has.has(`${r0 + h - 1},${c0}`); h++) {
+      for (let w = 1; ; w++) {
+        let full = true;
+        for (let r = r0; r < r0 + h && full; r++) if (!has.has(`${r},${c0 + w - 1}`)) full = false;
+        if (!full) break;
+        if (h * w > best.h * best.w) best = { r: r0, col: c0, h, w };
+      }
+    }
+  }
+  return best;
+}

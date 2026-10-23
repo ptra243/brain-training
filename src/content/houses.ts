@@ -157,8 +157,8 @@ export const otherHouses: readonly House[] = [lodge, courtyard, steps, longHouse
 /** Every layout, the manor first. */
 export const allHouses: readonly House[] = [manor, ...otherHouses];
 
-/** The houses a new case may be set in. Only the manor until nosing copes with the others. */
-export const playableHouses: readonly House[] = [manor];
+/** The houses a new case may be set in (the check-cases house sweep proves whole cases fair on each). */
+export const playableHouses: readonly House[] = [manor, ...otherHouses];
 
 const variantCache = new Map<string, House>();
 

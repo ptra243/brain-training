@@ -4,7 +4,7 @@ import { content } from '../content/index.ts';
 import { ROUNDS, campaignCast, type CampaignRef } from '../engine/campaign.ts';
 import { caseFor, codeFor, type CaseRef } from '../engine/caseRef.ts';
 import type { Case } from '../engine/types.ts';
-import { currentRound, newCampaign, roundCase, updateRound, type CampaignSave } from './campaign.ts';
+import { currentRound, newCampaign, roundCase, updateRound, type CampaignSave } from './campaignSave.ts';
 import {
   addCampaignRow,
   addQuickRow,
@@ -128,7 +128,7 @@ test('dates', () => {
 
 // ---------- Campaign rows ----------
 
-const ref: CampaignRef = { mode: 'campaign', code: codeFor(31_337), difficulty: 'medium' };
+const ref: CampaignRef = { mode: 'campaign', code: codeFor(31_337), difficulty: 'medium', houseId: 'manor' };
 const cast = campaignCast(content, ref);
 
 function act(save: CampaignSave, action: Action) {

@@ -21,11 +21,14 @@ type variables, buttons, hint notes, `Dialog`, layout. Each game's own styles mo
 
 Commit 7909bba: Tarot match and the dog fight. Then Wordle, crossword and word search (2026-10-23),
 plus the rule in `src/game/CLAUDE.md` and `e2e/CLAUDE.md` ("new game styles go in a CSS module").
+Then the cat puzzle and sudoku (2026-10-23, with the number pad, statements and pencil notes; e2e
+`.cell-notes` is now `getByTestId('cell-notes')`; checked at 360px).
 Copy `TarotGame.module.css` / `NosingDog.module.css` as the pattern.
 
 ## Next
 
-Move the other games one at a time (cat puzzle, sudoku, then the rest), one or two per commit.
+Move the other games one at a time (the rest of `src/game/games/`: interrogation, nosing lock / key /
+speed / board, number grid, typing), one or two per commit.
 
 ## Watch
 
