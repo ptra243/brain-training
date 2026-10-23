@@ -198,9 +198,9 @@ test.describe('nosing around', () => {
     await checkScreen(page, 'nosing: tapped a square');
   });
 
-  // Seed 12345's hint run has no speed square; seed 1's case has a run that reaches one.
+  // Seed 5's case has a run that reaches one.
   test.describe('a run with a speed round', () => {
-  test.use({ seed: 3 });
+  test.use({ seed: 5 });
   test('the speed round: the screen fits and the 60 seconds end the round', async ({ page }) => {
     await openNosingAt(page, 'speed');
     const speedStart = page.getByRole('button', { name: /^Start the \d+ seconds$/ });
@@ -245,6 +245,9 @@ test.describe('nosing around', () => {
   });
   });
 
+  // Some seeds' locks have too few tries for hints to build the number: seed 1's does not.
+  test.describe('the lock', () => {
+  test.use({ seed: 1 });
   test('the lock: place and clear a card, hints build the number, Try wins', async ({ page }) => {
     await openNosingAt(page, 'lock');
     const tryNumber = page.getByRole('button', { name: /^Try this number/ });
@@ -286,6 +289,7 @@ test.describe('nosing around', () => {
     await expect(unlocked).toBeVisible();
     await expect(unlocked.getByRole('button', { name: 'Back to the casebook' })).toBeVisible();
     await checkScreen(page, 'nosing: won');
+  });
   });
 
   test.describe('a run that meets the dog', () => {
