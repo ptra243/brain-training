@@ -190,5 +190,9 @@ Long sessions re-read their whole context every turn, so keep them short.
   with a `Last touched` date and a starting prompt; a `SessionStart` hook
   (`stale-sessions.mjs`) shows them as a numbered menu on a fresh session
   ("start 3" runs that entry's starting prompt) and flags entries untouched
-  for 14 days. Keep each heading short: it is the menu line. When you
+  for 14 days. Keep each heading short: it is the menu line. When they pick
+  one, by number or name or through /next, rename this session to that
+  heading before starting the work. In Cursor call rename_chat
+  (cursor-app-control); in the desktop app call set_session_title. The owner
+  asked for this so several open sessions stay distinguishable. When you
   suggest a split, offer to add or refresh the entry.

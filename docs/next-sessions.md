@@ -3,7 +3,7 @@
 Ideas for sessions to start fresh with `/clear` (or another terminal). Each has its own
 `Last touched` date. A `SessionStart` hook (`.claude/hooks/stale-sessions.mjs`) shows these as a
 numbered menu when a session starts (or after `/clear`): reply "start 3" and Claude runs that entry's
-starting prompt. It also tells Claude to mention any entry untouched for 14 days or more and ask
+starting prompt, and renames the session to that heading. It also tells Claude to mention any entry untouched for 14 days or more and ask
 whether to keep, update or drop it. Each `## Session:` heading is its menu line, so keep it short.
 
 Keeping an entry current: when you work on one, or when its handoff docs change, update its
