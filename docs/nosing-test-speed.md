@@ -48,21 +48,37 @@ It includes the nosing scan, the other-house boards, nosing boards, the walker, 
 
 **Done 2026-10-23.** `node scripts/check-cases.ts --only nosing` (add `--full` for every sample) took 49s against 88s for the quick check. Other sections (including the tarot scan, scene games, Quick start and other houses' cases) are skipped. Nosing boards are now the whole wait (32s).
 
-## 3. Explore a room-order path, separately
+## 2b. Faster path search, same boards
 
-Only after 1 and 2, and only if building boards is still the wait. This one changes every nosing board. It needs a `NOSING_VERSION` bump, a storage note, and one `check-cases --full` before it is committed. Do not mix it into the test change.
+**Done 2026-10-23.** `windingPath` in `nosingBoard.ts` does the same search with the same `Rng` draws: neighbour lists built once per grid, a typed `used` array, a running count of rooms entered, and each option ranked once before a stable insertion sort. No board changed (1,476 boards over the manor and every house and variant, 12 seeds per level, byte-identical before and after), so no version bump and no golden change.
 
-The slowness is not only the other houses. The manor has no door list, and its medium and hard boards are slow because each cell is four squares. The lodge and its family are already one square per cell; they are slow because the path is long and the doors constrain it.
+| | before | after |
+| --- | --- | --- |
+| those 1,476 boards | 32.1s | 12.7s |
+| `--only nosing` | 49s | 19s (nosing boards 32s to 9s) |
+| quick `npm run checks`, check-cases | 107s | 64s |
 
-The end is not chosen first. The search picks a random square on the edge, then stops wherever it is once the path is long enough, enough rooms are in, and the last room has been walked far enough. The lock is that last room. If it is the scene room, the try is thrown away.
+Anything in section 3 should be measured against the new numbers.
 
-A door is a pair of rooms (`house.doors`, letters in the layout such as `HC`). `doorSpots` also marks one cell, the middle of the wall those rooms share, which is where the door is drawn. The path search does not have to use that cell. Any step between the two rooms is allowed along the whole shared wall. The manor has no door list, so rooms that share a wall are open along that wall.
+## 3. Propose a room-piece path, and look at it before building it in
 
-Search one room at a time. Choose the end room first: not the scene, and a one-door room only if it is the end. Then a route on the door pairs, which is a few rooms, not the squares. A piece is that room only, starting on the wall shared with the room before and ending on the wall shared with the room after. Keep a few lengths for each pair of walls. Joining them is the path, and rooms do not share squares, so the join does not cross itself. Fitting the length is swapping or stretching one piece, not searching the house again. Each piece keeps a spare square for that room's search. On the manor's medium and hard, build the pieces on the cells and only then split each cell into four squares.
+Sections 1 and 2 are done. What is left of a nosing-only check is building the boards (about 32s of 49s). This section is a proposal for that, not a change to ship. It would change every nosing board, so it stays out of the game until the pictures below are accepted. Shipping it later needs a `NOSING_VERSION` bump, a storage note, and one `check-cases --full`.
 
-Keep the same checks the builder has now: length, rooms entered, a free square in each entered room for the search, the end not in the scene room, enough plain squares for the obstacles, and `nosingBounds` for the turn window. The roll for a turn stays `rollFor(nosingRollSeed(seed, attempt), ...)`.
+The slowness is both layouts. The manor has no door list, and its medium and hard boards search four squares per cell. The lodge and its family are already one square per cell; they are slow because the path is long and the doors constrain it. The end is not chosen first: the search picks a random edge square and stops wherever it is once the path is long enough. If that room is the scene, the try is thrown away.
 
-Compare a handful of seeds before replacing anything. Record build time, how many tries a board needs, and whether the path still reads as a walk through the house. If the tries do not fall, or the path only looks right on the manor, stop and write that down. The old builder stays until that comparison is accepted.
+A door is a pair of rooms (`house.doors`, letters such as `HC`). `doorSpots` marks the middle cell of the wall they share, which is where the door is drawn. The path may cross anywhere along that wall. The manor has no door list, so a shared wall is open along its length.
+
+**Proposal.** Choose the end room first: not the scene, and a one-door room only as the end. The route is a few door pairs. A piece is one room, from the wall it was entered through to the wall it leaves through, and only that room's squares are in the search. Keep a few lengths for each pair of walls. Joining the pieces is the path. Rooms do not share squares, so the join does not cross itself. Fitting the length is swapping or stretching one piece. Each piece keeps a spare square for that room's search. On the manor's medium and hard, build the pieces on the cells and only then split each cell into four. The checks stay the ones the builder has now: length, rooms entered, the spare square, the end not in the scene, enough plain squares for the obstacles, and `nosingBounds`. Rolls stay `rollFor(nosingRollSeed(seed, attempt), ...)`.
+
+**Look before replacing.** A throwaway script, not `buildNosingBoard`, generates a few pairs and draws them. Same house, level and seed, old path beside the new one:
+
+| House | Level | What to look at |
+| --- | --- | --- |
+| Manor | easy | Already one square per cell. The new path should still read as a walk through the rooms. |
+| Manor | medium | Old path is on the split grid. New path is built on the cells, then split. |
+| Lodge | medium | Long path, real doors. A one-door room, if the route uses one, is only the end. |
+
+Each picture shows the floor plan, the path in order, the doors, and the length. Next to the pair: build time, how many tries, and whether the new path meets the checks above. If the tries do not fall, or the path only looks right on the manor, stop. The old builder stays until those pictures are accepted.
 
 ## Leave alone
 

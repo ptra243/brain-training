@@ -100,7 +100,11 @@ interface Grid {
   width: number;
   height: number;
   room: string[];
-  nb: (s: number) => number[];
+  /** The index of each square's room among the rooms (-1 for a void square), and how many rooms there are. */
+  roomNo: number[];
+  roomTotal: number;
+  /** The squares each square can step to; never changed after the grid is built. */
+  adj: number[][];
 }
 
 function gridFor(house: House, n: number): Grid {
@@ -125,14 +129,16 @@ function gridFor(house: House, n: number): Grid {
     // Squares of a void cell (no room owns it) are walls; so is a wall between rooms with no door.
     return out.filter((t) => room[t] !== '' && (room[t] === room[s] || !touching || touching.get(room[s])?.has(room[t])));
   };
-  return { width, height, room, nb };
+  const adj = room.map((_, s) => nb(s));
+  const ids = [...new Set(room.filter((r) => r !== ''))];
+  const roomNo = room.map((r) => ids.indexOf(r));
+  return { width, height, room, roomNo, roomTotal: ids.length, adj };
 }
 
 /** Room-by-room randomised DFS: fill the current room, then move to a room not yet entered. */
 function windingPath(lv: NosingLevelSpec, grid: Grid, rng: Rng, searchClues: number): number[] | null {
-  const { width, height, room, nb } = grid;
+  const { width, height, room, roomNo, adj, roomTotal: allRooms } = grid;
   const target = lv.len[0] + rng.int(lv.len[1] - lv.len[0] + 1);
-  const allRooms = new Set(room.filter((r) => r !== '')).size;
   const roomCount = lv.enterExtra === undefined ? allRooms : Math.min(allRooms, searchClues + lv.enterExtra, lv.enterMax ?? allRooms);
   /** Squares at the end of the path that are in the last room. */
   const endRun = (): number => {
@@ -142,36 +148,54 @@ function windingPath(lv: NosingLevelSpec, grid: Grid, rng: Rng, searchClues: num
     return k;
   };
   const edge: number[] = [];
-  for (let s = 0; s < width * height; s++) if (room[s] !== '' && nb(s).length < 4) edge.push(s);
+  for (let s = 0; s < width * height; s++) if (room[s] !== '' && adj[s].length < 4) edge.push(s);
   const start = rng.pick(edge);
   const path: number[] = [start];
-  const used = new Set<number>([start]);
-  const entered: string[] = [room[start]];
+  const used = new Uint8Array(width * height);
+  used[start] = 1;
+  // Times each room was entered (re-entries count), and how many rooms have been entered at all.
+  const entered = new Int16Array(roomNo.length === 0 ? 0 : Math.max(...roomNo) + 1);
+  entered[roomNo[start]] = 1;
+  let distinct = 1;
   let budget = DFS_BUDGET;
-  const free = (s: number) => nb(s).filter((t) => !used.has(t)).length;
+  const free = (s: number) => {
+    let k = 0;
+    for (const t of adj[s]) if (!used[t]) k++;
+    return k;
+  };
   const dfs = (): boolean => {
     if (--budget < 0) return false;
     const cur = path[path.length - 1];
-    if (path.length >= target && new Set(entered).size >= roomCount && (lv.minEndRoom === undefined || endRun() >= lv.minEndRoom)) return true;
+    if (path.length >= target && distinct >= roomCount && (lv.minEndRoom === undefined || endRun() >= lv.minEndRoom)) return true;
     if (path.length >= lv.len[1]) return false;
-    const here = room[cur];
-    const opts = rng.shuffle(nb(cur).filter((t) => !used.has(t)));
-    const rank = (t: number) => {
-      const r = room[t];
-      if (r === here) return 0 + free(t) / 10; // stay in the room, fewest onward moves first
-      if (!entered.includes(r)) return 1 + free(t) / 10; // a new room
-      return 2 + free(t) / 10; // back into an old room
-    };
-    opts.sort((a, b) => rank(a) - rank(b));
+    const here = roomNo[cur];
+    const opts: number[] = [];
+    for (const t of adj[cur]) if (!used[t]) opts.push(t);
+    // Same draws as `rng.shuffle(opts)`.
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = rng.int(i + 1);
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    // Rank each option once, then a stable insertion sort: stay in the room (fewest onward moves first), then a new room, then back into an old room.
+    const keys = opts.map((t) => {
+      const r = roomNo[t];
+      return (r === here ? 0 : entered[r] === 0 ? 1 : 2) + free(t) / 10;
+    });
+    for (let i = 1; i < opts.length; i++) {
+      for (let j = i; j > 0 && keys[j - 1] > keys[j]; j--) {
+        [opts[j - 1], opts[j]] = [opts[j], opts[j - 1]];
+        [keys[j - 1], keys[j]] = [keys[j], keys[j - 1]];
+      }
+    }
     for (const t of opts) {
-      used.add(t);
+      used[t] = 1;
       path.push(t);
-      const pushed = room[t] !== here;
-      if (pushed) entered.push(room[t]);
+      const pushed = roomNo[t] !== here;
+      if (pushed && entered[roomNo[t]]++ === 0) distinct++;
       if (dfs()) return true;
-      if (pushed) entered.pop();
+      if (pushed && --entered[roomNo[t]] === 0) distinct--;
       path.pop();
-      used.delete(t);
+      used[t] = 0;
     }
     return false;
   };
