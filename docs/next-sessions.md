@@ -116,6 +116,20 @@ Starting prompt:
 Read docs/relationships.md and docs/theme-draft.md, then help me design card-pair and shared-card threads, campaign victim threads and the heard trigger.
 ```
 
+## Session: Finish the houses, size the big-house nosing boards
+Last touched: 2026-10-23
+Reads first: `docs/houses.md` (what exists, decisions, open items), the last sections of
+`.claude/handoff/houses-foundation.md` (segment-wise prototype and measurements).
+Goal: finish the single-storey houses work: cut the nosing variant sample in `check-cases` (it builds 100
+seeds on each of 8 orientations of every layout), look at a lodge case and its nosing board at 360px, then
+measure shorter medium and hard windows for the lodge, long house and T lodge (about 70-85% fill, one
+sweep table) and propose numbers. Push only when asked. Cutting the sample and the browser check are
+implementer and `browser-check` work; the window numbers are a design call for this session.
+Starting prompt:
+```
+Read docs/houses.md, then cut the nosing variant sample in check-cases, check a lodge case at 360px with browser-check, and measure shorter medium and hard nosing windows for the new houses.
+```
+
 ## Session: Two-storey houses, picked per case
 Last touched: 2026-10-20
 Reads first: `src/engine/CLAUDE.md`, `src/engine/house.ts`, `src/engine/caseFacts.ts`, `src/engine/clues.ts`
@@ -307,3 +321,9 @@ duration), each full check, and how many ran in order versus alongside. Older li
   obstacles + ladders + snakes + 8 plain squares, and a room with one 1-cell door can only end the
   path"; and `check-cases --only nosing` so a tuning loop does not rerun the whole quick check.
   Mostly missing tools and unstated constraints, not unclear goals.
+  Totals for the same session at 2.9 MB: main 155 replies, 25.3M read from cache, 301k written, 82k output,
+  context 252k; subagents (6) 234 replies, 16.5M read from cache, 1.2M written, 186k output. What made it
+  large: three agent runs of 24, 50 and 26 minutes (the last a prototype that ended in a no-go), and a design
+  discussion that kept growing after the main goal was done. The no-go prototype cost about 115k tokens and
+  26 minutes to learn that the slow part was the board length windows, not the search; a measurement of
+  fill per house, done first, would have shown that in minutes.
