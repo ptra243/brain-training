@@ -3,6 +3,7 @@ import { AccusePanel } from './AccusePanel.tsx';
 import { ClueDrawer } from './ClueDrawer.tsx';
 import { CluesPanel, type PuzzleGate } from './CluesPanel.tsx';
 import { Dialog } from './Dialog.tsx';
+import { YouSheet } from './YouSheet.tsx';
 import { EndBoardPanel } from './EndBoardPanel.tsx';
 import { ExploreMap } from './ExploreMap.tsx';
 import { atMidnight, clockLine, clockTime, gamesLeft } from './explore.ts';
@@ -64,6 +65,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
   const [opened, setOpened] = useState<{ tab: Tab; done: boolean }>({ tab: 'clues', done: false });
   // The new time, shown for a moment after a puzzle is finished.
   const [timeCard, setTimeCard] = useState(false);
+  const [youOpen, setYouOpen] = useState(false);
   useEffect(() => {
     if (!timeCard) return;
     const id = window.setTimeout(() => setTimeCard(false), 1500);
@@ -154,7 +156,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
         {exploring ? (
           <div className="header-tools">
             {drawer && !readOnly && <HintButton helper={helper} onAsk={askHint} />}
-            <button type="button" className="you-button" aria-label="You">
+            <button type="button" className="you-button" aria-label="You" onClick={() => setYouOpen(true)}>
               <Portrait parts={playerPortrait} view="counter" />
             </button>
           </div>
@@ -248,6 +250,8 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
             ))}
         </nav>
       </div>
+
+      {youOpen && <YouSheet c={c} progress={progress} picksLeft={gate && !readOnly ? gate.left : undefined} onClose={() => setYouOpen(false)} />}
 
       {timeCard && (
         <Dialog placement="center" labelId="time-title" onClose={() => setTimeCard(false)}>

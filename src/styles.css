@@ -849,6 +849,16 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
   font-family: var(--serif); font-size: 0.95rem;
 }
 .person-tabs button[aria-selected='true'] { border-color: var(--brass-deep); box-shadow: inset 0 -3px 0 var(--brass); font-weight: 700; }
+.you-head { display: flex; align-items: center; justify-content: space-between; }
+.you-head h2 { margin: 0; }
+.you-card { width: 9rem; margin: 0.6rem auto; }
+.you-card .portrait-card { min-width: 0; width: 100%; }
+.you-card .portrait-art { position: relative; width: 100%; aspect-ratio: 100 / 120; }
+.you-lines {
+  list-style: none; margin: 0; padding: 0.7rem 0.9rem; display: grid; gap: 0.5rem;
+  background: #fffcf3; border: 1px solid var(--card-edge); border-radius: 0.35rem;
+  font-family: var(--serif); font-size: 1.02rem; line-height: 1.4;
+}
 .person-game { display: grid; gap: 0.45rem; }
 .person-game-name { margin: 0; font-family: var(--serif); font-size: 1.05rem; font-weight: 700; }
 .time-card { text-align: center; padding: 0.4rem 0; }

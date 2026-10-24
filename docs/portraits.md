@@ -90,13 +90,13 @@ change.
 | Guest | Hair / headwear | Costume | Accent | Background |
 |---|---|---|---|---|
 | Host | short dark grey, side parting; full short beard | bottle-green smoking jacket, quilted shawl lapels, cravat | gold pocket square | oxblood |
-| Hostess | dark updo | burgundy gown, gold sash | pearl necklace, one pearl earring | plum brown (mockup) |
+| Hostess | dark updo | burgundy gown, gold sash | pearl necklace, one pearl earring | plum brown, lighter than the mockup so the updo shows |
 | Butler | short grey | black tailcoat, white shirt front | bow tie | stone (mockup) |
 | Conjurer | slick black; tall top hat | black cape with red lining, white tie | red lining at the collar | deep teal |
-| Housekeeper | grey bun | high-necked black dress, white lace collar | silver keys at the waist | sage (the Maid mockup's) |
+| Housekeeper | grey bun | high-necked black dress, white lace collar | silver keys at the waist | dark plum (sage was too close to the grey bun and the Butler) |
 | Financier | slicked-back dark | charcoal suit, red waistcoat | monocle, gold watch chain | dusty gold |
 | Uncle | bald crown, white sides; bushy white beard | brown tweed jacket, knitted waistcoat | none | slate blue |
-| Elder heir | sandy, swept back | navy high-collar jacket, brass buttons | medal ribbon | brick |
+| Elder heir | sandy, swept back | navy high-collar jacket, brass buttons | medal ribbon | dark olive (brick was too close to the sandy hair) |
 | Younger heir | golden curls | cream summer jacket, open collar | flower in the buttonhole | sky |
 | Detective | short auburn bob; grey fedora | slate tailored jacket, white blouse with a bow | silver brooch | heather |
 
@@ -104,7 +104,9 @@ Skin tones vary across the ten (light to deep); every silhouette differs from it
 
 ## Open
 
-- Where the player's portrait appears (the case intro, a profile). Not in the first build.
+- The player's portrait shows on the floor-plan "you are here" marker, opposite the person in the
+  talk header, and on the header "You" button, which opens a "You" sheet (decided 2026-10-24): her
+  large card plus the clock, her room, clues found and games left tonight.
 - Whether the cat's counter replaces the cat's name in hint copy. Not in the first build.
 - The questioning game (`InterrogationGame`) still shows initials; counters elsewhere and the person
   screen show portraits (wired 2026-10-22).

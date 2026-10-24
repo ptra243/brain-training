@@ -43,7 +43,7 @@ export const portraits: Record<string, PortraitParts> = {
     hair: { style: 'updo', colour: '#2b1a14' },
     costume: { style: 'gown-sash', main: '#5a1426', trim: '#b88a3a' },
     accent: { style: 'pearls', colour: '#f4f0e4' },
-    background: ['#3a2a2a', '#4a3633'],
+    background: ['#6a4a44', '#7e5b54'],
   },
   butler: {
     skin: '#f3d2b0',
@@ -66,7 +66,7 @@ export const portraits: Record<string, PortraitParts> = {
     hair: { style: 'bun', colour: '#9a9a9e' },
     costume: { style: 'high-neck-dress', main: '#2b2b30', trim: '#f4f0e4' },
     accent: { style: 'keys', colour: '#c4c9cf' },
-    background: ['#7d9188', '#8fa39a'],
+    background: ['#4e3a4e', '#614a61'],
   },
   financier: {
     skin: '#e2b085',
@@ -86,7 +86,7 @@ export const portraits: Record<string, PortraitParts> = {
     hair: { style: 'swept-back', colour: '#b98c52' },
     costume: { style: 'stand-collar-jacket', main: '#27395e', trim: '#c8a24c' },
     accent: { style: 'medal', colour: '#a8322d' },
-    background: ['#9a4f3c', '#b2644f'],
+    background: ['#4f5a36', '#626e45'],
   },
   'younger-heir': {
     skin: '#f6dcc0',

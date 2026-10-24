@@ -46,6 +46,9 @@ What a look check judges on each:
   (N games left)" header, room list, tab bar.
 - `midnight`: the same round at midnight with the map locked: Midnight header,
   a disabled room, a greyed room list.
+- `you-sheet`: the You sheet over the round: her portrait card, then the clock,
+  room, clues-found and games-left lines; one close button; nothing clipped,
+  no sideways scroll.
 - `houses`: every layout (lodge, courtyard, steps, long house, T lodge) in all 8
   orientations (`lodge/r90`, `lodge/m`...), each on the real map with nobody
   placed; a tall plan is narrowed, not stretched: footprint readable, void cells unpainted, door gaps

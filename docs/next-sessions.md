@@ -23,18 +23,18 @@ open questions go in a linked `docs/<slug>.md`, and the entry points to it. An e
 settled design may stay as a short stub; give it a doc when someone starts it.
 
 ## Session: Portraits, parametric faceted cast
-Last touched: 2026-10-23
+Last touched: 2026-10-24
 Reads first: `docs/portraits.md` (settled style, parts model and open items), `src/content/portraits.ts`
 and `src/game/portrait*.ts` (built), and the `#dev/portraits` gallery.
 Built: the parts model, all ten guests, the player, the cat and dog, the gallery, and portraits on
 counters, the person screen, the questioning chair and the dog fight header.
-Left: (1) where the player's portrait appears (case intro or a profile; ask the owner); (2) whether the
-cat's counter replaces its name in hint copy (ask); (3) tune the ten guests' costumes and colours in the
-gallery, checking the 32px and 52px counters and the large view at 360px through `browser-check`;
-(4) facial expressions (brows, mouth facet, head tilt) as a later layer.
+Done 2026-10-24: the "You" sheet behind the header button, and a colour pass on the ten guests.
+Left: (1) whether the cat's counter replaces its name in hint copy (ask); (2) portraits in the
+questioning game (`InterrogationGame` still shows initials); (3) facial expressions (brows, mouth
+facet, head tilt) as a later layer.
 Starting prompt:
 ```
-Read docs/portraits.md, then open #dev/portraits through browser-check and tune the ten guests at 32px, 52px and the large view. Ask me where the player's portrait should appear.
+Read docs/portraits.md. Ask me whether the cat's counter should replace its name in hint copy, then put portraits in the questioning game.
 ```
 
 ## Session: Tarot card faces
@@ -94,7 +94,7 @@ Read the Guest pool and Confidants sections of docs/theme-draft.md, then help me
 ```
 
 ## Session: Campaign opening, meeting the guests
-Last touched: 2026-10-23
+Last touched: 2026-10-24
 Reads first: `docs/campaign-opening.md` (the settled build plan, with every owner decision),
 `docs/talk-threads.md`, `docs/theme-draft.md` (Confidants, opening and ending), `src/engine/campaign.ts`.
 Goal: a skippable first phase of a campaign where she talks to every guest once and gets round 1's free
@@ -164,6 +164,22 @@ changes, so bump the storage prefix.
 Starting prompt:
 ```
 Read the "Hunting the weapon" item in the What's Left doc and docs/next-sessions.md, help me design the shortlist puzzle and the either-or clues, then write an implementer brief.
+```
+
+## Session: The second killer (campaign, medium and hard)
+Last touched: 2026-10-23
+Reads first: `docs/second-killer.md` (the settled design), `src/engine/CLAUDE.md`,
+`src/engine/campaign.ts`, `src/game/campaignSave.ts`, `docs/run-history.md`.
+Goal: on medium and hard, night 1 opens on a gated "Round up the suspects" screen, then the accuse
+screen; a second murder follows whatever she answers, by another cleared guest; night 2 offers three
+labelled puzzles (A for 9pm, B and C for 12am) and the final accusation names both killers. Easy and
+every existing campaign stay unchanged (a `twist` flag on `CampaignRef`, own seed stream).
+Settle first: how the night 2 round and its truth are built from night 1's lineup, how `roundProblems`
+proves checks 1–5 in the doc, and the scene wording. Overlaps "Hunting the weapon" (both change
+campaign rounds): do that one first or agree the order. Then write an implementer brief.
+Starting prompt:
+```
+Read docs/second-killer.md and docs/next-sessions.md, work out how the night 2 round is built from night 1's lineup and how roundProblems proves it, then write an implementer brief.
 ```
 
 ## Session: Grid cases (Murdoku-style), build

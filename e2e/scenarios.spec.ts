@@ -17,6 +17,16 @@ for (const id of ['campaign-start', 'campaign-midnight', 'campaign-last-round'])
   });
 }
 
+test('the You button opens the sheet and Close shuts it', async ({ page }) => {
+  await load(page, 'campaign-start');
+  await page.getByRole('button', { name: 'You', exact: true }).click();
+  const sheet = page.getByRole('dialog');
+  await expect(sheet.getByText(/You are in the/)).toBeVisible();
+  await expect(sheet.getByText(/\d+ of \d+ clues found/)).toBeVisible();
+  await sheet.getByRole('button', { name: 'Close' }).click();
+  await expect(sheet).toBeHidden();
+});
+
 test('load finished-runs', async ({ page }) => {
   await load(page, 'finished-runs');
   await expect(page.getByText('You caught the killer.')).toBeVisible();

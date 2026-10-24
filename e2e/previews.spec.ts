@@ -41,6 +41,13 @@ test('midnight preview', async ({ page }) => {
   await checkScreen(page, 'preview midnight');
 });
 
+test('you-sheet preview', async ({ page }) => {
+  await page.goto('/#dev/you-sheet');
+  await expect(page.getByRole('dialog').getByRole('heading', { name: 'You' })).toBeVisible();
+  await expect(page.getByText(/\d+ of \d+ clues found/)).toBeVisible();
+  await checkScreen(page, 'preview you-sheet');
+});
+
 test('houses preview', async ({ page }) => {
   await page.goto('/#dev/houses');
   await expect(page.getByRole('heading', { name: 'The Courtyard House' })).toBeVisible();

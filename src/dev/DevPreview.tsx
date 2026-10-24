@@ -10,6 +10,7 @@ import { otherHouses, variantsOf } from '../content/houses.ts';
 import { Casebook } from '../game/Casebook.tsx';
 import { MapPanel } from '../game/MapPanel.tsx';
 import { Dialog } from '../game/Dialog.tsx';
+import { YouSheet } from '../game/YouSheet.tsx';
 import { clockTime, gamesLeft } from '../game/explore.ts';
 import { ROUND_TIMES } from '../game/labels.ts';
 import { itemName, suspectName } from '../game/names.ts';
@@ -132,6 +133,15 @@ function CasebookPreview({ midnight }: { midnight: boolean }) {
   );
 }
 
+/** The "You" sheet over the sample round, after one puzzle, with one pick left. */
+function YouSheetPreview() {
+  const c = sampleRound();
+  const p = emptyProgress();
+  const one = c.games.filter((g) => !isSceneGame(g))[0];
+  if (one) p.games[one.kind] = { status: 'won', data: null };
+  return <YouSheet c={c} progress={p} picksLeft={Math.max(0, (c.campaign?.budget ?? 1) - 1)} onClose={noop} />;
+}
+
 /** Every layout in all 8 orientations (turned and mirrored), each drawn by the real map with nobody placed. */
 function HousesPreview() {
   const base = generateCase(content, 1, 'medium');
@@ -181,6 +191,7 @@ const SCREENS: Record<string, () => ReactNode> = {
   'time-card': () => <TimeCardPreview />,
   explore: () => <CasebookPreview midnight={false} />,
   midnight: () => <CasebookPreview midnight />,
+  'you-sheet': () => <YouSheetPreview />,
   portraits: () => <PortraitGallery />,
   dogfight: () => <DogFightStates />,
 };
