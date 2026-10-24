@@ -22,7 +22,7 @@ export interface CampaignSave {
   historyId?: string;
 }
 
-export const newCampaign = (ref: CampaignRef): CampaignSave => ({ ref: { ...ref, houseId: ref.houseId ?? campaignHouseId(ref) }, victims: [], rounds: [emptyProgress()], picked: [[]], outcome: 'playing' });
+export const newCampaign = (ref: CampaignRef): CampaignSave => ({ ref: { ...ref, houseId: ref.houseId ?? campaignHouseId(ref) }, victims: [], rounds: [{ ...emptyProgress(), opening: { talked: [] } }], picked: [[]], outcome: 'playing' });
 
 /** The case for round `i` (0-based): built from the victims before it. */
 export const roundCase = (content: Content, save: CampaignSave, i: number): Case => campaignRound(content, save.ref, save.victims.slice(0, i));

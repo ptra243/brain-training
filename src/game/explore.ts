@@ -34,13 +34,32 @@ export function roundPuzzles(c: Case) {
   return { objects, people };
 }
 
+/** Share of campaign rounds where the body was moved (rolled from the case's seed only, never the killer). */
+export const MOVED_BODY_SHARE = 0.25;
+
+/**
+ * Where the body lies. Usually the scene room; in about 1 in 4 campaign rounds it was moved to another
+ * room (drag marks lead back to the scene). Rolled on its own stream from the seed, never the truth.
+ */
+export function bodyRoom(c: Case): string {
+  if (!c.campaign) return c.sceneRoom;
+  const rng = new Rng(hashSeed(`${c.seed}-explore-body`));
+  if (rng.next() >= MOVED_BODY_SHARE) return c.sceneRoom;
+  const others = c.rooms.filter((r) => r !== c.sceneRoom);
+  return others.length ? rng.pick(others) : c.sceneRoom;
+}
+
 /** Who is where, what is there to look at and which puzzles stand in which room. Only rooms in play. */
-export function roomContents(details: readonly string[], c: Case): Record<string, RoomContents> {
+export function roomContents(details: readonly string[], c: Case, opts?: { gathered?: boolean }): Record<string, RoomContents> {
   const out: Record<string, RoomContents> = Object.fromEntries(c.rooms.map((r) => [r, { looks: [], objects: [], guests: [] }]));
   const house = new Map(houseOf(c).rooms.map((r) => [r.id, r]));
 
   // Guests: each on its own stream, so adding or removing one never moves the others.
-  for (const s of c.suspects) out[new Rng(hashSeed(`${c.seed}-explore-guests-${s}`)).pick(c.rooms)].guests.push(s);
+  // (The opening gathers them all with the body; their own rooms are still drawn so no stream changes.)
+  for (const s of c.suspects) {
+    const room = new Rng(hashSeed(`${c.seed}-explore-guests-${s}`)).pick(c.rooms);
+    out[opts?.gathered ? bodyRoom(c) : room].guests.push(s);
+  }
 
   // Objects: spread over different rooms where possible, each named from its room's words.
   const rng = new Rng(hashSeed(`${c.seed}-explore-objects`));
@@ -124,8 +143,8 @@ export function openPuzzlesIn(c: Case, p: Progress, room: RoomContents, picked: 
   return kinds.filter((k) => canOpen(c, p, k, picked, left));
 }
 
-/** The room she is in: where she walked to, else the scene room (the round opens at the body). */
-export const whereAmI = (c: Case, p: Progress): string => (p.at && c.rooms.includes(p.at) ? p.at : c.sceneRoom);
+/** The room she is in: where she walked to, else the body's room (the round opens at the body). */
+export const whereAmI = (c: Case, p: Progress): string => (p.at && c.rooms.includes(p.at) ? p.at : bodyRoom(c));
 
 /** Rooms she has been in this round: the scene from the start, where she is, and rooms she walked into. */
 export function roomsSeen(c: Case, p: Progress): string[] {
@@ -134,6 +153,7 @@ export function roomsSeen(c: Case, p: Progress): string[] {
     if (room && c.rooms.includes(room) && !out.includes(room)) out.push(room);
   };
   add(c.sceneRoom);
+  add(bodyRoom(c));
   add(whereAmI(c, p));
   for (const room of p.seen ?? []) add(room);
   return out;

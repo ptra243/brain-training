@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
-import { faceLines, talk } from '../content/talk.ts';
+import { faceLines, opening, talk, victimLines } from '../content/talk.ts';
 import { campaignCast, campaignRound } from '../engine/campaign.ts';
 import { moodFor } from '../engine/sets.ts';
 import type { Case } from '../engine/types.ts';
@@ -162,4 +162,29 @@ test('face lines: each pool has 8 distinct non-empty lines', () => {
     assert.equal(new Set(lines).size, 8, pool);
     for (const l of lines) assert.ok(l.trim().length > 0 && !/[{}]/.test(l), pool);
   }
+});
+
+test('opening lines contain no card names and use only their placeholders', () => {
+  const names = [
+    ...content.suspects.flatMap((s) => [s.name, s.alone?.name ?? '']),
+    ...content.house.rooms.map((r) => r.name),
+    ...content.items.map((i) => i.name),
+  ].filter((n) => n.length > 0);
+  const lines = [
+    ...Object.values(victimLines).flat(),
+    ...Object.values(opening).flat(),
+  ];
+  for (const l of lines) {
+    assert.ok(l.trim().length > 0, l);
+    const lower = l.toLowerCase();
+    for (const n of names) assert.ok(!lower.includes(n.toLowerCase()), `${l} names ${n}`);
+  }
+  for (const [k, v] of Object.entries(victimLines)) {
+    assert.equal(v.length, 2, k);
+    for (const l of v) assert.ok(l.includes('{victim}'), l);
+  }
+  assert.equal(opening.culprit, 'Someone in this room is the culprit.');
+  assert.ok(opening.connectors.length >= 3 && opening.catIntro.length >= 2);
+  assert.ok(/\{n\}/.test(opening.skipBody) && /\{total\}/.test(opening.skipBody) && /\{names\}/.test(opening.skipMissed));
+  assert.ok(opening.dragMarks.includes('{room}') && opening.dragMarks.includes('{scene}'));
 });

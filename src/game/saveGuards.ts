@@ -192,6 +192,11 @@ export function sanitizeProgress(v: unknown): Progress {
   if (isRecordOf(isNum)(v.talk)) p.talk = v.talk;
   if (isString(v.at)) p.at = v.at;
   if (Array.isArray(v.seen)) p.seen = v.seen.filter(isString);
+  // The opening: a bad shape drops it, which means "no opening" (the scene is not shown).
+  if (isObject(v.opening) && Array.isArray(v.opening.talked)) {
+    const o = v.opening;
+    p.opening = { talked: (o.talked as unknown[]).filter(isString), ...(o.cat === true && { cat: true as const }), ...(o.done === true && { done: true as const }), ...(o.skipped === true && { skipped: true as const }) };
+  }
   return p;
 }
 

@@ -7,6 +7,7 @@
 import { isInterrogation, isSceneGame } from '../engine/gameKinds.ts';
 import type { Case, Clue, GameKind, GameSpec } from '../engine/types.ts';
 import type { GridHintState } from './gridHints.ts';
+import { bodyRoom } from './explore.ts';
 import { roomName } from './names.ts';
 import { isInterrogationData } from './saveGuards.ts';
 import { readyBeats, setsFor } from './talk.ts';
@@ -53,6 +54,8 @@ export interface Progress {
   at?: string;
   /** Rooms she has walked into, besides the implicit scene and where she stands. Optional so older saves load. */
   seen?: string[];
+  /** Round 1 of a campaign: the opening scene. Absent = no opening (old saves, later rounds, Quick play). */
+  opening?: { talked: string[]; cat?: true; done?: true; skipped?: true };
 }
 
 export const emptyProgress = (): Progress => ({ marks: {}, used: [], accusations: [], solved: false, games: {}, found: [] });
@@ -88,6 +91,10 @@ export type Action =
   | { type: 'grid-hint'; hints: GridHintState }
   | { type: 'end-board'; key: string; save: unknown }
   | { type: 'talk-hear'; suspect: string }
+  | { type: 'opening-talk'; guest: string }
+  | { type: 'opening-cat' }
+  | { type: 'opening-skip' }
+  | { type: 'opening-finish' }
   | { type: 'move'; room: string }
   | { type: 'reset' };
 
@@ -212,6 +219,18 @@ export function reduce(c: Case, p: Progress, action: Action): Progress {
       if (heard >= readyBeats(c, p, action.suspect, thread.length)) return p;
       return { ...p, talk: { ...p.talk, [action.suspect]: heard + 1 } };
     }
+    case 'opening-talk': {
+      const o = p.opening;
+      if (!o || o.done || !c.suspects.includes(action.guest) || o.talked.includes(action.guest)) return p;
+      // Her first conversation with a guest is beat 1 of their thread.
+      return reduce(c, { ...p, opening: { ...o, talked: [...o.talked, action.guest] } }, { type: 'talk-hear', suspect: action.guest });
+    }
+    case 'opening-cat':
+      return p.opening && !p.opening.done && !p.opening.cat ? { ...p, opening: { ...p.opening, cat: true } } : p;
+    case 'opening-skip':
+      return p.opening && !p.opening.done ? { ...p, opening: { ...p.opening, skipped: true, done: true } } : p;
+    case 'opening-finish':
+      return p.opening && !p.opening.done ? { ...p, opening: { ...p.opening, done: true } } : p;
     case 'move': {
       // A room not in play, or the room she is already in, changes nothing.
       // The scene is never stored: roomsSeen adds it. Only the destination is remembered.
@@ -265,7 +284,11 @@ export function puzzlesDone(c: Case, p: Progress): { done: number; total: number
 export const SCENE_TEASER = 'The body was found by the …';
 export function sceneText(c: Case, p: Progress): string | null {
   if (c.sceneGiven) return c.sceneClue.text;
-  if (c.explore) return `The body was found in the ${roomName(c.sceneRoom)}.`;
+  if (c.explore) {
+    const body = bodyRoom(c);
+    if (body === c.sceneRoom) return `The body was found in the ${roomName(c.sceneRoom)}.`;
+    return `The body was found in the ${roomName(body)}, but the drag marks lead back to the ${roomName(c.sceneRoom)}.`;
+  }
   const done = c.games.filter(isSceneGame).find((g) => gameDone(p, g.kind));
   return done ? done.scene.text : null;
 }

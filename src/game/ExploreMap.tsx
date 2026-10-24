@@ -7,7 +7,7 @@ import { ownerMap, tapRect } from './plan.ts';
 import { playerPortrait, portraits, type PortraitParts } from '../content/portraits.ts';
 import { talk } from '../content/talk.ts';
 import { Dialog } from './Dialog.tsx';
-import { canOpen, centreCell, clockAfterNext, minutesPerGame, openPuzzlesIn, roomContents, roomsSeen, standSpots, whereAmI } from './explore.ts';
+import { canOpen, centreCell, clockAfterNext, minutesPerGame, openPuzzlesIn, bodyRoom, roomContents, roomsSeen, standSpots, whereAmI } from './explore.ts';
 import { GAMES } from './games/registry.tsx';
 import { faceClass, roomName, suspectColour, suspectInitials, suspectName } from './names.ts';
 import { hasPortrait, Portrait } from './Portrait.tsx';
@@ -37,7 +37,7 @@ interface Props {
 type PersonTab = 'talk' | 'minigame' | 'clues';
 
 /** Ivory card: the drawn portrait, or initials when this guest has none yet. */
-function PortraitCard({ parts, tint, caption, initials, colour }: { parts?: PortraitParts; tint: Tint; caption: string; initials?: string; colour?: string }) {
+export function PortraitCard({ parts, tint, caption, initials, colour }: { parts?: PortraitParts; tint: Tint; caption: string; initials?: string; colour?: string }) {
   return (
     <figure className="portrait portrait-card" aria-hidden="true">
       <span className="portrait-art">
@@ -171,13 +171,13 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
           return {
             className: `${room.id === c.sceneRoom ? 'scene' : ''} ${room.id === here ? 'here' : ''}`,
             onClick: inPlay ? () => go(room.id) : undefined,
-            labelSuffix: room.id === c.sceneRoom && <span className="body-mark"> ✕ body</span>,
+            labelSuffix: room.id === bodyRoom(c) && <span className="body-mark"> ✕ body</span>,
             labelChildren: isLabel && inPlay && (
               <button
                 className="tile-hit"
                 style={hitStyle}
                 disabled={frozen}
-                aria-label={`${room.name}${room.id === c.sceneRoom ? ', where the body was found' : ''}${room.id === here ? ', you are here' : ''}${todo ? ', something to do' : ''}`}
+                aria-label={`${room.name}${room.id === bodyRoom(c) ? ', where the body was found' : ''}${room.id === here ? ', you are here' : ''}${todo ? ', something to do' : ''}`}
                 aria-current={room.id === here ? 'location' : undefined}
                 onClick={(ev) => {
                   ev.stopPropagation();

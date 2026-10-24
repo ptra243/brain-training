@@ -570,3 +570,49 @@ export const faceLines = {
     "I'm afraid that doesn't catch me out at all.",
   ],
 };
+
+// PLACEHOLDER COPY for the Theme content session, for the campaign opening
+// (`src/game/opening.ts`). Kept outside `Content` so it never changes a case.
+// No card, guest, room or weapon names. Victim lines are about feelings and
+// never say where anyone was. Placeholders: `{victim}`; `{n}`, `{total}`,
+// `{names}` in the skip copy; `{room}` and `{scene}` in `dragMarks`.
+export const victimLines = {
+  debt: [
+    'I owed {victim} more than I ever let on.',
+    "{victim} never mentioned the money. That was somehow worse than being asked.",
+  ],
+  rival: [
+    "{victim} and I never agreed on anything. I'd have missed the arguing, I suppose.",
+    "Everyone assumed {victim} and I couldn't stand each other. They were mostly right.",
+  ],
+  fondness: [
+    "I was fonder of {victim} than I ever said. That's the trouble with saying things late.",
+    'I always meant to tell {victim} how much I liked them. I kept it for a better moment.',
+  ],
+  family: [
+    '{victim} was family. You do not get to choose that, and I would not have.',
+    "Families are complicated, and {victim} was one of mine. I'm still sorting out how I feel.",
+  ],
+} as const;
+
+export const opening = {
+  culprit: 'Someone in this room is the culprit.',
+  connectors: [
+    'The cat has been watching all evening. It has opinions.',
+    'Nobody has said much yet. That will not last.',
+    'Everyone has gone quiet. It is a very loud sort of quiet.',
+    'Somebody here knows more than they are saying.',
+  ],
+  catIntro: [
+    'The house cat pads over and sits at your feet. It looks as though it has something to show you.',
+    'The cat appears at your elbow, tail up, with the air of someone who has already solved it.',
+    'A soft meow from the rug. The cat has been busy, and wants you to know.',
+  ],
+  catClueLead: 'The cat drops something at your feet.',
+  skipTitle: 'Skip the introductions?',
+  skipBody: 'Every clue still goes in your casebook. {n} of {total} guests have spoken so far.',
+  skipMissed: 'You have not yet heard from {names}.',
+  finished: 'That is everyone. Now it is time to look around.',
+  disperse: 'The guests go their own ways.',
+  dragMarks: 'The body was found in the {room}, but drag marks on the floor lead back to the {scene}.',
+} as const;
