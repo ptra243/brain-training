@@ -194,6 +194,16 @@ Starting prompt:
 Read docs/css-modules.md, then move the nosing views to CSS modules (settle the shared numpad / question rules first). Delegate each to the implementer, then run e2e and a 360px look check.
 ```
 
+## Session: Visual theme, library and puzzle book
+Last touched: 2026-10-24
+Reads first: `docs/visual-theme.md` (leanings, open items, unexplored ideas), `docs/mockups/index.html`.
+Goal: check the real map, grid and puzzles against the mockups at 360 × 780, pick the palette, then
+start the build order in the doc.
+Starting prompt:
+```
+Read docs/visual-theme.md. Open #dev/explore, #dev/houses and #dev/nosing-houses through browser-check at 360x780 and tell me how the floor plan and puzzles would fit as edge-to-edge plates in the puzzle book. Then ask me which palette to use.
+```
+
 ## Session: Target or another word game (exploratory)
 Last touched: 2026-10-23
 Reads first: `docs/target-game.md` (proposed approach, what to settle), `src/games/CLAUDE.md`.
