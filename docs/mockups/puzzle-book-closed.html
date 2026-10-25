@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Puzzle book case closed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,500&amp;family=Caveat:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#3a7058;display:flex;justify-content:center;padding:24px 0}
+.tab{width:76px;height:40px;border:0;border-radius:8px 8px 0 0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'EB Garamond',Georgia,serif;font-weight:600;font-size:15px}
+.serif{font-family:'EB Garamond',Georgia,serif}
+.pencil{font-family:'Caveat',cursive;font-weight:700}
+.label{margin:0;font-size:11px;font-weight:700;letter-spacing:.12em;color:#55615f}
+.guests{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 2px}
+.guest{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:62px;padding:2px 0;border:0;background:none;font:inherit;color:#1e2a2f;cursor:pointer}
+.counter{position:relative;width:38px;height:38px;border-radius:50%;box-sizing:border-box;border:2.5px solid #d2a548;display:grid;place-items:center;font-family:'EB Garamond',Georgia,serif;font-weight:700;font-size:16px;color:#fbf7ea;box-shadow:0 2px 0 #9a7426,0 3px 5px rgba(0,0,0,.25)}
+.gname{font-size:11px;line-height:1.1;text-align:center}
+.picked .counter::after{content:'';position:absolute;inset:-7px;border:2.5px solid #a8322d;border-radius:50% 46% 52% 48%;transform:rotate(-12deg)}
+.items{display:flex;flex-wrap:wrap;gap:6px}
+.item{min-height:44px;padding:0 13px;border:1.5px solid #8e6f27;border-radius:6px;background:#fffcf3;font:inherit;font-size:14px;font-weight:600;color:#1e2a2f;cursor:pointer}
+.item.picked{border-color:#a8322d;box-shadow:inset 0 0 0 1.5px #a8322d}
+.blank{display:inline-block;min-width:96px;padding:0 4px;border-bottom:1.5px solid #1e2a2f;text-align:center;color:#2a2a3a}
+</style>
+</head>
+<body>
+<!-- The Answer tab once the case is solved: a CASE CLOSED stamp, the answer pencilled in, the
+     app's closing lines and who was where. The murderer and table are made up for the mockup
+     but agree with the real clues shown on the solution page. -->
+<div style="position: relative; width: 360px; height: 780px; box-sizing: border-box; padding: 18px 0 0; display: flex; flex-direction: column; overflow: hidden; background-color: #3a7058; background-image: radial-gradient(rgba(255,255,255,.045) 1px, transparent 1px); background-size: 5px 5px; border-top: 10px solid #b37a44; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #f6eedb">
+
+  <header style="display: grid; grid-template-columns: 46px 1fr 46px; align-items: center; gap: 6px; padding: 0 12px">
+    <a href="#shelf" aria-label="Back to the shelf" style="width: 46px; height: 46px; display: grid; place-items: center">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" style="filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.45)); transform: rotate(-6deg)"><circle cx="20" cy="20" r="18" fill="#fbf4e2"></circle><circle cx="20" cy="20" r="14.5" fill="#9a5a32"></circle><path d="M23 13l-7 7 7 7" fill="none" stroke="#fbf4e2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </a>
+    <div style="text-align: center">
+      <h1 class="serif" style="margin: 0; font-weight: 600; font-size: 19px; line-height: 1.1">The Hidden Pansy Intrigue at Hollywood</h1>
+      <p style="margin: 3px 0 0; font-size: 13px; color: #eadfc4">Hard · 7 guests</p>
+    </div>
+    <span aria-hidden="true"></span>
+  </header>
+
+  <nav aria-label="Puzzle book sections" style="display: flex; gap: 4px; padding: 12px 20px 0">
+    <button class="tab" style="background: #4f7a54; color: #fbf3e0">Case</button>
+    <button class="tab" style="background: #9a5a32; color: #fbf3e0">Map</button>
+    <button class="tab" style="background: #3f5f8a; color: #fbf3e0">Puzzles</button>
+    <button aria-current="page" class="tab" style="background: #fbf7ec; color: #8a2e3b; box-shadow: 0 -2px 4px rgba(0,0,0,.15)">Answer</button>
+  </nav>
+
+  <div style="margin: 0 12px; background: #8a2e3b; border-radius: 4px 4px 8px 8px; padding: 0 8px 8px; box-shadow: 0 16px 28px rgba(0,0,0,.45)">
+    <article style="position: relative; background: #fbf7ec; border-radius: 0 0 3px 3px; padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 9px; color: #1e2a2f">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1.5px solid #1e2a2f; padding-bottom: 5px">
+        <span class="serif" style="font-weight: 700; font-size: 15px; letter-spacing: .04em">THE ANSWER</span>
+        <span class="serif" style="font-style: italic; font-size: 14px; color: #55615f">Solved in 2 accusations</span>
+      </div>
+      <span aria-hidden="true" style="position: absolute; right: 18px; top: 46px; padding: 4px 10px; border: 3px solid #a8322d; border-radius: 5px; color: #a8322d; font-weight: 800; font-size: 17px; letter-spacing: .12em; transform: rotate(-9deg); opacity: .88">CASE CLOSED</span>
+      <h2 class="serif" style="margin: 26px 0 0; font-weight: 600; font-size: 22px">Case closed</h2>
+      <p class="serif" style="margin: 0; font-size: 18px; line-height: 1.4">It was <span class="pencil" style="font-size: 22px; color: #2a2a3a">the Hostess</span>, in the Hall, with the <span class="pencil" style="font-size: 22px; color: #2a2a3a">vase</span>.</p>
+      <p style="margin: 0; font-size: 13px; line-height: 1.4; color: #55615f">Solved in 2 accusations. You asked for 2 hints. 1 puzzle was solved for you.</p>
+      <table style="width: 100%; border-collapse: collapse; font-size: 13.5px">
+        <thead><tr><th scope="col" style="text-align: left; padding: 4px 3px; border-bottom: 1.5px solid #1e2a2f; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #55615f">Who</th><th scope="col" style="text-align: left; padding: 4px 3px; border-bottom: 1.5px solid #1e2a2f; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #55615f">Where</th><th scope="col" style="text-align: left; padding: 4px 3px; border-bottom: 1.5px solid #1e2a2f; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #55615f">Holding</th></tr></thead>
+        <tbody>
+          <tr style=""><th scope="row" style="text-align: left; font-weight: inherit; padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">The Younger heir</th><td style="padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">Library</td><td style="padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">nothing</td></tr>
+          <tr style=""><th scope="row" style="text-align: left; font-weight: inherit; padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">The Elder heir</th><td style="padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">Study</td><td style="padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">rope</td></tr>
+          <tr style=""><th scope="row" style="text-align: left; font-weight: inherit; padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">The Financier</th><td style="padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">Dining room</td><td style="padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">knife</td></tr>
+          <tr style=""><th scope="row" style="text-align: left; font-weight: inherit; padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">The Housekeeper</th><td style="padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">Kitchen</td><td style="padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">poison bottle</td></tr>
+          <tr style="color: #a8322d; font-weight: 700"><th scope="row" style="text-align: left; font-weight: inherit; padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">The Hostess</th><td style="padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">Hall</td><td style="padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">vase</td></tr>
+          <tr style=""><th scope="row" style="text-align: left; font-weight: inherit; padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">The Butler</th><td style="padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">Conservatory</td><td style="padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">wrench</td></tr>
+          <tr style=""><th scope="row" style="text-align: left; font-weight: inherit; padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">The Detective</th><td style="padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">Study</td><td style="padding: 5px 3px; border-bottom: 1px dotted #b9ab8c">nothing</td></tr>
+        </tbody>
+      </table>
+      <button style="margin-top: 4px; min-height: 48px; border: 0; border-radius: 24px; background: #8a2e3b; color: #fbf3e0; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 18px; box-shadow: 0 2px 4px rgba(0,0,0,.25)">Start a new case</button>
+    </article>
+  </div>
+
+  <a href="#notebook" aria-label="Open your notebook: 13 clues" style="position: absolute; left: 14px; right: 14px; bottom: 0; height: 46px; box-sizing: border-box; padding: 12px 16px 0; background: #b98a5a; border-radius: 10px 10px 0 0; box-shadow: 0 -6px 18px rgba(0,0,0,.4); text-decoration: none; display: flex; align-items: flex-start; gap: 8px; font-size: 13px; font-weight: 600; color: #2e1e10">
+    <span aria-hidden="true" style="position: absolute; left: 18px; right: 18px; top: -7px; display: flex; justify-content: space-between">
+      <span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span>
+    </span>
+    <span aria-hidden="true" style="position: absolute; right: 26px; top: 0; bottom: 0; width: 10px; background: #8a2e3b"></span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg>
+    My notes · 13 clues
+  </a>
+</div>
+</body>
+</html>

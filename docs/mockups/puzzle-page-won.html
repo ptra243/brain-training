@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Puzzle page: solution</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,500&amp;family=Caveat:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#3a7058;display:flex;justify-content:center;padding:24px 0}
+.serif{font-family:'EB Garamond',Georgia,serif}
+.slip{position:relative;margin:0;padding:9px 12px 10px;background:#fffcf3;border:1px solid rgba(30,42,47,.25);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.slip:nth-child(odd){transform:rotate(-.6deg)}
+.slip:nth-child(even){transform:rotate(.5deg)}
+.who{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a2e3b}
+.said{display:block;margin-top:2px;font-family:'EB Garamond',Georgia,serif;font-size:16px;line-height:1.3}
+.letter{display:grid;place-items:center;width:30px;height:34px;border:1.5px solid #1e2a2f;background:#efdca5;font-family:'EB Garamond',Georgia,serif;font-weight:700;font-size:19px}
+</style>
+</head>
+<body>
+<!-- After a puzzle: its solution page. The answer, a stamp saying how it was solved, and the
+     clues it unlocked as slips for her notebook. Real wording and clues from a Hard Quick play
+     case where she pressed Solve on the Mini crossword. -->
+<div style="position: relative; width: 360px; height: 780px; overflow: hidden; background: #f4ecd8; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #1e2a2f">
+
+  <span aria-hidden="true" style="position: absolute; left: 0; top: 0; bottom: 0; width: 22px; z-index: 2; pointer-events: none; background: linear-gradient(90deg, #8a2e3b 0 3px, rgba(60,40,20,.28) 3px, rgba(60,40,20,.08) 10px, transparent 22px)"></span>
+  <span aria-hidden="true" style="position: absolute; right: 0; top: 0; bottom: 0; width: 5px; z-index: 2; pointer-events: none; background: repeating-linear-gradient(90deg, #e9e0c8 0 1px, #f4ecd8 1px 2.5px); box-shadow: inset 1px 0 0 #d8ccb0"></span>
+
+  <header style="position: absolute; left: 0; right: 0; top: 0; height: 80px; z-index: 1; background: #f4ecd8">
+    <div style="position: absolute; left: 66px; right: 16px; top: 10px; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1.5px solid #1e2a2f; padding-bottom: 4px">
+      <span class="serif" style="font-weight: 700; font-size: 13px; letter-spacing: .12em">SOLUTION</span>
+      <span class="serif" style="font-style: italic; font-size: 13px; color: #55615f">Puzzle 1</span>
+    </div>
+    <h1 class="serif" style="position: absolute; left: 66px; right: 16px; top: 38px; margin: 0; font-weight: 600; font-size: 25px; line-height: 1.2">Mini crossword</h1>
+    <a href="#book" aria-label="Back to the book" style="position: absolute; left: 14px; top: 0; width: 44px; height: 66px; z-index: 3; display: grid; place-items: start center; padding-top: 22px; box-sizing: border-box; background: #8a2e3b; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 84%, 0 100%); filter: drop-shadow(0 2px 2px rgba(0,0,0,.35))">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbf3e0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+    </a>
+  </header>
+
+  <main style="position: absolute; left: 0; right: 0; top: 80px; bottom: 84px; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; padding: 6px 18px 16px 30px; box-sizing: border-box">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin: 0 0 8px"><p style="margin: 0; font-size: 14px; color: #55615f">The shaded squares spell</p><span aria-hidden="true" style="padding: 3px 8px; border: 2.5px solid #5b6f86; border-radius: 4px; color: #5b6f86; font-weight: 800; font-size: 12px; letter-spacing: .1em; transform: rotate(-8deg); opacity: .85">SOLVED FOR ME</span></div>
+    <div aria-label="DOORMAT" style="display: flex; gap: 3px; margin-bottom: 6px">
+      <span class="letter">D</span><span class="letter">O</span><span class="letter">O</span><span class="letter">R</span><span class="letter">M</span><span class="letter">A</span><span class="letter">T</span>
+    </div>
+    <p style="margin: 0 0 16px; font-size: 14px"><a href="#grid" style="color: #8a2e3b; font-weight: 600">See the filled grid</a></p>
+
+    <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1.5px solid #1e2a2f; padding-bottom: 4px; margin-bottom: 10px">
+      <h2 class="serif" style="margin: 0; font-weight: 600; font-size: 19px">7 clues for your notebook</h2>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <p class="slip"><span class="who">The Younger heir says</span><span class="said">“I looked all round the Hall. No poison bottle anywhere.”</span></p>
+      <p class="slip"><span class="who">The Younger heir says</span><span class="said">“I looked all round the Hall. No rope anywhere.”</span></p>
+      <p class="slip"><span class="who">The Elder heir says</span><span class="said">“I looked all round the Library. No wrench anywhere.”</span></p>
+      <p class="slip"><span class="who">The Financier says</span><span class="said">“There was no poison bottle in the Library. I'm certain of it.”</span></p>
+      <p class="slip"><span class="who">The Elder heir says</span><span class="said">“The Butler was in the Hall or the Conservatory. I couldn't say which.”</span></p>
+      <p class="slip"><span class="who">The Detective says</span><span class="said">“The Younger heir never had the wrench. I'd swear to that.”</span></p>
+      <p class="slip"><span class="who">The Younger heir says</span><span class="said">“The Housekeeper never set foot in the Study. Ask anyone.”</span></p>
+    </div>
+  </main>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; z-index: 1; box-sizing: border-box; padding: 10px 18px 14px 30px; background: #f4ecd8; border-top: 1px solid #d3c6a6; display: flex; flex-direction: column; gap: 4px">
+    <button style="min-height: 48px; border: 0; border-radius: 24px; background: #8a2e3b; color: #fbf3e0; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 18px; box-shadow: 0 2px 4px rgba(0,0,0,.25)">Back to the book</button>
+    <span style="text-align: center; font-size: 12px; color: #55615f">The clues go in your notebook.</span>
+  </div>
+</div>
+</body>
+</html>

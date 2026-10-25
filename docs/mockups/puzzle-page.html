@@ -24,7 +24,7 @@ body{margin:0;background:#3a7058;display:flex;justify-content:center;padding:24p
   <header style="position: absolute; left: 0; right: 0; top: 0; height: 80px; z-index: 1; background: #f4ecd8">
     <div style="position: absolute; left: 66px; right: 16px; top: 10px; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1.5px solid #1e2a2f; padding-bottom: 4px">
       <span id="num" style="font-family: 'EB Garamond', Georgia, serif; font-weight: 700; font-size: 13px; letter-spacing: .12em"></span>
-      <span style="font-family: 'EB Garamond', Georgia, serif; font-style: italic; font-size: 13px; color: #55615f">The Orchid Room</span>
+      <span style="font-family: 'EB Garamond', Georgia, serif; font-style: italic; font-size: 13px; color: #55615f">The Hidden Pansy Intrigue</span>
     </div>
     <h1 id="name" style="position: absolute; left: 66px; right: 96px; top: 38px; margin: 0; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 25px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"></h1>
     <button id="solve" style="position: absolute; right: 14px; top: 34px; min-height: 40px; min-width: 72px; padding: 0 14px; border: 1.5px solid #1e2a2f; border-radius: 20px; background: transparent; color: #1e2a2f; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 17px">Solve</button>
@@ -37,9 +37,22 @@ body{margin:0;background:#3a7058;display:flex;justify-content:center;padding:24p
     <img id="shot" alt="" style="display: block; width: 360px; height: auto">
     <p id="page" style="margin: 8px 0 22px; text-align: center; font-family: 'EB Garamond', Georgia, serif; font-size: 14px; color: #8a8270"></p>
   </main>
+
+  <!-- The Solve dialog as a slip of paper taped over the page (&dialog=solve). Wording is the app's. -->
+  <div id="solve-dialog" hidden style="position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(40,28,14,.5)">
+    <div role="dialog" aria-modal="true" aria-labelledby="solve-title" style="position: relative; width: 296px; box-sizing: border-box; padding: 26px 22px 20px; background: #fffcf3; border-radius: 2px; box-shadow: 0 10px 28px rgba(0,0,0,.45); transform: rotate(-1deg); color: #1e2a2f">
+      <span aria-hidden="true" style="position: absolute; left: 50%; top: -11px; width: 86px; height: 22px; margin-left: -43px; background: rgba(232,222,190,.85); box-shadow: 0 1px 2px rgba(0,0,0,.15); transform: rotate(2deg)"></span>
+      <h2 id="solve-title" style="margin: 0 0 8px; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 23px">Solve this puzzle?</h2>
+      <p style="margin: 0 0 18px; font-size: 15px; line-height: 1.4; color: #3b4649">Are you sure? This can't be undone. You'll see the answer and still get the clues.</p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+        <button style="min-height: 46px; border: 1.5px solid #1e2a2f; border-radius: 23px; background: transparent; color: #1e2a2f; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 17px">Keep playing</button>
+        <button style="min-height: 46px; border: 0; border-radius: 23px; background: #a8322d; color: #fffcf3; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 17px">Solve it</button>
+      </div>
+    </div>
+  </div>
 </div>
 <script>
-const games = {"wordle":{"name":"Wordle","solve":true,"n":1,"page":14},"mini-crossword":{"name":"Mini crossword","solve":true,"n":2,"page":16},"word-search":{"name":"Word search","solve":true,"n":3,"page":18},"cat-puzzle":{"name":"Cat puzzle","solve":true,"n":4,"page":20},"sudoku":{"name":"Sudoku","solve":true,"n":5,"page":22},"questioning":{"name":"Questioning","solve":true,"n":6,"page":24},"case-board":{"name":"Case board","solve":true,"n":7,"page":26},"tarot-match":{"name":"Tarot match","solve":true,"n":8,"page":28},"nosing-around":{"name":"Nosing around","solve":false,"n":9,"page":30}};
+const games = {"wordle":{"name":"Wordle","solve":true,"n":5,"page":22},"mini-crossword":{"name":"Mini crossword","solve":true,"n":1,"page":14},"word-search":{"name":"Word search","solve":true,"n":2,"page":16},"cat-puzzle":{"name":"Cat puzzle","solve":true,"n":6,"page":24},"sudoku":{"name":"Sudoku","solve":true,"n":7,"page":26},"questioning":{"name":"Questioning","solve":true,"n":4,"page":20},"case-board":{"name":"Case board","solve":true,"n":8,"page":28},"tarot-match":{"name":"Tarot match","solve":true,"n":3,"page":18},"nosing-around":{"name":"Nosing around","solve":false,"n":9,"page":30}};
 const slug = games[new URLSearchParams(location.search).get('g')] ? new URLSearchParams(location.search).get('g') : 'mini-crossword';
 const g = games[slug];
 document.getElementById('name').textContent = g.name;
@@ -49,6 +62,7 @@ document.title = 'Puzzle page: ' + g.name;
 if (!g.solve) document.getElementById('solve').style.visibility = 'hidden';
 const img = document.getElementById('shot');
 img.src = 'shots/paper-' + slug + '.png';
+if (new URLSearchParams(location.search).get('dialog') === 'solve') document.getElementById('solve-dialog').hidden = false;
 img.alt = 'The real ' + g.name + ' from the app, recoloured for paper, at 360px wide';
 </script>
 </body>
