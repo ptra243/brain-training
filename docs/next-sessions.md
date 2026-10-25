@@ -184,19 +184,16 @@ Read the "Two-storey houses" entry in docs/next-sessions.md, help me settle the 
 ```
 
 ## Session: Hunting the weapon (campaign)
-Last touched: 2026-10-20
-Reads first: the "Hunting the weapon" item in the Murder Mystery Mode — What's Left doc (link in
-`CLAUDE.md`), `src/engine/CLAUDE.md`, `src/engine/campaign.ts`, `src/game/campaignSave.ts`.
-Goal: make the weapon matter in the campaign. One weapon all night (today it's rolled each round);
-loose either-or weapon clues on night 1; a new puzzle at the start of night 2 that gives a shortlist
-of 2–3 weapons; night 3 settles the killer and the weapon; a wrong weapon costs a body like a wrong
-person (an innocent dies; the accused survives, and she's told one of her two picks was right).
-Settle first: the shortlist puzzle's design, the either-or clue types and wording, and how
-`roundProblems` and `check-cases` prove each night. Then write an implementer brief. Every campaign
-changes, so bump the storage prefix.
+Last touched: 2026-10-25
+Reads first: `docs/weapons.md` (body signs as the shortlist, weapon stories, themed weapons, open calls),
+the "Hunting the weapon" item in the What's Left doc (link in `CLAUDE.md`), `src/engine/CLAUDE.md`,
+`src/engine/campaign.ts`.
+Goal: one weapon all night; each body shows a true sign (wound, then trace) that narrows the weapon,
+so night 1 is loose, night 2 a shortlist of 2–3, night 3 settles it. Settle `docs/weapons.md`'s open calls
+and how `roundProblems` and `check-cases` prove each night, then brief. Storage prefix bump.
 Starting prompt:
 ```
-Read the "Hunting the weapon" item in the What's Left doc and docs/next-sessions.md, help me design the shortlist puzzle and the either-or clues, then write an implementer brief.
+Read docs/weapons.md and the "Hunting the weapon" item in the What's Left doc, settle the open calls with me, design the body-sign clue in the engine, then write an implementer brief.
 ```
 
 ## Session: Grid cases (Murdoku-style), build

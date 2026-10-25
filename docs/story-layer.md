@@ -20,8 +20,8 @@ like a whodunnit film, with the puzzles as the detective work.
 2. **The summation ending** (below). No engine change.
 3. **Everyone has a secret** (`docs/secrets.md`): the "aha" at the reveal.
 4. **Act breaks between rounds** (below). No engine change.
-5. **One weapon all night** ("Hunting the weapon" in `docs/next-sessions.md`): today the weapon is rolled
-   each round, which breaks the story.
+5. **Weapons that matter** (`docs/weapons.md`, for "Hunting the weapon" in `docs/next-sessions.md`): one
+   weapon all night (today it's rolled each round), each body a sign that narrows it, and a story per weapon.
 6. **Clue moments** (below), then Confidants (`docs/theme-draft.md`) for replay.
 
 ## The summation ending
