@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Puzzle book: a crossword on the page</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,500&amp;family=Caveat:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#3a7058}
+a{color:#8a2620}a:hover{color:#5a1426}
+.room{position:relative;padding:5px 6px;display:flex;flex-direction:column;justify-content:space-between}
+.room-name{font-family:'EB Garamond',Georgia,serif;font-weight:600;font-size:12px;color:#2a2620}
+.counters{display:flex;flex-wrap:wrap;gap:3px}
+.counter{width:28px;height:28px;border-radius:50%;box-sizing:border-box;border:2.5px solid #d2a548;display:grid;place-items:center;font-family:'EB Garamond',Georgia,serif;font-weight:700;font-size:13px;color:#fbf7ea;box-shadow:0 2px 0 #9a7426,0 3px 5px rgba(0,0,0,.3)}
+.tab{width:76px;height:40px;border:0;border-radius:8px 8px 0 0;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;font-family:'EB Garamond',Georgia,serif;font-weight:600;font-size:15px}
+</style>
+<style>body{display:flex;justify-content:center;padding:24px 0}</style>
+</head>
+<body>
+<div style="position: relative; width: 360px; height: 780px; box-sizing: border-box; padding: 18px 0 0; display: flex; flex-direction: column; overflow: hidden; background-color: #3a7058; background-image: radial-gradient(rgba(255,255,255,.045) 1px, transparent 1px); background-size: 5px 5px; border-top: 10px solid #b37a44; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #f6eedb">
+
+  <header style="display: grid; grid-template-columns: 46px 1fr 46px; align-items: center; gap: 6px; padding: 0 12px">
+    <a href="#shelf" aria-label="Back to the shelf" style="width: 46px; height: 46px; display: grid; place-items: center">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" style="filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.45)); transform: rotate(-6deg)"><circle cx="20" cy="20" r="18" fill="#fbf4e2"></circle><circle cx="20" cy="20" r="14.5" fill="#9a5a32"></circle><path d="M23 13l-7 7 7 7" fill="none" stroke="#fbf4e2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </a>
+    <div style="text-align: center">
+      <h1 style="margin: 0; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 22px; line-height: 1.1">The Orchid Room</h1>
+      <p style="margin: 2px 0 0; font-size: 13px; color: #eadfc4">Medium · 5 guests</p>
+    </div>
+    <span aria-hidden="true"></span>
+  </header>
+
+  <nav aria-label="Puzzle book sections" style="display: flex; gap: 4px; padding: 14px 20px 0">
+    <button class="tab" style="background: #4f7a54; color: #fbf3e0">Case</button>
+    <button class="tab" style="background: #4f7a54; color: #fbf3e0">Map</button>
+    <button aria-current="page" class="tab" style="background: #fbf7ec; color: #8a2e3b; box-shadow: 0 -2px 4px rgba(0,0,0,.15)">Puzzles</button>
+    <button class="tab" style="background: #8a2e3b; color: #fbf3e0">Answer</button>
+  </nav>
+
+  <div style="margin: 0 12px; background: #8a2e3b; border-radius: 4px 4px 8px 8px; padding: 0 8px 8px; box-shadow: 0 16px 28px rgba(0,0,0,.45)">
+    <article style="height: 600px; overflow-y: auto; background: #fbf7ec; border-radius: 0 0 3px 3px; padding: 0 14px; color: #1e2a2f">
+      <img src="shots/game-292-mini-crossword.png" alt="The real Mini crossword at 292px wide: the right-hand column is cut off" style="display: block; width: 292px; height: auto">
+    </article>
+  </div>
+
+  <a href="#notebook" aria-label="Open your notebook: 3 clues, 1 new" style="position: absolute; left: 14px; right: 14px; bottom: 0; height: 132px; box-sizing: border-box; padding: 22px 16px 0; background: #b98a5a; border-radius: 10px 10px 0 0; box-shadow: 0 -6px 18px rgba(0,0,0,.4); text-decoration: none; display: flex; flex-direction: column; gap: 8px">
+    <span aria-hidden="true" style="position: absolute; left: 18px; right: 18px; top: -7px; display: flex; justify-content: space-between">
+      <span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span>
+    </span>
+    <span aria-hidden="true" style="position: absolute; right: 26px; top: 0; bottom: 0; width: 10px; background: #8a2e3b"></span>
+    <span style="display: flex; align-items: center; gap: 12px">
+      <span style="padding: 4px 14px 6px; background: #fbf4e2; border-radius: 2px; transform: rotate(-2deg); box-shadow: 0 1px 2px rgba(0,0,0,.3); font-family: 'Caveat', cursive; font-weight: 700; font-size: 24px; line-height: 1; color: #2a2a3a">My notes</span>
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true" style="filter: drop-shadow(0 1px 1.2px rgba(0,0,0,.45)); transform: rotate(8deg)"><circle cx="17" cy="17" r="15.5" fill="#fbf4e2"></circle><circle cx="17" cy="17" r="12.5" fill="#c76b4f"></circle><text x="17" y="21" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800" font-size="10" fill="#fbf4e2">NEW</text></svg>
+    </span>
+    <span style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #2e1e10">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg>
+      3 clues · Grid half done · tap to open
+    </span>
+  </a>
+</div>
+</body>
+</html>
