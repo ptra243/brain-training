@@ -105,6 +105,28 @@ Starting prompt:
 Read docs/campaign-opening.md (the settled build plan), write the handoff file, then build it piece by piece with implementer agents, in the order the plan gives.
 ```
 
+## Session: Summation ending, how it happened
+Last touched: 2026-10-25
+Reads first: `docs/story-layer.md` (the summation ending, and the review it came from),
+`src/game/ExploreMap.tsx`, `src/game/FaceToFace.tsx`, `src/engine/types.ts` (`Solution`).
+Goal: after she solves a case (or the killer gets away), replay the night on the map, one guest at a time,
+citing the clue that proved each step. Fully generated from the solved case; no engine or case change.
+Starting prompt:
+```
+Read the summation section of docs/story-layer.md, settle the open points with me (Quick play too, length at 7 guests, skip), then write an implementer brief.
+```
+
+## Session: Everyone has a secret (design)
+Last touched: 2026-10-25
+Reads first: `docs/secrets.md` (the proposal, worked example and open calls), `docs/talk-threads.md` part C,
+`docs/relationships.md`. Settle it alongside the victim threads in the Relationships session.
+Goal: every seated guest hides a secret, rolled blind to the killer and read only after the verdict: the
+killer's becomes the motive, innocents' are cleared red herrings. Story only; cases never change.
+Starting prompt:
+```
+Read docs/secrets.md, go through its Open list with me, then draft the six secret kinds and each guest's kinds, and write a build plan.
+```
+
 ## Session: Relationships between characters
 Last touched: 2026-10-23
 Reads first: `docs/relationships.md` (the ideas to settle), `docs/theme-draft.md` (Follow-up threads,
@@ -114,6 +136,17 @@ shared-card threads, the `heard` trigger, and campaign-only victim threads (need
 Starting prompt:
 ```
 Read docs/relationships.md and docs/theme-draft.md, then help me design card-pair and shared-card threads, campaign victim threads and the heard trigger.
+```
+
+## Session: Act breaks and a dinner prologue (campaign)
+Last touched: 2026-10-25
+Reads first: `docs/story-layer.md` (act breaks, dinner prologue), `src/game/NextMurderScene.tsx`,
+`docs/campaign-opening.md`. Best after the campaign opening is built.
+Goal: a short survivors scene after each next-murder scene (they react to the body and to her wrong
+accusation, by mood), and 4 or 5 lines of dinner before the first body. Content plus UI; cases unchanged.
+Starting prompt:
+```
+Read the act breaks and dinner prologue sections of docs/story-layer.md, draft the line pools with me, then write an implementer brief.
 ```
 
 ## Session: Finish the houses, size the big-house nosing boards
@@ -229,6 +262,16 @@ joins the case rotation.
 Starting prompt:
 ```
 Read "Next build: the dog" in docs/nosing-around.md and help me design the dog card game as a real deck builder: one-suit start deck, suit effects, rewards, run length, losing without getting stuck.
+```
+
+## Session: Clue moments (exploratory)
+Last touched: 2026-10-25
+Reads first: `docs/story-layer.md` (clue moments), `src/engine/wording.ts`, `src/game/ClueCard.tsx`.
+Goal: show each newly won clue first as a one-line scene (the witness's voice and portrait, or the cat
+finding something), with the plain statement kept for the casebook. Settle templates and a fact check.
+Starting prompt:
+```
+Read the clue moments section of docs/story-layer.md and src/engine/wording.ts, then propose line templates per clue type and how to check a moment says exactly what its clue says.
 ```
 
 ## Session: Side missions (exploratory)

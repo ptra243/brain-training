@@ -25,6 +25,9 @@ exist and are unaffected; outside this level, "every clue is true" stays.
 
 ## Why a guest lies
 
+The story version of this list, with no logic change, is `docs/secrets.md` (2026-10-25). If lies are built,
+each innocent's one lie should be explained by their secret from there.
+
 A content list for `src/content/`, one flavour line each, shown on the Solve screen as "the Butler lied
 because ..."; the casebook shows only the claim.
 - **Paired** (one secret uses both guests' single lie; finding one reveals the other): affair,
