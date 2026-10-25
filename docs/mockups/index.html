@@ -6,9 +6,11 @@
 <title>Library mockups</title>
 <style>
 body{margin:0;padding:24px;background:#140e0a;color:#e9e4d2;font-family:system-ui,sans-serif}
-h1{font-family:Georgia,serif;font-weight:600;margin:0 0 4px}
-p{margin:0 0 20px;color:#b9ab93}
-main{display:flex;flex-wrap:wrap;gap:28px}
+h1,h2{font-family:Georgia,serif;font-weight:600}
+h1{margin:0 0 4px}
+h2{margin:36px 0 4px;font-size:22px}
+p{margin:0 0 16px;color:#b9ab93;max-width:60rem}
+section>div{display:flex;flex-wrap:wrap;gap:28px}
 figure{margin:0}
 iframe{width:390px;height:892px;border:0;border-radius:18px;background:#1f1611}
 figcaption{margin-top:6px;font-size:14px}
@@ -17,30 +19,56 @@ a{color:#d9b864}
 </head>
 <body>
 <h1>Library mockups</h1>
-<p>Static design mockups: the bookcase home, in-game book screens and other home themes (not part of the app build). The map, logic grid and Jigsaw inside the puzzle book, notebook and sticker page are real screenshots from the app (<code>shots/</code>, one Quick play case at 360px). The last nine show each real minigame opened full screen from the puzzle book: a slim page edge down the left and a back button to the book.</p>
-<main>
-  <figure><iframe src="library.html" title="library.html"></iframe><figcaption><a href="library.html">library.html</a></figcaption></figure>
-  <figure><iframe src="book-open.html" title="book-open.html"></iframe><figcaption><a href="book-open.html">book-open.html</a></figcaption></figure>
-  <figure><iframe src="case-tabs.html" title="case-tabs.html"></iframe><figcaption><a href="case-tabs.html">case-tabs.html</a></figcaption></figure>
-  <figure><iframe src="case-ribbons.html" title="case-ribbons.html"></iframe><figcaption><a href="case-ribbons.html">case-ribbons.html</a></figcaption></figure>
-  <figure><iframe src="theme-card-table.html" title="theme-card-table.html"></iframe><figcaption><a href="theme-card-table.html">theme-card-table.html</a></figcaption></figure>
-  <figure><iframe src="theme-invitation.html" title="theme-invitation.html"></iframe><figcaption><a href="theme-invitation.html">theme-invitation.html</a></figcaption></figure>
-  <figure><iframe src="theme-house.html" title="theme-house.html"></iframe><figcaption><a href="theme-house.html">theme-house.html</a></figcaption></figure>
-  <figure><iframe src="theme-library-table.html" title="theme-library-table.html"></iframe><figcaption><a href="theme-library-table.html">theme-library-table.html</a></figcaption></figure>
-  <figure><iframe src="puzzle-book-map.html" title="puzzle-book-map.html"></iframe><figcaption><a href="puzzle-book-map.html">puzzle-book-map.html</a></figcaption></figure>
-  <figure><iframe src="notebook-grid.html" title="notebook-grid.html"></iframe><figcaption><a href="notebook-grid.html">notebook-grid.html</a></figcaption></figure>
-  <figure><iframe src="sticker-page.html" title="sticker-page.html"></iframe><figcaption><a href="sticker-page.html">sticker-page.html</a></figcaption></figure>
-  <figure><iframe src="puzzle-book-crossword.html" title="puzzle-book-crossword.html"></iframe><figcaption><a href="puzzle-book-crossword.html">puzzle-book-crossword.html</a> (inside the book: doesn't fit)</figcaption></figure>
-  <figure><iframe src="puzzle-book-nosing.html" title="puzzle-book-nosing.html"></iframe><figcaption><a href="puzzle-book-nosing.html">puzzle-book-nosing.html</a> (inside the book: doesn't fit)</figcaption></figure>
-  <figure><iframe src="puzzle-book-game.html?g=wordle" title="Wordle full screen"></iframe><figcaption><a href="puzzle-book-game.html?g=wordle">Wordle, full screen</a></figcaption></figure>
-  <figure><iframe src="puzzle-book-game.html?g=mini-crossword" title="Mini crossword full screen"></iframe><figcaption><a href="puzzle-book-game.html?g=mini-crossword">Mini crossword, full screen</a></figcaption></figure>
-  <figure><iframe src="puzzle-book-game.html?g=word-search" title="Word search full screen"></iframe><figcaption><a href="puzzle-book-game.html?g=word-search">Word search, full screen</a></figcaption></figure>
-  <figure><iframe src="puzzle-book-game.html?g=cat-puzzle" title="Cat puzzle full screen"></iframe><figcaption><a href="puzzle-book-game.html?g=cat-puzzle">Cat puzzle, full screen</a></figcaption></figure>
-  <figure><iframe src="puzzle-book-game.html?g=sudoku" title="Sudoku full screen"></iframe><figcaption><a href="puzzle-book-game.html?g=sudoku">Sudoku, full screen</a></figcaption></figure>
-  <figure><iframe src="puzzle-book-game.html?g=questioning" title="Questioning full screen"></iframe><figcaption><a href="puzzle-book-game.html?g=questioning">Questioning, full screen</a></figcaption></figure>
-  <figure><iframe src="puzzle-book-game.html?g=case-board" title="Case board full screen"></iframe><figcaption><a href="puzzle-book-game.html?g=case-board">Case board, full screen</a></figcaption></figure>
-  <figure><iframe src="puzzle-book-game.html?g=tarot-match" title="Tarot match full screen"></iframe><figcaption><a href="puzzle-book-game.html?g=tarot-match">Tarot match, full screen</a></figcaption></figure>
-  <figure><iframe src="puzzle-book-game.html?g=nosing-around" title="Nosing around full screen"></iframe><figcaption><a href="puzzle-book-game.html?g=nosing-around">Nosing around, full screen</a></figcaption></figure>
-</main>
+<p>Static design mockups at phone size, 360 × 780 (not part of the app build). View them through the dev server (<code>/docs/mockups/</code>) or open this file in Chrome or Edge.</p>
+<section>
+  <h2>Home: the bookcase</h2>
+  <p>Cases are books on a shelf; taking one down opens its cover.</p>
+  <div>
+    <figure><iframe src="library.html" title="Bookcase home" loading="lazy"></iframe><figcaption><a href="library.html">Bookcase home</a></figcaption></figure>
+    <figure><iframe src="book-open.html" title="A case book, closed" loading="lazy"></iframe><figcaption><a href="book-open.html">A case book, closed</a></figcaption></figure>
+  </div>
+</section>
+<section>
+  <h2>Home: other themes</h2>
+  <p>Alternatives to the bookcase.</p>
+  <div>
+    <figure><iframe src="theme-card-table.html" title="Card table" loading="lazy"></iframe><figcaption><a href="theme-card-table.html">Card table</a></figcaption></figure>
+    <figure><iframe src="theme-invitation.html" title="Dinner invitation" loading="lazy"></iframe><figcaption><a href="theme-invitation.html">Dinner invitation</a></figcaption></figure>
+    <figure><iframe src="theme-house.html" title="House in cutaway" loading="lazy"></iframe><figcaption><a href="theme-house.html">House in cutaway</a></figcaption></figure>
+    <figure><iframe src="theme-library-table.html" title="Library with the card table" loading="lazy"></iframe><figcaption><a href="theme-library-table.html">Library with the card table</a></figcaption></figure>
+  </div>
+</section>
+<section>
+  <h2>Inside a case: the case book</h2>
+  <p>Two ways to move between the clues, map, grid and Jigsaw.</p>
+  <div>
+    <figure><iframe src="case-tabs.html" title="Side tabs" loading="lazy"></iframe><figcaption><a href="case-tabs.html">Side tabs</a></figcaption></figure>
+    <figure><iframe src="case-ribbons.html" title="Ribbon bookmarks" loading="lazy"></iframe><figcaption><a href="case-ribbons.html">Ribbon bookmarks</a></figcaption></figure>
+  </div>
+</section>
+<section>
+  <h2>Inside a case: the puzzle book</h2>
+  <p>The case as a puzzle book with a notebook for working out. The map, logic grid and Jigsaw are real app screenshots.</p>
+  <div>
+    <figure><iframe src="puzzle-book-map.html" title="Map plate" loading="lazy"></iframe><figcaption><a href="puzzle-book-map.html">Map plate</a></figcaption></figure>
+    <figure><iframe src="notebook-grid.html" title="Notebook on the grid" loading="lazy"></iframe><figcaption><a href="notebook-grid.html">Notebook on the grid</a></figcaption></figure>
+    <figure><iframe src="sticker-page.html" title="Jigsaw as a sticker page" loading="lazy"></iframe><figcaption><a href="sticker-page.html">Jigsaw as a sticker page</a></figcaption></figure>
+  </div>
+</section>
+<section>
+  <h2>Minigames: a puzzle page each</h2>
+  <p>Each real minigame printed on a page of the puzzle book, full screen: a ribbon to go back, the spine and page edges over its margins. Screenshots from the app with its colours set to paper and print styles added at capture time; the app is unchanged.</p>
+  <div>
+    <figure><iframe src="puzzle-page.html?g=wordle" title="Wordle" loading="lazy"></iframe><figcaption><a href="puzzle-page.html?g=wordle">Wordle</a></figcaption></figure>
+    <figure><iframe src="puzzle-page.html?g=mini-crossword" title="Mini crossword" loading="lazy"></iframe><figcaption><a href="puzzle-page.html?g=mini-crossword">Mini crossword</a></figcaption></figure>
+    <figure><iframe src="puzzle-page.html?g=word-search" title="Word search" loading="lazy"></iframe><figcaption><a href="puzzle-page.html?g=word-search">Word search</a></figcaption></figure>
+    <figure><iframe src="puzzle-page.html?g=cat-puzzle" title="Cat puzzle" loading="lazy"></iframe><figcaption><a href="puzzle-page.html?g=cat-puzzle">Cat puzzle</a></figcaption></figure>
+    <figure><iframe src="puzzle-page.html?g=sudoku" title="Sudoku" loading="lazy"></iframe><figcaption><a href="puzzle-page.html?g=sudoku">Sudoku</a></figcaption></figure>
+    <figure><iframe src="puzzle-page.html?g=questioning" title="Questioning" loading="lazy"></iframe><figcaption><a href="puzzle-page.html?g=questioning">Questioning</a></figcaption></figure>
+    <figure><iframe src="puzzle-page.html?g=case-board" title="Case board" loading="lazy"></iframe><figcaption><a href="puzzle-page.html?g=case-board">Case board</a></figcaption></figure>
+    <figure><iframe src="puzzle-page.html?g=tarot-match" title="Tarot match" loading="lazy"></iframe><figcaption><a href="puzzle-page.html?g=tarot-match">Tarot match</a></figcaption></figure>
+    <figure><iframe src="puzzle-page.html?g=nosing-around" title="Nosing around" loading="lazy"></iframe><figcaption><a href="puzzle-page.html?g=nosing-around">Nosing around</a></figcaption></figure>
+  </div>
+</section>
 </body>
 </html>
