@@ -53,6 +53,8 @@ Each seated guest has a thread about how they knew the victim, the whodunit "eve
   2 or 3 beat thread per reading with `{victim}`; the pair's type comes from the who-knows-whom map or
   the cards, not 90 hand-written pairs.
 - Decide how it shares the thread slot with the guest's own thread.
+- `docs/secrets.md` (2026-10-25) proposes a secret per guest whose tell follows the victim thread in the
+  chain; settle the two together.
 - The campaign opening (2026-10-23, `docs/campaign-opening.md`) also needs one short
   victim-relationship line per guest, said in their first conversation: make the thread's first beat
   work as that line.
