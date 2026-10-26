@@ -131,12 +131,12 @@ Read the Map rules in src/game/CLAUDE.md, then propose how to make the map count
 
 ## Session: Case check split into sweep files
 Last touched: 2026-10-26
-Reads first: `docs/case-check-split.md` (Status, "Piece G").
-Pieces 0, A–F done 2026-10-26: `check-cases.ts` is gone; the case check is `src/engine/cases.*.sweep.ts` (logic in `caseChecks.ts`), and every sweep file runs in parallel, only when its import closure changed. Next: piece G, the room-first word search (a content change, prototyped), then "builders that cannot fail".
-Goal: `check-cases` holds only case logic and wiring; each game's seed sweep runs beside it, in parallel, only when its files change.
+Reads first: `docs/case-check-split.md` (Status, "After the split — builders that cannot fail").
+Pieces 0, A–G done 2026-10-26: the case check is `src/engine/cases.*.sweep.ts`, and the word search is built word first with no blanks (~1 ms, was 12), so the case files no longer build it. Left: the crossword and the case and end boards still build inside the case files.
+Goal: the case files check only case logic and wiring; each game proves it always builds in its own sweep.
 Starting prompt:
 ```
-Read docs/case-check-split.md ("Piece G" and its prototype in .claude/handoff/case-check-split/room-first-prototype/). Settle any open calls with me, then brief piece G to the implementer and review it against the measured table.
+Read docs/case-check-split.md ("After the split — builders that cannot fail"). Propose to me how the crossword can always build (as piece G did for the word search: measure first), then brief it to the implementer.
 ```
 
 ## Session: Two-storey houses, picked per case

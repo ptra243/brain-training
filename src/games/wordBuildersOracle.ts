@@ -1,6 +1,6 @@
 // Today's builders, kept only to prove the fast ones build the same puzzles. Never change.
-// Verbatim copies of generateCrossword (crossword.ts) and generateWordSearch (wordsearch.ts) at commit 29e90e3,
-// with their private helpers; only the exported names differ.
+// Copies of generateCrossword (crossword.ts) at commit 29e90e3 and of the word-first generateWordSearch (wordsearch.ts, piece G),
+// with their private helpers (the word search keeps the plain slow findPlacement and has no layout counter); only the exported names differ.
 
 import type { Rng } from '../engine/rng.ts';
 import type { ClueWordLike, CrosswordEntry, CrosswordPuzzle, Direction } from './crossword.ts';
@@ -232,15 +232,30 @@ function directionsFor(level: 1 | 2 | 3): readonly Pos[] {
 }
 
 const WORDSEARCH_SIZE = 7;
-const MAX_BLANKS = 4;
 const MAX_WORDS = 14;
+/** At most this many hidden letters side by side in one row, so the word doesn't show as a run. */
+const MAX_SIDE_BY_SIDE = 3;
+const WORDSEARCH_ATTEMPTS = 300;
 
 const key = ([r, c]: Pos) => r * 100 + c;
 
+/** The longest run of hidden letters side by side in one row (each directly right of the one before). */
+function longestSideBySide(secret: readonly Pos[]): number {
+  let best = secret.length ? 1 : 0;
+  let run = 1;
+  for (let i = 1; i < secret.length; i++) {
+    run = secret[i][0] === secret[i - 1][0] && secret[i][1] === secret[i - 1][1] + 1 ? run + 1 : 1;
+    if (run > best) best = run;
+  }
+  return best;
+}
+
 /**
- * Build a puzzle. Tries layouts until one has few blanks and every listed
- * word appears exactly once in the grid (in any direction), so whichever
- * copy she finds is the right one.
+ * Build a puzzle. Fills the grid with listed words until exactly
+ * `answer.length` squares are open, then writes the answer into those squares
+ * in reading order, so no square is blank. Retries layouts until every listed
+ * word appears exactly once (in any direction) and no more than
+ * MAX_SIDE_BY_SIDE hidden letters sit side by side.
  */
 export function oracleWordSearch(
   answer: string,
@@ -251,66 +266,52 @@ export function oracleWordSearch(
   size = WORDSEARCH_SIZE,
 ): WordSearchPuzzle {
   const dirs = directionsFor(level);
+  const target = answer.length;
   const pool = [...new Set(words)].filter(
     (w) => w.length >= 3 && w.length <= size && !exclude.has(w) && w !== answer && !isPalindrome(w),
   );
-  let best: WordSearchPuzzle | null = null;
-  let bestBlanks = Infinity;
-  // A couple of blanks is fine to look at; stop there rather than hunt for
-  // perfect. Right-and-down-only grids are harder to fill, so allow one more.
-  const goodEnough = level === 1 ? 3 : 2;
-  for (let attempt = 0; attempt < 300 && bestBlanks > goodEnough; attempt++) {
-    const built = tryLayout(answer, pool, dirs, size, rng);
-    if (!built) continue;
-    const blanks = built.grid.join('').split('.').length - 1;
-    if (blanks < bestBlanks && everyWordOnce(built)) {
-      best = built;
-      bestBlanks = blanks;
-    }
-  }
-  if (!best || bestBlanks > MAX_BLANKS) throw new Error(`No word search layout for ${answer}`);
-  return best;
-}
-
-function tryLayout(answer: string, pool: readonly string[], dirs: readonly Pos[], size: number, rng: Rng): WordSearchPuzzle | null {
-  const letters: (string | null)[][] = Array.from({ length: size }, () => Array(size).fill(null));
   const all: Pos[] = [];
   for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) all.push([r, c]);
-
-  // Secret squares: any five, kept in reading order.
-  const secret = rng
-    .shuffle(all)
-    .slice(0, answer.length)
-    .sort((a, b) => key(a) - key(b));
-  const secretSet = new Set(secret.map(key));
-  secret.forEach(([r, c], i) => (letters[r][c] = answer[i]));
-
-  const placed: PlacedWord[] = [];
-  const usedWords = new Set<string>();
-  const dead = new Set<number>();
-  const uncovered = () => all.filter((p) => letters[p[0]][p[1]] === null && !dead.has(key(p)));
-
-  while (placed.length < MAX_WORDS) {
-    const open = uncovered();
-    if (!open.length) break;
-    const target = rng.pick(open);
-    const fit = findPlacement(target, pool, usedWords, dirs, letters, secretSet, size, rng);
-    if (!fit) {
-      dead.add(key(target));
-      continue;
+  for (let attempt = 0; attempt < WORDSEARCH_ATTEMPTS; attempt++) {
+    const letters: (string | null)[][] = Array.from({ length: size }, () => Array(size).fill(null));
+    const placed: PlacedWord[] = [];
+    const usedWords = new Set<string>();
+    const dead = new Set<number>();
+    let open = size * size;
+    while (placed.length < MAX_WORDS && open > target) {
+      const live: Pos[] = [];
+      for (const p of all) if (letters[p[0]][p[1]] === null && !dead.has(key(p))) live.push(p);
+      if (!live.length) break;
+      const at = rng.pick(live);
+      const fit = findPlacement(at, pool, usedWords, dirs, letters, new Set<number>(), size, rng);
+      if (!fit) {
+        dead.add(key(at));
+        continue;
+      }
+      const fresh = fit.cells.filter(([r, c]) => letters[r][c] === null).length;
+      if (open - fresh < target) {
+        dead.add(key(at));
+        continue;
+      }
+      fit.cells.forEach(([r, c], i) => (letters[r][c] = fit.word[i]));
+      placed.push(fit);
+      usedWords.add(fit.word);
+      open -= fresh;
     }
-    fit.cells.forEach(([r, c], i) => (letters[r][c] = fit.word[i]));
-    placed.push(fit);
-    usedWords.add(fit.word);
+    if (placed.length < 4 || open !== target) continue;
+    const secret: Pos[] = all.filter(([r, c]) => letters[r][c] === null);
+    if (longestSideBySide(secret) > MAX_SIDE_BY_SIDE) continue;
+    secret.forEach(([r, c], i) => (letters[r][c] = answer[i]));
+    const puzzle: WordSearchPuzzle = {
+      size,
+      grid: letters.map((row) => row.map((l) => l ?? '.').join('')),
+      words: placed.slice().sort((a, b) => a.word.localeCompare(b.word)),
+      answer,
+      secret,
+    };
+    if (everyWordOnce(puzzle)) return puzzle;
   }
-  if (placed.length < 4) return null;
-  return {
-    size,
-    grid: letters.map((row) => row.map((l) => l ?? '.').join('')),
-    words: placed.slice().sort((a, b) => a.word.localeCompare(b.word)),
-    answer,
-    secret,
-  };
+  throw new Error(`No word search layout for ${answer}`);
 }
 
 /** A word through `target` that fits what's already in the grid and fills at least two new squares. */

@@ -36,13 +36,17 @@ Pure puzzle logic, no React. Components live in `src/game/games/`.
   everyday words). Grids past 7 keep 44px squares and slide sideways in
   their own box. She wins only when every square is right; once the shaded
   squares are right she may stop early with "Take the clue" (still `won`).
-  **Word search**: leftover letters spell the word, every listed word appears
-  exactly once, and she can type the word early.
+  **Word search**: no blank squares. The builder fills the grid with listed
+  words until exactly as many squares are open as the hidden word has letters,
+  then writes the word into them in reading order (at most 3 hidden letters
+  side by side in a row). Every listed word appears exactly once, and she can
+  type the word early.
 - **The word game builders have an oracle.** `wordBuildersOracle.ts` keeps
-  the crossword and word search builders as they were before they were made
-  fast; `wordBuildersSweeps.ts` (`wordBuilders.sweep.ts`) and `wordBuilders.test.ts` check
+  the crossword builder as it was before it was made fast and a copy of the
+  word search builder (the word-first one); `wordBuildersSweeps.ts` (`wordBuilders.sweep.ts`) and `wordBuilders.test.ts` check
   the fast ones build identical puzzles. A speed-up must keep every `Rng`
-  draw in order. A change that is meant to change grids is a content change:
+  draw in order. `wordBuilders.sweep.ts` also builds every room thing as a
+  word search (no blanks, words once, leftovers spell it). A change that is meant to change grids is a content change:
   update the oracle in the same commit and bump the storage prefix.
 - **Word lists.** Fill and answers come from `src/content/words.ts` (common
   words with clues; harder crossword fill in `crosswordWords.ts`) and never

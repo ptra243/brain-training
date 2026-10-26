@@ -4,8 +4,10 @@ Status: plan approved 2026-10-26. Pieces 0, A–F done and reviewed 2026-10-26:
 every sweep file's summary lines match both baselines (case-file counts add up
 to the old totals; review notes in `.claude/handoff/case-check-split/piece*.md`).
 `scripts/check-cases.ts` is deleted. `npm run checks` 35s (was bound by the
-59s case check); full case check 117s wall (was 404s). Next: piece G, the
-room-first word search (prototyped: 0.6 ms a build against 13 ms today).
+59s case check); full case check 117s wall (was 404s). Piece G done
+2026-10-26 (word first): 1.2 ms a build (was 12), mean 2.6 layouts, run cap
+3, 0 fails over 5,760 builds; case sweeps quick presets 7.2→5.5s, houses
+15.5→10.6s, campaign 3.8→2.6s. Next: builders that cannot fail, crossword first.
 
 Notes for E from the reviews:
 - The "Nosing dog" fallback bound (≤ 3%) was measured over Play cases' fights.
@@ -304,6 +306,16 @@ The crossword can follow the word search below later: build the grid, then
 pick a room thing whose letters can be shaded across different entries.
 
 ### Piece G — room-first word search (after E; owner's design, 2026-10-26)
+
+**Decided 2026-10-26: word first.** The case picks the word as today; the
+builder fills the grid until exactly that many squares are open. Measured on
+the prototype (handed only the picked thing): 0.97 ms a build, 2.0 layouts
+(worst 14), 0 fails over every room thing × 3 levels × 40 seeds. Cases,
+clues and the golden snapshot stay the same; only grids change. So step 2
+below is dropped, "pick by word" is moot, the layouts bound is 3, and the
+storage prefix is bumped (owner: losing a quick game is fine). Brief:
+`.claude/handoff/case-check-split/pieceG.md`. The text below is the original
+grid-first plan.
 
 The case fixes the room, not the word. Build the grid first, then hide a room
 thing in whatever squares are left. No blank squares, almost no retries, and

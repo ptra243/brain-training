@@ -14,7 +14,8 @@ import type { Progress } from './state.ts';
 // v8: the real cast of 10 guests, and every case has a named victim; seating changes every case.
 // v9: cases are set in one of six houses (rotated or mirrored), which changes every case.
 // v10: the lodge's Nosing around medium and hard boards are shorter (92-100 squares, was 100-110).
-const PREFIX = 'brain-training:v10:';
+// v11: word searches have no blank squares (the hidden word is placed last), which changes their grids.
+const PREFIX = 'brain-training:v11:';
 
 function read(key: string): unknown {
   try {

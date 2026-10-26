@@ -4,14 +4,13 @@
 // and the campaign walker. Plain TS: the sweeps assert on the lists; nothing here prints or exits.
 import { content } from '../content/index.ts';
 import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
-import { sceneCrossword, sceneWordSearch } from '../game/sceneGames.ts';
+import { sceneCrossword } from '../game/sceneGames.ts';
 import { emptyProgress } from '../game/state.ts';
 import { readyBeats, setsFor } from '../game/talk.ts';
 import { buildNosing, nosingSeed } from '../games/nosing.ts';
 import { nosingProblems } from '../games/nosingSweeps.ts';
 import { solutionAt } from '../games/crossword.ts';
 import { buildTarot, JOKER } from '../games/tarot.ts';
-import { everyWordOnce, leftovers } from '../games/wordsearch.ts';
 import { campaignCast, campaignRound, roundBudget, roundProblems, roundSuspects, walkedFreeVictim, type CampaignRef } from './campaign.ts';
 import { boardSolvable } from './board.ts';
 import type { Board } from './boardTypes.ts';
@@ -124,20 +123,34 @@ export function puzzleProblems(c: Case): string[] {
       out.push(`${g.kind} interrogation can't be caught fairly`);
     }
   }
-  // Scene word games: each builds, and spells its hidden word.
-  for (const g of c.games.filter(isSceneGame).filter((g) => g.kind !== 'wordle')) {
-    const answer = g.scene.answer;
-    const spelled =
-      g.kind === 'crossword'
-        ? (() => {
-            const cw = sceneCrossword(g);
-            return cw.shaded.map(([r, col]) => solutionAt(cw, r, col)).join('');
-          })()
-        : (() => {
-            const ws = sceneWordSearch(c, g);
-            return everyWordOnce(ws) ? leftovers(ws).map(([r, col]) => ws.grid[r][col]).join('') : '';
-          })();
-    if (spelled !== answer) out.push(`${g.kind} spells ${spelled}, not ${answer}`);
+  // Scene crosswords build and spell their hidden word. Word searches are built in wordBuilders.sweep.ts; here only their wiring.
+  for (const g of c.games.filter(isSceneGame)) {
+    if (g.kind === 'crossword') {
+      const cw = sceneCrossword(g);
+      const spelled = cw.shaded.map(([r, col]) => solutionAt(cw, r, col)).join('');
+      if (spelled !== g.scene.answer) out.push(`crossword spells ${spelled}, not ${g.scene.answer}`);
+    }
+  }
+  const searches = c.games.filter(isSceneGame).filter((g) => g.kind === 'wordsearch');
+  if (!c.sceneGiven) {
+    const things = houseOf(c).rooms.find((r) => r.id === c.sceneRoom)?.things ?? [];
+    for (const g of searches) {
+      if (!things.includes(g.scene.answer)) out.push(`wordsearch hides ${g.scene.answer}, not a thing of the scene room`);
+      if (g.scene.answer === c.sceneClue.wordle.answer) out.push("wordsearch hides the scene sentence's word");
+    }
+  } else {
+    // Play: the room is the blanked clue's (playProblems checks it); no two word games hide the same word while the room's list has another.
+    const hidden = new Set<string>();
+    for (const g of c.games.filter(isSceneGame)) {
+      const answer = g.scene.answer;
+      const fact = c.clues.find((cl) => cl.blank?.game === g.kind)?.fact;
+      const room = fact && 'room' in fact ? houseOf(c).rooms.find((r) => r.id === fact.room) : undefined;
+      const all = room ? (g.kind === 'wordle' ? room.objects : room.things) : [];
+      if (g.kind === 'wordsearch' && hidden.has(answer.toUpperCase()) && all.some((w) => !hidden.has(w.toUpperCase()))) {
+        out.push(`wordsearch hides ${answer}, which another word game already hides`);
+      }
+      hidden.add(answer.toUpperCase());
+    }
   }
   // Tarot match: the board holds the reward cards and stays within the pair cap.
   for (const g of c.games.filter((g) => g.kind === 'tarot')) {
