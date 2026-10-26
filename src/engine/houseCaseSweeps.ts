@@ -1,4 +1,4 @@
-// Whole cases on every other house (check-cases): the same fairness checks the manor's cases get, run on cases
+// Whole cases on every other house (cases.houses.sweep.ts): the same fairness checks the manor's cases get, run on cases
 // built in each layout and a sample of its variants (every variant with --full). The caller supplies the checks.
 import { content } from '../content/index.ts';
 import { sampledVariants } from '../content/houseSweeps.ts';

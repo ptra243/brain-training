@@ -1,12 +1,12 @@
 # Engine: case generation
 
 - **Every case has exactly one solution** and a minimal clue set. Never ship
-  a generator change without `npm run check-cases` passing.
+  a generator change without `npm run check-cases` passing (the four `cases.*.sweep.ts` files, built on `caseChecks.ts`).
 - **Case settings are levels** (`settings.ts`): suspects (4, 5 or 7), logic,
   minigames and length. `caseSettings` turns them into generator settings and
   clamps anything unsafe; `clueShares` gives every rotating game 1 to 7 clues
   and hands the rest out free. Only levels listed there can ship;
-  `check-cases` runs every combination.
+  `cases.presets.sweep.ts` runs every combination.
 - **A new game joins on its own seed stream, after the existing draw, never
   inside it.** Don't add to `ROTATION`, reorder anything, or change what the
   draw consumes. Copy `boardSlot`: a separate seed decides whether the new
@@ -33,7 +33,7 @@
   own clues as blank pieces, so solving it proves them) stands in for one of
   a case's drawn games on a seed of its own (`BOARD_SHARE`, only when its
   board builds), so cases that keep their games are unchanged; and the **end
-  board**, a starting option that doesn't change the case. `check-cases`
+  board**, a starting option that doesn't change the case. `caseChecks.ts`
   builds every puzzle board and two end boards per case.
 - **7 guests share 5 rooms and 5 weapons.** The killer was alone in the scene
   room holding the weapon; two guests hold nothing (`null` in
@@ -64,7 +64,7 @@
   (easy 3, medium 2, hard 1; the word game is free). Before the last round
   every choice of puzzles leaves 2 or 3 possible killers; in the last round
   the free clues settle the weapon and any one puzzle settles the killer.
-  Rounds are checked by `roundProblems`, not uniqueness; `check-cases` walks
+  Rounds are checked by `roundProblems`, not uniqueness; `walkCampaign` walks
   every wrong-guess path. **Clues per puzzle** (`ref.perPuzzle`, a starting
   option; absent = 3, the original rounds, which `tryRound` builds and must
   not change): at 2 a round also offers the case board, at 1 the board and
@@ -115,14 +115,19 @@
   the same every round; only their mood moves, rolled per guest from the campaign seed and round number.
   Talk content lives in `src/content/talk.ts`, outside `Content`: the golden hash covers the whole
   `Case`, so never add talk fields to `Case` or `Content`.
-- **Seed sweeps go in `check-cases`, not `npm test`.** A node test checks a
+- **Seed sweeps go in a `*.sweep.ts` file, not `npm test`.** A node test checks a
   few fixed seeds per level and stays under ~5 s alone. Checks over many seeds
   (bots, "rare" or "sometimes" rates) live in a `*Sweeps.ts` helper next to
-  the code, called from `scripts/check-cases.ts`: quick samples seeds the test
-  doesn't use, `--full` runs them all. Its closing "Time by section" and
-  "Time by work" lines show where a slow run goes.
-- **`check-cases:full` runs once, in the main session**, after generator
-  changes (CI runs it too). Delegated pieces run only the quick check. Once
+  the code, run by a `<name>.sweep.ts` beside it (template: `src/games/lock.sweep.ts`,
+  helpers in `src/sweep.ts`): quick samples seeds the test doesn't use,
+  `SWEEP_FULL=1` (`npm run sweeps:full`) runs them all. `npm run sweeps` runs the
+  files in parallel and prints each file's summary lines. The case check is
+  four sweep files, one per mode (`cases.presets`, `cases.quick`,
+  `cases.campaign`, `cases.houses`), calling `caseChecks.ts` (`problems`,
+  `puzzleProblems`, `walkCampaign`). A check that needs a case goes there;
+  one game over many seeds goes in the game's own sweep.
+- **`sweeps:full` (or `check-cases:full`) runs once, in the main session**, after generator
+  changes (CI runs `sweeps:full`). Delegated pieces run only the quick check. Once
   they're all back, start the full run in the background and review, write
   docs and draft the commit message meanwhile. If it fails, fix generator
   failures in the main session; delegate only a failure with an obvious cause

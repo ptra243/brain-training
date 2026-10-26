@@ -1,20 +1,23 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { allSweepFiles } from './sweeps.ts';
-import { caseCheckFiles, caseCheckNeeded, closure, sweepsNeeded } from './caseCheckDeps.ts';
+import { closure, sweepsNeeded } from './caseCheckDeps.ts';
 
-test('closure covers the entry and engine, games, content and game imports', () => {
-  const files = caseCheckFiles();
-  for (const f of ['scripts/check-cases.ts', 'src/engine/generate.ts', 'src/games/tarot.ts', 'src/content/index.ts', 'src/game/talk.ts']) {
+test('closure of a case file covers the engine, games, content and game imports', () => {
+  const files = closure('src/engine/cases.quick.sweep.ts');
+  for (const f of ['src/engine/caseChecks.ts', 'src/engine/generate.ts', 'src/games/tarot.ts', 'src/content/index.ts', 'src/game/talk.ts']) {
     assert.ok(files.has(f), f);
   }
 });
 
-test('UI and doc changes skip, dependency and package changes run', () => {
-  assert.equal(caseCheckNeeded(['docs/next-sessions.md', 'src/game/ExploreMap.tsx', 'e2e/previews.spec.ts']), false);
-  assert.equal(caseCheckNeeded([]), false);
-  assert.equal(caseCheckNeeded(['src/engine/sets.ts']), true);
-  assert.equal(caseCheckNeeded(['package-lock.json']), true);
+test('UI and doc changes pick no sweep, engine and package changes pick the case files', () => {
+  const all = allSweepFiles();
+  assert.deepEqual(sweepsNeeded(all, ['docs/next-sessions.md', 'src/game/ExploreMap.tsx', 'e2e/previews.spec.ts']), []);
+  assert.deepEqual(sweepsNeeded(all, []), []);
+  const cases = all.filter((s) => s.includes('/cases.'));
+  assert.equal(cases.length, 4);
+  for (const s of cases) assert.ok(sweepsNeeded(all, ['src/engine/sets.ts']).includes(s), s);
+  assert.deepEqual(sweepsNeeded(all, ['package-lock.json']), all);
 });
 
 test('closure of a sweep file holds its game and the sweep helper', () => {
@@ -32,8 +35,8 @@ test('a changed game picks only the sweeps that import it', () => {
   assert.deepEqual(sweepsNeeded(sweeps, ['package.json'], fake), sweeps);
 });
 
-test('the real lock.ts change picks lock.sweep.ts, not unrelated sweeps', () => {
+test('the real lock.ts change picks lock.sweep.ts, not the search sweep (the case files do import it, through nosing)', () => {
   const picked = sweepsNeeded(allSweepFiles(), ['src/games/lock.ts']);
   assert.ok(picked.includes('src/games/lock.sweep.ts'));
-  assert.ok(!picked.some((s) => s.includes('search') || s.includes('cases.')));
+  assert.ok(!picked.some((s) => s.includes('search')));
 });

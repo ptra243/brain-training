@@ -1,9 +1,10 @@
 # Case check split — plan
 
-Status: plan approved 2026-10-26. Pieces 0, A, B, C1, C2, D and F done and
-reviewed 2026-10-26: every sweep file's summary line matches both baselines
-(review notes and the `check-cases.ts` line ranges each replaces are in
-`.claude/handoff/case-check-split/piece*.md`). Next: E. After E: piece G, the
+Status: plan approved 2026-10-26. Pieces 0, A–F done and reviewed 2026-10-26:
+every sweep file's summary lines match both baselines (case-file counts add up
+to the old totals; review notes in `.claude/handoff/case-check-split/piece*.md`).
+`scripts/check-cases.ts` is deleted. `npm run checks` 35s (was bound by the
+59s case check); full case check 117s wall (was 404s). Next: piece G, the
 room-first word search (prototyped: 0.6 ms a build against 13 ms today).
 
 Notes for E from the reviews:

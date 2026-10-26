@@ -11,7 +11,7 @@ Pure puzzle logic, no React. Components live in `src/game/games/`.
   can scale (size, givens, harder words, fewer hints in the clues). Wire it
   through `MINIGAMES` in `settings.ts` and add its Play roll last in
   `PLAY_ROLLED`. If it can't scale, say why in its entry here. Each level must
-  stay fair and solvable, and `check-cases` must cover all three.
+  stay fair and solvable, and the case check (`src/engine/cases.*.sweep.ts`) must cover all three.
 - **Generate a puzzle once per game screen**, never per render or per move.
 - **Hints** are a pure `…Hint()` function here, with a test that following
   hints always reaches a win. Ladder, gentle to strong: red-pencil wrong
@@ -40,7 +40,7 @@ Pure puzzle logic, no React. Components live in `src/game/games/`.
   exactly once, and she can type the word early.
 - **The word game builders have an oracle.** `wordBuildersOracle.ts` keeps
   the crossword and word search builders as they were before they were made
-  fast; `wordBuildersSweeps.ts` (check-cases) and `wordBuilders.test.ts` check
+  fast; `wordBuildersSweeps.ts` (`wordBuilders.sweep.ts`) and `wordBuilders.test.ts` check
   the fast ones build identical puzzles. A speed-up must keep every `Rng`
   draw in order. A change that is meant to change grids is a content change:
   update the oracle in the same commit and bump the storage prefix.
@@ -63,8 +63,9 @@ Pure puzzle logic, no React. Components live in `src/game/games/`.
   guaranteed. Hints are `nosingHint` (question ladder, then `lockHint`), never in
   the speed round. The header Solve acts on the current step only (`nosingSolveKind`, `nosingSolveStep`: a question or the dog fight is answered for her as a hint; only the lock reveals the game; hidden otherwise). A speed question is a sum with one blank and four cards, rebuilt from the seed. Every roll stops first (phase `rolled`, `nosingLanding` gives the square a Move would reach); a wrong plain-obstacle answer sends the cat back 2 squares (`obstacleBack`). The exact turn bounds model ladders, snakes, the back-2 and the `steps` bonus (shared helpers in `nosingBoard.ts`), so every run, however she answers, takes `NOSING_LEVELS[level].turns`. Tests drive bots that follow hints, are always wrong, and answer at random,
   on a few fixed seeds per level; the 100-seed sweeps live in `nosingSweeps.ts`
-  and run from `check-cases` (sampled quick, all with `--full`), which also
-  covers every scene room at every level.
+  and run from `nosing.sweep.ts` and `nosingBoard.sweep.ts` (sampled quick, all with
+  `--full`); `nosing.sweep.ts` also covers every scene room at every level.
+  `node --test src/games/nosing*.sweep.ts` runs just the nosing sweeps.
 - **Number grid** (`numberGrid.ts`): the shared way she builds a number, used
   by the lock and the dog fight. Up to 3 rows of at most 3 numbers; × ÷ before
   + − inside a row, then a running total top down; only whole positive results.

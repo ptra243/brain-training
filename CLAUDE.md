@@ -60,17 +60,19 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
   node tests next to it; React components stay thin. Tests run with Node's
   type stripping, so that TS must be erasable syntax only.
 - Before committing, run `npm run checks` (parallel, one pass/fail line each;
-  `-- --full` for the full case check): `npm run lint` (React Compiler hooks
+  `-- --full` for the full sweeps): `npm run lint` (React Compiler hooks
   rules: no ref writes during render, `useEffectEvent` for "latest handler"
   listeners; an `eslint-disable` needs a reason beside it), `npm test`
-  (includes the golden snapshot), `npm run check-cases`, `npm run build`.
+  (includes the golden snapshot), `npm run sweeps` (the seed sweeps and the case
+  check, the `*.sweep.ts` files; only those whose imports changed since
+  origin/main run), `npm run build`.
   Re-run just the failing check while fixing. For UI changes also run
   `npm run e2e`. Generator changes: see `src/engine/CLAUDE.md`.
 - Design questions: read the code first, then ask once with a concrete
   proposal (the numbers, a table of what each setting does, what stays
   unchanged) and the alternatives beside it.
 - Needs Node 22.18 or newer (the owner has 24): run scripts directly, e.g.
-  `node scripts/check-cases.ts`. Python isn't installed. Edit with the Edit
+  `node scripts/sweeps.ts`. Python isn't installed. Edit with the Edit
   tool; for bulk edits, or any script longer than a line, write a Node script
   to the scratchpad and run it (never `node -e` or a heredoc: `$`, backticks
   and apostrophes break the quoting).
