@@ -26,16 +26,6 @@ stands. A blocked entry keeps its rank and names its blocker in the heading.
 open questions go in a linked `docs/<slug>.md`, and the entry points to it. An exploratory idea with no
 settled design may stay as a short stub; give it a doc when someone starts it.
 
-## Session: Faster end boards, same boards
-Last touched: 2026-10-26
-Reads first: `docs/case-check-split.md` ("Faster end boards"), `src/engine/board.ts` (`solve`, `buildAttempt`).
-Done: the campaign walk cut (houses split, one path in quick; houses 10.9 s → 3.5 s). Left: three speed-ups to `board.ts` that keep every board identical (shape keys once per cells array, numeric flood fills, a cheaper search step), about 40–50% off boards, on her phone too. Then profile `cases.quick.sweep.ts` (7.2 s, now the slowest).
-Goal: faster end and puzzle boards with not one board changed, proven against a copy of today's `board.ts`.
-Starting prompt:
-```
-Read docs/case-check-split.md ("Faster end boards"). Write the handoff: a copy of today's board.ts as the reference and a check that every end and puzzle board the quick sweeps build is JSON-identical. Then brief the implementer on speed-ups 1 and 2, then 3, timing each.
-```
-
 ## Session: Theme content, land the lines
 Last touched: 2026-10-26
 Reads first: `docs/motive-outlines.xlsx`, `docs/theme-threads.md` (Direction).
@@ -142,11 +132,11 @@ Read the Map rules in src/game/CLAUDE.md, then propose how to make the map count
 ## Session: Case check split into sweep files
 Last touched: 2026-10-26
 Reads first: `docs/case-check-split.md` (Status, "After the split — builders that cannot fail").
-Pieces 0, A–G done 2026-10-26: the case check is `src/engine/cases.*.sweep.ts`, and the word search is built word first with no blanks (~1 ms, was 12), so the case files no longer build it. Not done: the crossword and the case and end boards still build inside the case files. Timing ("Where the time goes") puts the crossword third, so "Case check speed" goes first.
+Pieces 0, A–G done 2026-10-26: the case check is `src/engine/cases.*.sweep.ts`, and the word search is built word first with no blanks (~1 ms, was 12), so the case files no longer build it. Not done: the crossword and the case and end boards still build inside the case files. End boards got 51% faster on 2026-10-26 ("Faster end boards") with every board unchanged; `cases.quick.sweep.ts` is now the slowest file (6.4 s alone), so profile it first.
 Goal: the case files check only case logic and wiring; each game proves it always builds in its own sweep.
 Starting prompt:
 ```
-Read docs/case-check-split.md ("Where the time goes", "After the split — builders that cannot fail"). Propose to me how the crossword can always build (as piece G did for the word search: measure first), then brief it to the implementer.
+Read docs/case-check-split.md ("Where the time goes", "Faster end boards", "After the split — builders that cannot fail"). Profile cases.quick.sweep.ts and say where its 6.4 s goes. Then propose to me how the crossword can always build (as piece G did for the word search: measure first), then brief it to the implementer.
 ```
 
 ## Session: Two-storey houses, picked per case

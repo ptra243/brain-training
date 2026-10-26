@@ -312,7 +312,23 @@ which walks one path per campaign in quick (alternating, 90 rounds) and both
 in full. Quick wall times: houses 10.9 s → 3.5 s, the new file 4.6 s, quick
 7.2 s (now the slowest), presets 4.9 s, campaign 2.6 s.
 
-### Faster end boards (explored 2026-10-26, not started)
+### Faster end boards (done 2026-10-26)
+
+All three speed-ups below are in, with one exception: speed-up 3 kept
+`go`'s `options` objects (small win, riskier edit). `squares()` also stayed
+on strings, because its keys order `board.cells`. The proof was the 1,235
+distinct plans every quick sweep passed to `buildBoard`. The old and new
+`board.ts` built identical boards from all of them, and `countPackings`
+and `boardSolvable` agreed on each. Time to build them: 7.9 s before, 3.9 s
+after (−51%). Quick sweeps run alone: quick 7.2 → 6.4 s, presets
+4.9 → 4.1 s, houses 3.5 → 2.9 s, house campaigns 4.6 → 3.3 s, campaign
+2.6 → 2.0 s. The reference copy, the plans and `compare.ts` are in
+`.claude/handoff/faster-end-boards/` (gitignored, owner's machine). To
+rebuild them, add `(globalThis as any).__boardPlans?.push(plan)` to
+`buildBoard` and run each sweep with `capture.mjs`. Next:
+`cases.quick.sweep.ts` is the slowest at 6.4 s, so profile it.
+
+Exploration notes (before the work):
 
 Measured on the presets' quick end boards (276 boards, scripts in the
 session scratchpad, re-creatable from the notes here): 256 build on the first

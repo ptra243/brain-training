@@ -41,19 +41,30 @@ const norm = (cells: readonly Cell[]): Cell[] => {
   const c0 = Math.min(...cells.map((c) => c[1]));
   return cells.map(([r, c]) => [r - r0, c - c0] as Cell).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
 };
-const keyOf = (cells: readonly Cell[]) => norm(cells).map((c) => c.join(',')).join(';');
+/** Key of an already normalised, sorted cell list. */
+const keyOfNorm = (cells: readonly Cell[]) => cells.map((c) => c[0] + ',' + c[1]).join(';');
 const rotate = (cells: readonly Cell[]): Cell[] => norm(cells.map(([r, c]) => [c, -r] as Cell));
-/** The distinct quarter-turns of a shape (no flips), each normalised and sorted row-major. */
-function rotations(cells: readonly Cell[]): Cell[][] {
-  const out: Cell[][] = [];
+type Shape = { rots: Cell[][]; key: string; offs?: Cell[][] };
+/** Per cells array (replaced, never mutated, by `shift`): its quarter-turns and shape key, computed once. */
+const shapeCache = new WeakMap<readonly Cell[], Shape>();
+function shapeOf(cells: readonly Cell[]): Shape {
+  let sh = shapeCache.get(cells);
+  if (sh) return sh;
+  const rots: Cell[][] = [];
+  const keys: string[] = [];
   let cur = norm(cells);
   for (let i = 0; i < 4; i++) {
-    if (!out.some((o) => keyOf(o) === keyOf(cur))) out.push(cur);
+    const key = keyOfNorm(cur);
+    if (!keys.includes(key)) { keys.push(key); rots.push(cur); }
     cur = rotate(cur);
   }
-  return out;
+  sh = { rots, key: keys.slice().sort()[0] };
+  shapeCache.set(cells, sh);
+  return sh;
 }
-const shapeKey = (cells: readonly Cell[]) => rotations(cells).map(keyOf).sort()[0];
+/** The distinct quarter-turns of a shape (no flips), each normalised and sorted row-major. Shared: don't mutate. */
+const rotations = (cells: readonly Cell[]): Cell[][] => shapeOf(cells).rots;
+const shapeKey = (cells: readonly Cell[]) => shapeOf(cells).key;
 
 function connected(cells: readonly Cell[]): boolean {
   if (!cells.length) return false;
@@ -70,6 +81,31 @@ function connected(cells: readonly Cell[]): boolean {
     }
   }
   return seen.size === set.size;
+}
+
+/** Size of the biggest edge-connected patch among distinct squares (`r * w + c`) of a w x h rectangle. */
+function biggestPatch(squares: readonly number[], w: number, h: number): number {
+  const left = new Uint8Array(w * h);
+  for (const i of squares) left[i] = 1;
+  const stack: number[] = [];
+  let biggest = 0;
+  for (const first of squares) {
+    if (!left[first]) continue;
+    left[first] = 0;
+    stack.push(first);
+    let size = 0;
+    while (stack.length) {
+      const i = stack.pop()!;
+      size++;
+      const r = (i / w) | 0, c = i - r * w;
+      if (r + 1 < h && left[i + w]) { left[i + w] = 0; stack.push(i + w); }
+      if (r > 0 && left[i - w]) { left[i - w] = 0; stack.push(i - w); }
+      if (c + 1 < w && left[i + 1]) { left[i + 1] = 0; stack.push(i + 1); }
+      if (c > 0 && left[i - 1]) { left[i - 1] = 0; stack.push(i - 1); }
+    }
+    if (size > biggest) biggest = size;
+  }
+  return biggest;
 }
 
 /** Generalized Hilbert curve over a width x height rectangle (gilbert2d), as [row, col]. */
@@ -293,6 +329,10 @@ function solve(inp: SolveInput): SolveOutput {
     const al = [...allowed.get(p.id)!].sort().join('/');
     pieceCls.set(p.id, [p.kind, p.who, shapeKey(p.cells), al, (touchOf.get(p.id) ?? []).slice().sort().join('~'), (antiOf.get(p.id) ?? []).slice().sort().join('~')].join('|'));
   }
+  // Piece classes as small numbers, for the duplicate-placement keys.
+  const clsIntern = new Map<string, number>();
+  const clsNo = new Map<string, number>();
+  for (const [id, cls] of pieceCls) clsNo.set(id, clsIntern.get(cls) ?? clsIntern.set(cls, clsIntern.size).get(cls)!);
   const units: Unit[] = [];
   for (const members of groups.values()) {
     let al: string[] = [...allowed.get(members[0].id)!];
@@ -317,7 +357,9 @@ function solve(inp: SolveInput): SolveOutput {
   // Orientations as offsets from the piece's first square (row-major).
   const offsets = new Map<string, Cell[][]>();
   for (const p of loose) {
-    offsets.set(p.id, rotations(p.cells).map((rot) => rot.map(([r, c]) => [r - rot[0][0], c - rot[0][1]] as Cell)));
+    const sh = shapeOf(p.cells);
+    sh.offs ??= sh.rots.map((rot) => rot.map(([r, c]) => [r - rot[0][0], c - rot[0][1]] as Cell));
+    offsets.set(p.id, sh.offs);
   }
 
   // ---- tiling one section with a given set of loose pieces
@@ -438,14 +480,22 @@ function solve(inp: SolveInput): SolveOutput {
       let empties = 0;
       for (let i = 0; i < n; i++) if (!occ[i]) empties++;
       if (!empties) return true;
-      const stateKey = [...usedIds].sort().map((u) => ((touchOf.get(u)?.length) ? u + '@' + placedAt.get(u)!.join('.') : u)).join(',') + '|' + occ.join('');
+      // Exact key within this call: which of `ids` are down (and where, if they touch), plus the filled squares, 16 to a char.
+      let stateKey = '';
+      for (let x = 0; x < ids.length; x++) if (usedIds.has(ids[x])) stateKey += touchOf.get(ids[x])?.length ? x + '@' + placedAt.get(ids[x])!.join('.') + ',' : x + ',';
+      stateKey += '|';
+      for (let i = 0; i < n; i += 16) {
+        let bits = 0;
+        for (let q = Math.min(n, i + 16) - 1; q >= i; q--) bits = bits << 1 | occ[q];
+        stateKey += String.fromCharCode(bits);
+      }
       if (failed.has(stateKey)) return false;
       // Every way each unused piece fits now; branch on the empty square the fewest of them cover.
-      const options: { id: string; sig: string; at: number[] }[] = [];
+      const options: { id: string; sig: number; at: number[] }[] = [];
       cover.fill(0);
       for (const id of ids) {
         if (usedIds.has(id)) continue;
-        const sig = pieceCls.get(id)!;
+        const sig = clsNo.get(id)!;
         const touchPartners = touchOf.get(id) ?? [];
         let found = 0;
         for (const at of placementsOf(s, id)) {
@@ -781,21 +831,7 @@ function buildAttempt(plan: BoardPlan, sections: string[], seed: number): Board 
           pos += p.size;
           if (!(p.kind === 'fog' || p.kind === 'grey' || p.kind === 'body')) open.push(...cells);
         }
-        const left = new Set(open.map(([r, c]) => k(r, c)));
-        let biggest = 0;
-        while (left.size) {
-          const first = [...left][0];
-          left.delete(first);
-          const stack = [first.split(",").map(Number) as unknown as Cell];
-          let size = 1;
-          while (stack.length) {
-            for (const n of nbrs(stack.pop()!)) {
-              const key = k(n[0], n[1]);
-              if (left.has(key)) { left.delete(key); stack.push(n); size++; }
-            }
-          }
-          biggest = Math.max(biggest, size);
-        }
+        const biggest = biggestPatch(open.map(([r, c]) => r * W + c), W, H);
         if (biggest < bestNook) { bestNook = biggest; seq = cand; }
       }
     }
@@ -891,30 +927,16 @@ function buildAttempt(plan: BoardPlan, sections: string[], seed: number): Board 
 
   // ---- pins per level
   const sq = squares();
-  const secCells: Record<string, string[]> = {};
+  const secCells: Record<string, number[]> = {};
   for (const s of sections) secCells[s] = [];
-  for (const key of Object.keys(sq)) secCells[sq[key]].push(key);
+  for (const key of Object.keys(sq)) { const [r, c] = key.split(',').map(Number); secCells[sq[key]].push(r * W + c); }
   const rank = (p: Work) => (p.kind === 'grey' ? 0 : p.kind === 'weapon' ? 1 : p.section !== UNKNOWN ? 2 : 3);
   const pinsFor = (maxOpen: number, maxPins: number): string[] => {
     const pinned = repairPins.slice();
     const biggestOpen = (sec: string) => {
-      const shut = new Set(ps.filter((p) => alwaysFixed(p) || pinned.includes(p.id)).flatMap((p) => p.cells.map(([r, c]) => k(r, c))));
-      const left = new Set(secCells[sec].filter((key) => !shut.has(key)));
-      let biggest = 0;
-      while (left.size) {
-        const first = [...left][0];
-        left.delete(first);
-        const stack = [first.split(",").map(Number) as unknown as Cell];
-        let size = 1;
-        while (stack.length) {
-          for (const n of nbrs(stack.pop()!)) {
-            const key = k(n[0], n[1]);
-            if (left.has(key)) { left.delete(key); stack.push(n); size++; }
-          }
-        }
-        biggest = Math.max(biggest, size);
-      }
-      return biggest;
+      const shut = new Uint8Array(W * H);
+      for (const p of ps) if (alwaysFixed(p) || pinned.includes(p.id)) for (const [r, c] of p.cells) shut[r * W + c] = 1;
+      return biggestPatch(secCells[sec].filter((i) => !shut[i]), W, H);
     };
     while (pinned.length < maxPins) {
       const pinnable = (sec: string) => ps.filter((p) => p.section === sec && !alwaysFixed(p) && !pinned.includes(p.id) && !neverPin.has(p.id));
