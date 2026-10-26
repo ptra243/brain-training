@@ -1,4 +1,4 @@
-import { houseOf } from '../content/houses.ts';
+import { allHouses, houseOf } from '../content/houses.ts';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
 import { generateCase } from '../engine/generate.ts';
@@ -10,12 +10,14 @@ import { everyWordOnce, leftovers } from '../games/wordsearch.ts';
 import { crosswordWords, sceneCrossword, sceneWordSearch, themeWords } from './sceneGames.ts';
 
 /**
- * The sweeps behind the slow scene-game tests. `npm test` runs each room thing at one grid size and a few cases;
- * `scripts/check-cases.ts` runs other sizes (quick) or every size and the first 10 cases of each difficulty (--full).
+ * The sweeps behind the slow scene-game tests. `npm test` runs each crossword answer at one grid size and a few cases;
+ * `sceneGames.sweep.ts` runs other sizes (quick) or every size and the first 10 cases of each difficulty (SWEEP_FULL=1).
  */
 
 /** Every distinct room thing, the shaded-word answers. */
 export const roomThings = (): string[] => [...new Set(content.house.rooms.flatMap((r) => r.things))];
+/** Every thing any house hides (the manor's and the other houses', such as CROQUET), sorted: the crossword answers. */
+export const crosswordAnswers = (): string[] => [...new Set(allHouses.flatMap((h) => h.rooms.flatMap((r) => r.things)))].sort();
 /** The crossword sizes and the fewest words each grid must hold. */
 export const CROSSWORD_SIZES: readonly [number, number][] = [[CROSSWORD_SIZE, 6], [9, 8], [11, 11]];
 const exclude = themeWords(content);

@@ -7,7 +7,8 @@ to the old totals; review notes in `.claude/handoff/case-check-split/piece*.md`)
 59s case check); full case check 117s wall (was 404s). Piece G done
 2026-10-26 (word first): 1.2 ms a build (was 12), mean 2.6 layouts, run cap
 3, 0 fails over 5,760 builds; case sweeps quick presets 7.2→5.5s, houses
-15.5→10.6s, campaign 3.8→2.6s. Next: builders that cannot fail, crossword first.
+15.5→10.6s, campaign 3.8→2.6s. Next: builders that cannot fail. Crossword letter-first was measured
+2026-10-27 and dropped; see "Quick sweep profile and crossword letters".
 
 Notes for E from the reviews:
 - The "Nosing dog" fallback bound (≤ 3%) was measured over Play cases' fights.
@@ -383,6 +384,42 @@ should change; confirm with the golden snapshot. One game per piece, after E.
 
 The crossword can follow the word search below later: build the grid, then
 pick a room thing whose letters can be shaded across different entries.
+
+### Quick sweep profile and crossword letters (measured 2026-10-27)
+
+`cases.quick.sweep.ts` alone is 6.3s (was 6.4s). Self time: clue generation
+16%, the one-solution search 14%, packing 13%, GC 9%, the rest of case
+generation 8%, nosing boards 7%, the crossword 7% (420ms). The nosing scan
+is the longest test (2.3s): it builds about 132 Play cases and only checks
+the ones that drew nosing.
+
+Crossword, 80 room things × sizes 7, 9 and 11 × 6 seeds (1,440 builds). The
+instrumented copy matched `generateCrossword` on every build. Q is the
+rarest letter a room thing uses, and 11 of the easy fill words contain it
+(J, X and Z are scarcer, and no room thing uses them).
+
+| Builder | Fails | ms | Attempts | Too short | Missing letters | Grids changed |
+|---|---|---|---|---|---|---|
+| Today | 0 | 6.8 | 7.6 | 4.2 | 0.3 | — |
+| Uncommon letter first, Scrabble score | 0 | 6.5 | 6.4 | 3.1 | 0.3 | 93% |
+| Uncommon letter first, fewest fill words | 0 | 6.5 | 6.6 | 3.4 | 0.2 | 76% |
+
+Size 11 is the slow size: today 13.8ms, 12 attempts, 8 of them too short to
+keep. Placing a word that contains the rarest missing letter before the rest
+of the fill was not adopted. Both fail zero times, shading stays about the
+same (spread 6.0, worst clue holds about 2 shaded letters), and the grids
+would change, which means a storage-prefix bump and an oracle update.
+
+The attempts thrown away ran out of crossings, not out of the hidden word's
+letters. Dropping the in-case crossword build, once a sweep covers these
+answers, saves about 0.4s of this file. Done 2026-10-27: `puzzleProblems` no longer builds a crossword. `crosswordAnswers()` (every house) is checked by `crosswordSeed`.
+
+Walking the letter index on open cells (a letter with no across or no down
+yet) and stopping at 12 legal crossings, instead of sampling, was measured
+the same way. Hard grids: 13.3ms to 10.6ms, attempts 12.3 to 5.2, short
+attempts 8.2 to 1.1, still 0 fails. Scoring every legal crossing was slower
+(22.5ms on 11×11). Every grid changes, so this is a storage-prefix bump.
+Shading stays about the same. The walk was not shipped. The sampler stays, and the in-case build is gone.
 
 ### Piece G — room-first word search (after E; owner's design, 2026-10-26)
 

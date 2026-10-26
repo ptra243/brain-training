@@ -25,7 +25,7 @@ import {
 import { lineBetween, wordAt } from '../games/wordsearch.ts';
 import { emptyProgress, finaleOpen, reduce, sceneGameInPlay, sceneText, sceneUnlocked } from './state.ts';
 import { crosswordWords, sceneWordSearch, themeWords } from './sceneGames.ts';
-import { CROSSWORD_SIZES, crosswordSeed, roomThings, sceneCaseSeed } from './sceneGamesSweeps.ts';
+import { CROSSWORD_SIZES, crosswordAnswers, crosswordSeed, sceneCaseSeed } from './sceneGamesSweeps.ts';
 
 test('word list: upper case, 3–7 letters, no repeats, a clue for each', () => {
   const seen = new Set<string>();
@@ -66,8 +66,8 @@ test('room things: one word of 4–9 letters, in every room', () => {
   }
 });
 
-test('every room thing can be hidden in an interlocking crossword (each at one grid size; check-cases tries every size)', () => {
-  roomThings().forEach((answer, k) => {
+test('every thing any house hides can be hidden in an interlocking crossword (each at one grid size; the sweep tries the other sizes, every size with SWEEP_FULL=1)', () => {
+  crosswordAnswers().forEach((answer, k) => {
     const [size] = CROSSWORD_SIZES[k % CROSSWORD_SIZES.length];
     crosswordSeed(answer, size, 1);
   });

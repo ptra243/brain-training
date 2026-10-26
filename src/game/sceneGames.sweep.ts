@@ -1,5 +1,5 @@
-// Scene word games: every room thing hidden in a crossword (the unit test uses
-// each at one size; quick takes every other thing at another size, SWEEP_FULL=1
+// Scene word games: every thing any house hides, in a crossword (the unit test uses
+// each at one size; quick takes every other answer at another size, SWEEP_FULL=1
 // all), and the word games of cases 1-10 per difficulty (the test builds
 // cases 1-2).
 
@@ -7,11 +7,11 @@ import { test } from 'node:test';
 import { DIFFICULTIES } from '../engine/settings.ts';
 import { CROSSWORD_SIZE } from '../games/crossword.ts';
 import { FULL, sweep } from '../sweep.ts';
-import { CROSSWORD_SIZES, crosswordSeed, roomThings, sceneCaseSeed } from './sceneGamesSweeps.ts';
+import { CROSSWORD_SIZES, crosswordAnswers, crosswordSeed, sceneCaseSeed } from './sceneGamesSweeps.ts';
 
-const things = roomThings();
+const answers = crosswordAnswers();
 const grids: [string, number, number][] = [];
-things.forEach((answer, k) => {
+answers.forEach((answer, k) => {
   if (!FULL && k % 2) return; // quick: every other thing, at a size the test did not use
   const sizes = FULL ? CROSSWORD_SIZES : [CROSSWORD_SIZES[(k + 1) % CROSSWORD_SIZES.length]];
   for (const [size] of sizes) {
@@ -27,5 +27,5 @@ for (const difficulty of DIFFICULTIES) {
 sweep('scene games in cases', caseRuns, ([difficulty, n]) => sceneCaseSeed(difficulty, n));
 
 test('summary', (t) => {
-  t.diagnostic(`Scene games: ${things.length} room things in ${grids.length} crossword grids, ${caseRuns.length} cases' word games`);
+  t.diagnostic(`Scene games: ${answers.length} crossword answers in ${grids.length} crossword grids, ${caseRuns.length} cases' word games`);
 });

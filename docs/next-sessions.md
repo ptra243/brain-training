@@ -130,13 +130,13 @@ Read the Map rules in src/game/CLAUDE.md, then propose how to make the map count
 ```
 
 ## Session: Case check split into sweep files
-Last touched: 2026-10-26
-Reads first: `docs/case-check-split.md` (Status, "After the split — builders that cannot fail").
-Pieces 0, A–G done 2026-10-26: the case check is `src/engine/cases.*.sweep.ts`, and the word search is built word first with no blanks (~1 ms, was 12), so the case files no longer build it. Not done: the crossword and the case and end boards still build inside the case files. End boards got 51% faster on 2026-10-26 ("Faster end boards") with every board unchanged; `cases.quick.sweep.ts` is now the slowest file (6.4 s alone), so profile it first.
+Last touched: 2026-10-27
+Reads first: `docs/case-check-split.md` ("Quick sweep profile and crossword letters").
+Crossword boards left the case check 2026-10-27. `crosswordAnswers()` (every house's things) is built by `crosswordSeed`, from `sceneGames.test.ts` and `sceneGames.sweep.ts`. Not done: case and end boards still build inside the case files.
 Goal: the case files check only case logic and wiring; each game proves it always builds in its own sweep.
 Starting prompt:
 ```
-Read docs/case-check-split.md ("Where the time goes", "Faster end boards", "After the split — builders that cannot fail"). Profile cases.quick.sweep.ts and say where its 6.4 s goes. Then propose to me how the crossword can always build (as piece G did for the word search: measure first), then brief it to the implementer.
+Read docs/case-check-split.md ("Quick sweep profile and crossword letters" and "After the split — builders that cannot fail"). Crosswords are done. Profile where the case and end boards still cost time inside the case files, and propose how a board can always build before briefing the implementer.
 ```
 
 ## Session: Two-storey houses, picked per case

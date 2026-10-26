@@ -1,15 +1,13 @@
 // What makes a generated case unfair, as messages: the checks the cases.*.sweep.ts files run on every case they
 // build (one solution, the killer alone with the weapon, fair clue shares, Play-case blanks, interrogations,
-// word games spelling their word, tarot and nosing built from the case's clues, case and end boards, talk threads),
+// word searches wired to a thing of the scene room, tarot and nosing built from the case's clues, case and end boards, talk threads),
 // and the campaign walker. Plain TS: the sweeps assert on the lists; nothing here prints or exits.
 import { content } from '../content/index.ts';
 import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
-import { sceneCrossword } from '../game/sceneGames.ts';
 import { emptyProgress } from '../game/state.ts';
 import { readyBeats, setsFor } from '../game/talk.ts';
 import { buildNosing, nosingSeed } from '../games/nosing.ts';
 import { nosingProblems } from '../games/nosingSweeps.ts';
-import { solutionAt } from '../games/crossword.ts';
 import { buildTarot, JOKER } from '../games/tarot.ts';
 import { campaignCast, campaignRound, roundBudget, roundProblems, roundSuspects, walkedFreeVictim, type CampaignRef } from './campaign.ts';
 import { boardSolvable } from './board.ts';
@@ -123,14 +121,7 @@ export function puzzleProblems(c: Case): string[] {
       out.push(`${g.kind} interrogation can't be caught fairly`);
     }
   }
-  // Scene crosswords build and spell their hidden word. Word searches are built in wordBuilders.sweep.ts; here only their wiring.
-  for (const g of c.games.filter(isSceneGame)) {
-    if (g.kind === 'crossword') {
-      const cw = sceneCrossword(g);
-      const spelled = cw.shaded.map(([r, col]) => solutionAt(cw, r, col)).join('');
-      if (spelled !== g.scene.answer) out.push(`crossword spells ${spelled}, not ${g.scene.answer}`);
-    }
-  }
+  // Crossword boards are not built here. The crossword's own tests generate the board and check it: crosswordSeed in sceneGamesSweeps.ts, run from sceneGames.test.ts and sceneGames.sweep.ts. Word searches are built in wordBuilders.sweep.ts; here only their wiring.
   const searches = c.games.filter(isSceneGame).filter((g) => g.kind === 'wordsearch');
   if (!c.sceneGiven) {
     const things = houseOf(c).rooms.find((r) => r.id === c.sceneRoom)?.things ?? [];
