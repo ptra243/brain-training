@@ -24,6 +24,17 @@ stands. A blocked entry keeps its rank and names its blocker in the heading.
 open questions go in a linked `docs/<slug>.md`, and the entry points to it. An exploratory idea with no
 settled design may stay as a short stub; give it a doc when someone starts it.
 
+## Session: Theme content, land the lines
+Last touched: 2026-10-26
+Reads first: `docs/motive-outlines.xlsx`, `docs/theme-threads.md` (Direction).
+Steps 1 to 3 are done. Landing is paused. The 60 guest-and-card outlines are the next work, in the
+spreadsheet, before any lines are rewritten. One example row is filled in.
+Goal: fill the story outlines. Talk can make a guest look guilty, and it is never a clue. No storage bump yet.
+Starting prompt:
+```
+Read the Direction section of docs/theme-threads.md and docs/motive-outlines.xlsx. Help me fill the story outlines. Do not rewrite the spoken lines until the sheet is filled.
+```
+
 ## Session: Tarot card faces
 Last touched: 2026-10-23
 Reads first: `docs/tarot-faces.md` (decision, plan, what to check), `src/content/tarotArt.ts`.
@@ -32,16 +43,6 @@ emblems. Portraits are ruled out (see the doc).
 Starting prompt:
 ```
 Read docs/tarot-faces.md and src/content/tarotArt.ts, settle the pip layout and suit colours with me, then brief the implementer on step 1.
-```
-
-## Session: Theme content, tarot cast and line pools
-Last touched: 2026-10-26
-Reads first: `docs/theme-content.md` (plan, decisions, targets), `docs/theme-draft.md` (rules for the lines).
-Goal: bring every talk pool to target in `src/content/talk.ts`: 10 loose lines per reading, 2 polished
-threads, 45 card + object pairs, rolled greetings and wired borrowed lines. Planned 2026-10-26.
-Starting prompt:
-```
-Read docs/theme-content.md and brief the implementer on step 1, then brief four Opus writers on step 2.
 ```
 
 ## Session: Talk and threads, part B
