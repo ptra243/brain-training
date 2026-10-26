@@ -93,6 +93,28 @@ Starting prompt:
 Read the Guest pool and Confidants sections of docs/theme-draft.md, then help me write the 5-chapter arcs, victim openings and endings.
 ```
 
+## Session: Summation ending, how it happened
+Last touched: 2026-10-25
+Reads first: `docs/story-layer.md` (the summation ending, and the review it came from),
+`src/game/ExploreMap.tsx`, `src/game/FaceToFace.tsx`, `src/engine/types.ts` (`Solution`).
+Goal: after she solves a case (or the killer gets away), replay the night on the map, one guest at a time,
+citing the clue that proved each step. Fully generated from the solved case; no engine or case change.
+Starting prompt:
+```
+Read the summation section of docs/story-layer.md, settle the open points with me (Quick play too, length at 7 guests, skip), then write an implementer brief.
+```
+
+## Session: Everyone has a secret (design)
+Last touched: 2026-10-25
+Reads first: `docs/secrets.md` (the proposal, worked example and open calls), `docs/talk-threads.md` part C,
+`docs/relationships.md`. Settle it alongside the victim threads in the Relationships session.
+Goal: every seated guest hides a secret, rolled blind to the killer and read only after the verdict: the
+killer's becomes the motive, innocents' are cleared red herrings. Story only; cases never change.
+Starting prompt:
+```
+Read docs/secrets.md, go through its Open list with me, then draft the six secret kinds and each guest's kinds, and write a build plan.
+```
+
 ## Session: Relationships between characters
 Last touched: 2026-10-23
 Reads first: `docs/relationships.md` (the ideas to settle), `docs/theme-draft.md` (Follow-up threads,
@@ -102,6 +124,29 @@ shared-card threads, the `heard` trigger, and campaign-only victim threads (need
 Starting prompt:
 ```
 Read docs/relationships.md and docs/theme-draft.md, then help me design card-pair and shared-card threads, campaign victim threads and the heard trigger.
+```
+
+## Session: Act breaks and a dinner prologue (campaign)
+Last touched: 2026-10-25
+Reads first: `docs/story-layer.md` (act breaks, dinner prologue), `src/game/NextMurderScene.tsx`,
+`docs/campaign-opening.md`. Best after the campaign opening is built.
+Goal: a short survivors scene after each next-murder scene (they react to the body and to her wrong
+accusation, by mood), and 4 or 5 lines of dinner before the first body. Content plus UI; cases unchanged.
+Starting prompt:
+```
+Read the act breaks and dinner prologue sections of docs/story-layer.md, draft the line pools with me, then write an implementer brief.
+```
+
+## Session: Map counters and weapon chips to 44px
+Last touched: 2026-10-26
+Reads first: `src/styles.css` (`.counter` and `.tray li .weapon`, both 2.2rem = 35px), `src/game/CLAUDE.md`
+(Map, dragging, the 44px exceptions).
+Goal: the map's suspect counters and weapon chips are 35px on every house, under the 44px rule. Grow the
+tap and drag target to 44px (a bigger hit area or a bigger counter) without the tray wrapping off one phone
+screen; check `#dev/explore` and a Quick case map at 360px.
+Starting prompt:
+```
+Read the Map rules in src/game/CLAUDE.md, then propose how to make the map counters and weapon chips 44px touch targets, and check it at 360px with browser-check.
 ```
 
 ## Session: Finish the houses, size the big-house nosing boards
@@ -139,19 +184,16 @@ Read the "Two-storey houses" entry in docs/next-sessions.md, help me settle the 
 ```
 
 ## Session: Hunting the weapon (campaign)
-Last touched: 2026-10-20
-Reads first: the "Hunting the weapon" item in the Murder Mystery Mode — What's Left doc (link in
-`CLAUDE.md`), `src/engine/CLAUDE.md`, `src/engine/campaign.ts`, `src/game/campaignSave.ts`.
-Goal: make the weapon matter in the campaign. One weapon all night (today it's rolled each round);
-loose either-or weapon clues on night 1; a new puzzle at the start of night 2 that gives a shortlist
-of 2–3 weapons; night 3 settles the killer and the weapon; a wrong weapon costs a body like a wrong
-person (an innocent dies; the accused survives, and she's told one of her two picks was right).
-Settle first: the shortlist puzzle's design, the either-or clue types and wording, and how
-`roundProblems` and `check-cases` prove each night. Then write an implementer brief. Every campaign
-changes, so bump the storage prefix.
+Last touched: 2026-10-25
+Reads first: `docs/weapons.md` (body signs as the shortlist, weapon stories, themed weapons, open calls),
+the "Hunting the weapon" item in the What's Left doc (link in `CLAUDE.md`), `src/engine/CLAUDE.md`,
+`src/engine/campaign.ts`.
+Goal: one weapon all night; each body shows a true sign (wound, then trace) that narrows the weapon,
+so night 1 is loose, night 2 a shortlist of 2–3, night 3 settles it. Settle `docs/weapons.md`'s open calls
+and how `roundProblems` and `check-cases` prove each night, then brief. Storage prefix bump.
 Starting prompt:
 ```
-Read the "Hunting the weapon" item in the What's Left doc and docs/next-sessions.md, help me design the shortlist puzzle and the either-or clues, then write an implementer brief.
+Read docs/weapons.md and the "Hunting the weapon" item in the What's Left doc, settle the open calls with me, design the body-sign clue in the engine, then write an implementer brief.
 ```
 
 ## Session: The second killer (campaign, medium and hard)
@@ -208,6 +250,16 @@ Starting prompt:
 Read docs/puzzle-book.md, then mock up the campaign screens in the puzzle book style in docs/mockups: the rounds bar with the explore map, talking to a guest, and the You sheet.
 ```
 
+## Session: Visual theme, library and puzzle book
+Last touched: 2026-10-24
+Reads first: `docs/visual-theme.md` (leanings, open items, unexplored ideas), `docs/mockups/index.html`.
+Goal: check the real map, grid and puzzles against the mockups at 360 × 780, pick the palette, then
+start the build order in the doc.
+Starting prompt:
+```
+Read docs/visual-theme.md. Open #dev/explore, #dev/houses and #dev/nosing-houses through browser-check at 360x780 and tell me how the floor plan and puzzles would fit as edge-to-edge plates in the puzzle book. Then ask me which palette to use.
+```
+
 ## Session: Target or another word game (exploratory)
 Last touched: 2026-10-23
 Reads first: `docs/target-game.md` (proposed approach, what to settle), `src/games/CLAUDE.md`.
@@ -233,6 +285,16 @@ joins the case rotation.
 Starting prompt:
 ```
 Read "Next build: the dog" in docs/nosing-around.md and help me design the dog card game as a real deck builder: one-suit start deck, suit effects, rewards, run length, losing without getting stuck.
+```
+
+## Session: Clue moments (exploratory)
+Last touched: 2026-10-25
+Reads first: `docs/story-layer.md` (clue moments), `src/engine/wording.ts`, `src/game/ClueCard.tsx`.
+Goal: show each newly won clue first as a one-line scene (the witness's voice and portrait, or the cat
+finding something), with the plain statement kept for the casebook. Settle templates and a fact check.
+Starting prompt:
+```
+Read the clue moments section of docs/story-layer.md and src/engine/wording.ts, then propose line templates per clue type and how to check a moment says exactly what its clue says.
 ```
 
 ## Session: Side missions (exploratory)

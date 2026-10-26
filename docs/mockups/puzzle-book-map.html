@@ -11,7 +11,7 @@ a{color:#8a2620}a:hover{color:#5a1426}
 .room{position:relative;padding:5px 6px;display:flex;flex-direction:column;justify-content:space-between}
 .room-name{font-family:'EB Garamond',Georgia,serif;font-weight:600;font-size:12px;color:#2a2620}
 .counters{display:flex;flex-wrap:wrap;gap:3px}
-.counter{width:28px;height:28px;border-radius:50%;box-sizing:border-box;border:2.5px solid #d2a548;display:grid;place-items:center;font-family:'EB Garamond',Georgia,serif;font-weight:700;font-size:13px;color:#fbf7ea;box-shadow:0 2px 0 #9a7426,0 3px 5px rgba(0,0,0,.3)}
+.counter{width:36px;height:36px;border-radius:50%;box-sizing:border-box;border:3px solid #d2a548;display:grid;place-items:center;font-family:'EB Garamond',Georgia,serif;font-weight:700;font-size:15px;color:#fbf7ea;box-shadow:0 2px 0 #9a7426,0 3px 5px rgba(0,0,0,.3)}
 .tab{width:76px;height:40px;border:0;border-radius:8px 8px 0 0;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;font-family:'EB Garamond',Georgia,serif;font-weight:600;font-size:15px}
 </style>
 <style>body{display:flex;justify-content:center;padding:24px 0}</style>
@@ -33,12 +33,11 @@ a{color:#8a2620}a:hover{color:#5a1426}
   <nav aria-label="Puzzle book sections" style="display: flex; gap: 4px; padding: 14px 20px 0">
     <button class="tab" style="background: #4f7a54; color: #fbf3e0">Case</button>
     <button aria-current="page" class="tab" style="background: #fbf7ec; color: #8a2e3b; box-shadow: 0 -2px 4px rgba(0,0,0,.15)">Map</button>
-    <button class="tab" style="background: #3f5f8a; color: #fbf3e0">Puzzles</button>
     <button class="tab" style="background: #8a2e3b; color: #fbf3e0">Answer</button>
   </nav>
 
-  <div style="margin: 0 12px; background: #8a2e3b; border-radius: 4px 4px 8px 8px; padding: 0 8px 8px; box-shadow: 0 16px 28px rgba(0,0,0,.45)">
-    <article style="background: #fbf7ec; border-radius: 0 0 3px 3px; padding: 14px 14px 140px; display: flex; flex-direction: column; gap: 12px; color: #1e2a2f">
+  <div style="flex: 1; background: #fbf7ec; box-shadow: 0 -4px 12px rgba(0,0,0,.3)">
+    <article style="padding: 12px 10px 96px; display: flex; flex-direction: column; gap: 12px; color: #1e2a2f">
       <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1.5px solid #1e2a2f; padding-bottom: 5px">
         <span style="font-family: 'EB Garamond', Georgia, serif; font-weight: 700; font-size: 15px; letter-spacing: .04em">PLATE II</span>
         <span style="font-family: 'EB Garamond', Georgia, serif; font-style: italic; font-size: 14px; color: #55615f">The house, after dinner</span>
@@ -49,7 +48,7 @@ a{color:#8a2620}a:hover{color:#5a1426}
     </article>
   </div>
 
-  <a href="#notebook" aria-label="Open your notebook: 3 clues, 1 new" style="position: absolute; left: 14px; right: 14px; bottom: 0; height: 132px; box-sizing: border-box; padding: 22px 16px 0; background: #b98a5a; border-radius: 10px 10px 0 0; box-shadow: 0 -6px 18px rgba(0,0,0,.4); text-decoration: none; display: flex; flex-direction: column; gap: 8px">
+  <a href="#notebook" aria-label="Open your notebook: 3 clues, 1 new" style="position: absolute; left: 14px; right: 14px; bottom: 0; height: 90px; box-sizing: border-box; padding: 16px 16px 0; background: #b98a5a; border-radius: 10px 10px 0 0; box-shadow: 0 -6px 18px rgba(0,0,0,.4); text-decoration: none; display: flex; flex-direction: column; gap: 8px">
     <span aria-hidden="true" style="position: absolute; left: 18px; right: 18px; top: -7px; display: flex; justify-content: space-between">
       <span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span><span style="width: 9px; height: 18px; border-radius: 5px; border: 2.5px solid #5b4a3a; box-sizing: border-box"></span>
     </span>
