@@ -242,7 +242,7 @@ Built 2026-10-22 (the grid, the lock on it, the dog fight); the speed round belo
 
 Talked through with the owner on 2026-10-22, before she had played the first build. The grid is one
 shared piece: the lock moves onto it, and the dog fight is played on it. Later the cat-vs-dog game can
-grow into a deck builder of its own (see the "dog card battle" entry in `docs/next-sessions.md`); this
+grow into a deck builder of its own (see `docs/dog-deck-builder.md`); this
 build is the side game, with fixed decks and no building.
 
 ### The number grid

@@ -64,7 +64,7 @@ Long sessions re-read their whole context every turn, so keep them short.
   `npm run checks` decides done, not its own script.
 - A "none passes" result goes to the main session as a design call, then to a
   fresh implementer, never back to the old one.
-- Dated lines in "Why sessions ran long" quote minutes (per agent run, per full
+- Dated lines in "Why sessions ran long" (`docs/session-log.md`) quote minutes (per agent run, per full
   check), not only tokens.
 
 ## Handoff files

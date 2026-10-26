@@ -33,11 +33,22 @@ try {
   process.exit(0);
 }
 
+// Exploratory ideas live in docs/someday-sessions.md: listed after the ranked
+// entries, numbered on from them, and never flagged as stale.
+let someday = '';
+try {
+  someday = readFileSync(join(root, 'docs', 'someday-sessions.md'), 'utf8');
+} catch {
+  // optional file
+}
+
+const headings = (source) =>
+  source.split(/^## Session: /m).slice(1).map((part) => [part.split('\n', 1)[0].trim(), part]);
+
 const now = Date.now();
 const entries = [];
 const stale = [];
-for (const part of text.split(/^## Session: /m).slice(1)) {
-  const name = part.split('\n', 1)[0].trim();
+for (const [name, part] of headings(text)) {
   const date = /^Last touched:\s*(\d{4}-\d{2}-\d{2})/m.exec(part)?.[1];
   const age = date ? Math.floor((now - Date.parse(date)) / DAY) : NaN;
   entries.push(name);
@@ -45,13 +56,19 @@ for (const part of text.split(/^## Session: /m).slice(1)) {
   else if (age >= STALE_DAYS) stale.push(`"${name}" (last touched ${date}, ${age} days ago)`);
 }
 if (!entries.length) process.exit(0);
+const later = headings(someday).map(([name]) => name);
 
-const menu = entries.map((name, i) => `${i + 1}. ${name}`).join('\n');
+const menu =
+  entries.map((name, i) => `${i + 1}. ${name}`).join('\n') +
+  (later.length
+    ? `\nLater ideas (docs/someday-sessions.md):\n` +
+      later.map((name, i) => `${entries.length + i + 1}. ${name}`).join('\n')
+    : '');
 
-let context = `NEXT SESSIONS MENU (from a hook). docs/next-sessions.md has these session ideas. The terminal CLI shows the user this numbered list, but the desktop app does not display hook messages, so assume they have NOT seen it:
+let context = `NEXT SESSIONS MENU (from a hook). docs/next-sessions.md (ranked) and docs/someday-sessions.md (later ideas, after the "Later ideas" line) have these session ideas. The terminal CLI shows the user this numbered list, but the desktop app does not display hook messages, so assume they have NOT seen it:
 ${menu}
 
-If the user's first message already names a task, just do that task; do not show the menu. If it is a greeting, vague, "menu", "next", or asks what to work on, reply with the numbered list (names only, one line each), a markdown link to docs/next-sessions.md, and a recommendation. The list is a ranked backlog, so recommend the first entry unless its heading names a blocker, in which case recommend the first unblocked one. One sentence, taken from that entry's Goal, saying why it is next. Then ask which to start. When they pick one (by number or name), first rename this session to that entry's heading so parallel sessions stay distinguishable. The owner asked for this rename. In Cursor, call rename_chat on cursor-app-control with that heading (discover the schema, then call it). In the desktop app, call mcp__ccd_session_mgmt__set_session_title, loaded with ToolSearch if deferred. Use whichever of those tools exists. Then read only that entry in docs/next-sessions.md (Grep for its "## Session:" heading, then Read with offset and limit), read its "Reads first" docs, set its "Last touched" date to today, and carry out its starting prompt as if they had typed it. Before the session finishes, update that entry (what is done, what is left, a starting prompt that picks up from there, its rank), or delete it if the work is finished, and commit that with the work.`;
+If the user's first message already names a task, just do that task; do not show the menu. If it is a greeting, vague, "menu", "next", or asks what to work on, reply with the numbered list (names only, one line each, keeping the "Later ideas" line), a markdown link to docs/next-sessions.md, and a recommendation. The list is a ranked backlog, so recommend the first entry unless its heading names a blocker, in which case recommend the first unblocked one. One sentence, taken from that entry's Goal, saying why it is next. Then ask which to start. When they pick one (by number or name), first rename this session to that entry's heading so parallel sessions stay distinguishable. The owner asked for this rename. In Cursor, call rename_chat on cursor-app-control with that heading (discover the schema, then call it). In the desktop app, call mcp__ccd_session_mgmt__set_session_title, loaded with ToolSearch if deferred. Use whichever of those tools exists. Then read only that entry in docs/next-sessions.md or docs/someday-sessions.md, whichever has it (Grep for its "## Session:" heading, then Read with offset and limit), read its "Reads first" docs, set its "Last touched" date to today, and carry out its starting prompt as if they had typed it. Before the session finishes, update that entry (what is done, what is left, a starting prompt that picks up from there, its rank), or delete it if the work is finished, and commit that with the work.`;
 
 if (stale.length) {
   context += `

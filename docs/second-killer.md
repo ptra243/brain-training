@@ -95,6 +95,11 @@ same commit as any storage prefix bump.
    for the round-up, tries and per-night puzzles; talk threads for the second
    victim and killer; run history and the closing card for two killers.
 
+Also settle before the brief (from the `next-sessions.md` entry, moved here 2026-10-26): how the night 2
+round and its truth are built from night 1's lineup, how `roundProblems` proves checks 1–5 above, and
+the scene wording. This overlaps "Hunting the weapon" (`docs/weapons.md`; both change campaign rounds):
+do that one first or agree the order.
+
 ## Jumping between times (UI)
 
 Every casebook view that is about where people were (floor plan, logic grids,

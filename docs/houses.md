@@ -1,7 +1,7 @@
 # Houses
 
 Several flat houses with irregular footprints and doors, one picked per case. Built 2026-10-23.
-The "Two-storey houses" idea in `next-sessions.md` is not this work: these are single-storey.
+The two-storey idea in `docs/two-storey-houses.md` is not this work: these are single-storey.
 
 ## What exists
 
