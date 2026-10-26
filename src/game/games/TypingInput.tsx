@@ -10,6 +10,8 @@ interface Props {
   onEnter?: () => void;
   onArrow?: (key: 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown') => void;
   onFocusChange?: (focused: boolean) => void;
+  /** Tab / Shift+Tab. When set, Tab stays in the box and calls this instead of moving focus. */
+  onTab?: (shift: boolean) => void;
   enterKeyHint?: 'go' | 'next' | 'done' | 'enter';
   label: string;
 }
@@ -19,7 +21,7 @@ interface Props {
  * it, which brings up the phone's own keyboard (or takes a laptop's).
  * Put it inside an element with `position: relative`.
  */
-export function TypingInput({ inputRef, value, onType, onEnter, onArrow, onFocusChange, enterKeyHint = 'enter', label }: Props) {
+export function TypingInput({ inputRef, value, onType, onEnter, onArrow, onFocusChange, onTab, enterKeyHint = 'enter', label }: Props) {
   // Keep the caret at the end, where the next letter goes.
   useLayoutEffect(() => {
     const el = inputRef.current;
@@ -57,6 +59,9 @@ export function TypingInput({ inputRef, value, onType, onEnter, onArrow, onFocus
           } else if (onArrow && (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
             e.preventDefault();
             onArrow(e.key);
+          } else if (onTab && e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            e.preventDefault();
+            onTab(e.shiftKey);
           }
         }}
         onFocus={() => onFocusChange?.(true)}

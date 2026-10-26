@@ -10,7 +10,9 @@
 .mutedOnCard { color: var(--ink-soft); font-size: 0.85rem; }
 .grid { display: grid; gap: 3px; width: 100%; max-width: 24rem; margin: 0 auto; }
 /* Medium and hard grids are wider than her phone: they slide sideways in their own box. */
-.scroll { overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: 0.4rem; }
+/* No scrollbar: she swipes, and the grid slides as she types. */
+.scroll { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
 .grid.wide { width: max-content; max-width: none; }
 .read {
   display: grid; gap: 0.4rem; padding: 0.5rem 0.7rem; background: var(--card); color: var(--ink);
@@ -21,7 +23,8 @@
 .cell {
   position: relative; aspect-ratio: 1; padding: 0; border: 1px solid var(--card-edge); border-radius: 0.2rem; cursor: text;
   /* Clear the sticky clue bar when a clue tap scrolls her to the square. */
-  scroll-margin: 7rem 0.5rem 0.5rem;
+  /* No sideways margin: the sideways slide is set in code and scrollIntoView must not undo it. */
+  scroll-margin: 7rem 0 0.5rem;
   background: var(--card); color: var(--ink); font-family: var(--serif); font-weight: 700; font-size: 1.35rem;
 }
 .cell.shaded { background: #e8d39a; }

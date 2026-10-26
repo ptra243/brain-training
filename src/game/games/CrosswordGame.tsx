@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   CROSSWORD_SIZE,
   cellKey,
@@ -60,6 +60,7 @@ function hintText(cat: string, h: CrosswordHint): string {
 export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The cat', onChange, onFinish }: GameProps<CrosswordPuzzle, CrosswordData>) {
   const inputRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [focused, setFocused] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   // Letters typed on a grid of another size (medium and hard grids grew) don't fit this one: start afresh.
@@ -112,14 +113,34 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
 
   // Keep the square she's on in sight: big grids scroll sideways, and the clue list sits below the grid.
   const jump = useRef<ScrollBehavior | null>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const behavior = jump.current;
     jump.current = null;
     if (!behavior) return;
-    const see = (r: number, c: number) => gridRef.current?.querySelector(`[data-cell="${cellKey(r, c)}"]`)?.scrollIntoView({ behavior, block: 'nearest', inline: 'nearest' });
-    // Show a couple of squares ahead in the word's direction first; the cursor square wins if both can't fit.
-    if (at >= 0) see(...activeCells[Math.min(at + 2, activeCells.length - 1)]);
-    see(cursor.r, cursor.c);
+    const scroller = scrollRef.current;
+    const cell = (r: number, c: number) => gridRef.current?.querySelector<HTMLElement>(`[data-cell="${cellKey(r, c)}"]`);
+    const here = cell(cursor.r, cursor.c);
+    if (!scroller || !here) return;
+    // Sideways: the scroller moves just enough (never the page) to show the cursor square and, if both fit, the one two ahead.
+    let left: number | null = null;
+    if (scroller.scrollWidth > scroller.clientWidth) {
+      const PAD = 8;
+      const box = scroller.getBoundingClientRect();
+      const span = (el: HTMLElement) => {
+        const b = el.getBoundingClientRect();
+        const x = b.left - box.left + scroller.scrollLeft;
+        return [x - PAD, x + b.width + PAD] as const;
+      };
+      const fit = (lo: number, hi: number) => (lo < scroller.scrollLeft ? lo : hi > scroller.scrollLeft + scroller.clientWidth ? hi - scroller.clientWidth : scroller.scrollLeft);
+      const [lo, hi] = span(here);
+      const ahead = at >= 0 ? cell(...activeCells[Math.min(at + 2, activeCells.length - 1)]) : null;
+      const [alo, ahi] = ahead ? span(ahead) : [lo, hi];
+      const both = Math.max(hi, ahi) - Math.min(lo, alo) <= scroller.clientWidth;
+      left = Math.max(0, both ? fit(Math.min(lo, alo), Math.max(hi, ahi)) : fit(lo, hi));
+    }
+    // Up and down: clear the sticky clue bar. This may nudge the scroller sideways too, so set it after.
+    here.scrollIntoView({ behavior, block: 'nearest', inline: 'nearest' });
+    if (left !== null) scroller.scrollTo({ left, behavior });
   });
   const moveTo = (next: Cursor, behavior: ScrollBehavior = 'auto') => {
     jump.current = behavior;
@@ -165,11 +186,24 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
     if (finished) return;
     const here = squares.get(cellKey(r, c))!;
     let dir = cursor.dir;
-    // Tapping the square you're on turns the word round, where there is one the other way.
-    if (r === cursor.r && c === cursor.c) dir = dir === 'across' ? 'down' : 'across';
+    if (r === cursor.r && c === cursor.c) {
+      // Tapping the square you're on turns the word round, where there is one the other way.
+      dir = dir === 'across' ? 'down' : 'across';
+    } else {
+      // A square where exactly one word starts shows that word, even if another passes through.
+      const starting = [here.across, here.down].filter((e): e is CrosswordEntry => !!e && entryCells(e)[0][0] === r && entryCells(e)[0][1] === c);
+      if (starting.length === 1) dir = starting[0].dir;
+    }
     if (!here[dir]) dir = dir === 'across' ? 'down' : 'across';
     moveTo({ r, c, dir });
     focusTyping(inputRef);
+  };
+
+  /** Tab and Shift+Tab: the next or previous word in clue order (across, then down), wrapping. */
+  const tab = (shift: boolean) => {
+    if (finished) return;
+    const k = entries.indexOf(active);
+    moveTo(start(entries[(k + (shift ? -1 : 1) + entries.length) % entries.length], letters));
   };
 
   const selectEntry = (e: CrosswordEntry) => {
@@ -273,7 +307,8 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
           )}
         </div>
       )}
-      <div className={`typing-host ${wide ? styles.scroll : ''}`}>
+      <div className="typing-host">
+        <div ref={scrollRef} className={wide ? styles.scroll : ''}>
         <div
           ref={gridRef}
           className={`${styles.grid} ${wide ? styles.wide : ''}`}
@@ -301,6 +336,7 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
                 <button
                   key={`${r}-${c}`}
                   data-cell={cellKey(r, c)}
+                  tabIndex={-1}
                   className={`${styles.cell} ${here.shaded ? styles.shaded : ''} ${inWord ? styles.inRow : ''} ${isCursor ? styles.cursor : ''} ${solved ? styles.solved : ''} ${wrong ? styles.wrong : ''}`}
                   aria-label={`${words}${letter ? `, ${letter}` : ''}${wrong ? ', crossed out as wrong' : ''}${here.shaded ? `, shaded square ${here.shaded}` : ''}`}
                   // Keep the keyboard up while moving between squares.
@@ -324,6 +360,7 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
             }),
           )}
         </div>
+        </div>
         {!finished && (
           <TypingInput
             inputRef={inputRef}
@@ -334,6 +371,7 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
             onType={type}
             onEnter={() => moveTo(start(nextOpen(active, letters), letters))}
             onArrow={arrow}
+            onTab={tab}
             onFocusChange={setFocused}
             enterKeyHint="next"
             label={`${active.number} ${active.dir}: ${active.clue}`}
