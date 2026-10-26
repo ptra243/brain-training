@@ -35,8 +35,10 @@ Poirot walks through how it happened; today the ending is a rotating confession 
 - With secrets built, each innocent's step adds their clearing line and the killer's adds the motive.
 - "Got away" gets the same replay, so she learns how she could have solved it. Reduced motion: still
   frames, tap to step.
-- Settle: does Quick play get it too (probably yes, it only reads the solved case), length at 7 guests,
-  skip button.
+- Settled 2026-10-27. Every solved case gets it (Quick play, Play, presets, and the campaign). A full
+  replay is one step per guest, killer last, so a campaign round is 7 steps. Earlier campaign rounds are
+  one step each, for the person she accused, and only once the night is over. Skip asks "Are you sure?"
+  and then jumps to the closing card. The brief is `.claude/handoff/summation-ending.md`.
 
 ## Act breaks between rounds
 The next-murder scene is the same every time. Add a short scene after it, before the next round:

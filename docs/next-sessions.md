@@ -74,14 +74,14 @@ Read docs/confidant-arcs.md and the Guest pool and Confidants sections of docs/t
 ```
 
 ## Session: Summation ending, how it happened
-Last touched: 2026-10-25
-Reads first: `docs/story-layer.md` (the summation ending, and the review it came from),
-`src/game/ExploreMap.tsx`, `src/game/FaceToFace.tsx`, `src/engine/types.ts` (`Solution`).
+Last touched: 2026-10-27
+Reads first: `.claude/handoff/summation-ending.md` (the brief), `docs/story-layer.md` (the summation ending).
 Goal: after she solves a case (or the killer gets away), replay the night on the map, one guest at a time,
 citing the clue that proved each step. Fully generated from the solved case; no engine or case change.
+Done: Quick play, the 7-guest length, and Skip are settled, and the brief is written. Left: build it.
 Starting prompt:
 ```
-Read the summation section of docs/story-layer.md, settle the open points with me (Quick play too, length at 7 guests, skip), then write an implementer brief.
+Implement `.claude/handoff/summation-ending.md`. The decisions are also in the summation section of docs/story-layer.md. Don't reopen Quick play, the 7-guest length, or Skip.
 ```
 
 ## Session: Everyone has a secret (design)
