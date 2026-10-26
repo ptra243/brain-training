@@ -22,9 +22,9 @@
         ]
       }
     ],
-    "PostToolUse": [
+    "PreToolUse": [
       {
-        "matcher": "Edit|Write",
+        "matcher": "Edit|Write|MultiEdit|Task|Agent",
         "hooks": [
           {
             "type": "command",

@@ -100,11 +100,14 @@ an agent or proposing a split.
   well-defined one to the `implementer` agent (Sonnet, never `general`) with a
   full brief. Anything touching more than two code files, anything you can
   describe in a few sentences, and any bug fix with a known cause goes to it.
-  Edit directly only for one-line tweaks, docs, or while working out the
-  design. Say in one line what you delegate and what you keep.
+  A change the owner asks for directly in chat counts too, not only
+  next-sessions entries. Edit directly only for one-line tweaks, docs, or while
+  working out the design. Before the first code edit, say in one line what you
+  delegate and what you keep, and why.
 - **Write a handoff file first** (`.claude/handoff/<task-slug>.md`,
   gitignored) with what the agent would otherwise redo; give its absolute path
-  in the brief.
+  in the brief. A brief of about 15 lines with nothing measured to pass on can
+  go straight in the prompt instead.
 - **Keep output small:** run checks quietly (`2>&1 | tail -20`), and read part
   of a file with Grep or Read offset and limit, never the whole thing.
 - **Looking at a screen:** open `#dev/<id>` when `src/dev/CLAUDE.md` lists a

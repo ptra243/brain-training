@@ -25,10 +25,15 @@ Long sessions re-read their whole context every turn, so keep them short.
 - Edit directly only for one-line tweaks, for docs, or while still working out
   the design. Keep in the main session: design decisions, generator tuning that
   needs experiments, ambiguous bugs, cross-cutting refactors.
-- Say in one line which pieces you're delegating and which you're keeping.
-- A `PostToolUse` hook (`.claude/hooks/delegate-reminder.mjs`) reminds you
-  after the 3rd distinct code file you edit yourself. It is a reminder, not a
-  rule that replaces judgement.
+- A change the owner asks for directly in chat counts the same as a
+  next-sessions entry. Once it is clear what to build, and before the first
+  code edit, say in one line which pieces you're delegating and which you're
+  keeping, and why.
+- A `PreToolUse` hook (`.claude/hooks/delegate-reminder.mjs`) holds back,
+  once, the edit that would touch a 3rd distinct file under `src/`, `e2e/` or
+  `scripts/`, and asks you to delegate or say why not; the next edit goes
+  through. It stays quiet once you've briefed an implementer. Scratchpad,
+  docs, mockups and handoff files don't count.
 
 ## Briefs
 
@@ -66,6 +71,9 @@ Long sessions re-read their whole context every turn, so keep them short.
 
 Before briefing, write `.claude/handoff/<task-slug>.md` (gitignored) and give
 its absolute path in the brief, so an agent in a worktree can read it too.
+Skip it when the whole brief fits in about 15 lines and there are no
+measurements or ruled-out attempts to pass on: put the brief straight in the
+prompt (the implementer creates the file for its review notes).
 
 - Put in it what the agent would otherwise redo: measurements with the command,
   the commit or working-tree state and the numbers (baselines, timings, "Time
