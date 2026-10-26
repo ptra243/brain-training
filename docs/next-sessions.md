@@ -149,20 +149,6 @@ Starting prompt:
 Read the Map rules in src/game/CLAUDE.md, then propose how to make the map counters and weapon chips 44px touch targets, and check it at 360px with browser-check.
 ```
 
-## Session: Finish the houses, size the big-house nosing boards
-Last touched: 2026-10-23
-Reads first: `docs/houses.md` (what exists, decisions, open items), the last sections of
-`.claude/handoff/houses-foundation.md` (segment-wise prototype and measurements).
-Goal: finish the single-storey houses work: cut the nosing variant sample in `check-cases` (it builds 100
-seeds on each of 8 orientations of every layout), look at a lodge case and its nosing board at 360px, then
-measure shorter medium and hard windows for the lodge, long house and T lodge (about 70-85% fill, one
-sweep table) and propose numbers. Push only when asked. Cutting the sample and the browser check are
-implementer and `browser-check` work; the window numbers are a design call for this session.
-Starting prompt:
-```
-Read docs/houses.md, then cut the nosing variant sample in check-cases, check a lodge case at 360px with browser-check, and measure shorter medium and hard nosing windows for the new houses.
-```
-
 ## Session: Two-storey houses, picked per case
 Last touched: 2026-10-20
 Reads first: `src/engine/CLAUDE.md`, `src/engine/house.ts`, `src/engine/caseFacts.ts`, `src/engine/clues.ts`

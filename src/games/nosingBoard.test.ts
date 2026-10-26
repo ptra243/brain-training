@@ -49,5 +49,5 @@ test('nosingSpec: the manor gets the stock level, other houses their overrides',
     }
   }
   assert.deepEqual(nosingSpec(lodge, 'easy').len, NOSING_LEVELS.easy.len);
-  assert.deepEqual(nosingSpec(lodge, 'medium').len, [100, 110]);
+  assert.deepEqual(nosingSpec(lodge, 'medium').len, [92, 100]);
 });

@@ -66,5 +66,22 @@ The "Two-storey houses" idea in `next-sessions.md` is not this work: these are s
 - Measured 2026-10-23 (20 seeds, medium and hard): only the lodge is slow (26 ms a board, 8 ms at 70-76% fill); the rest build in 1-8 ms. Windows above 85% start failing on the lodge. Shortening the lodge would change its boards (golden regeneration); not done.
 - The long house was made 6 rows deep (72 cells, was 48 and failed below 79% fill). Window 50-55, turns 6-15, stock obstacle count; builds 20/20 at 69-86%. v9 was never pushed, so no prefix bump.
 - `#dev/nosing-houses` shows the nosing board on each other house; the lodge, courtyard, long house and T lodge read at 360px with no sideways scroll (steps not looked at). `#dev/houses` lodge passes too; it prints "Shaded rooms are empty tonight: ." with an empty list.
+- Measured 2026-10-26 (100 seeds each, base layouts, real turn limits; every row builds 100/100 within the
+  600-attempt cap). Medium and hard behave alike, so one row per window:
+
+  | house | len (fill) | turns | ms median / p95 | attempts median / worst | min turns p5-p95 | max turns p5-p95 |
+  | --- | --- | --- | --- | --- | --- | --- |
+  | lodge (now) | 100-110 (79-87%) | 12-22 | 17 / 73-99 | 28 / 257 | 12-16 | 15-22 |
+  | lodge | 92-100 (73-79%) | 12-22 | 5.7 / 22-28 | 10 / 70 | 12-16 | 14-21 |
+  | lodge | 92-100 | 11-20 | 5 / 21 | 9 / 70 | 11-15 | 14-20 |
+  | T lodge (now) | 64-70 (80-88%) | 7-17 | 4 / 17-24 | 7 / 79 | 7-10 | 10-16 |
+  | T lodge | 60-66 (75-83%) | 7-17 | 2.6 / 13 | 5 / 53 | 7-11 | 9-16 |
+
+  The long house (50-55, 69-76%) already sits in range. Applied: the lodge is 92-100 with turns 12-22
+  (storage v10; the golden snapshot did not change, it hashes cases, not boards). The T lodge stays at
+  64-70: its gain was too small to be worth changing live boards.
+- A real lodge case (Play `ERM7H`, `lodge/m270`, nosing medium) passes at 360px: map and nosing board
+  fit, doors and labels read, nosing buttons 44px+. The map's suspect counters and weapon chips are 35px
+  (`.counter` and `.tray li .weapon` at 2.2rem), on every house, not only the lodge.
 - Idea: cache built boards keyed on a hash of the builder, spec, layouts and content so repeat local
   runs skip unchanged builds; CI stays cold.

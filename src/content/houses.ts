@@ -64,7 +64,7 @@ export const lodge: House = withNosing(houseFromLayout(
   `,
   legend({ A: 'library', B: 'study', C: 'dining', D: 'pantry', E: 'bedroom', F: 'cloakroom', H: 'hall', G: 'kitchen', I: 'conservatory', J: 'games' }),
   'HC HD HE HF HG AD BE AB GI GJ FI',
-), { len: [100, 110], turns: [12, 22], enterExtra: 3 });
+), { len: [92, 100], turns: [12, 22], enterExtra: 3 });
 
 /** Rooms in a ring around an open courtyard; the doors make a loop. */
 export const courtyard: House = withNosing(houseFromLayout(

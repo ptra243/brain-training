@@ -13,7 +13,8 @@ import type { Progress } from './state.ts';
 // v7: Nosing around medium and hard boards are shorter, every roll stops first, and a wrong obstacle answer backs the cat off.
 // v8: the real cast of 10 guests, and every case has a named victim; seating changes every case.
 // v9: cases are set in one of six houses (rotated or mirrored), which changes every case.
-const PREFIX = 'brain-training:v9:';
+// v10: the lodge's Nosing around medium and hard boards are shorter (92-100 squares, was 100-110).
+const PREFIX = 'brain-training:v10:';
 
 function read(key: string): unknown {
   try {
