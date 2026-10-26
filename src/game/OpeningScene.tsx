@@ -72,11 +72,13 @@ export function OpeningScene({ c, progress, dispatch, onHome, initial }: Props) 
                 <ul className="clue-list">
                   {mine.clues.map((id) => (
                     <li key={id}>
+                      <span className="opening-new">New clue</span>
                       <ClueCard clue={clueOf(id)} guests={c.guests} />
                     </li>
                   ))}
                 </ul>
               )}
+              {mine.clues.length > 0 && <p className="opening-added">✓ Added to your casebook</p>}
             </>
           ) : (
             <button type="button" className="primary" onClick={() => dispatch({ type: 'opening-talk', guest })}>
@@ -101,10 +103,12 @@ export function OpeningScene({ c, progress, dispatch, onHome, initial }: Props) 
               <ul className="clue-list">
                 {script.catClues.map((id) => (
                   <li key={id}>
+                    <span className="opening-new">New clue</span>
                     <ClueCard clue={clueOf(id)} guests={c.guests} />
                   </li>
                 ))}
               </ul>
+              {script.catClues.length > 0 && <p className="opening-added">✓ Added to your casebook</p>}
             </>
           ) : (
             <button type="button" className="primary" onClick={() => dispatch({ type: 'opening-cat' })}>
@@ -134,12 +138,17 @@ export function OpeningScene({ c, progress, dispatch, onHome, initial }: Props) 
       <p className="opening-count" data-testid="opening-count">
         {talked.length} of {total} spoken to
       </p>
-      <p className="opening-line">{opening.connectors[c.number % opening.connectors.length]}</p>
+      {talked.length === 0 && <p className="opening-line">{opening.connectors[c.number % opening.connectors.length]}</p>}
 
       <ul className="opening-guests">
         {c.suspects.map((g) => (
           <li key={g}>
             <button type="button" className={`opening-guest${talked.includes(g) ? ' talked' : ''}`} onClick={() => setPerson(g)}>
+              {talked.includes(g) && (
+                <span className="opening-tick" role="img" aria-label="spoken to">
+                  ✓
+                </span>
+              )}
               <span className={`counter static${faceClass(g)}`} style={{ '--counter': suspectColour(g) } as CSSProperties} aria-hidden="true">
                 <SuspectCounterFace id={g} guests={c.guests} />
               </span>
@@ -165,10 +174,10 @@ export function OpeningScene({ c, progress, dispatch, onHome, initial }: Props) 
           <h2 id="opening-person-title" className="sr-only">
             Talking to {person === CAT ? catName : suspectName(person, c.guests)}
           </h2>
-          <div className="talk-head">
-            <button data-autofocus type="button" className="sheet-close" aria-label="Close" onClick={() => setPerson(null)}>
-              ✕
-            </button>
+          <button data-autofocus type="button" className="secondary opening-back" onClick={() => setPerson(null)}>
+            Back to the guests
+          </button>
+          <div className="talk-head no-close">
             <PortraitCard parts={playerPortrait} tint="none" caption="You" />
             {sheet![0]}
           </div>

@@ -48,7 +48,7 @@ test('talking to a guest with a clue shows it', async ({ page }) => {
   await expect(person.locator('ul.clue-list > li')).toHaveCount(teller!.clues.length);
   await checkScreen(page, 'opening guest sheet, heard');
 
-  await page.getByRole('button', { name: 'Close' }).click();
+  await page.getByRole('button', { name: 'Back to the guests' }).click();
   await expect(page.getByTestId('opening-count')).toHaveText(new RegExp(`^1 of ${c.suspects.length} spoken to$`));
 });
 
@@ -77,7 +77,7 @@ test('reload mid-opening resumes where she was', async ({ page }) => {
   const name = suspectName(c.suspects[0], c.guests);
   await page.locator('button.opening-guest', { hasText: name }).click();
   await page.getByTestId('opening-person').getByRole('button', { name: `Hear what ${name} says` }).click();
-  await page.getByRole('button', { name: 'Close' }).click();
+  await page.getByRole('button', { name: 'Back to the guests' }).click();
 
   await page.reload();
   await expect(page.getByTestId('opening-scene')).toBeVisible();

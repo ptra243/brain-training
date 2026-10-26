@@ -4,26 +4,50 @@
 
 import { Rng, hashSeed } from '../engine/rng.ts';
 import type { Case, Clue } from '../engine/types.ts';
-import { victimLines } from '../content/talk.ts';
+import { guestRoles, guestTies, victimLines } from '../content/talk.ts';
 import { bodyRoom } from './explore.ts';
 import type { Progress } from './state.ts';
 import { setsFor } from './talk.ts';
 
-/** How a guest knew the victim (keys of `victimLines` in `src/content/talk.ts`). */
-export const RELATIONSHIPS = ['debt', 'rival', 'fondness', 'family'] as const;
-export type Relationship = (typeof RELATIONSHIPS)[number];
+/** How a guest is tied to the victim (keys of `victimLines` in `src/content/talk.ts`). */
+export type VictimTie = keyof typeof victimLines;
+export const VICTIM_TIES = Object.keys(victimLines) as VictimTie[];
 
-/** Which of the placeholder lines a guest says about the victim: a type and which of its two lines. */
-export function victimLineKey(c: Case, guest: string): { type: Relationship; line: 0 | 1 } {
+const has = (pairs: readonly (readonly string[])[], a: string, b: string) => pairs.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
+
+/** The key for what `speaker` is to `victim`: an exact family tie, else their roles (collapsed). */
+export function victimTie(speaker: string, victim: string): VictimTie {
+  if (has(guestTies.spouses, speaker, victim)) return 'spouse';
+  if (guestTies.parentChild.some(([p, ch]) => p === speaker && ch === victim)) return 'parent';
+  if (guestTies.parentChild.some(([p, ch]) => ch === speaker && p === victim)) return 'child';
+  if (has(guestTies.siblings, speaker, victim)) return 'sibling';
+  const s = guestRoles[speaker] ?? 'outsider';
+  const v = guestRoles[victim] ?? 'outsider';
+  switch (s) {
+    case 'family':
+      return v === 'estranged' ? 'family-estranged' : v === 'staff' || v === 'hired' ? 'family-staff' : 'family-outsider';
+    case 'estranged':
+      return v === 'family' ? 'estranged-family' : 'estranged-other';
+    case 'staff':
+      return v === 'family' ? 'staff-family' : v === 'staff' ? 'staff-staff' : 'staff-other';
+    case 'hired':
+      return v === 'family' ? 'hired-family' : 'hired-other';
+    case 'outsider':
+      return v === 'family' ? 'outsider-family' : 'outsider-other';
+  }
+}
+
+/** Which of the placeholder lines a guest says about the victim: their tie and which of its two lines. */
+export function victimLineKey(c: Case, guest: string): { tie: VictimTie; line: 0 | 1 } {
   const rng = new Rng(hashSeed(`${c.seed}-opening-victim-${guest}-${c.victim}`));
-  return { type: rng.pick(RELATIONSHIPS), line: rng.int(2) as 0 | 1 };
+  return { tie: victimTie(guest, c.victim), line: rng.int(2) as 0 | 1 };
 }
 
 export interface OpeningGuest {
   guest: string;
   /** Free clues this guest tells (testimony they speak). */
   clues: Clue['id'][];
-  victimLineKey: { type: Relationship; line: 0 | 1 };
+  victimLineKey: { tie: VictimTie; line: 0 | 1 };
 }
 
 export interface OpeningScript {
@@ -84,8 +108,8 @@ export function storySoFar(c: Case, p: Progress): { guest: string; line: string 
 
 /** A guest's line about the victim, with the victim's display name filled in. */
 export function victimLineText(c: Case, guest: string, victimName: string): string {
-  const { type, line } = victimLineKey(c, guest);
-  return victimLines[type][line].replaceAll('{victim}', victimName);
+  const { tie, line } = victimLineKey(c, guest);
+  return victimLines[tie][line].replaceAll('{victim}', victimName);
 }
 
 /** What a skip hands her: every free clue (skipping costs none) and the guests she didn't talk to. */

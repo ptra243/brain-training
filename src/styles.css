@@ -915,8 +915,18 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
   border-radius: 0.35rem; border: 1px solid var(--card-edge); background: var(--card); color: var(--ink);
   font-family: var(--serif); font-size: 0.85rem; line-height: 1.1;
 }
+.opening-guest { position: relative; }
 .opening-guest.talked { opacity: 0.7; }
-.opening-guest.talked::after { content: 'Spoken to'; font-size: 0.7rem; color: var(--brass-deep); }
+.opening-tick {
+  position: absolute; top: 0.2rem; right: 0.2rem; width: 1.25rem; height: 1.25rem; border-radius: 50%;
+  display: grid; place-items: center; background: var(--brass-deep); color: #fffcf3; font-size: 0.75rem; font-weight: 700; line-height: 1;
+}
+.talk-head.no-close { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.opening-back { margin-bottom: 0.75rem; }
+.opening-talk .clue-list > li { display: grid; gap: 0.2rem; }
+.opening-new { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--brass-deep); }
+.opening-added { margin: 0; font-weight: 700; color: var(--brass-deep); }
+.opening-skip { border-color: var(--brass); color: var(--on-baize-soft); }
 .opening-actions { display: grid; gap: 0.6rem; }
 .opening-line { margin: 0; font-family: var(--serif); font-style: italic; line-height: 1.4; }
 .opening-victim { margin: 0; font-family: var(--serif); line-height: 1.4; }

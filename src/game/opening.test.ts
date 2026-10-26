@@ -7,7 +7,8 @@ import { newCampaign } from './campaignSave.ts';
 import { openingSeed, type OpeningStats } from './openingSweeps.ts';
 import { bodyRoom, roomContents, roomsSeen, whereAmI } from './explore.ts';
 import { roomName } from './names.ts';
-import { firstSentence, joinNames, openingScript, openingStep, openingSummary, soFarLines, storySoFar, victimLineKey, victimLineText } from './opening.ts';
+import { guestRoles, victimLines } from '../content/talk.ts';
+import { VICTIM_TIES, victimTie, firstSentence, joinNames, openingScript, openingStep, openingSummary, soFarLines, storySoFar, victimLineKey, victimLineText } from './opening.ts';
 import { sanitizeCampaign, sanitizeProgress } from './saveGuards.ts';
 import { emptyProgress, mentionsSuspect, reduce, sceneText, type Progress } from './state.ts';
 
@@ -95,17 +96,38 @@ test('the script covers all seated guests once, gathers at the body, and ignores
   }
 });
 
-test('victimLineKey is deterministic, valid, and uses all four types across a sweep', () => {
+test('victimLineKey is deterministic, valid, and uses mostly real ties across a sweep', () => {
   const seen = new Set<string>();
   for (const c of firstRounds) {
     for (const g of c.suspects) {
       const k = victimLineKey(c, g);
       assert.deepEqual(victimLineKey(c, g), k);
       assert.ok(k.line === 0 || k.line === 1);
-      seen.add(k.type);
+      assert.ok(VICTIM_TIES.includes(k.tie));
+      seen.add(k.tie);
     }
   }
-  assert.equal(seen.size, 4);
+  assert.ok(seen.size >= 8, String(seen.size));
+});
+
+test('every speaker and victim pair resolves to a line; exact ties win', () => {
+  const ids = Object.keys(guestRoles);
+  assert.equal(ids.length, 10);
+  assert.ok(VICTIM_TIES.length >= 12 && VICTIM_TIES.length <= 16, String(VICTIM_TIES.length));
+  for (const s of ids) {
+    for (const v of ids) {
+      if (s === v) continue;
+      const tie = victimTie(s, v);
+      assert.equal(victimLines[tie].length, 2, `${s} about ${v}`);
+    }
+  }
+  assert.equal(victimTie('hostess', 'host'), 'spouse');
+  assert.equal(victimTie('host', 'hostess'), 'spouse');
+  assert.equal(victimTie('host', 'elder-heir'), 'parent');
+  assert.equal(victimTie('younger-heir', 'hostess'), 'child');
+  assert.equal(victimTie('elder-heir', 'younger-heir'), 'sibling');
+  assert.equal(victimTie('butler', 'host'), 'staff-family');
+  assert.equal(victimTie('financier', 'uncle'), 'outsider-other');
 });
 
 test('openingSummary: every free clue is kept, and the guests she did not talk to are listed', () => {

@@ -576,22 +576,93 @@ export const faceLines = {
 // No card, guest, room or weapon names. Victim lines are about feelings and
 // never say where anyone was. Placeholders: `{victim}`; `{n}`, `{total}`,
 // `{names}` in the skip copy; `{room}` and `{scene}` in `dragMarks`.
+// Who each guest is to the house, and the exact family ties. `opening.ts` turns these into a key of `victimLines`.
+export type GuestRole = 'family' | 'estranged' | 'staff' | 'hired' | 'outsider';
+export const guestRoles: Readonly<Record<string, GuestRole>> = {
+  host: 'family',
+  hostess: 'family',
+  'elder-heir': 'family',
+  'younger-heir': 'family',
+  uncle: 'estranged',
+  butler: 'staff',
+  housekeeper: 'staff',
+  conjurer: 'hired',
+  financier: 'outsider',
+  detective: 'outsider',
+};
+/** Pairs of guest ids. */
+export const guestTies = {
+  spouses: [['host', 'hostess']],
+  /** [parent, child] */
+  parentChild: [['host', 'elder-heir'], ['host', 'younger-heir'], ['hostess', 'elder-heir'], ['hostess', 'younger-heir']],
+  siblings: [['elder-heir', 'younger-heir']],
+} as const;
+
+// One entry per tie: the four exact ones, then speaker role about victim role (collapsed).
 export const victimLines = {
-  debt: [
-    'I owed {victim} more than I ever let on.',
-    "{victim} never mentioned the money. That was somehow worse than being asked.",
+  spouse: [
+    "We were married a long time. I knew every one of {victim}'s moods, or thought I did.",
+    'Years beside {victim}. The house will be very quiet, and I am not sure I know what to do with quiet.',
   ],
-  rival: [
-    "{victim} and I never agreed on anything. I'd have missed the arguing, I suppose.",
-    "Everyone assumed {victim} and I couldn't stand each other. They were mostly right.",
+  parent: [
+    '{victim} was my child, whatever else they were. I keep listening for them on the stairs.',
+    'I wanted so much for {victim}. Perhaps I wanted too much, and said it too often.',
   ],
-  fondness: [
-    "I was fonder of {victim} than I ever said. That's the trouble with saying things late.",
-    'I always meant to tell {victim} how much I liked them. I kept it for a better moment.',
+  child: [
+    '{victim} was my parent, and we never found an easy way to talk. I thought there would be time.',
+    'I spent years trying to be what {victim} wanted. I am not sure they noticed, or that I minded.',
   ],
-  family: [
-    '{victim} was family. You do not get to choose that, and I would not have.',
-    "Families are complicated, and {victim} was one of mine. I'm still sorting out how I feel.",
+  sibling: [
+    "{victim} and I fought like cats, and I'd have fought anyone who bothered them.",
+    'Growing up, {victim} was the one person who knew exactly how to annoy me. I miss it already.',
+  ],
+  'family-estranged': [
+    '{victim} and the family had an old quarrel. I never understood it, and now I never will.',
+    "We kept {victim} at arm's length for years. It seems a poor way to have treated them.",
+  ],
+  'family-staff': [
+    '{victim} worked for us, and I never asked how they felt about it. I wish I had.',
+    '{victim} was there when we needed them and quietly gone when we did not. I took that for granted.',
+  ],
+  'family-outsider': [
+    '{victim} was a guest, and a difficult one. I feel odd mourning someone I never quite trusted.',
+    'I invited {victim} out of politeness. I would give a good deal to have the evening back.',
+  ],
+  'estranged-family': [
+    'I have stayed away from {victim} and theirs for years. Pride is a poor thing to be left with.',
+    'There was a quarrel, and I let it set like plaster. I had hoped {victim} would be the one to break it.',
+  ],
+  'estranged-other': [
+    'I hardly knew {victim}, and I find I mind rather more than I expected.',
+    '{victim} was civil to me, which is more than most managed. I will remember that.',
+  ],
+  'staff-family': [
+    'I served {victim} for twenty years. They never once said thank you, and I never expected it.',
+    "I have kept {victim}'s secrets longer than I can say. It is a strange thing to have no one left to keep them for.",
+  ],
+  'staff-staff': [
+    '{victim} and I worked side by side, and rarely spoke of anything but the work. I wish we had.',
+    'Nobody notices good staff until they are gone. I noticed {victim}, though, and now it is very quiet.',
+  ],
+  'staff-other': [
+    '{victim} was a guest, and I treated them as one. I feel I ought to have felt more.',
+    'I did not know {victim} well. It is not my place to have feelings about the guests, but I find I do.',
+  ],
+  'hired-family': [
+    "I was paid to be charming for {victim}'s family. Tonight I would happily have done it for free.",
+    'Everyone in that family clapped when I did my tricks except {victim}, and I liked them the better for it.',
+  ],
+  'hired-other': [
+    'I only met {victim} tonight. They gave me a wink during the cards, and I find I will not forget it.',
+    '{victim} was kind to me, and no one is kind to the hired help. I mean to remember that.',
+  ],
+  'outsider-family': [
+    "I came as a guest of {victim}'s family, and I leave feeling I have trampled something precious.",
+    '{victim} treated me well, and I am not certain I deserved it.',
+  ],
+  'outsider-other': [
+    '{victim} and I were never close. Even so, a death at a dinner has a way of making everyone sentimental.',
+    'I knew {victim} only slightly, and I am surprised how much it unsettles me.',
   ],
 } as const;
 
