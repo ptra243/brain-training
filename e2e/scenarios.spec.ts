@@ -40,3 +40,10 @@ test('cancel keeps the saved game and returns to the index', async ({ page }) =>
   await page.getByRole('button', { name: 'Cancel' }).click();
   await expect(page.getByRole('heading', { name: 'Dev pages' })).toBeVisible();
 });
+
+test('load campaign-opening shows the opening scene', async ({ page }) => {
+  await load(page, 'campaign-opening');
+  await expect(page.getByTestId('opening-scene')).toBeVisible();
+  await expect(page.getByTestId('opening-count')).toContainText('0 of');
+  await checkScreen(page, 'scenario campaign-opening');
+});

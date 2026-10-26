@@ -4,9 +4,10 @@ import { content, houseDetails } from '../content/index.ts';
 import { campaignRound, type CampaignRef } from '../engine/campaign.ts';
 import type { Case } from '../engine/types.ts';
 import { newCampaign } from './campaignSave.ts';
+import { openingSeed, type OpeningStats } from './openingSweeps.ts';
 import { bodyRoom, roomContents, roomsSeen, whereAmI } from './explore.ts';
 import { roomName } from './names.ts';
-import { openingScript, openingSummary, victimLineKey } from './opening.ts';
+import { firstSentence, joinNames, openingScript, openingStep, openingSummary, soFarLines, storySoFar, victimLineKey, victimLineText } from './opening.ts';
 import { sanitizeCampaign, sanitizeProgress } from './saveGuards.ts';
 import { emptyProgress, mentionsSuspect, reduce, sceneText, type Progress } from './state.ts';
 
@@ -184,4 +185,42 @@ test('gathered puts every living guest in the body room; the default is unchange
       assert.deepEqual(g[r].looks, plain[r].looks);
     }
   }
+});
+
+test('openingStep goes guests, then the cat only with evidence, then finish', () => {
+  for (const c of firstRounds) {
+    const script = openingScript(c);
+    let p = withOpening();
+    assert.equal(openingStep(c, p), 'guests');
+    for (const g of c.suspects) p = reduce(c, p, { type: 'opening-talk', guest: g });
+    assert.equal(openingStep(c, p), script.catClues.length ? 'cat' : 'finish');
+    p = reduce(c, p, { type: 'opening-cat' });
+    assert.equal(openingStep(c, p), 'finish');
+  }
+  assert.equal(openingStep(c0, emptyProgress()), 'finish');
+});
+
+test('firstSentence, joinNames and the victim line', () => {
+  assert.equal(firstSentence('I saw it. Then I left.'), 'I saw it.');
+  assert.equal(firstSentence('No full stop here'), 'No full stop here');
+  assert.equal(joinNames(['A', 'B', 'C']), 'A, B and C');
+  assert.equal(joinNames(['A']), 'A');
+  const line = victimLineText(c0, c0.suspects[0], 'Zed');
+  assert.ok(!line.includes('{victim}') && line.includes('Zed'));
+});
+
+test('storySoFar says nothing for guests she has not heard, and the first sentence once she has', () => {
+  let p = withOpening();
+  assert.ok(storySoFar(c0, p).every((r) => r.line === null));
+  assert.deepEqual(soFarLines(c0, p, c0.suspects[0]), []);
+  p = reduce(c0, p, { type: 'opening-talk', guest: c0.suspects[0] });
+  const rows = storySoFar(c0, p);
+  assert.ok(rows[0].line && rows[0].line.length > 0);
+  assert.equal(rows[1].line, null);
+});
+
+test('the opening sweep holds on a few seeds (check-cases runs many)', () => {
+  const stats: OpeningStats = { cases: 0, moved: 0 };
+  for (let seed = 0; seed < 3; seed++) openingSeed(seed, stats);
+  assert.equal(stats.cases, 3);
 });

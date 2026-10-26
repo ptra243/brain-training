@@ -8,6 +8,7 @@ import { clockAfterNext, minutesPerGame } from './explore.ts';
 import { GetClue } from './GetClue.tsx';
 import { GAMES } from './games/registry.tsx';
 import { suspectName, victimLine } from './names.ts';
+import { storySoFar } from './opening.ts';
 import { SCENE_TEASER, finaleOpen, gameDone, sceneGameInPlay, sceneText, unlockedClueIds, visibleClues, type Action, type Progress } from './state.ts';
 
 /** A campaign round's limit on puzzles (the word game is always free). */
@@ -43,6 +44,7 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly, fres
   const sceneKind = sceneGameInPlay(c, progress);
   const sceneGames = c.games.filter((g) => g.unlocksScene);
   const [choosing, setChoosing] = useState(false);
+  const [storyOpen, setStoryOpen] = useState(false);
   const [confirming, setConfirming] = useState<GameKind | null>(null);
   const puzzles = c.games.filter((g) => !g.unlocksScene);
   const open = (kind: GameKind) => {
@@ -128,6 +130,24 @@ export function CluesPanel({ c, progress, dispatch, onPlay, gate, readOnly, fres
           </>
         )}
       </article>
+
+      {c.campaign && (
+        <section className="story" aria-label="Story so far">
+          <button type="button" className="story-toggle" aria-expanded={storyOpen} onClick={() => setStoryOpen((o) => !o)}>
+            Story so far {storyOpen ? '▴' : '▾'}
+          </button>
+          {storyOpen && (
+            <ul className="story-list" data-testid="story-list">
+              {storySoFar(c, progress).map((row) => (
+                <li key={row.guest}>
+                  <span className="story-who">{suspectName(row.guest, c.guests)}</span>
+                  {row.line ?? 'Nothing yet'}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       {choosing && !exploring && (
         <Dialog labelId="choose-title" onClose={() => setChoosing(false)}>

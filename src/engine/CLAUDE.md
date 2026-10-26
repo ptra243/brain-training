@@ -132,3 +132,6 @@
   an unintended change, fix the code. If the change is intended (say, a
   content change), run `npm run update-golden`, and bump the storage prefix in
   `src/game/storage.ts` when saved progress would break.
+- **The campaign opening changes nothing here.** `src/game/opening.ts` and the
+  moved body (`bodyRoom` in `explore.ts`) are UI-side, seeded from the case
+  seed and guest ids, never the killer; no `Case` or `Content` field was added.

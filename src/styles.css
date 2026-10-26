@@ -765,7 +765,8 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
 /* Rooms are tapped, so a square must stay at least 44px wide: the frame gives up its padding for it. */
 .floorplan-frame.explore { padding: 0.15rem; }
 /* Rooms are narrow here: the body mark goes under the room name so it never runs past the plan. */
-.floorplan-frame.explore .body-mark { display: block; }
+.floorplan-frame.explore .body-mark, .floorplan-frame.explore .scene-mark { display: block; }
+.scene-mark { color: var(--brass-deep); }
 .tile-hit {
   position: absolute; inset: 0; z-index: 1; padding: 0; border: 0; background: transparent; cursor: pointer;
 }
@@ -898,3 +899,27 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
 .face-ending { display: grid; gap: 0.75rem; margin-top: 0.9rem; }
 .face-line { margin: 0; font-family: var(--serif); font-size: 1.1rem; }
 .face-line.narrator { font-style: italic; }
+
+/* ---------- Campaign opening ---------- */
+.opening { display: grid; gap: 0.85rem; padding: 0 1rem 2rem; }
+.opening-top { display: flex; align-items: center; gap: 0.6rem; }
+.opening-top .step { flex: none; }
+.opening-culprit { margin: 0; font-family: var(--serif); font-size: 1.35rem; color: var(--on-baize); line-height: 1.25; }
+.opening-room { margin: 0; color: var(--on-baize); font-family: var(--serif); }
+.opening-count { margin: 0; color: var(--on-baize); font-size: 0.95rem; }
+.opening-guests { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
+.opening-guest {
+  width: 100%; min-height: 4.5rem; display: grid; justify-items: center; align-content: center; gap: 0.2rem; padding: 0.4rem 0.2rem; cursor: pointer;
+  border-radius: 0.35rem; border: 1px solid var(--card-edge); background: var(--card); color: var(--ink);
+  font-family: var(--serif); font-size: 0.85rem; line-height: 1.1;
+}
+.opening-guest.talked { opacity: 0.7; }
+.opening-guest.talked::after { content: 'Spoken to'; font-size: 0.7rem; color: var(--brass-deep); }
+.opening-actions { display: grid; gap: 0.6rem; }
+.opening-line { margin: 0; font-family: var(--serif); font-style: italic; line-height: 1.4; }
+.opening-victim { margin: 0; font-family: var(--serif); line-height: 1.4; }
+.talk-sofar { margin: 0; font-family: var(--serif); font-size: 0.92rem; line-height: 1.4; }
+.story-toggle { width: 100%; min-height: 2.75rem; text-align: left; cursor: pointer; border: 1px solid var(--card-edge); border-radius: 0.35rem; background: var(--card); color: var(--ink); font-family: var(--serif); font-size: 1.05rem; font-weight: 700; padding: 0.4rem 0.8rem; }
+.story-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.story-list li { background: #fffcf3; border: 1px solid var(--card-edge); border-radius: 0.35rem; padding: 0.5rem 0.7rem; font-family: var(--serif); line-height: 1.4; color: var(--ink); }
+.story-list .story-who { display: block; font-weight: 700; font-size: 0.9rem; }

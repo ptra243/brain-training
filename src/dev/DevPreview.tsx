@@ -18,7 +18,10 @@ import { NosingBoardView } from '../game/games/NosingBoardView.tsx';
 import { buildNosing, nosingInitial, nosingView } from '../games/nosing.ts';
 import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
 import { NextMurderScene } from '../game/NextMurderScene.tsx';
-import { emptyProgress, type Progress } from '../game/state.ts';
+import { OpeningScene } from '../game/OpeningScene.tsx';
+import { campaignRound } from '../engine/campaign.ts';
+import { openingScript } from '../game/opening.ts';
+import { emptyProgress, reduce, type Progress } from '../game/state.ts';
 import { DogFightStates } from './DogFightStates.tsx';
 import { PortraitGallery } from './PortraitGallery.tsx';
 import { DevList } from './DevList.tsx';
@@ -53,6 +56,45 @@ function finishedProgress(c: Case): Progress {
   const games = c.games.filter((g) => !isSceneGame(g)).slice(0, budget);
   for (const g of games) p.games[g.kind] = { status: 'won', data: null };
   return p;
+}
+
+/** A round-1 campaign case whose opening has a cat sheet (free evidence), the first such code from a short list. */
+let openingSample: Case | undefined;
+function openingCase(): Case {
+  if (openingSample) return openingSample;
+  let found: Case | undefined;
+  for (const code of ['ABCDE', 'K7QF2', 'ZZZZZ', 'M3N4P', 'Q9R8S', 'T2U3V', 'W5X6Y', 'B7C8D']) {
+    const c = campaignRound(content, { mode: 'campaign', code, difficulty: 'medium' }, []);
+    found ??= c;
+    if (openingScript(c).catClues.length > 0) {
+      found = c;
+      break;
+    }
+  }
+  openingSample = { ...found!, explore: true };
+  return openingSample;
+}
+
+/** The opening's progress with the first `n` guests (and the cat, when asked) spoken to. */
+function openingProgress(c: Case, n: number, cat = false): Progress {
+  let p: Progress = { ...emptyProgress(), opening: { talked: [] } };
+  for (const g of c.suspects.slice(0, n)) p = reduce(c, p, { type: 'opening-talk', guest: g });
+  return cat ? reduce(c, p, { type: 'opening-cat' }) : p;
+}
+
+function OpeningPreview({ kind }: { kind: 'start' | 'midway' | 'cat' | 'skip' }) {
+  const c = openingCase();
+  const n = c.suspects.length;
+  const progress = openingProgress(c, kind === 'start' ? 0 : kind === 'cat' ? n : kind === 'skip' ? 2 : 3);
+  return (
+    <OpeningScene
+      c={c}
+      progress={progress}
+      dispatch={noop}
+      onHome={noop}
+      initial={kind === 'midway' ? { person: c.suspects[2] } : kind === 'cat' ? { person: 'cat' } : kind === 'skip' ? { skip: 'summary' } : undefined}
+    />
+  );
 }
 
 function NextMurderPreview() {
@@ -186,6 +228,10 @@ const SCREENS: Record<string, () => ReactNode> = {
   houses: () => <HousesPreview />,
   'nosing-houses': () => <NosingHousesPreview />,
   'next-murder': () => <NextMurderPreview />,
+  opening: () => <OpeningPreview kind="start" />,
+  'opening-midway': () => <OpeningPreview kind="midway" />,
+  'opening-cat': () => <OpeningPreview kind="cat" />,
+  'opening-skip': () => <OpeningPreview kind="skip" />,
   escaped: () => <EscapedPreview />,
   'guess-now': () => <GuessNowPreview />,
   'time-card': () => <TimeCardPreview />,

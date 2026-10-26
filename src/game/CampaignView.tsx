@@ -14,6 +14,7 @@ import { itemName, suspectName, victimLine } from './names.ts';
 import { currentRound, pick, puzzlesLeft, stillPossible, type CampaignSave, type Verdict } from './campaignSave.ts';
 import { generate } from './caseClient.ts';
 import { roundsKey } from './caseJobs.ts';
+import { OpeningScene } from './OpeningScene.tsx';
 import { NextMurderScene } from './NextMurderScene.tsx';
 import { Shuffling } from './Shuffling.tsx';
 import { campaignRow, effortLines } from './runRecord.ts';
@@ -105,6 +106,8 @@ export function CampaignView({ save, onSave, onHome }: Props) {
             window.scrollTo(0, 0);
           }}
         />
+      ) : ready && !pending && now === 0 && save.rounds[0].opening && !save.rounds[0].opening.done ? (
+        <OpeningRound save={save} c={ready[0]} onSave={onSave} onHome={onHome} />
       ) : ready && !pending ? (
         <CampaignRounds save={save} cases={ready} onSave={onSave} onHome={onHome} />
       ) : (
@@ -140,6 +143,19 @@ export function CampaignView({ save, onSave, onHome }: Props) {
         </Dialog>
       )}
     </>
+  );
+}
+
+/** Round 1's opening scene; the state lives in the round's progress, so a reload resumes. */
+function OpeningRound({ save, c: built, onSave, onHome }: { save: CampaignSave; c: Case; onSave: (s: CampaignSave) => void; onHome: () => void }) {
+  const c = useMemo((): Case => ({ ...built, explore: true }), [built]);
+  return (
+    <OpeningScene
+      c={c}
+      progress={save.rounds[0]}
+      dispatch={(a: Action) => onSave(holdRound(save, reduce(c, save.rounds[0], a)))}
+      onHome={onHome}
+    />
   );
 }
 

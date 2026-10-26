@@ -100,3 +100,9 @@
   `Shuffling` overlay. The client falls back to building on the main thread
   when workers fail; tests call the engine (or `runCaseJob`) directly. Board
   rebuilds (`endBoard`, `boardPuzzle`) stay on the main thread (≤60 ms on a PC).
+- **Campaign opening** (`docs/campaign-opening.md`): round 1 starts on `OpeningScene` (shown by
+  `CampaignView` while `Progress.opening` exists and isn't done). She talks to each guest once and the
+  cat shows the rest; the free clues arrive by who speaks them (`openingScript`), and Skip hands over
+  all of them. State is `Progress.opening`; a save without it goes straight to the casebook. The body
+  can lie in another room (`bodyRoom`, about 1 in 4); accusations and the end board still use the
+  scene room. `openingSweeps.ts` checks it in `check-cases`.

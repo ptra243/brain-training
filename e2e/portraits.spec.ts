@@ -1,4 +1,4 @@
-import { test, expect, newCase, openTab } from './fixtures.ts';
+import { test, expect, newCase, openTab, skipOpening } from './fixtures.ts';
 import { checkScreen } from './rules.ts';
 import { walkTo } from './walk.ts';
 
@@ -35,6 +35,7 @@ test('campaign person dialog: the Butler shows the large portrait card with the 
   await page.goto('/');
   await page.getByRole('button', { name: 'New campaign' }).click();
   await page.getByRole('button', { name: 'Start the campaign' }).click();
+  await skipOpening(page);
   await expect(page.getByRole('navigation', { name: 'Rounds' })).toBeVisible();
 
   const row = page.locator('.person-row', { hasText: 'The Butler' });

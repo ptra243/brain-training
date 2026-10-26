@@ -4,7 +4,7 @@ import { houseDetails } from '../content/index.ts';
 import type { Case, GameKind, House } from '../engine/types.ts';
 import { PlanFrame } from './PlanFrame.tsx';
 import { ownerMap, tapRect } from './plan.ts';
-import { playerPortrait, portraits, type PortraitParts } from '../content/portraits.ts';
+import { playerPortrait, portraits, type CatCoat, type PortraitParts } from '../content/portraits.ts';
 import { talk } from '../content/talk.ts';
 import { Dialog } from './Dialog.tsx';
 import { canOpen, centreCell, clockAfterNext, minutesPerGame, openPuzzlesIn, bodyRoom, roomContents, roomsSeen, standSpots, whereAmI } from './explore.ts';
@@ -37,11 +37,11 @@ interface Props {
 type PersonTab = 'talk' | 'minigame' | 'clues';
 
 /** Ivory card: the drawn portrait, or initials when this guest has none yet. */
-export function PortraitCard({ parts, tint, caption, initials, colour }: { parts?: PortraitParts; tint: Tint; caption: string; initials?: string; colour?: string }) {
+export function PortraitCard({ parts, coat, tint, caption, initials, colour }: { parts?: PortraitParts; coat?: CatCoat; tint: Tint; caption: string; initials?: string; colour?: string }) {
   return (
     <figure className="portrait portrait-card" aria-hidden="true">
       <span className="portrait-art">
-        {parts ? <Portrait parts={parts} view="full" tint={tint} /> : <span className="portrait-fallback" style={{ background: colour }}>{initials}</span>}
+        {parts ? <Portrait parts={parts} view="full" tint={tint} /> : coat ? <Portrait coat={coat} view="full" tint={tint} /> : <span className="portrait-fallback" style={{ background: colour }}>{initials}</span>}
       </span>
       <figcaption>{caption}</figcaption>
     </figure>
@@ -98,6 +98,8 @@ function PersonClues({ c, progress, dispatch, suspect }: { c: Case; progress: Pr
 export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPlay, house = houseOf(c) }: Props) {
   const contents = useMemo(() => roomContents(houseDetails, c), [c]);
   const here = whereAmI(c, progress);
+  const body = bodyRoom(c);
+  const moved = body !== c.sceneRoom;
   const frozen = !!readOnly || !!locked;
   const picked = gate?.picked ?? [];
   const left = gate?.left ?? 0;
@@ -171,13 +173,18 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
           return {
             className: `${room.id === c.sceneRoom ? 'scene' : ''} ${room.id === here ? 'here' : ''}`,
             onClick: inPlay ? () => go(room.id) : undefined,
-            labelSuffix: room.id === bodyRoom(c) && <span className="body-mark"> ✕ body</span>,
+            labelSuffix: (
+              <>
+                {room.id === body && <span className="body-mark"> ✕ body</span>}
+                {moved && room.id === c.sceneRoom && <span className="scene-mark"> ◆ scene</span>}
+              </>
+            ),
             labelChildren: isLabel && inPlay && (
               <button
                 className="tile-hit"
                 style={hitStyle}
                 disabled={frozen}
-                aria-label={`${room.name}${room.id === bodyRoom(c) ? ', where the body was found' : ''}${room.id === here ? ', you are here' : ''}${todo ? ', something to do' : ''}`}
+                aria-label={`${room.name}${room.id === body ? ', where the body was found' : ''}${moved && room.id === c.sceneRoom ? ', where it happened, drag marks lead here' : ''}${room.id === here ? ', you are here' : ''}${todo ? ', something to do' : ''}`}
                 aria-current={room.id === here ? 'location' : undefined}
                 onClick={(ev) => {
                   ev.stopPropagation();

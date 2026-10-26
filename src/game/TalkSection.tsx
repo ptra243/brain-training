@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { talk } from '../content/talk.ts';
 import type { Case, GameKind } from '../engine/types.ts';
+import { soFarLines } from './opening.ts';
 import { greeting, questioningOf, readyBeats, setsFor } from './talk.ts';
 import { gameDone, type Action, type Progress } from './state.ts';
 
@@ -26,10 +27,16 @@ export function TalkSection({ c, progress, dispatch, suspect, onQuestion, idleLi
   const questioning = questioningOf(c, suspect);
   const question = questioning && !gameDone(progress, questioning.kind) && onQuestion ? questioning : undefined;
   const more = heard < set.thread.length;
+  const soFar = soFarLines(c, progress, suspect);
 
   return (
     <section className="talk" aria-labelledby="talk-title">
       <h3 id="talk-title">Talk</h3>
+      {soFar.length > 0 && (
+        <p className="talk-sofar" data-testid="talk-sofar">
+          <strong>So far:</strong> {soFar.join(' ')}
+        </p>
+      )}
       <p className="talk-greeting">“{greeting(set, heard, talk.greetings)}”</p>
       <div className="talk-pips" role="img" aria-label={`${heard} of ${set.thread.length} heard`}>
         {set.thread.map((_, i) => (

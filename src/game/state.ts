@@ -4,7 +4,9 @@
 // The map and the grid share one source of truth: a suspect's token sits in
 // a room exactly when the suspect×room cell holds a tick ('o').
 
+import { opening } from '../content/talk.ts';
 import { isInterrogation, isSceneGame } from '../engine/gameKinds.ts';
+import { fillIn } from '../engine/text.ts';
 import type { Case, Clue, GameKind, GameSpec } from '../engine/types.ts';
 import type { GridHintState } from './gridHints.ts';
 import { bodyRoom } from './explore.ts';
@@ -287,7 +289,7 @@ export function sceneText(c: Case, p: Progress): string | null {
   if (c.explore) {
     const body = bodyRoom(c);
     if (body === c.sceneRoom) return `The body was found in the ${roomName(c.sceneRoom)}.`;
-    return `The body was found in the ${roomName(body)}, but the drag marks lead back to the ${roomName(c.sceneRoom)}.`;
+    return fillIn(opening.dragMarks, { room: roomName(body), scene: roomName(c.sceneRoom) });
   }
   const done = c.games.filter(isSceneGame).find((g) => gameDone(p, g.kind));
   return done ? done.scene.text : null;

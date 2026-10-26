@@ -11,6 +11,10 @@ export interface PreviewInfo {
 
 export const PREVIEWS: readonly PreviewInfo[] = [
   { id: 'next-murder', about: 'The next-murder scene between rounds', look: 'game' },
+  { id: 'opening', about: 'The campaign opening at the start: the culprit line, 0 of N spoken to, the guests in a grid, Skip', look: 'game' },
+  { id: 'opening-midway', about: 'The opening part-way: some guests spoken to, one guest sheet open with the victim line and a clue', look: 'game' },
+  { id: 'opening-cat', about: 'The opening after every guest: the cat sheet before and its clue (or the goodbye dialog)', look: 'game' },
+  { id: 'opening-skip', about: 'The skip summary: clues in the casebook and the guests not spoken to', look: 'game' },
   { id: 'escaped', about: 'The killer got away dialog', look: 'game' },
   { id: 'guess-now', about: 'The Guess now? warning', look: 'game' },
   { id: 'time-card', about: 'The time card after a puzzle', look: 'game' },

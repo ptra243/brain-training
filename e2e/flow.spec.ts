@@ -1,4 +1,4 @@
-import { test, expect, newCase, openTab } from './fixtures.ts';
+import { test, expect, newCase, openTab, skipOpening } from './fixtures.ts';
 import { checkScreen } from './rules.ts';
 
 test('campaign: home, setup, start, campaign view', async ({ page }) => {
@@ -8,6 +8,7 @@ test('campaign: home, setup, start, campaign view', async ({ page }) => {
   await checkScreen(page, 'campaign setup');
 
   await page.getByRole('button', { name: 'Start the campaign' }).click();
+  await skipOpening(page);
   const rounds = page.getByRole('navigation', { name: 'Rounds' });
   await expect(rounds).toBeVisible();
   await expect(rounds.getByRole('button').first()).toHaveAttribute('aria-pressed', 'true');
@@ -49,6 +50,7 @@ test('campaign: one clue a puzzle offers five puzzles', async ({ page }) => {
   await page.getByRole('button', { name: 'New campaign' }).click();
   await page.getByRole('group', { name: 'Clues per puzzle' }).getByRole('button', { name: 'One', exact: true }).click();
   await page.getByRole('button', { name: 'Start the campaign' }).click();
+  await skipOpening(page);
   await expect(page.getByRole('navigation', { name: 'Rounds' })).toBeVisible();
   await openTab(page, 'Clues');
   await expect(page.getByText('You can play four of these five puzzles')).toBeVisible();

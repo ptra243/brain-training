@@ -1,8 +1,6 @@
 # Campaign opening: build plan
 
-Status: designed 2026-10-23 with the owner; nothing built yet. Run this in a fresh session that reads this doc,
-delegates the pieces to `implementer` agents (see "Delegation") and commits. The design is settled; only the
-"Open" list at the end is left to the owner.
+Status: built 2026-10-26 (all four pieces). Only the "Open" list at the end is left to the owner.
 
 ## What it is
 Round 1 of a campaign opens with a skippable scene before the casebook. The body has been found (sometimes

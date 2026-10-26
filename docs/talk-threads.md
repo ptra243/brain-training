@@ -158,3 +158,9 @@ Marked U = speaker upright, R = speaker reversed; "partner" = `{other}`'s readin
   so check them together).
 - Whether the Conjurer's pair line leans too close to the Detective's role (rule 5 and the "no lies" rule are fine; the
   question is variety).
+
+## Use in the campaign opening (built 2026-10-24)
+Round 1's opening scene (`docs/campaign-opening.md`) plays each guest's beat 1 (the relationship line,
+today the placeholder `victimLines`) when she talks to them, through the `opening-talk` action, which
+reuses `talk-hear` so beat 1 is counted as heard (one pip). The same first sentence feeds the "So far"
+line in the talk dialog and the Story so far list.

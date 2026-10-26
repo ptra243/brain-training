@@ -44,3 +44,14 @@ export async function newCase(page: Page) {
 
 export const tabBar = (page: Page) => page.getByRole('navigation', { name: 'Casebook' });
 export const openTab = (page: Page, name: string) => tabBar(page).getByRole('button', { name }).click();
+
+/**
+ * The campaign opens on the opening scene: Skip, confirm, past the summary, until the casebook's round bar shows.
+ * Call it right after "Start the campaign". Specs about the opening itself go through the scene instead.
+ */
+export async function skipOpening(page: Page) {
+  await page.getByRole('button', { name: 'Skip', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Skip', exact: true }).click();
+  await page.getByRole('button', { name: 'Open the casebook' }).click();
+  await expect(page.getByRole('navigation', { name: 'Rounds' })).toBeVisible();
+}

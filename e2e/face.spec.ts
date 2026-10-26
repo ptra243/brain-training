@@ -1,4 +1,4 @@
-import { test, expect, openTab } from './fixtures.ts';
+import { test, expect, openTab, skipOpening } from './fixtures.ts';
 import { checkScreen } from './rules.ts';
 
 // Face to face: after an accusation in a campaign the accused is questioned before the verdict shows.
@@ -7,6 +7,7 @@ async function accuseFirstGuest(page: import('@playwright/test').Page) {
   await page.goto('/');
   await page.getByRole('button', { name: 'New campaign' }).click();
   await page.getByRole('button', { name: 'Start the campaign' }).click();
+  await skipOpening(page);
   await expect(page.getByRole('navigation', { name: 'Rounds' })).toBeVisible();
   await openTab(page, 'Accuse');
   // With the fixture's seed the first guest is not the killer.

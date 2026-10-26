@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { test, expect, openTab, tabBar } from './fixtures.ts';
+import { test, expect, openTab, tabBar, skipOpening } from './fixtures.ts';
 import { checkScreen } from './rules.ts';
 import { clickRoom, rooms, walkTo } from './walk.ts';
 
@@ -9,6 +9,7 @@ async function startCampaign(page: Page) {
   await page.goto('/');
   await page.getByRole('button', { name: 'New campaign' }).click();
   await page.getByRole('button', { name: 'Start the campaign' }).click();
+  await skipOpening(page);
   await expect(page.getByRole('navigation', { name: 'Rounds' })).toBeVisible();
 }
 

@@ -47,6 +47,13 @@ function playedOut(save: CampaignSave, c: Case): CampaignSave {
   return { ...next, rounds };
 }
 
+/** Round 1's opening marked done, so the casebook shows (the scene is `campaign-opening`). */
+function openingDone(save: CampaignSave): CampaignSave {
+  const rounds = save.rounds.slice();
+  rounds[0] = { ...rounds[0], opening: { talked: [], done: true } };
+  return { ...save, rounds };
+}
+
 /** A campaign after `wrong` wrong accusations: the next body found each time. */
 function campaignAfter(wrong: number): CampaignSave {
   let save = newCampaign(campaignRef);
@@ -65,14 +72,19 @@ function loadCampaign(save: CampaignSave) {
 
 export const SCENARIOS: readonly Scenario[] = [
   {
-    id: 'campaign-start',
-    about: 'A new campaign at the start of round 1, nothing played',
+    id: 'campaign-opening',
+    about: 'A new campaign at round 1 with the opening scene not started',
     load: () => loadCampaign(newCampaign(campaignRef)),
+  },
+  {
+    id: 'campaign-start',
+    about: 'A new campaign at the start of round 1 (opening done), nothing played',
+    load: () => loadCampaign(openingDone(newCampaign(campaignRef))),
   },
   {
     id: 'campaign-midnight',
     about: 'Round 1 with every puzzle played: the clock reads midnight and the map is locked',
-    load: () => loadCampaign(playedOut(newCampaign(campaignRef), roundCase(content, newCampaign(campaignRef), 0))),
+    load: () => loadCampaign(playedOut(openingDone(newCampaign(campaignRef)), roundCase(content, newCampaign(campaignRef), 0))),
   },
   {
     id: 'campaign-last-round',

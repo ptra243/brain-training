@@ -4,8 +4,10 @@
 
 import { Rng, hashSeed } from '../engine/rng.ts';
 import type { Case, Clue } from '../engine/types.ts';
+import { victimLines } from '../content/talk.ts';
 import { bodyRoom } from './explore.ts';
 import type { Progress } from './state.ts';
+import { setsFor } from './talk.ts';
 
 /** How a guest knew the victim (keys of `victimLines` in `src/content/talk.ts`). */
 export const RELATIONSHIPS = ['debt', 'rival', 'fondness', 'family'] as const;
@@ -42,6 +44,48 @@ export function openingScript(c: Case): OpeningScript {
     (teller ? teller.clues : catClues).push(clue.id);
   }
   return { room: bodyRoom(c), guests, catClues };
+}
+
+/** Where the scene is: guests still to talk to, then the cat (only with evidence to show), then the goodbye. */
+export function openingStep(c: Case, p: Progress): 'guests' | 'cat' | 'finish' {
+  const o = p.opening;
+  if (!o) return 'finish';
+  if (c.suspects.some((g) => !o.talked.includes(g))) return 'guests';
+  if (!o.cat && openingScript(c).catClues.length > 0) return 'cat';
+  return 'finish';
+}
+
+/** "A, B and C". */
+export function joinNames(names: readonly string[]): string {
+  if (names.length <= 1) return names.join('');
+  return `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+}
+
+/** The first sentence of a beat (the whole text when it has no full stop to cut at). */
+export function firstSentence(text: string): string {
+  const m = /^.*?[.!?…](?=\s|$)/s.exec(text.trim());
+  return (m ? m[0] : text).trim();
+}
+
+/** The first sentence of each beat she has heard from this guest, in order. Empty when none. */
+export function soFarLines(c: Case, p: Progress, guest: string): string[] {
+  const heard = p.talk?.[guest] ?? 0;
+  const thread = setsFor(c)[guest]?.thread ?? [];
+  return thread.slice(0, heard).map(firstSentence);
+}
+
+/** The Story so far page: a row per seated guest, with `line` null when she hasn't heard them. */
+export function storySoFar(c: Case, p: Progress): { guest: string; line: string | null }[] {
+  return c.suspects.map((guest) => {
+    const lines = soFarLines(c, p, guest);
+    return { guest, line: lines.length ? lines.join(' ') : null };
+  });
+}
+
+/** A guest's line about the victim, with the victim's display name filled in. */
+export function victimLineText(c: Case, guest: string, victimName: string): string {
+  const { type, line } = victimLineKey(c, guest);
+  return victimLines[type][line].replaceAll('{victim}', victimName);
 }
 
 /** What a skip hands her: every free clue (skipping costs none) and the guests she didn't talk to. */

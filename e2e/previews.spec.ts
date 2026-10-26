@@ -73,3 +73,15 @@ test('an unknown preview lists the real ones', async ({ page }) => {
   await page.goto('/#dev/nope');
   await expect(page.getByRole('link', { name: 'next-murder' })).toBeVisible();
 });
+
+for (const id of ['opening', 'opening-midway', 'opening-cat', 'opening-skip']) {
+  test(`${id} preview`, async ({ page }) => {
+    await page.goto(`/#dev/${id}`);
+    await expect(page.getByTestId('opening-scene')).toBeVisible();
+    if (id === 'opening') await expect(page.getByTestId('opening-count')).toContainText('0 of');
+    if (id === 'opening-midway') await expect(page.getByTestId('opening-person')).toBeVisible();
+    if (id === 'opening-cat') await expect(page.getByTestId('opening-cat')).toBeVisible();
+    if (id === 'opening-skip') await expect(page.getByRole('dialog', { name: 'Skipped' })).toBeVisible();
+    await checkScreen(page, `preview ${id}`);
+  });
+}

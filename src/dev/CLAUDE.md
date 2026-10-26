@@ -38,6 +38,12 @@ What a look check judges on each:
 
 - `next-murder`: the stormy scene, scream and clock, with the title and the
   "Tap to go on" line clear of the art; nothing clipped.
+- `opening`: the campaign opening at the start: "Someone in this room is the culprit.", "0 of N spoken to", the
+  guests in a 3-wide grid (counters 44px+, names readable), Skip; no sideways scroll.
+- `opening-midway`: three guests spoken to and one guest sheet open: both portraits, greeting, victim line, beat 1
+  and a clue card; nothing clipped.
+- `opening-cat`: every guest spoken to, the cat's sheet open (cat portrait, intro, the "See what ... found" button).
+- `opening-skip`: the skip summary dialog: clue count, the guests not spoken to, one button.
 - `escaped`: "The killer got away" dialog, centred, one "See the case" button.
 - `guess-now`: the Guess now? dialog, with "Not yet" and "Guess now" side by
   side and easy to tell apart.
@@ -75,7 +81,8 @@ functions (`src/dev/scenarios.ts`), never a committed file. Loading asks first
 builds the same states from the same builders; add a test to
 `e2e/scenarios.spec.ts` for each new one.
 
-- `campaign-start`: a new campaign, round 1, nothing played.
+- `campaign-opening`: a new campaign, round 1, the opening scene not started.
+- `campaign-start`: a new campaign, round 1, the opening already done (opens on the casebook), nothing played.
 - `campaign-midnight`: round 1 with every puzzle played, map locked.
 - `campaign-last-round`: round 3 after two wrong accusations; the next wrong
   one lets the killer escape.

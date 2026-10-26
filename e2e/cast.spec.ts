@@ -1,4 +1,4 @@
-import { test, expect, newCase, openTab } from './fixtures.ts';
+import { test, expect, newCase, openTab, skipOpening } from './fixtures.ts';
 import { checkScreen } from './rules.ts';
 
 // Seed 3's first draw builds a known dinner (scanned once; the cast is rolled from the case code):
@@ -28,6 +28,7 @@ test('a new campaign names the body on the Clues tab', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'New campaign' }).click();
   await page.getByRole('button', { name: 'Start the campaign' }).click();
+  await skipOpening(page);
   await expect(page.getByRole('navigation', { name: 'Rounds' })).toBeVisible();
 
   await openTab(page, 'Clues');

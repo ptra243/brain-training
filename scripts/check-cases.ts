@@ -41,6 +41,7 @@ import { LEVELS as NOSING_LEVELS_LIST, botSeed as nosingBotSeed, dogSquareSeed a
 import { BOARD_SEEDS, boardSeed as nosingBoardSeed } from '../src/games/nosingBoardSweeps.ts';
 import { LEVELS as DOG_LEVELS, challengeSeed as dogChallengeSeed, dogPlaysSeed, doubleSeed as dogDoubleSeed, hintBotSeed as dogHintBotSeed, redealSeed as dogRedealSeed, smallestBotSeed as dogSmallestBotSeed } from '../src/games/dogFightSweeps.ts';
 import { faceSeed, type FaceStats } from '../src/game/faceSweeps.ts';
+import { movedRateOk, openingSeed, type OpeningStats } from '../src/game/openingSweeps.ts';
 import { compareSearch, FACT_TYPES as SEARCH_FACT_TYPES } from '../src/engine/searchSweeps.ts';
 import { LOCK_LEVELS, LOCK_SEEDS, lockHintSeed, lockPrefixSeed, lockTierSeed } from '../src/games/lockSweeps.ts';
 import { CROSSWORD_SIZES, crosswordSeed as crosswordGridSeed, roomThings, sceneCaseSeed } from '../src/game/sceneGamesSweeps.ts';
@@ -932,6 +933,15 @@ if (!NOSING_ONLY) {
     console.log(`Face to face: ${stats.killers} killer and ${stats.innocents} innocent questionings fair (${stats.cracks} killers crack: no clue catches a lie)`);
   }
   section('face to face');
+
+  // Campaign opening (src/game/openingSweeps.ts): the test keeps seeds 0-2.
+  {
+    const stats: OpeningStats = { cases: 0, moved: 0 };
+    for (const seed of seedsOf(3, 400, FULL ? 400 : 80)) holds('opening', `opening seed ${seed}`, () => openingSeed(seed, stats));
+    if (!movedRateOk(stats)) holds('opening', 'moved-body rate', () => { throw new Error(`${stats.moved} of ${stats.cases} bodies moved`); });
+    console.log(`Opening: ${stats.cases} campaigns deliver every free clue once and meet every guest; ${stats.moved} bodies moved`);
+  }
+  section('opening');
 }
 
 if (!NOSING_ONLY) console.log(`Talk: ${talkChecked.guests} guests have a thread; ${talkChecked.short} still have a beat waiting for the solved case once every game is done`);
