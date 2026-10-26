@@ -64,3 +64,15 @@ Each seated guest has a thread about how they knew the victim, the whodunit "eve
 Quick play stays puzzles first: guests are window dressing there, with loose lines and their own thread
 only; no pair or victim threads. Its victim is named (`Case.victim`, 2026-10-22). Threads still are not
 built on who it is.
+
+## Alongside the theme content work
+The Theme content session (`docs/theme-content.md`, planned 2026-10-26) fills the card pools at the same
+time. To keep the two apart:
+- A prequel and cast sheets (`docs/prequel.md`, `docs/cast-sheets.md`) are planned as its improvement
+  step, after the main work. If they exist by then, draw pair and victim threads from them.
+- Victim threads are written here. Theme content leaves the placeholder `victimLines` alone.
+- Build after its step 1 lands: it splits the talk content into `src/content/talk/` and creates empty
+  `victims.ts` and `pairs.ts` for this work, and it changes `src/engine/sets.ts` too. Design can start any time.
+- Use its style sheet (`.claude/handoff/theme-lines.md`) for the final pair and victim copy.
+- Share one storage prefix bump with it and part B if the timing allows. Each bump discards her saved
+  progress, so otherwise bump only when she's between campaigns.

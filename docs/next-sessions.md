@@ -33,18 +33,13 @@ Read docs/tarot-faces.md and src/content/tarotArt.ts, settle the pip layout and 
 ```
 
 ## Session: Theme content, tarot cast and line pools
-Last touched: 2026-10-22
-Reads first: `docs/theme-draft.md`. Best after "The cast", which fixes the roles.
-Goal: every pool is drafted (2026-10-22): 10 guests and 5 extra cards, borrowing table, borrowed
-lines per pair, 40 tangents, card + object threads, cold greetings, funnier tone. What's left:
-- Card threads: one per card per reading (one thread per suspect, `docs/talk-threads.md`); 2 drafted.
-- Card + object gaps listed at the end of that section (Chariot and Sun have none).
-- Pool size: grow the core cast to 10 to 12 lines per reading before the campaign.
-- The cast and drafted lines are in `src/content/` (2026-10-22). Card threads past the two drafted are
-  a first pass in `talk.ts`: polish them there. Card names on counters at 360px wait for tarot mode.
+Last touched: 2026-10-26
+Reads first: `docs/theme-content.md` (plan, decisions, targets), `docs/theme-draft.md` (rules for the lines).
+Goal: bring every talk pool to target in `src/content/talk.ts`: 10 loose lines per reading, 2 polished
+threads, 45 card + object pairs, rolled greetings and wired borrowed lines. Planned 2026-10-26.
 Starting prompt:
 ```
-Read docs/theme-draft.md, draft one card thread per card per reading for the 15 cards, then fill the card + object gaps.
+Read docs/theme-content.md and brief the implementer on step 1, then brief four Opus writers on step 2.
 ```
 
 ## Session: Talk and threads, part B
@@ -102,7 +97,7 @@ Read docs/secrets.md, go through its Open list with me, then draft the six secre
 
 ## Session: Relationships between characters
 Last touched: 2026-10-23
-Reads first: `docs/relationships.md` (the ideas to settle), `docs/theme-draft.md` (Follow-up threads,
+Reads first: `docs/relationships.md` (the ideas to settle, and its last section on the theme content work), `docs/theme-draft.md` (Follow-up threads,
 Model, the cast), `docs/talk-threads.md` (trigger list, settled).
 Goal: make characters react to each other without anything depending on the killer: card-pair and
 shared-card threads, the `heard` trigger, and campaign-only victim threads (needed by the campaign opening).
