@@ -66,7 +66,10 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
   (includes the golden snapshot), `npm run sweeps` (the seed sweeps and the case
   check, the `*.sweep.ts` files; only those whose imports changed since
   origin/main run), `npm run build`.
-  Re-run just the failing check while fixing. For UI changes also run
+  Re-run just the failing check while fixing. While working, run only what
+  you touched (`node --test src/engine/board.test.ts`, `node scripts/sweeps.ts
+  src/engine/cases.quick.sweep.ts`); the whole `npm run checks` (about 30 s)
+  is for before committing. For UI changes also run
   `npm run e2e`. Generator changes: see `src/engine/CLAUDE.md`.
 - Design questions: read the code first, then ask once with a concrete
   proposal (the numbers, a table of what each setting does, what stays
