@@ -26,6 +26,16 @@ stands. A blocked entry keeps its rank and names its blocker in the heading.
 open questions go in a linked `docs/<slug>.md`, and the entry points to it. An exploratory idea with no
 settled design may stay as a short stub; give it a doc when someone starts it.
 
+## Session: Case check speed, campaign walk and end boards
+Last touched: 2026-10-26
+Reads first: `docs/case-check-split.md` ("Where the time goes"), `src/engine/caseChecks.ts`, `src/engine/cases.houses.sweep.ts`.
+Measured after piece G: the campaign walk is 71% of the houses sweep (the slowest, ~10.6 s quick); end boards (2 per case, ~11 ms) are a third of the presets sweep. Making the case (~15 ms) is the other big cost.
+Goal: cut the quick case sweeps' time without checking less: fewer walked rounds in quick mode, end boards proven in their own sweep, or a faster end board.
+Starting prompt:
+```
+Read docs/case-check-split.md ("Where the time goes") and rerun .claude/handoff/case-check-split/time-parts.ts. Profile the campaign walk and endBoard, then propose to me (with numbers) how to cut each, before briefing the implementer.
+```
+
 ## Session: Theme content, land the lines
 Last touched: 2026-10-26
 Reads first: `docs/motive-outlines.xlsx`, `docs/theme-threads.md` (Direction).
@@ -132,11 +142,11 @@ Read the Map rules in src/game/CLAUDE.md, then propose how to make the map count
 ## Session: Case check split into sweep files
 Last touched: 2026-10-26
 Reads first: `docs/case-check-split.md` (Status, "After the split — builders that cannot fail").
-Pieces 0, A–G done 2026-10-26: the case check is `src/engine/cases.*.sweep.ts`, and the word search is built word first with no blanks (~1 ms, was 12), so the case files no longer build it. Left: the crossword and the case and end boards still build inside the case files.
+Pieces 0, A–G done 2026-10-26: the case check is `src/engine/cases.*.sweep.ts`, and the word search is built word first with no blanks (~1 ms, was 12), so the case files no longer build it. Not done: the crossword and the case and end boards still build inside the case files. Timing ("Where the time goes") puts the crossword third, so "Case check speed" goes first.
 Goal: the case files check only case logic and wiring; each game proves it always builds in its own sweep.
 Starting prompt:
 ```
-Read docs/case-check-split.md ("After the split — builders that cannot fail"). Propose to me how the crossword can always build (as piece G did for the word search: measure first), then brief it to the implementer.
+Read docs/case-check-split.md ("Where the time goes", "After the split — builders that cannot fail"). Propose to me how the crossword can always build (as piece G did for the word search: measure first), then brief it to the implementer.
 ```
 
 ## Session: Two-storey houses, picked per case

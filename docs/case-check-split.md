@@ -286,6 +286,25 @@ of `npm run sweeps` reported, with the slowest file.
 removed in-case check isn't covered by an accepted A–D, C2 or F file; the houses
 file is over ~25s quick (then propose splitting it by house, don't do it).
 
+### Where the time goes (measured 2026-10-26, after piece G)
+
+Each part of the check timed on the quick presets and houses sweeps' cases
+(`.claude/handoff/case-check-split/time-parts.ts`; run it from the repo root):
+
+| Part | Presets (138 cases) | Houses (80 cases + rounds) |
+|---|---|---|
+| Campaign walk (whole) | — | 7.0 s, 71% |
+| Making the case (`generateCase`) | 14.2 ms/case, 42% | 15.6 ms/case, 13% |
+| End boards (2 per case) | 11.2 ms/case, 34% | 11.1 ms/case, 9% |
+| Crossword | 7.4 ms/case, 22% | 5.4 ms/case, 4% |
+| Nosing | 0 | 2.9 ms/case, 2% |
+| Case board puzzle, talk, one-solution search, interrogations, tarot | under 0.5 ms/case together | same |
+
+The real `problems()` run right after the parts took about 10 ms a case
+against their ~19 ms sum, so something is cached or warmed by the second
+pass: treat the figures as a little high, the ranking as sound. So the
+order of work is the campaign walk and end boards, then the crossword.
+
 ### After the split — builders that cannot fail (not started)
 
 The case files still build every case's word games (~11.5s) and boards
