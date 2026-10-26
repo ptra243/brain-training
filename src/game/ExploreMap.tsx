@@ -5,7 +5,6 @@ import type { Case, GameKind, House } from '../engine/types.ts';
 import { PlanFrame } from './PlanFrame.tsx';
 import { ownerMap, tapRect } from './plan.ts';
 import { playerPortrait, portraits, type CatCoat, type PortraitParts } from '../content/portraits.ts';
-import { talk } from '../content/talk.ts';
 import { Dialog } from './Dialog.tsx';
 import { canOpen, centreCell, clockAfterNext, minutesPerGame, openPuzzlesIn, bodyRoom, roomContents, roomsSeen, standSpots, whereAmI } from './explore.ts';
 import { GAMES } from './games/registry.tsx';
@@ -140,7 +139,9 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
     gameDone(progress, kind) ? '✓' : usedUp(kind) ? '–' : progress.games[kind]?.status === 'playing' ? 'Continue' : 'Play';
 
   const personRoom = person ? (Object.keys(contents).find((room) => contents[room].guests.includes(person)) ?? here) : here;
-  const personTint = person ? moodTint(setsFor(c)[person], progress.talk?.[person] ?? 0, talk.greetings) : 'none';
+  const personTint = !person
+    ? 'none'
+    : moodTint(setsFor(c)[person], progress.talk?.[person] ?? 0, setsFor(c)[person].greetings);
   const withThem = !!person && personRoom === here;
 
   return (

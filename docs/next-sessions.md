@@ -29,12 +29,13 @@ settled design may stay as a short stub; give it a doc when someone starts it.
 ## Session: Theme content, land the lines
 Last touched: 2026-10-26
 Reads first: `docs/motive-outlines.xlsx`, `docs/theme-threads.md` (Direction).
-Steps 1 to 3 are done. Landing is paused. Draft outlines for all 60 guest-and-card motives are in
-`docs/motive-outlines.xlsx` for the owner to edit. Spoken lines wait until those edits are in.
-Goal: the owner edits the outlines. Talk can make a guest look guilty, and it is never a clue. No storage bump yet.
+Steps 1 to 3 are done. All 60 outlines are drafted in `docs/motive-outlines.xlsx`, and the Notes
+column marks each row keep or rework, with suggested rewrites. Pilot built: threads keyed by guest and
+card (`src/content/talk/motives.ts`, `{victim}` filled in on show; `#dev/motives` shows them all). Only the Financier's six are written.
+Goal: the owner edits the outlines and judges the pilot, then the other nine guests get motive threads. Talk can make a guest look guilty, and it is never a clue.
 Starting prompt:
 ```
-Read the Direction section of docs/theme-threads.md and docs/motive-outlines.xlsx. The sheet has a draft in every row. Help me edit the ones I have marked, and do not rewrite the spoken lines until I say the outlines are ready.
+Read docs/motive-outlines.xlsx (Notes column) and src/content/talk/motives.ts. Ask me how the Financier pilot reads on #dev/motives, then write the next guest's six threads from the rows I have approved.
 ```
 
 ## Session: Tarot card faces

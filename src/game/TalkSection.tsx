@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
-import { talk } from '../content/talk.ts';
+import type { CharacterSet } from '../engine/sets.ts';
 import type { Case, GameKind } from '../engine/types.ts';
 import { soFarLines } from './opening.ts';
-import { greeting, questioningOf, readyBeats, setsFor } from './talk.ts';
+import { suspectName } from './names.ts';
+import { beatText, greeting, questioningOf, readyBeats, setsFor } from './talk.ts';
 import { gameDone, type Action, type Progress } from './state.ts';
 
 interface Props {
@@ -23,12 +24,37 @@ interface Props {
 export function TalkSection({ c, progress, dispatch, suspect, onQuestion, idleLine }: Props) {
   const set = useMemo(() => setsFor(c)[suspect], [c, suspect]);
   const heard = progress.talk?.[suspect] ?? 0;
-  const ready = readyBeats(c, progress, suspect, set.thread.length);
   const questioning = questioningOf(c, suspect);
   const question = questioning && !gameDone(progress, questioning.kind) && onQuestion ? questioning : undefined;
-  const more = heard < set.thread.length;
-  const soFar = soFarLines(c, progress, suspect);
+  return (
+    <TalkView
+      set={set}
+      heard={heard}
+      ready={readyBeats(c, progress, suspect, set.thread.length)}
+      victimName={suspectName(c.victim, c.guests)}
+      onHear={() => dispatch({ type: 'talk-hear', suspect })}
+      soFar={soFarLines(c, progress, suspect)}
+      idleLine={idleLine}
+      onQuestion={question ? () => onQuestion?.(question.kind) : undefined}
+    />
+  );
+}
 
+interface ViewProps {
+  set: Pick<CharacterSet, 'mood' | 'greetings' | 'thread'>;
+  heard: number;
+  ready: number;
+  victimName: string;
+  onHear: () => void;
+  soFar?: readonly string[];
+  idleLine?: string;
+  /** Shows "Question them" when given. */
+  onQuestion?: () => void;
+}
+
+/** The talk panel from plain props (the dev preview drives it by hand). */
+export function TalkView({ set, heard, ready, victimName, onHear, soFar = [], idleLine, onQuestion }: ViewProps) {
+  const more = heard < set.thread.length;
   return (
     <section className="talk" aria-labelledby="talk-title">
       <h3 id="talk-title">Talk</h3>
@@ -37,7 +63,7 @@ export function TalkSection({ c, progress, dispatch, suspect, onQuestion, idleLi
           <strong>So far:</strong> {soFar.join(' ')}
         </p>
       )}
-      <p className="talk-greeting">“{greeting(set, heard, talk.greetings)}”</p>
+      <p className="talk-greeting">“{greeting(set, heard, set.greetings)}”</p>
       <div className="talk-pips" role="img" aria-label={`${heard} of ${set.thread.length} heard`}>
         {set.thread.map((_, i) => (
           <span key={i} className={`pip ${i < heard ? 'filled' : ''}`} />
@@ -46,20 +72,20 @@ export function TalkSection({ c, progress, dispatch, suspect, onQuestion, idleLi
       {heard > 0 && (
         <ol className="talk-log">
           {set.thread.slice(0, heard).map((beat) => (
-            <li key={beat}>{beat}</li>
+            <li key={beat}>{beatText(beat, victimName)}</li>
           ))}
         </ol>
       )}
       {more && ready > heard && (
-        <button className="secondary" onClick={() => dispatch({ type: 'talk-hear', suspect })}>
+        <button className="secondary" onClick={onHear}>
           {heard === 0 ? 'Tell me about yourself' : 'Go on…'}
         </button>
       )}
       {(!more || ready <= heard) && (idleLine ?? (more ? 'Nothing more to say yet.' : '')) && (
         <p className="muted">{idleLine ?? 'Nothing more to say yet.'}</p>
       )}
-      {question && (
-        <button className="secondary" onClick={() => onQuestion?.(question.kind)}>
+      {onQuestion && (
+        <button className="secondary" onClick={onQuestion}>
           Question them
         </button>
       )}

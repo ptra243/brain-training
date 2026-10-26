@@ -3,13 +3,18 @@ import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
 import { faceLines, opening, talk, victimLines } from '../content/talk.ts';
 import { campaignCast, campaignRound } from '../engine/campaign.ts';
-import { moodFor } from '../engine/sets.ts';
-import type { Case } from '../engine/types.ts';
+import { moodFor, moodTop } from '../engine/sets.ts';
+import type { Case, GreetingLadder } from '../engine/types.ts';
 import { generateCase } from '../engine/generate.ts';
 import { emptyProgress, reduce, type Progress } from './state.ts';
-import { gamesAbout, greeting, moodTint, questioningOf, readyBeats, setsFor } from './talk.ts';
+import { beatText, gamesAbout, greeting, moodTint, questioningOf, readyBeats, setsFor } from './talk.ts';
 
 const c = generateCase(content, 5);
+/** One guest's ladder. `greeting` indexes this, not the pools. */
+const ladder: GreetingLadder = {
+  cold: [talk.greetings.firstCold[0], talk.greetings.secondCold[0]],
+  warm: [talk.greetings.warm[0]],
+};
 const finish = (p: Progress, kinds: readonly string[], status: 'won' | 'revealed' | 'playing' = 'won'): Progress => ({
   ...p,
   games: { ...p.games, ...Object.fromEntries(kinds.map((k) => [k, { status }])) },
@@ -48,12 +53,12 @@ test('a solved case has every beat ready', () => {
 });
 
 test('greetings: cold guests warm up a step per beat, warm ones stay warm', () => {
-  const g = talk.greetings;
+  const g = ladder;
   const cold = { mood: 0 };
   const mid = { mood: 1 };
   assert.equal(greeting(cold, 0, g), g.cold[0]);
   assert.equal(greeting(cold, 1, g), g.cold[1]);
-  const warmAt = (heard: number) => g.warm[Math.min(heard, g.warm.length - 1)]; // never the first-meeting line once they've talked
+  const warmAt = (heard: number) => g.warm[Math.min(heard, g.warm.length - 1)];
   assert.equal(greeting(cold, 2, g), warmAt(2));
   assert.equal(greeting(cold, 9, g), warmAt(9));
   assert.equal(greeting(mid, 0, g), g.cold[1]);
@@ -63,8 +68,9 @@ test('greetings: cold guests warm up a step per beat, warm ones stay warm', () =
 });
 
 test('mood tint: hostile at the coldest step, warm at the top, none between', () => {
-  const g = talk.greetings;
-  const top = g.cold.length;
+  const g = ladder;
+  const top = moodTop();
+  assert.equal(g.cold.length, top);
   assert.equal(moodTint({ mood: 0 }, 0, g), 'hostile');
   assert.equal(moodTint({ mood: 0 }, 1, g), top > 1 ? 'none' : 'warm');
   assert.equal(moodTint({ mood: 0 }, top, g), 'warm');
@@ -125,7 +131,7 @@ test('a campaign keeps each guest\'s card, thread and lines every round, whoever
 });
 
 test('campaign moods: the same whatever the killer or her choices, at most a step a round, in range', () => {
-  const top = talk.greetings.cold.length;
+  const top = moodTop();
   const a = walk(false);
   const b = walk(true); // a different wrong guess each round
   for (let r = 0; r < 3; r++) for (const s of a[r].suspects) if (b[r].suspects.includes(s)) assert.equal(setsFor(a[r])[s].mood, setsFor(b[r])[s].mood);
@@ -142,7 +148,7 @@ test('campaign moods: the same whatever the killer or her choices, at most a ste
 });
 
 test('mood shifts are about 50% stay, 25% warmer, 25% colder when not clamped', () => {
-  const top = talk.greetings.cold.length;
+  const top = moodTop();
   const mid = 1;
   const n = 4000;
   let up = 0;
@@ -187,4 +193,9 @@ test('opening lines contain no card names and use only their placeholders', () =
   assert.ok(opening.connectors.length >= 3 && opening.catIntro.length >= 2);
   assert.ok(/\{n\}/.test(opening.skipBody) && /\{total\}/.test(opening.skipBody) && /\{names\}/.test(opening.skipMissed));
   assert.ok(opening.dragMarks.includes('{room}') && opening.dragMarks.includes('{scene}'));
+});
+
+test('beatText fills in the victim name everywhere it appears', () => {
+  assert.equal(beatText('{victim} owed me. {victim} laughed.', 'The Host'), 'The Host owed me. The Host laughed.');
+  assert.equal(beatText('No placeholder here.', 'The Host'), 'No placeholder here.');
 });

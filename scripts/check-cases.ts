@@ -20,7 +20,7 @@ import { isInterrogation, isSceneGame } from '../src/engine/gameKinds.ts';
 import { DIFFICULTIES, LENGTHS, PRESETS, allLevels, caseSettings, levelsKey, presetOf, type CaseLevels } from '../src/engine/settings.ts';
 import { countMatching } from '../src/engine/search.ts';
 import { emptyProgress } from '../src/game/state.ts';
-import { talk } from '../src/content/talk.ts';
+import { moodTop } from '../src/engine/sets.ts';
 import { readyBeats, setsFor } from '../src/game/talk.ts';
 import { sceneCrossword, sceneWordSearch } from '../src/game/sceneGames.ts';
 import { Rng, hashSeed } from '../src/engine/rng.ts';
@@ -373,7 +373,7 @@ function puzzleProblems(c: Case): string[] {
         // solving the case readies every beat. Count them, but only fail below 2 beats.
         const ready = readyBeats(c, done, s, thread.length);
         talkChecked.guests++;
-        if (c.campaign && (sets[s].mood < 0 || sets[s].mood > talk.greetings.cold.length)) out.push(`${s}'s mood is out of range`);
+        if (c.campaign && (sets[s].mood < 0 || sets[s].mood > moodTop())) out.push(`${s}'s mood is out of range`);
         if (ready < thread.length) talkChecked.short++;
         if (ready < Math.min(2, thread.length)) out.push(`${s} has only ${ready} beat ready once every game is done`);
       }

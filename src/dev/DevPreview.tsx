@@ -26,6 +26,7 @@ import { campaignRound } from '../engine/campaign.ts';
 import { openingScript } from '../game/opening.ts';
 import { emptyProgress, reduce, type Progress } from '../game/state.ts';
 import { DogFightStates } from './DogFightStates.tsx';
+import { MotivesPreview } from './MotivesPreview.tsx';
 import { PortraitGallery } from './PortraitGallery.tsx';
 import { DevList } from './DevList.tsx';
 import { PREVIEWS } from './previews.ts';
@@ -270,6 +271,7 @@ const SCREENS: Record<string, () => ReactNode> = {
   explore: () => <CasebookPreview midnight={false} />,
   midnight: () => <CasebookPreview midnight />,
   'you-sheet': () => <YouSheetPreview />,
+  motives: () => <MotivesPreview />,
   portraits: () => <PortraitGallery />,
   dogfight: () => <DogFightStates />,
 };

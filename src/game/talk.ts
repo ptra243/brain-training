@@ -4,7 +4,7 @@
 import { talk } from '../content/talk.ts';
 import { isInterrogation } from '../engine/gameKinds.ts';
 import { characterSets, moodFor, moodTop, type CharacterSet } from '../engine/sets.ts';
-import type { Case, ClueFact, GameSpec, TalkContent } from '../engine/types.ts';
+import type { Case, ClueFact, GameSpec, GreetingLadder } from '../engine/types.ts';
 import type { Tint } from './portrait.ts';
 import type { Progress } from './state.ts';
 
@@ -40,8 +40,11 @@ export function readyBeats(c: Case, p: Progress, suspect: string, threadLength: 
   return Math.min(threadLength, 1 + about + Math.floor(other / 2));
 }
 
-/** The line she is greeted with, by beats heard (the first is for meeting them). Cold guests warm up a step per beat; warm ones stay warm. */
-export function greeting(set: Pick<CharacterSet, 'mood'>, heard: number, greetings: TalkContent['greetings']): string {
+/** A thread beat as shown: `{victim}` becomes the victim's name. */
+export const beatText = (beat: string, victimName: string): string => beat.replaceAll('{victim}', victimName);
+
+/** The line she is greeted with, by beats heard (the first is for meeting them). Cold guests warm up a step per beat; warm ones stay warm. `greetings` is that guest's ladder (`cold.length === 2`). */
+export function greeting(set: Pick<CharacterSet, 'mood'>, heard: number, greetings: GreetingLadder): string {
   const top = greetings.cold.length;
   if (set.mood >= top) return greetings.warm[Math.min(heard, greetings.warm.length - 1)];
   const step = Math.min(set.mood + heard, top);
@@ -49,7 +52,7 @@ export function greeting(set: Pick<CharacterSet, 'mood'>, heard: number, greetin
 }
 
 /** The portrait's mood tint, from the same step as `greeting`: the coldest step is hostile, the top step warm. */
-export function moodTint(set: Pick<CharacterSet, 'mood'>, heard: number, greetings: TalkContent['greetings']): Tint {
+export function moodTint(set: Pick<CharacterSet, 'mood'>, heard: number, greetings: GreetingLadder): Tint {
   const top = greetings.cold.length;
   const step = Math.min(set.mood + heard, top);
   return step === 0 ? 'hostile' : step >= top ? 'warm' : 'none';
@@ -67,7 +70,7 @@ export function setsFor(c: Case): Record<string, CharacterSet> {
   const seed = `campaign-${c.code}-${c.difficulty}`;
   const cast = [...new Set([...c.suspects, ...round.victims])].sort();
   const all = characterSets(talk, seed, cast);
-  const top = moodTop(talk);
+  const top = moodTop();
   return Object.fromEntries(
     c.suspects.map((s) => {
       const mood = moodFor(seed, s, round.round, all[s].mood, top);

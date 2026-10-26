@@ -24,6 +24,7 @@ export const PREVIEWS: readonly PreviewInfo[] = [
   { id: 'you-sheet', about: 'The You sheet: her portrait and tonight at a glance', look: 'game' },
   { id: 'nosing-houses', about: 'The Nosing around board at the start on each other house (medium)', look: 'game' },
   { id: 'houses', about: 'The lodge, courtyard house and steps on the floor plan', look: 'game' },
+  { id: 'motives', about: 'Talk to any guest on any card, thread and mood, one beat at a time or all at once', look: 'game' },
   { id: 'portraits', about: 'The portrait gallery', look: 'plain' },
   { id: 'dogfight', about: 'The dog fight board in each state, with any cat helper', look: 'plain' },
 ];

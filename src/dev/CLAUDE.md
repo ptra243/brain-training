@@ -65,6 +65,9 @@ What a look check judges on each:
   readable at 360px, no sideways scroll.
 - `nosing-houses`: the Nosing around board at the start on the lodge, courtyard, steps, long house and T
   lodge (medium): squares and marks readable at 360px, no wall inside door-joined rooms, no sideways scroll.
+- `motives`: a talk simulator (Guest, Card, Reading, Thread, Victim, Mood, Games finished, Case solved, Start over,
+  Hear all, Reset), each control 44px+ and fitting 360px; the greeting changes with Mood; beats appear one per tap
+  up to the ready count; {victim} shows the chosen name; the source line names the thread in use; no sideways scroll.
 - `portraits`: the portrait gallery on its own (light dev page).
 - `dogfight`: the dog fight board in each state, with a cat helper picker
   (light dev page).

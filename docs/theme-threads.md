@@ -10,7 +10,7 @@ A card shared by several guests made every plot "somebody once". The specific st
 
 What switches is which of a guest's cards was rolled (home, or one of two borrows, upright or reversed). That picks which of their own motives she hears. During the case the motive is why the room feels about him as it does, and why talk points at him. For the Financier on the Emperor: everyone dislikes him because he would open the books, even when he is alive, and if the victim had put the house in disrepute that dislike reads as guilt. None of it is a clue. The ending can still say he killed or was killed for it.
 
-10 guests × 3 cards × 2 readings = 60 motives. The outlines go in `docs/motive-outlines.xlsx` before any lines are rewritten. One row is filled in: the Financier on the Emperor, upright. `docs/secrets.md` is the same job; leave its six kinds until these pairs are enough.
+10 guests × 3 cards × 2 readings = 60 motives. Draft outlines for all 60 are in `docs/motive-outlines.xlsx` for the owner to edit. `docs/secrets.md` is the same job; leave its six kinds until these pairs are enough.
 
 Notes:
 

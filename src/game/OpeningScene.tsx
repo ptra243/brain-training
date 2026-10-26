@@ -1,7 +1,7 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { cats } from '../content/index.ts';
 import { catCoats, playerPortrait, portraits } from '../content/portraits.ts';
-import { opening, talk } from '../content/talk.ts';
+import { opening } from '../content/talk.ts';
 import type { Case } from '../engine/types.ts';
 import { fillIn } from '../engine/text.ts';
 import { ClueCard } from './ClueCard.tsx';
@@ -55,7 +55,7 @@ export function OpeningScene({ c, progress, dispatch, onHome, initial }: Props) 
         <PortraitCard
           key="card"
           parts={hasPortrait(guest) ? portraits[guest] : undefined}
-          tint={moodTint(set, heard, talk.greetings)}
+          tint={moodTint(set, heard, set.greetings)}
           caption={name}
           initials={suspectInitials(guest, c.guests)}
           colour={suspectColour(guest)}
@@ -63,7 +63,7 @@ export function OpeningScene({ c, progress, dispatch, onHome, initial }: Props) 
       ),
       (
         <div key="body" className="opening-talk" data-testid="opening-person">
-          <p className="opening-line">“{greeting(set, heard, talk.greetings)}”</p>
+          <p className="opening-line">“{greeting(set, heard, set.greetings)}”</p>
           {told ? (
             <>
               <p className="opening-victim">“{victimLineText(c, guest, suspectName(c.victim, c.guests))}”</p>

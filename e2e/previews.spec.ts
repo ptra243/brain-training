@@ -65,6 +65,15 @@ test('houses preview', async ({ page }) => {
   await checkScreen(page, 'preview houses');
 });
 
+test('motives preview', async ({ page }) => {
+  await page.goto('/#dev/motives');
+  await expect(page.getByRole('heading', { name: 'Motive threads' })).toBeVisible();
+  await page.getByRole('button', { name: 'Hear all' }).click();
+  await expect(page.locator('ol.talk-log li').first()).toBeVisible();
+  await page.getByRole('combobox', { name: /Victim/ }).selectOption({ index: 1 });
+  await checkScreen(page, 'preview motives');
+});
+
 test('portraits preview', async ({ page }) => {
   await page.goto('/#dev/portraits');
   await expect(page.locator('.pg-art svg').first()).toBeVisible();

@@ -69,3 +69,78 @@ test('no guest is an outlier in how often they start cold, and some borrow', () 
   const share = borrowed / (seeds.length * everyone.length);
   assert.ok(share > 0.25 && share < 0.45, `borrow share ${share}`);
 });
+
+test("each guest's rolled greetings come from the matching pools", () => {
+  for (const seed of seeds) {
+    const sets = characterSets(talk, seed, everyone);
+    for (const s of everyone) {
+      const g = sets[s].greetings;
+      assert.equal(g.cold.length, 2);
+      assert.equal(g.warm.length, 1);
+      assert.ok(talk.greetings.firstCold.includes(g.cold[0]), `${seed} ${s} ${g.cold[0]}`);
+      assert.ok(talk.greetings.secondCold.includes(g.cold[1]), `${seed} ${s} ${g.cold[1]}`);
+      assert.ok(talk.greetings.warm.includes(g.warm[0]), `${seed} ${s} ${g.warm[0]}`);
+    }
+  }
+});
+
+test('a borrowed line is only that guest, and only on that reading', () => {
+  const line = 'I run my affairs like a good host runs a table: everyone served, nobody shortchanged.';
+  const entry = talk.borrowed.find((e) => e.suspect === 'financier' && e.card === 'emperor' && e.reversed === false);
+  assert.equal(entry?.line, line);
+  let found = false;
+  for (let i = 0; i < seeds.length || !found; i++) {
+    const seed = `seed-${i}`;
+    const sets = characterSets(talk, seed, everyone);
+    const fin = sets.financier;
+    if (fin.borrowed === 'emperor' && fin.reversed === false) {
+      found = true;
+      assert.ok(fin.lines.includes(line), seed);
+    }
+    if (i >= 4000) break;
+  }
+  assert.ok(found, 'no seed where the financier borrows the emperor upright');
+  for (const seed of seeds) {
+    const sets = characterSets(talk, seed, everyone);
+    for (const s of everyone) {
+      const set = sets[s];
+      const match = s === 'financier' && set.borrowed === 'emperor' && set.reversed === false;
+      assert.equal(set.lines.includes(line), match, `${seed} ${s}`);
+    }
+  }
+});
+
+test('a motive thread replaces the rolled one for that guest, card and reading only', () => {
+  const without = { ...talk, motives: [] };
+  let hits = 0;
+  for (const seed of seeds) {
+    const sets = characterSets(talk, seed, everyone);
+    const plain = characterSets(without, seed, everyone);
+    for (const s of everyone) {
+      const set = sets[s];
+      const source = set.borrowed ?? set.home;
+      const motive = talk.motives.find((e) => e.suspect === s && e.card === source && e.reversed === set.reversed);
+      if (motive) {
+        hits++;
+        assert.deepEqual(set.thread, motive.thread, `${seed} ${s}`);
+        assert.deepEqual({ ...set, thread: [] }, { ...plain[s], thread: [] }, `${seed} ${s}`);
+      } else {
+        assert.deepEqual(set, plain[s], `${seed} ${s}`);
+      }
+    }
+  }
+  assert.ok(hits > 0, 'no seed hit a motive');
+});
+
+test('object-thread beats never appear in lines or thread', () => {
+  const all = Object.values(talk.cards).flatMap((card) => Object.values(card.objects).flatMap((o) => [...o.upright, ...o.reversed]));
+  const beats = new Set(all);
+  assert.ok(beats.size > 0);
+  assert.equal(beats.size, all.length, 'an object beat is repeated');
+  for (const seed of seeds) {
+    const sets = characterSets(talk, seed, everyone);
+    for (const s of everyone) {
+      for (const line of [...sets[s].lines, ...sets[s].thread]) assert.equal(beats.has(line), false, `${seed} ${s}`);
+    }
+  }
+});

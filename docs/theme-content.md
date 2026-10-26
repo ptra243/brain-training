@@ -1,7 +1,8 @@
 # Theme content: plan
 
-Status: planned 2026-10-26, nothing done yet. Follows `docs/theme-draft.md` (rules for the lines, the cast,
-the tarot layer) and `docs/talk-threads.md` (sets, threads, moods).
+Status: steps 1 and 2 landed 2026-10-26. Step 3 review done (lint, one card per writer, a few beats reworded). Thread summaries for the owner's notes are in `docs/theme-threads.md`. Not landed: storage prefix is still the old one, because part B is not ready and a bump wipes a campaign in progress. `theme-draft.md` still has its line lists until those notes are in.
+Follows `docs/theme-draft.md` (rules for the lines, the cast, the tarot layer) and `docs/talk-threads.md`
+(sets, threads, moods). Style sheet for the writers: `.claude/handoff/theme-lines.md`.
 
 ## Where things stand (counted 2026-10-26)
 - `src/content/talk.ts` has all 15 cards. Each reading has 6 loose lines (neutral + bound) and 2 card
@@ -18,9 +19,31 @@ the tarot layer) and `docs/talk-threads.md` (sets, threads, moods).
 - **Card + object threads: 3 objects per card**, so 45 pairs (28 new), each with an upright and a reversed
   3-beat thread. Spread them so each object has 7 or 8 cards, including poison bottle and vase.
 - **Greetings are rolled per guest**: a curt first and a softer second cold greeting from two pools, and a
-  warm one from a pool, all from the sets `Rng`, never from the killer. The ladder length stays the same.
-- **Borrowed lines are wired up**: a per guest + card table in `talk.ts`. When a guest borrows that card, its
-  line joins their pool. These lines are bound (that guest only).
+  warm one from a pool, on a per-guest greet sub-seed (not the line-drawing `Rng`), never from the killer.
+  The ladder stays two cold steps, then one warm line. `moodTop` stays 2, whatever the pool length.
+  Step 1 stores 6 first-cold and 5 second-cold from the draft, and the 3 warm lines already in code.
+- **Object assignment** (3 each; each object on 7 or 8 cards). Empty pairs are for the writers. Drafted
+  pairs stay as copied until a writer polishes them.
+
+  | Card | Objects |
+  |---|---|
+  | Emperor | knife, candlestick, vase |
+  | Empress | rope, wrench, vase |
+  | Hierophant | knife, candlestick, poison |
+  | Magician | candlestick, rope, poison |
+  | High Priestess | wrench, poison, vase |
+  | Devil | knife, rope, poison |
+  | Hermit | candlestick, wrench, vase |
+  | Chariot | knife, candlestick, wrench |
+  | Sun | rope, candlestick, wrench |
+  | Justice | knife, poison, wrench |
+  | Lovers | wrench, vase, rope |
+  | Star | wrench, vase, poison |
+  | Death | rope, poison, knife |
+  | Hanged Man | rope, knife, vase |
+  | Moon | candlestick, poison, knife |
+- **Borrowed lines are wired up**: a per guest + card + reading table. When that guest borrows that card in
+  that reading, the line is appended after the home bound line (no extra draw). Other guests never get it.
 
 ## Targets
 | Pool | Now | Target | New lines |

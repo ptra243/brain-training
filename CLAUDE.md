@@ -76,9 +76,6 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
   and apostrophes break the quoting).
 - `git add -p` and other interactive commands don't work here. To commit only
   some of a file's changes, ask the owner or commit the whole file.
-- The repo is in OneDrive, which can touch files mid-session: if Edit says the
-  file changed since it was read, re-read it once; if the dev server misses an
-  edit, reload it.
 - Pushing to `main` runs tests, the case check and the build, then deploys to
   https://ptra243.github.io/brain-training/. Check with `gh run list --limit 1`
   (then `gh run watch <id> --exit-status` in the background). `#dev` lists the

@@ -96,9 +96,30 @@ export interface CardReading {
   threads: readonly (readonly string[])[];
 }
 
+/** Pools a guest's greeting ladder is drawn from. Not themselves a ladder. */
+export interface GreetingPools {
+  firstCold: readonly string[];
+  secondCold: readonly string[];
+  warm: readonly string[];
+}
+
+/** Two cold steps, then one warm line. Rolled per guest. */
+export interface GreetingLadder {
+  cold: readonly [string, string];
+  warm: readonly [string];
+}
+
+/** One object's hearsay, upright and reversed. An empty side is unwritten. */
+export interface ObjectThreads {
+  upright: readonly string[];
+  reversed: readonly string[];
+}
+
 export interface TalkCard {
   upright: CardReading;
   reversed: CardReading;
+  /** Item id → threads. Not rolled into a guest's lines or thread. */
+  objects: Readonly<Record<string, ObjectThreads>>;
 }
 
 /**
@@ -109,8 +130,12 @@ export interface TalkContent {
   /** Per suspect id: the home card and the cards they may borrow for a night. */
   suspects: Readonly<Record<string, { card: string; mayAlsoRoll: readonly string[] }>>;
   cards: Readonly<Record<string, TalkCard>>;
-  /** Ordered: a cold guest warms up a step per beat heard, then moves on to `warm[0]`. */
-  greetings: { cold: readonly string[]; warm: readonly string[] };
+  /** Pools. Each guest rolls their own ladder from these, on a separate seed. */
+  greetings: GreetingPools;
+  /** A line said only by that guest, and only when they borrow that card in that reading. */
+  borrowed: { suspect: string; card: string; reversed: boolean; line: string }[];
+  /** A thread said only by that guest on that card and reading; replaces the rolled thread. `{victim}` is filled in when shown. */
+  motives: readonly { suspect: string; card: string; reversed: boolean; thread: readonly string[] }[];
 }
 
 // ---------- Generated per case ----------

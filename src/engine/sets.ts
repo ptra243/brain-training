@@ -5,7 +5,7 @@
 // seed stream: it never touches the stream cases are drawn from.
 
 import { Rng, hashSeed } from './rng.ts';
-import type { CardReading, TalkContent } from './types.ts';
+import type { CardReading, GreetingLadder, TalkContent } from './types.ts';
 
 /** Chance a guest borrows one of their secondary cards for the night. */
 export const BORROW_CHANCE = 0.35;
@@ -24,17 +24,22 @@ export interface CharacterSet {
   mood: number;
   /** Mood below warm. From `characterSets` it equals `reversed`. */
   cold: boolean;
-  /** Loose lines: neutral ones first, then one bound to the home card if it has any. */
+  /** Loose lines: neutral ones first, then one bound to the home card if it has any, then a borrowed line when that reading matches. */
   lines: string[];
   /** Follow-up beats, in order (2 or 3). */
   thread: string[];
+  /** Two cold lines, then one warm line. Rolled per guest, off the sets stream, and not put in `usedLines`. */
+  greetings: GreetingLadder;
 }
 
+/** Cold steps on a greeting ladder, then warm. Always 2: not a pool length. */
+export const MOOD_LADDER = 2;
+
 /**
- * Mood runs 0 (coldest) up to `top` (warm), where `top` is `greetings.cold.length`:
- * the steps are `greetings.cold[0..]`, then warm. A guest is cold while mood < top.
+ * Mood runs 0 (coldest) up to `top` (warm), where `top` is `MOOD_LADDER`:
+ * the steps are that guest's `greetings.cold[0..]`, then warm. A guest is cold while mood < top.
  */
-export const moodTop = (content: TalkContent) => content.greetings.cold.length;
+export const moodTop = (): number => MOOD_LADDER;
 
 /** Where a guest starts: reversed is coldest, upright is warm. */
 export const startMood = (reversed: boolean, top: number) => (reversed ? 0 : top);
@@ -58,6 +63,16 @@ export function moodFor(campaignSeed: string, guest: string, round: number, star
   return mood;
 }
 
+/** One guest's greeting ladder. Own stream, so line and thread draws stay in today's order. Greetings may repeat across guests. */
+export function greetingsFor(content: TalkContent, seed: string, id: string): GreetingLadder {
+  const greet = new Rng(hashSeed(`${seed}-greet-${id}`));
+  const pools = content.greetings;
+  return {
+    cold: [greet.pick(pools.firstCold), greet.pick(pools.secondCold)],
+    warm: [greet.pick(pools.warm)],
+  };
+}
+
 export function characterSets(content: TalkContent, seed: string, suspects: readonly string[]): Record<string, CharacterSet> {
   const rng = new Rng(hashSeed(`${seed}sets`));
   const usedLines = new Set<string>();
@@ -74,6 +89,8 @@ export function characterSets(content: TalkContent, seed: string, suspects: read
     const fresh = pool.filter((p) => !used.has(p));
     return rng.pick(fresh.length ? fresh : pool);
   };
+
+  const rollGreetings = (id: string): GreetingLadder => greetingsFor(content, seed, id);
 
   for (const id of suspects) {
     const me = content.suspects[id];
@@ -92,8 +109,11 @@ export function characterSets(content: TalkContent, seed: string, suspects: read
     const anyThreads = Object.keys(content.cards).flatMap((k) => readingOf(k, reversed).threads);
     const freshOf = (list: readonly (readonly string[])[]) => list.filter((t) => !usedThreads.has(threadKey(t)));
     const candidates = [sourceThreads, homeThreads, anyThreads].map(freshOf).find((l) => l.length) ?? sourceThreads;
-    const thread = [...rng.pick(candidates)];
+    let thread = [...rng.pick(candidates)];
     usedThreads.add(threadKey(thread));
+    // The draw above still happens, so every other guest's rolls stay the same.
+    const motive = content.motives.find((e) => e.suspect === id && e.card === source && e.reversed === reversed);
+    if (motive) thread = [...motive.thread];
 
     // Loose lines: neutral from the cards in use, bound from the home card only.
     const neutralPool = [...new Set([...readingOf(me.card, reversed).lines.neutral, ...readingOf(source, reversed).lines.neutral])];
@@ -113,8 +133,23 @@ export function characterSets(content: TalkContent, seed: string, suspects: read
       lines.push(line);
       usedLines.add(line);
     }
+    // Bound to this guest and this reading. No extra draw; skipped if the line was already used.
+    const borrowedLine = content.borrowed.find((e) => e.suspect === id && e.card === borrowed && e.reversed === reversed);
+    if (borrowedLine && !usedLines.has(borrowedLine.line)) {
+      lines.push(borrowedLine.line);
+      usedLines.add(borrowedLine.line);
+    }
 
-    out[id] = { home: me.card, borrowed, reversed, mood: startMood(reversed, moodTop(content)), cold: reversed, lines, thread };
+    out[id] = {
+      home: me.card,
+      borrowed,
+      reversed,
+      mood: startMood(reversed, moodTop()),
+      cold: reversed,
+      lines,
+      thread,
+      greetings: rollGreetings(id),
+    };
   }
   return out;
 }
