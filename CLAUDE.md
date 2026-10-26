@@ -119,3 +119,9 @@ an agent or proposing a split.
   the topic changes. Suggest only; don't write handoff files or split unasked.
   Ideas worth starting fresh live in `docs/next-sessions.md`; the
   `SessionStart` hook shows them as a menu.
+- **Update `docs/next-sessions.md` before you finish** if the session worked
+  on anything an entry covers, whether or not it was started from the menu:
+  set `Last touched`, say what is now done and what is left (in the entry, or
+  its linked doc), fix its starting prompt to begin where the work stopped,
+  and re-rank it. Delete the entry when it is finished. Include it in the
+  same commit as the work.

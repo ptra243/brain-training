@@ -6,8 +6,10 @@ numbered menu when a session starts (or after `/clear`): reply "start 3" and Cla
 starting prompt, and renames the session to that heading. It also tells Claude to mention any entry untouched for 14 days or more and ask
 whether to keep, update or drop it. Each `## Session:` heading is its menu line, so keep it short.
 
-Keeping an entry current: when you work on one, or when its handoff docs change, update its
-`Last touched` line (`YYYY-MM-DD`). Delete an entry once its session is done.
+Keeping an entry current: every session that works on something an entry covers (from the menu or
+not) updates that entry before it finishes, in the same commit as the work: its `Last touched` line
+(`YYYY-MM-DD`), what is now done and what is left, and a starting prompt that picks up where the work
+stopped. Do the same when its handoff docs change. Delete an entry once its session is done.
 
 The list is a ranked backlog: the first entry is the next thing to do. Rank in tiers: (1) finished
 work waiting to merge or ship, and anything that blocks other entries; (2) fixes and small wins;
