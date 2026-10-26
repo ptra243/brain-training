@@ -6,7 +6,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import { reactRefresh } from 'eslint-plugin-react-refresh';
 
 export default defineConfig(
-  { ignores: ['dist', 'dev-dist', 'node_modules', '.claude/worktrees', 'brain-training'] },
+  { ignores: ['dist', 'dev-dist', 'node_modules', '.claude/worktrees', '.claude/handoff', 'brain-training'] },
   js.configs.recommended,
   tseslint.configs.recommended,
   {

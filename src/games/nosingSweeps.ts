@@ -3,12 +3,15 @@ import { Rng, hashSeed } from '../engine/rng.ts';
 import { house } from '../content/index.ts';
 import type { House } from '../engine/types.ts';
 import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
-import { BONUS_KINDS, nosingSpec, type NosingLevel } from './nosingBoard.ts';
-import { allSlots, getSlot, gridValues, type GridFill } from './numberGrid.ts';
+import { BONUS_KINDS, nosingBounds, nosingSpec, type NosingLevel } from './nosingBoard.ts';
+import { lockHand } from './lock.ts';
+import { dogApply, dogSimView, dogStart } from './dogFight.ts';
+import { allSlots, evaluateGrid, getSlot, gridValues, solveGrid, type GridFill } from './numberGrid.ts';
 import {
   buildNosing,
   nosingHint,
   nosingInitial,
+  nosingSplit,
   nosingSolveStep,
   nosingStep,
   nosingView,
@@ -194,4 +197,108 @@ export function dogSquareSeed(level: NosingLevel, i: number): void {
   const reward = dogReward(p.seed);
   assert.equal(reward.length, 2);
   assert.ok(reward.every((k) => BONUS_KINDS.includes(k) && k !== 'steps'), `${p.seed}: reward ${reward}`);
+}
+
+// Moved as they were from scripts/check-cases.ts: the fairness checks of one built Nosing puzzle, used by the forced boards
+// (nosing.sweep.ts) and, for Play cases, by the case check.
+export const nosingChecked: Record<string, number> = { easy: 0, medium: 0, hard: 0, none: 0 };
+// The dog fights played by the hint bot: dog plays seen, and how many were the fallback (redeals found nothing).
+export const dogPlays = { plays: 0, fallbacks: 0 };
+
+/** Whether a run meets the dog: a walker that answers every question right (or wrong) must be stopped by it before the lock. */
+export function meetsDog(p: NosingPuzzle, right: boolean): boolean {
+  let s = nosingInitial();
+  for (let n = 0; n < 400; n++) {
+    const v = nosingView(p, s);
+    if (v.phase === 'dog') return true;
+    if (v.finished || v.phase === 'lock' || v.phase === 'open') return false;
+    const move =
+      v.phase === 'question' ? { t: 'answer' as const, value: v.question!.q.answer + (right ? 0 : 1) }
+      : v.phase === 'speed' ? { t: 'speed' as const, right: right ? 40 : 0 }
+      : { t: 'roll' as const };
+    const next = nosingStep(p, s, move);
+    if (next === s) return false;
+    s = next;
+  }
+  return false;
+}
+
+/** The hint bot (three hints, then play) wins the fight within 6 turns; counts the dog's plays. */
+export function dogProblems(p: NosingPuzzle): string[] {
+  const out: string[] = [];
+  if (p.board.squares[p.dogSquare]?.kind !== 'snake') out.push(`nosing dog square ${p.dogSquare} is not a snake head`);
+  for (const right of [true, false]) if (!meetsDog(p, right)) out.push(`nosing run never meets the dog (answering ${right ? 'right' : 'wrong'})`);
+  const sim = dogStart(p.dogFight);
+  let turns = 0;
+  for (let view = dogSimView(p.dogFight, sim); !view.over && turns < 10; view = dogSimView(p.dogFight, sim)) {
+    dogPlays.plays++;
+    if (view.dog.fallback) dogPlays.fallbacks++;
+    for (let k = 0; k < 3; k++) dogApply(sim, { t: 'hint' });
+    if (!dogApply(sim, { t: 'play' }).ok) {
+      out.push('nosing dog fight: the hints left a grid that can not be played');
+      break;
+    }
+    turns++;
+  }
+  if (dogSimView(p.dogFight, sim).over !== 'won' || turns > 6) out.push(`nosing dog fight: the hint bot did not win within 6 turns (${turns})`);
+  return out;
+}
+
+/** Everything that makes a Nosing around puzzle unfair. */
+export function nosingProblems(p: NosingPuzzle, sceneRoom: string, clueCount: number): string[] {
+  const out: string[] = [];
+  const lv = nosingSpec(p.house, p.level);
+  const { board, lock } = p;
+  const len = board.path.length;
+  // The board: the exact turn and question bounds sit inside the level's ranges.
+  const b = nosingBounds(board, p.seed, lv);
+  if (b.minTurns < lv.turns[0] || b.maxTurns > lv.turns[1]) out.push(`nosing turns ${b.minTurns}-${b.maxTurns} outside ${lv.turns.join('-')}`);
+  if (b.minQuestions < lv.minQuestions) out.push(`nosing has only ${b.minQuestions} questions`);
+  if (len < lv.len[0] || len > lv.len[1]) out.push(`nosing path of ${len} squares`);
+  // The lock meets its tier, and is exact with no bonuses.
+  const tier = { easy: { lo: 20, hi: 99 }, medium: { lo: 100, hi: 299 }, hard: { lo: 300, hi: 699 } }[p.level];
+  if (lock.numbers.length !== 6) out.push(`nosing lock has ${lock.numbers.length} numbers`);
+  if (lock.target < tier.lo || lock.target > tier.hi) out.push(`nosing lock target ${lock.target}`);
+  const hand = lockHand(lock);
+  const way = solveGrid(hand, lock.target, 4);
+  if (!way) out.push('nosing lock has no exact way');
+  else {
+    if (p.level === 'easy' && way.numbersUsed > 3) out.push('nosing easy lock needs more than 3 numbers');
+    if (p.level === 'hard' && way.numbersUsed < 4) out.push('nosing hard lock needs fewer than 4 numbers');
+  }
+  const stored = evaluateGrid(hand, lock.way);
+  if (!stored.submittable || stored.answer !== lock.target || stored.errors.length) out.push('nosing lock way misses the target');
+  // Questions: whole numbers from 0 to 9999, the answer among the choices.
+  for (const [i, q] of Object.entries(p.questions)) {
+    if (!Number.isInteger(q.answer) || q.answer < 0 || q.answer > 9999) out.push(`nosing question ${i} answers ${q.answer}`);
+    if (!q.choices.includes(q.answer) || new Set(q.choices).size !== 3) out.push(`nosing question ${i} has bad choices`);
+  }
+  for (const [i, list] of Object.entries(p.speed)) {
+    if (list.some((q) => new Set(q.cards).size !== 4 || !q.cards.includes(q.answer) || q.text.split('_').length !== 2)) out.push(`nosing speed round ${i} has a bad answer`);
+  }
+  board.squares.forEach((sq, i) => {
+    if ((sq.kind === 'ladder' || (sq.kind === 'snake' && i !== p.dogSquare) || sq.kind === 'obstacle' || sq.kind === 'search') && !p.questions[i]) out.push(`nosing square ${i} has no question`);
+    if (sq.kind === 'speed' && !p.speed[i]) out.push(`nosing square ${i} has no speed round`);
+    if (sq.kind === 'ladder' || sq.kind === 'snake') {
+      const c = (sq.kind === 'ladder' ? nosingLadders : nosingSnakes).find((x) => x.id === sq.contentId);
+      if (!c) out.push(`nosing ${sq.kind} ${i} has no content`);
+      else if (c.rooms !== 'any' && !c.rooms.includes(board.roomOf[i])) out.push(`nosing ${sq.kind} ${c.id} sits in ${board.roomOf[i]}`);
+    }
+  });
+  // One search square in every room the path enters (all rooms for the manor; the bigger houses enter only some on easy); the clue squares match the split; the lock is in a clue room, never the scene room.
+  const rooms = new Set(board.roomOf);
+  if (lv.enterExtra === undefined && rooms.size !== p.house.rooms.length) out.push('nosing path misses a room');
+  const searchRooms = board.squares.flatMap((sq, i) => (sq.kind === 'search' ? [board.roomOf[i]] : []));
+  if (searchRooms.length !== rooms.size || new Set(searchRooms).size !== rooms.size || searchRooms.some((r) => !rooms.has(r))) out.push('nosing: not one search square in every room');
+  const idx = board.squares.flatMap((sq) => (sq.kind === 'search' && sq.clueIndex != null ? [sq.clueIndex] : [])).sort();
+  const split = nosingSplit(clueCount);
+  if (idx.length !== split.search || idx.some((v, k) => v !== k)) out.push(`nosing has ${idx.length} clue squares for ${split.search} search clues`);
+  if (p.searchClues.length !== split.search || p.lockClues.length !== split.lock) out.push('nosing clue split is wrong');
+  const lockRoom = board.roomOf[len - 1];
+  if (lockRoom === sceneRoom) out.push('nosing lock is in the scene room');
+  if (!board.clueRooms.includes(lockRoom)) out.push('nosing lock room is not a clue room');
+  if (board.clueRooms.includes(sceneRoom)) out.push('nosing has a clue in the scene room');
+  out.push(...dogProblems(p));
+  nosingChecked[p.level]++;
+  return out;
 }

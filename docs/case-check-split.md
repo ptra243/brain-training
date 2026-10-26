@@ -1,10 +1,23 @@
 # Case check split — plan
 
-Status: plan approved 2026-10-26. Piece 0 done and reviewed (lock sweep
-matches both baselines; review notes in
-`.claude/handoff/case-check-split/piece0.md`). Next: A, B, C1, C2, D, F. Tarot and cats are unit tests only (their builders
-are correct by construction); F adds the board sweep. After E: piece G, the room-first word search
-(prototyped: 0.6 ms a build against 13 ms today).
+Status: plan approved 2026-10-26. Pieces 0, A, B, C1, C2, D and F done and
+reviewed 2026-10-26: every sweep file's summary line matches both baselines
+(review notes and the `check-cases.ts` line ranges each replaces are in
+`.claude/handoff/case-check-split/piece*.md`). Next: E. After E: piece G, the
+room-first word search (prototyped: 0.6 ms a build against 13 ms today).
+
+Notes for E from the reviews:
+- The "Nosing dog" fallback bound (≤ 3%) was measured over Play cases' fights.
+  A's `nosing.sweep.ts` checks it over the forced boards only (62 plays quick,
+  332 full, 0 fallbacks), so keep the case-fight count and its 3% bound in
+  `cases.quick.sweep.ts` beside the nosing scan (184 plays quick, 960 full).
+- The Play-case part of the "Nosing around" line (scan counts) is E's; A
+  prints forced boards on their own line.
+- C2 makes `tarotHintsWin` and the in-case cat checks removable; tarot size,
+  pair cap and reward cards stay in `caseChecks.ts`.
+- Quick times alone: nosingBoard 6–10s (the old section was 4.4s), face
+  3.7s, the rest under 6s. Full: dog fights 70s, wordBuilders 42s,
+  nosingBoard 117s.
 
 ## Why
 

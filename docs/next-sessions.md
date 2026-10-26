@@ -132,11 +132,11 @@ Read the Map rules in src/game/CLAUDE.md, then propose how to make the map count
 ## Session: Case check split into sweep files
 Last touched: 2026-10-26
 Reads first: `docs/case-check-split.md`.
-Plan approved: pieces 0 → A–D in parallel → E, each with its own files, done-when and go-back rules. Piece 0 done and reviewed 2026-10-26 (`src/sweep.ts`, `scripts/sweeps.ts`, `lock.sweep.ts` matching both baselines). Next: A, B, C1, C2, D, F in parallel.
+Pieces 0, A, B, C1, C2, D, F done and reviewed 2026-10-26 (every sweep file matches both baselines). Next: piece E (case files, delete `check-cases.ts`), then G.
 Goal: `check-cases` holds only case logic and wiring; each game's seed sweep runs beside it, in parallel, only when its files change.
 Starting prompt:
 ```
-Read docs/case-check-split.md. Check which pieces are done (sweep files present, baselines in .claude/handoff/case-check-split/), review the last hand-back against the baselines, then brief the next pieces to the implementer.
+Read docs/case-check-split.md (status and "Notes for E"). Brief piece E to the implementer with the baselines and the piece*.md notes in .claude/handoff/case-check-split/, review its hand-back against the baselines, then run checks and sweeps:full and show the owner before and after times.
 ```
 
 ## Session: Two-storey houses, picked per case

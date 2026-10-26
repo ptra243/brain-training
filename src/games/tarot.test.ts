@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
 import { Rng } from '../engine/rng.ts';
+import { TAROT_MAX_PAIRS } from '../engine/tarotCards.ts';
 import { JOKER, buildTarot, flip, resolveTurn, tarotHint, tarotInitial, tarotRevealAll, tarotSolved, turnReady, type TarotBoard, type TarotState } from './tarot.ts';
 
 // Opaque ids by order, the way the case maps its entities to cards.
@@ -266,4 +267,37 @@ test('solve reveals everything', () => {
   const s = tarotRevealAll(b, tarotInitial());
   assert.ok(tarotSolved(b, s));
   assert.equal(s.matched.length, b.length - 1);
+});
+
+// Moved from scripts/check-cases.ts (tarotHintsWin): turn the hinted card (or a fresh one), then its partner if seen: the board must finish.
+function tarotHintsWin(board: readonly string[], seed: number): boolean {
+  let s = tarotInitial();
+  const rng = new Rng(seed + 1);
+  for (let turns = 0; turns < 300; turns++) {
+    if (tarotSolved(board, s)) return true;
+    const h = tarotHint(board, s, seed);
+    s = h.state;
+    const down = () => board.map((_, i) => i).filter((i) => !s.matched.includes(i) && !s.picked.includes(i) && board[i] !== JOKER && s.jokerGone !== i);
+    const fresh = () => down().filter((i) => !s.seen.includes(i));
+    const first = h.ghost ?? rng.pick(fresh().length ? fresh() : down());
+    s = flip(board, s, seed, first);
+    const partner = board.findIndex((id, i) => i !== first && id === board[first]);
+    const second = s.seen.includes(partner) && !s.picked.includes(partner) ? partner : rng.pick(fresh().length ? fresh() : down().filter((i) => !s.picked.includes(i)));
+    s = flip(board, s, seed, second);
+    s = resolveTurn(board, s, seed);
+  }
+  return tarotSolved(board, s);
+}
+
+test('following the cat hints finishes every board size, with and without reward cards', () => {
+  for (let pairs = 1; pairs <= TAROT_MAX_PAIRS; pairs++) {
+    for (const withReward of [false, true]) {
+      for (let k = 0; k < 3; k++) {
+        const seed = pairs * 1000 + (withReward ? 500 : 0) + k * 17 + 1;
+        const cards = withReward ? clues : { reward: [], other: [] };
+        const board = buildTarot(deck, cards, pairs, new Rng(seed));
+        assert.ok(tarotHintsWin(board, seed), `${pairs} pairs, reward ${withReward}, seed ${seed}`);
+      }
+    }
+  }
 });
