@@ -15,7 +15,7 @@ test('UI and doc changes pick no sweep, engine and package changes pick the case
   assert.deepEqual(sweepsNeeded(all, ['docs/next-sessions.md', 'src/game/ExploreMap.tsx', 'e2e/previews.spec.ts']), []);
   assert.deepEqual(sweepsNeeded(all, []), []);
   const cases = all.filter((s) => s.includes('/cases.'));
-  assert.equal(cases.length, 4);
+  assert.equal(cases.length, 5);
   for (const s of cases) assert.ok(sweepsNeeded(all, ['src/engine/sets.ts']).includes(s), s);
   assert.deepEqual(sweepsNeeded(all, ['package-lock.json']), all);
 });

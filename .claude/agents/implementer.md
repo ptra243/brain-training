@@ -27,7 +27,7 @@ your reply:
   checked (the before/after dump diff), or why the change can't affect them.
 
 Before reporting, run `npm run checks` (Node 22.18 or newer): lint, tests, the
-seed sweeps (the case check is four of them) and the build, in parallel, one
+seed sweeps (the case check is five of them) and the build, in parallel, one
 pass/fail line each. While fixing one failure, re-run just that check. Never run `check-cases:full`
 unless the brief asks: the main session runs it once all pieces are back. For
 UI changes also run `npm run e2e`.

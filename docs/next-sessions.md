@@ -26,14 +26,14 @@ stands. A blocked entry keeps its rank and names its blocker in the heading.
 open questions go in a linked `docs/<slug>.md`, and the entry points to it. An exploratory idea with no
 settled design may stay as a short stub; give it a doc when someone starts it.
 
-## Session: Case check speed, campaign walk and end boards
+## Session: Faster end boards, same boards
 Last touched: 2026-10-26
-Reads first: `docs/case-check-split.md` ("Where the time goes"), `src/engine/caseChecks.ts`, `src/engine/cases.houses.sweep.ts`.
-Measured after piece G: the campaign walk is 71% of the houses sweep (the slowest, ~10.6 s quick); end boards (2 per case, ~11 ms) are a third of the presets sweep. Making the case (~15 ms) is the other big cost.
-Goal: cut the quick case sweeps' time without checking less: fewer walked rounds in quick mode, end boards proven in their own sweep, or a faster end board.
+Reads first: `docs/case-check-split.md` ("Faster end boards"), `src/engine/board.ts` (`solve`, `buildAttempt`).
+Done: the campaign walk cut (houses split, one path in quick; houses 10.9 s → 3.5 s). Left: three speed-ups to `board.ts` that keep every board identical (shape keys once per cells array, numeric flood fills, a cheaper search step), about 40–50% off boards, on her phone too. Then profile `cases.quick.sweep.ts` (7.2 s, now the slowest).
+Goal: faster end and puzzle boards with not one board changed, proven against a copy of today's `board.ts`.
 Starting prompt:
 ```
-Read docs/case-check-split.md ("Where the time goes") and rerun .claude/handoff/case-check-split/time-parts.ts. Profile the campaign walk and endBoard, then propose to me (with numbers) how to cut each, before briefing the implementer.
+Read docs/case-check-split.md ("Faster end boards"). Write the handoff: a copy of today's board.ts as the reference and a check that every end and puzzle board the quick sweeps build is JSON-identical. Then brief the implementer on speed-ups 1 and 2, then 3, timing each.
 ```
 
 ## Session: Theme content, land the lines

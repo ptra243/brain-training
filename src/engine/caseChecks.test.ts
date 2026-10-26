@@ -18,7 +18,7 @@ test('Play cases (plain and picked) pass every case check', () => {
 });
 
 test('a campaign walks its rounds without problems', () => {
-  const r = walkCampaign({ mode: 'campaign', code: codeFor(2_654_435), difficulty: 'easy' }, 'campaign', false);
+  const r = walkCampaign({ mode: 'campaign', code: codeFor(2_654_435), difficulty: 'easy' }, 'campaign', 'two');
   assert.deepEqual(r.problems, []);
   assert.ok(r.rounds >= 2);
 });

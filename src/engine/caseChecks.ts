@@ -218,10 +218,13 @@ export function puzzleProblems(c: Case): string[] {
 }
 
 /**
- * Walks a campaign's rounds: every wrong accusation when `exhaustive`, else the first one and the walked-free path.
+ * Walks a campaign's rounds, following these paths from each round:
+ * 'all' every wrong accusation (no walked-free walk); 'two' the first wrong accusation plus the walked-free path
+ * when it differs; 'wrong' only the first wrong accusation; 'walked' only the walked-free path.
+ * The walked-free victim check runs on every walked round in every mode.
  * Returns every problem (with the path it was found on) and how many rounds were walked.
  */
-export function walkCampaign(ref: CampaignRef, name: string, exhaustive: boolean): { problems: string[]; rounds: number } {
+export function walkCampaign(ref: CampaignRef, name: string, paths: 'all' | 'two' | 'wrong' | 'walked'): { problems: string[]; rounds: number } {
   const out: string[] = [];
   let rounds = 0;
   const perPuzzle = ref.perPuzzle ?? 3;
@@ -239,18 +242,20 @@ export function walkCampaign(ref: CampaignRef, name: string, exhaustive: boolean
       if (c.campaign!.last) return;
       // She may accuse anyone alive; a wrong guess makes them the next body. Quick follows the first one only.
       let firstWrong: string | undefined;
-      for (const s of c.suspects) {
-        if (s === cast.killer) continue;
-        walk([...victims, s]);
-        firstWrong ??= s;
-        if (!exhaustive) break;
+      if (paths !== 'walked') {
+        for (const s of c.suspects) {
+          if (s === cast.killer) continue;
+          walk([...victims, s]);
+          firstWrong ??= s;
+          if (paths !== 'all') break;
+        }
       }
       // The killer with the wrong weapon walks free and a seeded innocent non-decoy dies: quick walks that path too.
       const walked = walkedFreeVictim(ref, c);
       const decoys = roundSuspects(c, c.clues.map((cl) => cl.fact));
       if (walked === cast.killer || !c.suspects.includes(walked) || (!c.campaign!.last && decoys.includes(walked))) {
         out.push(`${where}: walked-free victim ${walked} is the killer, not alive or a decoy`);
-      } else if (!exhaustive && walked !== firstWrong) {
+      } else if ((paths === 'two' && walked !== firstWrong) || paths === 'walked') {
         walk([...victims, walked]);
       }
     } catch (err) {

@@ -75,7 +75,7 @@ file). `npm run checks` overall is then bound by lint and build (~28s).
 | nosing scan (Play codes until each level has 5) | 2 | `cases.quick.sweep.ts`, wiring checks only | E |
 | nosing forced boards (every scene room × level × share) | 3 | `nosing.sweep.ts` | A |
 | campaigns (`walkCampaign`) | 1–2 | `src/engine/cases.campaign.sweep.ts` | E |
-| other houses (`houseCaseSweep`) | 1–2 | `src/engine/cases.houses.sweep.ts` | E |
+| other houses (`houseCaseSweep`) | 1–2 | `src/engine/cases.houses.sweep.ts`; their campaign walks in `cases.houseCampaigns.sweep.ts` (split 2026-10-26) | E |
 | search vs oracle | 3 | `src/engine/search.sweep.ts` | D |
 | nosing bots, nosing boards (all houses and variants) | 3 | `src/games/nosing.sweep.ts`, `nosingBoard.sweep.ts` | A |
 | dog fights (bots, redeals, doubles, challenges, rate bounds) | 3 | `src/games/dogFight.sweep.ts` | B |
@@ -301,9 +301,53 @@ Each part of the check timed on the quick presets and houses sweeps' cases
 | Case board puzzle, talk, one-solution search, interrogations, tarot | under 0.5 ms/case together | same |
 
 The real `problems()` run right after the parts took about 10 ms a case
-against their ~19 ms sum, so something is cached or warmed by the second
-pass: treat the figures as a little high, the ranking as sound. So the
-order of work is the campaign walk and end boards, then the crossword.
+against their ~19 ms sum because `caseBoard.ts` caches the last 24 boards
+(`cached`), so its second build is free. The part figures are the real cost.
+
+**Campaign walk, per round** (houses, quick, 175 rounds): building the round
+10–18 ms, end boards 19 ms, crossword 7 ms, `roundProblems` under 1 ms. Done
+2026-10-26: `walkCampaign` takes `paths` (`'all' | 'two' | 'wrong' |
+'walked'`); the houses' campaigns moved to `cases.houseCampaigns.sweep.ts`,
+which walks one path per campaign in quick (alternating, 90 rounds) and both
+in full. Quick wall times: houses 10.9 s → 3.5 s, the new file 4.6 s, quick
+7.2 s (now the slowest), presets 4.9 s, campaign 2.6 s.
+
+### Faster end boards (explored 2026-10-26, not started)
+
+Measured on the presets' quick end boards (276 boards, scripts in the
+session scratchpad, re-creatable from the notes here): 256 build on the first
+attempt, so attempts are not the cost. A median board takes 2.2 ms, but the
+slowest 10% (17+ pieces, 8–12 rows) take 55% of the time, with ~1,700 search
+steps over ~6 solves each; the slowest took 119 ms in one attempt (4,875
+steps). Only 2 of 489 solves hit the step budget. The cost is per step
+(12–24 µs, slow for a step), plus string-keyed set-up around it:
+
+| Where (CPU profile, boards only) | Share |
+|---|---|
+| The packing search (`tiles` / `go`, `placementsOf`) | ~37% |
+| Shape keys: `norm`, `keyOf`, `rotations` (per piece per solve, `pieceCls` and `offsets`) | ~25% |
+| Flood fills on `"r,c"` string sets (Unknown's 60 orderings, `biggestOpen`) | ~12% |
+| `solve` set-up (`coords` from string keys), `squares()` | ~6% |
+
+Speed-ups that leave every board the same (they change no search order,
+no rng draw and no step count, and the step budget decides which board
+comes out):
+1. Shape keys once per cells array: a `WeakMap` from a `cells` array to its
+   rotations, `shapeKey` and offsets (arrays are replaced, never mutated, by
+   `shift`); compute each key once inside `rotations`. About 20% of board time.
+2. Flood fills and squares on numbers (`r * W + c`, typed arrays) instead of
+   `"r,c"` strings. Only sizes come out, so order can't matter. About 10%.
+3. Inside `go`: build `stateKey` cheaper (the `occ.join('')` string every
+   step, then a sorted `usedIds` list); intern piece classes and placement
+   cells as numbers for the `dup` keys; no `options` objects. It must keep
+   exactly which states count as failed, so an exact key (not a hash). Maybe
+   10–15%.
+Together perhaps 40–50% off boards: ~5 ms a case off presets, ~9 ms a round
+off the walk, and the same on her phone, where boards rebuild on every clue.
+Proof: keep a copy of today's `board.ts` and assert identical boards over
+every end and puzzle board the quick sweeps build (`JSON.stringify` equal),
+as the exploration did for an instrumented copy. The golden snapshot does
+not cover boards.
 
 ### After the split — builders that cannot fail (not started)
 

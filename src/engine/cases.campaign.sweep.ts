@@ -19,7 +19,7 @@ for (const perPuzzle of [3, 2, 1] as const) {
     sweep(`campaigns, ${difficulty}, ${perPuzzle} clues per puzzle`, Array.from({ length: PER_DIFFICULTY }, (_, i) => i + 1), (i) => {
       campaigns++;
       const ref: CampaignRef = { mode: 'campaign', code: codeFor(i * 2_654_435), difficulty, ...(perPuzzle !== 3 && { perPuzzle }) };
-      const r = walkCampaign(ref, `campaign ${ref.code}-${difficulty}`, FULL);
+      const r = walkCampaign(ref, `campaign ${ref.code}-${difficulty}`, FULL ? 'all' : 'two');
       rounds += r.rounds;
       assert.deepEqual(r.problems, []);
     });

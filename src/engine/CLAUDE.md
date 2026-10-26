@@ -1,7 +1,7 @@
 # Engine: case generation
 
 - **Every case has exactly one solution** and a minimal clue set. Never ship
-  a generator change without `npm run check-cases` passing (the four `cases.*.sweep.ts` files, built on `caseChecks.ts`).
+  a generator change without `npm run check-cases` passing (the five `cases.*.sweep.ts` files, built on `caseChecks.ts`).
 - **Case settings are levels** (`settings.ts`): suspects (4, 5 or 7), logic,
   minigames and length. `caseSettings` turns them into generator settings and
   clamps anything unsafe; `clueShares` gives every rotating game 1 to 7 clues
@@ -122,8 +122,10 @@
   helpers in `src/sweep.ts`): quick samples seeds the test doesn't use,
   `SWEEP_FULL=1` (`npm run sweeps:full`) runs them all. `npm run sweeps` runs the
   files in parallel and prints each file's summary lines. The case check is
-  four sweep files, one per mode (`cases.presets`, `cases.quick`,
-  `cases.campaign`, `cases.houses`), calling `caseChecks.ts` (`problems`,
+  five sweep files, one per mode (`cases.presets`, `cases.quick`,
+  `cases.campaign`, `cases.houses`, and `cases.houseCampaigns`, which walks the
+  other houses' campaigns: one path per campaign in quick, `walkCampaign`'s
+  `'wrong'` and `'walked'` alternating), calling `caseChecks.ts` (`problems`,
   `puzzleProblems`, `walkCampaign`). A check that needs a case goes there;
   one game over many seeds goes in the game's own sweep.
 - **`sweeps:full` (or `check-cases:full`) runs once, in the main session**, after generator
