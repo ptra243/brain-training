@@ -129,6 +129,16 @@ Starting prompt:
 Read the Map rules in src/game/CLAUDE.md, then propose how to make the map counters and weapon chips 44px touch targets, and check it at 360px with browser-check.
 ```
 
+## Session: Case check split into sweep files
+Last touched: 2026-10-26
+Reads first: `docs/case-check-split.md`.
+Plan approved: pieces 0 → A–D in parallel → E, each with its own files, done-when and go-back rules. Piece 0 done and reviewed 2026-10-26 (`src/sweep.ts`, `scripts/sweeps.ts`, `lock.sweep.ts` matching both baselines). Next: A, B, C1, C2, D, F in parallel.
+Goal: `check-cases` holds only case logic and wiring; each game's seed sweep runs beside it, in parallel, only when its files change.
+Starting prompt:
+```
+Read docs/case-check-split.md. Check which pieces are done (sweep files present, baselines in .claude/handoff/case-check-split/), review the last hand-back against the baselines, then brief the next pieces to the implementer.
+```
+
 ## Session: Two-storey houses, picked per case
 Last touched: 2026-10-20
 Reads first: `docs/two-storey-houses.md` (the proposal, what to settle, the brief's parts),

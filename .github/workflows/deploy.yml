@@ -28,6 +28,7 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run check-cases:full
+      - run: npm run sweeps:full
       - run: npm run build
       - run: npx playwright install --with-deps chromium && npm run e2e
       - uses: actions/upload-pages-artifact@v3

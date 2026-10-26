@@ -12,6 +12,8 @@
     "test": "node --test \"src/**/*.test.ts\" \"scripts/**/*.test.ts\"",
     "check-cases": "node scripts/check-cases.ts",
     "check-cases:full": "node scripts/check-cases.ts --full",
+    "sweeps": "node scripts/sweeps.ts",
+    "sweeps:full": "node scripts/sweeps.ts --full",
     "checks": "node scripts/checks.ts",
     "update-golden": "node scripts/update-golden.ts",
     "build-words": "node scripts/build-words.ts"
