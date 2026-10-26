@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "e2e": "playwright test",
-    "test": "node --test \"src/**/*.test.ts\"",
+    "test": "node --test \"src/**/*.test.ts\" \"scripts/**/*.test.ts\"",
     "check-cases": "node scripts/check-cases.ts",
     "check-cases:full": "node scripts/check-cases.ts --full",
     "checks": "node scripts/checks.ts",
