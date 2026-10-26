@@ -93,18 +93,6 @@ Starting prompt:
 Read the Guest pool and Confidants sections of docs/theme-draft.md, then help me write the 5-chapter arcs, victim openings and endings.
 ```
 
-## Session: Campaign opening, meeting the guests
-Last touched: 2026-10-24
-Reads first: `docs/campaign-opening.md` (the settled build plan, with every owner decision),
-`docs/talk-threads.md`, `docs/theme-draft.md` (Confidants, opening and ending), `src/engine/campaign.ts`.
-Goal: a skippable first phase of a campaign where she talks to every guest once and gets round 1's free
-clues from those conversations (cases unchanged), plus beat review ("so far" lines, a "Story so far"
-page) and the moved-body variant.
-Starting prompt:
-```
-Read docs/campaign-opening.md (the settled build plan), write the handoff file, then build it piece by piece with implementer agents, in the order the plan gives.
-```
-
 ## Session: Relationships between characters
 Last touched: 2026-10-23
 Reads first: `docs/relationships.md` (the ideas to settle), `docs/theme-draft.md` (Follow-up threads,
@@ -208,6 +196,16 @@ search, cat puzzle, sudoku, interrogation.
 Starting prompt:
 ```
 Read docs/css-modules.md, then move the nosing views to CSS modules (settle the shared numpad / question rules first). Delegate each to the implementer, then run e2e and a 360px look check.
+```
+
+## Session: Campaign in the puzzle book (design)
+Last touched: 2026-10-26
+Reads first: `docs/puzzle-book.md` (settled decisions, open questions, how screenshots are made).
+Goal: mock up the campaign screens in the puzzle book style, using real screenshots, so the book
+covers the whole game before any of it is built.
+Starting prompt:
+```
+Read docs/puzzle-book.md, then mock up the campaign screens in the puzzle book style in docs/mockups: the rounds bar with the explore map, talking to a guest, and the You sheet.
 ```
 
 ## Session: Target or another word game (exploratory)
@@ -344,3 +342,8 @@ duration), each full check, and how many ran in order versus alongside. Older li
   discussion that kept growing after the main goal was done. The no-go prototype cost about 115k tokens and
   26 minutes to learn that the slow part was the board length windows, not the search; a measurement of
   fill per house, done first, would have shown that in minutes.
+- 2026-10-26, Puzzle book mockups (real screenshots, games on paper, Quick play screens): the topic grew
+  from "swap in real screenshots" into designing the puzzle book, all in one session. Every look-and-fix
+  round read screenshots back into the main context (contact sheets, side-by-side shots), and design
+  rounds ran here instead of handing the capture scripts to an agent. Totals: 140 replies, 25.2M read
+  from cache, 547k written, 109k output, context 289k, transcript 21 MB.
