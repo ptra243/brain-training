@@ -294,7 +294,7 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
             </p>
             <HintButton helper={helper} onAsk={askHint} />
           </div>
-          {note && <HintNote text={note} onClose={() => setNote(null)} />}
+          {note && <HintNote helper={helper} text={note} onClose={() => setNote(null)} />}
           {wordRead && (
             <div className={styles.read}>
               <p>

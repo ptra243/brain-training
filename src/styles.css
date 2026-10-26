@@ -344,6 +344,8 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
   animation: hint-in 260ms ease-out;
 }
 .hint-note .paw { margin-top: 0.15rem; color: var(--brass-deep); }
+/* The cat's counter sits inside these buttons and notes: it is a picture here, not a piece to drag or a click target. */
+.hint-button .counter, .hint-note .counter, .cb-cat .counter, .cb-toast .counter { touch-action: auto; pointer-events: none; }
 .hint-note p { flex: 1; margin: 0; font-family: var(--serif); font-style: italic; font-size: 0.95rem; line-height: 1.4; }
 .hint-note-close { flex: none; width: 2.75rem; height: 2.75rem; margin: -0.45rem 0; border: 0; background: none; color: var(--ink-soft); font-size: 1.4rem; cursor: pointer; }
 .hint-bar { display: grid; justify-items: end; gap: 0.4rem; margin: 0 0 0.6rem; }
@@ -562,7 +564,7 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
 .link-button { display: block; min-height: 2.75rem; margin: 0.2rem 0 0; padding: 0; background: none; border: 0; color: var(--ink); text-decoration: underline; font: inherit; font-size: 0.9rem; cursor: pointer; }
 
 /* Tarot match: src/game/games/TarotGame.module.css */
-.hint-note svg { width: 1.2rem; height: 1.2rem; flex: none; }
+.hint-note .paw { width: 1.2rem; height: 1.2rem; flex: none; }
 
 /* ---------- Choose games ---------- */
 .pick-lead { margin-bottom: 0.7rem; font-size: 0.9rem; }

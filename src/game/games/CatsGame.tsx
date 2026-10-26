@@ -152,7 +152,7 @@ export function CatsGame({ puzzle, data, finished, helper = 'The cat', onChange,
       {!finished && (
         <div className="hint-bar">
           <HintButton helper={helper} onAsk={askHint} />
-          {note && <HintNote text={note} onClose={() => setNote(null)} />}
+          {note && <HintNote helper={helper} text={note} onClose={() => setNote(null)} />}
         </div>
       )}
       <div

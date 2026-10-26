@@ -10,6 +10,7 @@ export interface PreviewInfo {
 }
 
 export const PREVIEWS: readonly PreviewInfo[] = [
+  { id: 'hints', about: 'The cat counter on each hint button and note, and the questioning chair with the portrait filling the ring', look: 'game' },
   { id: 'next-murder', about: 'The next-murder scene between rounds', look: 'game' },
   { id: 'opening', about: 'The campaign opening at the start: the culprit line, 0 of N spoken to, the guests in a grid, Skip', look: 'game' },
   { id: 'opening-midway', about: 'The opening part-way: some guests spoken to, one guest sheet open with the victim line and a clue', look: 'game' },

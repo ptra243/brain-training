@@ -138,7 +138,7 @@ export function TarotGame({ puzzle, data, finished, helper = 'The cat', onChange
               </button>
             </div>
           )}
-          {note && <HintNote text={note} onClose={() => setNote(null)} />}
+          {note && <HintNote helper={helper} text={note} onClose={() => setNote(null)} />}
         </div>
       )}
       <div className={styles.board} role="group" aria-label="Tarot cards">

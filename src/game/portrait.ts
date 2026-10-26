@@ -2,7 +2,8 @@
 // parts into layered groups in the 100 x 120 frame; `catShapes(coat)` does the cat.
 // Plain data, so it is node-tested; `Portrait.tsx` only draws it.
 
-import { portraits, type CatCoat, type DogCoat, type PortraitParts } from '../content/portraits.ts';
+import { cats } from '../content/index.ts';
+import { catCoats, portraits, type CatCoat, type DogCoat, type PortraitParts } from '../content/portraits.ts';
 import {
   accentStyles, circle, costumeStyles, faceShapes, hairStyles, headwearStyles, neckShapes, poly, shade, skinTones,
   type Shape,
@@ -10,6 +11,9 @@ import {
 
 /** Whether this guest id has a drawn portrait (otherwise keep the initials counter). */
 export const hasPortrait = (id: string): boolean => Object.hasOwn(portraits, id);
+
+/** The coat of the house cat with this name (same order as `cats`); an unknown name gets the first cat's coat. */
+export const coatForCat = (name: string): CatCoat => catCoats[Math.max(0, cats.indexOf(name)) % catCoats.length];
 
 export type Tint = 'warm' | 'none' | 'hostile';
 export type Transform = { tx: number; ty: number; sx: number; sy: number };

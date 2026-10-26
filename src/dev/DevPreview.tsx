@@ -1,7 +1,7 @@
 // One #dev/<id> preview, full viewport. Every button does nothing: a preview never saves or leaves the page.
 
-import { useEffect, type ReactNode } from 'react';
-import { content } from '../content/index.ts';
+import { useEffect, type CSSProperties, type ReactNode } from 'react';
+import { cats, content } from '../content/index.ts';
 import { isSceneGame } from '../engine/gameKinds.ts';
 import { generateCase } from '../engine/generate.ts';
 import { midSentence } from '../engine/text.ts';
@@ -13,7 +13,10 @@ import { Dialog } from '../game/Dialog.tsx';
 import { YouSheet } from '../game/YouSheet.tsx';
 import { clockTime, gamesLeft } from '../game/explore.ts';
 import { ROUND_TIMES } from '../game/labels.ts';
-import { itemName, suspectName } from '../game/names.ts';
+import { faceClass, itemName, suspectColour, suspectName } from '../game/names.ts';
+import { HintButton, HintNote } from '../game/games/Hints.tsx';
+import chairStyles from '../game/games/InterrogationGame.module.css';
+import { SuspectCounterFace } from '../game/SuspectCounterFace.tsx';
 import { NosingBoardView } from '../game/games/NosingBoardView.tsx';
 import { buildNosing, nosingInitial, nosingView } from '../games/nosing.ts';
 import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
@@ -224,7 +227,36 @@ function NosingHousesPreview() {
   );
 }
 
+/** The cat's circular counter on the hint chrome (a button per cat, an open note) and the questioning chair's portrait. */
+function HintsPreview() {
+  const chair = 'butler';
+  return (
+    <main className="panel">
+      <section aria-label="Hint buttons" style={{ display: 'grid', gap: '0.6rem', justifyItems: 'start' }}>
+        {cats.map((cat) => (
+          <HintButton key={cat} helper={cat} onAsk={noop} />
+        ))}
+      </section>
+      <section aria-label="Hint note">
+        <HintNote helper={cats[0]} text={`${cats[0]} pads across your casebook and sits on a mark that isn't right.`} onClose={noop} />
+      </section>
+      <div className={chairStyles.interrogation}>
+        <section className={`${chairStyles.chair} card`} aria-label="Questioning chair">
+          <span className={`counter static${faceClass(chair)}`} style={{ '--counter': suspectColour(chair) } as CSSProperties} aria-hidden="true">
+            <SuspectCounterFace id={chair} guests={[chair]} />
+          </span>
+          <div>
+            <h2>{suspectName(chair, [chair])} is in the chair</h2>
+            <p className="muted">3 questions left.</p>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
 const SCREENS: Record<string, () => ReactNode> = {
+  hints: () => <HintsPreview />,
   houses: () => <HousesPreview />,
   'nosing-houses': () => <NosingHousesPreview />,
   'next-murder': () => <NextMurderPreview />,

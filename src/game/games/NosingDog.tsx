@@ -2,11 +2,10 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { nosingDog } from '../../content/nosing.ts';
 import { tarotArt } from '../../content/tarotArt.ts';
 import { CAT_LIVES, DOG_LIVES, type DogChallenge, type DogTurnResult, type DogView } from '../../games/dogFight.ts';
-import { cats } from '../../content/index.ts';
-import { catCoats, dogCoat } from '../../content/portraits.ts';
+import { dogCoat } from '../../content/portraits.ts';
 import { Dialog } from '../Dialog.tsx';
 import { Portrait } from '../Portrait.tsx';
-import type { Tint } from '../portrait.ts';
+import { coatForCat, type Tint } from '../portrait.ts';
 import { OP_NAME, OP_SIGN } from './nosingUi.ts';
 import type { NosingMove } from '../../games/nosing.ts';
 import { gridLines, type Hand, type OpRef, type Slot } from '../../games/numberGrid.ts';
@@ -81,7 +80,7 @@ interface Props {
 
 /** The dog fight: both sides' lives, the dog's play, then her grid and cards. */
 export function NosingDog({ view, helper, hints, onMove }: Props) {
-  const catCoat = catCoats[Math.max(0, cats.indexOf(helper ?? '')) % catCoats.length];
+  const catCoat = coatForCat(helper ?? '');
   const dogTint: Tint = view.role === 'defend' ? 'hostile' : view.last && view.last.dogLost > 0 ? 'warm' : 'none';
   const toggle = (list: number[], i: number) => (list.includes(i) ? list.filter((x) => x !== i) : [...list, i]);
   const hand = useMemo<Hand>(() => ({ numbers: view.numbers.map((c) => c.value), ops: view.ops.map((o) => o.op) }), [view.numbers, view.ops]);

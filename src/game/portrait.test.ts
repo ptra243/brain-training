@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { cats } from '../content/index.ts';
 import { catCoats, dogCoat, playerPortrait, portraits, type PortraitParts } from '../content/portraits.ts';
 import {
-  catShapes, dogShapes, FRAME, GUEST_CROP, guestCropBox, portraitShapes, type Layer, type Tint,
+  catShapes, coatForCat, dogShapes, FRAME, GUEST_CROP, guestCropBox, portraitShapes, type Layer, type Tint,
 } from './portrait.ts';
 import { accentStyles, costumeStyles, hairStyles, headwearStyles, shade, skinTones } from './portraitParts.ts';
 
@@ -78,6 +78,11 @@ test('the tint overlay is only there for warm and hostile', () => {
   const tint = (t: Tint) => portraitShapes(butler, t).find((l) => l.id === 'tint')!.shapes[0];
   assert.deepEqual(tint('warm'), { t: 'rect', x: 0, y: 0, w: 100, h: 120, fill: '#e8a040', o: 0.16 });
   assert.deepEqual(tint('hostile'), { t: 'rect', x: 0, y: 0, w: 100, h: 120, fill: '#2a4a6a', o: 0.24 });
+});
+
+test('coatForCat picks the coat by the cat\'s place in cats, and falls back to the first', () => {
+  assert.equal(coatForCat(cats[1]), catCoats[1]);
+  assert.equal(coatForCat('Nobody'), catCoats[0]);
 });
 
 test('one cat coat per cat, and the player uses the guest model', () => {

@@ -172,7 +172,7 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
       <main>
         {drawer && hintNote && (
           <div className="casebook-hint">
-            <HintNote text={hintNote} onClose={() => setHintNote(null)} />
+            <HintNote helper={helper} text={hintNote} onClose={() => setHintNote(null)} />
           </div>
         )}
         {tab === 'clues' && (

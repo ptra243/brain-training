@@ -11,7 +11,7 @@ import { Rng, hashSeed } from '../../engine/rng.ts';
 import { houseDetails } from '../../content/index.ts';
 import type { Case, Difficulty } from '../../engine/types.ts';
 import { Dialog } from '../Dialog.tsx';
-import { Paw } from '../games/Hints.tsx';
+import { CatCounter, Paw } from '../games/Hints.tsx';
 import { suspectColour, roomTint, itemName } from '../names.ts';
 import { loadRoomsOverlay, saveRoomsOverlay } from '../storage.ts';
 import {
@@ -585,7 +585,7 @@ export function CaseBoard(props: CaseBoardProps) {
               aria-label={`Hint from ${helper}: drag a piece onto the cat, or pick a piece and tap`}
               onClick={() => (selected ? askHint(selected) : say({ kind: 'cat', text: `Drag a piece onto the cat, or tap a piece first, and ${helper} will help with that one.` }))}
             >
-              <Paw />
+              <CatCounter helper={helper} />
               <span>Hint{save.hintCount ? <small> {save.hintCount}</small> : null}</span>
             </button>
             <button className="cb-tool" disabled={!undoN} onClick={undo}>
@@ -692,7 +692,7 @@ export function CaseBoard(props: CaseBoardProps) {
 
       {toast && (
         <div className={`cb-toast ${toast.kind === 'good' ? 'good' : toast.kind === 'cat' ? 'cat' : ''}`} role="status">
-          {toast.kind === 'cat' && <Paw />}
+          {toast.kind === 'cat' && <CatCounter helper={helper} />}
           <p>
             {toast.text}
             {toast.quote && <> “{toast.quote}”</>}

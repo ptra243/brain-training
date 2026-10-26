@@ -22,21 +22,6 @@ stands. A blocked entry keeps its rank and names its blocker in the heading.
 open questions go in a linked `docs/<slug>.md`, and the entry points to it. An exploratory idea with no
 settled design may stay as a short stub; give it a doc when someone starts it.
 
-## Session: Portraits, parametric faceted cast
-Last touched: 2026-10-24
-Reads first: `docs/portraits.md` (settled style, parts model and open items), `src/content/portraits.ts`
-and `src/game/portrait*.ts` (built), and the `#dev/portraits` gallery.
-Built: the parts model, all ten guests, the player, the cat and dog, the gallery, and portraits on
-counters, the person screen, the questioning chair and the dog fight header.
-Done 2026-10-24: the "You" sheet behind the header button, and a colour pass on the ten guests.
-Left: (1) whether the cat's counter replaces its name in hint copy (ask); (2) portraits in the
-questioning game (`InterrogationGame` still shows initials); (3) facial expressions (brows, mouth
-facet, head tilt) as a later layer.
-Starting prompt:
-```
-Read docs/portraits.md. Ask me whether the cat's counter should replace its name in hint copy, then put portraits in the questioning game.
-```
-
 ## Session: Tarot card faces
 Last touched: 2026-10-23
 Reads first: `docs/tarot-faces.md` (decision, plan, what to check), `src/content/tarotArt.ts`.
@@ -271,6 +256,16 @@ joins the case rotation.
 Starting prompt:
 ```
 Read "Next build: the dog" in docs/nosing-around.md and help me design the dog card game as a real deck builder: one-suit start deck, suit effects, rewards, run length, losing without getting stuck.
+```
+
+## Session: Portrait expressions (exploratory)
+Last touched: 2026-10-26
+Reads first: `docs/portraits.md` (facial expressions are a later layer, not part of the portrait build).
+Goal: decide whether brows, a mouth facet and a head tilt are worth adding. The portraits, the hint
+counters and the questioning chair are already in.
+Starting prompt:
+```
+Read the expressions note in docs/portraits.md and help me decide whether brows, a mouth facet and a head tilt are worth adding.
 ```
 
 ## Session: Clue moments (exploratory)

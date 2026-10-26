@@ -267,7 +267,7 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
           <HintButton helper={helper} onAsk={askHint} />
         </div>
       )}
-      {hintNote && <HintNote text={hintNote} onClose={clearHint} />}
+      {hintNote && <HintNote helper={helper} text={hintNote} onClose={clearHint} />}
     </div>
   );
 

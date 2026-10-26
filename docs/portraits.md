@@ -107,6 +107,8 @@ Skin tones vary across the ten (light to deep); every silhouette differs from it
 - The player's portrait shows on the floor-plan "you are here" marker, opposite the person in the
   talk header, and on the header "You" button, which opens a "You" sheet (decided 2026-10-24): her
   large card plus the clock, her room, clues found and games left tonight.
-- Whether the cat's counter replaces the cat's name in hint copy. Not in the first build.
-- The questioning game (`InterrogationGame`) still shows initials; counters elsewhere and the person
-  screen show portraits (wired 2026-10-22).
+- Hint copy keeps the cat's name (decided 2026-10-26). The Hint button, the hint note and the
+  case-board cat toast show that cat's circular counter instead of the paw. A paw on a square, a
+  grid mark or a clue stays a paw.
+- The questioning chair uses the same portrait counter as the map (`faceClass` on the chair in
+  `InterrogationGame`). Counters elsewhere and the person screen already show portraits.

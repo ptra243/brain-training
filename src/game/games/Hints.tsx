@@ -1,5 +1,9 @@
 // Hints come from the house cat helping on this case. Every game uses these
-// two pieces: a button to ask, and a note card with what the cat did.
+// two pieces: a button to ask, and a note card with what the cat did. Both show
+// that cat's circular counter; the paw stays for marking a square or clue.
+
+import { Portrait } from '../Portrait.tsx';
+import { coatForCat } from '../portrait.ts';
 
 export function Paw() {
   return (
@@ -13,6 +17,15 @@ export function Paw() {
   );
 }
 
+/** The helper cat's circular counter: its portrait head in the brass ring. Decorative; the name is in the label or sentence. */
+export function CatCounter({ helper }: { helper: string }) {
+  return (
+    <span className="counter static has-portrait" aria-hidden="true">
+      <Portrait coat={coatForCat(helper)} view="counter" />
+    </span>
+  );
+}
+
 export function HintButton({ helper, onAsk }: { helper: string; onAsk: () => void }) {
   return (
     <button
@@ -22,16 +35,16 @@ export function HintButton({ helper, onAsk }: { helper: string; onAsk: () => voi
       onPointerDown={(e) => e.preventDefault()}
       onClick={onAsk}
     >
-      <Paw />
+      <CatCounter helper={helper} />
       Hint
     </button>
   );
 }
 
-export function HintNote({ text, onClose }: { text: string; onClose: () => void }) {
+export function HintNote({ helper, text, onClose }: { helper: string; text: string; onClose: () => void }) {
   return (
     <div className="hint-note" role="status">
-      <Paw />
+      <CatCounter helper={helper} />
       <p>{text}</p>
       <button className="hint-note-close" aria-label="Close the hint" onPointerDown={(e) => e.preventDefault()} onClick={onClose}>
         ×

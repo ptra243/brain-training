@@ -36,6 +36,9 @@ nothing and nothing is saved. An unknown id lists the real ones.
 URL: `http://localhost:<port>/#dev/<id>` (on the server the brief names).
 What a look check judges on each:
 
+- `hints`: a Hint button per house cat (each with its own cat head in the brass ring, label readable, 44px+), one open
+  hint note (cat counter at the left, text wraps), and "The Butler is in the chair" with the portrait filling the
+  brass ring (no coloured disc around the head); no sideways scroll.
 - `next-murder`: the stormy scene, scream and clock, with the title and the
   "Tap to go on" line clear of the art; nothing clipped.
 - `opening`: the campaign opening at the start: "Someone in this room is the culprit.", "0 of N spoken to", the

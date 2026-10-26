@@ -9,6 +9,14 @@ test('next-murder preview', async ({ page }) => {
   await checkScreen(page, 'preview next-murder');
 });
 
+test('hints preview', async ({ page }) => {
+  await page.goto('/#dev/hints');
+  await expect(page.getByRole('heading', { name: 'The Butler is in the chair' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Ask .* for a hint$/ }).first()).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('sits on a mark');
+  await checkScreen(page, 'preview hints');
+});
+
 test('escaped preview', async ({ page }) => {
   await page.goto('/#dev/escaped');
   await expect(page.getByText('The killer got away')).toBeVisible();

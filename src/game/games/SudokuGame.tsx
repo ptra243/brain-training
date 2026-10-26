@@ -154,7 +154,7 @@ export function SudokuGame({
             </label>
             <HintButton helper={helper} onAsk={askHint} />
           </div>
-          {note && <HintNote text={note} onClose={() => setNote(null)} />}
+          {note && <HintNote helper={helper} text={note} onClose={() => setNote(null)} />}
         </div>
       )}
       <div
