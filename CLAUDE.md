@@ -127,3 +127,20 @@ an agent or proposing a split.
   its linked doc), fix its starting prompt to begin where the work stopped,
   and re-rank it. Delete the entry when it is finished. Include it in the
   same commit as the work.
+
+## Agent skills
+
+### Issue tracker
+
+Issues are `## Session:` entries in `docs/next-sessions.md`, not GitHub
+Issues. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+No labels: each triage role maps to an entry's file, tier or heading. See
+`docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` and `docs/adr/` at the repo root, created when
+first needed. See `docs/agents/domain.md`.
