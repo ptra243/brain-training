@@ -26,6 +26,15 @@ stands. A blocked entry keeps its rank and names its blocker in the heading.
 open questions go in a linked `docs/<slug>.md`, and the entry points to it. An exploratory idea with no
 settled design may stay as a short stub; give it a doc when someone starts it.
 
+## Session: Shelf UI, beside the current game
+Last touched: 2026-10-28
+Reads first: `docs/visual-theme.md` (Settled: a second shell, the Screens sections, Screen plan), `CONTEXT.md`.
+Goal: build every screen on `#shelf` only, in the Screen plan order; the current game stays as it is. The bookcase and a still case page are up. Every screen is now designed (2026-10-28): Quick play end to end first (ribbons, Find a clue page, puzzle page, notebook, map, answer, stickers), then the campaign book, the deck and the guest book. The shelf writes the same save as the current shell once a screen is playable.
+Starting prompt:
+```
+Read the "Settled: a second shell", "Screens 1–3" and "Screen plan" sections of docs/visual-theme.md and CONTEXT.md. Build step 1 (ribbons and page turn) on #shelf only, then step 2 (Find a clue page). Do not edit src/styles.css, Home, Casebook, or any other current-shell file. Settle the brief with me, then hand it to the implementer.
+```
+
 ## Session: Theme content, land the lines
 Last touched: 2026-10-26
 Reads first: `docs/motive-outlines.xlsx`, `docs/theme-threads.md` (Direction).
@@ -193,35 +202,37 @@ Read the Grid cases build plan doc, go through its open questions with me, then 
 ```
 
 ## Session: CSS Modules for game styles
-Last touched: 2026-10-23
-Reads first: `docs/css-modules.md` (why, decision, done so far, what to watch).
+Last touched: 2026-10-27
+Reads first: `docs/css-modules.md` (why, decision, shared pieces, what to watch).
 Goal: move the remaining games (nosing lock / key / speed / board, number grid, typing) to
-`<Game>.module.css`, one or two per commit, following `TarotGame.module.css`. Move e2e class selectors to
-roles or `data-testid`; check each screen at 360px. Done so far: Tarot, dog fight, Wordle, crossword, word
-search, cat puzzle, sudoku, interrogation.
+`<Game>.module.css`, one per commit, following `TarotGame.module.css`. Move e2e class selectors to
+roles or `data-testid`; e2e `checkScreen` is the 360px check. Done so far: Tarot, dog fight, Wordle,
+crossword, word search, cat puzzle, sudoku, interrogation, the number pad, the speed round, the
+nosing shell, the board and the key. Shared pieces are settled (question text is not shared; number
+grid and lock actions move together because the dog borrows both; `.nosing` and the icon paint stay
+global). Next piece: number grid and lock together.
 Starting prompt:
 ```
-Read docs/css-modules.md, then move the nosing views to CSS modules (settle the shared numpad / question rules first). Delegate each to the implementer, then run e2e and a 360px look check.
+Read docs/css-modules.md. The shared pieces are already settled. Delegate the next piece in the Next list to the implementer, then run e2e.
 ```
 
 ## Session: Campaign in the puzzle book (design)
-Last touched: 2026-10-26
+Last touched: 2026-10-27
 Reads first: `docs/puzzle-book.md` (settled decisions, open questions, how screenshots are made).
 Goal: mock up the campaign screens in the puzzle book style, using real screenshots, so the book
-covers the whole game before any of it is built.
+covers the whole game before any of it is built. Mockups stay in `docs/mockups`. Do not change the live shell; a built screen belongs to the Shelf UI session, on `#shelf` only.
 Starting prompt:
 ```
 Read docs/puzzle-book.md, then mock up the campaign screens in the puzzle book style in docs/mockups: the rounds bar with the explore map, talking to a guest, and the You sheet.
 ```
 
-## Session: Visual theme, library and puzzle book
-Last touched: 2026-10-24
-Reads first: `docs/visual-theme.md` (leanings, open items, unexplored ideas), `docs/mockups/index.html`.
-Goal: check the real map, grid and puzzles against the mockups at 360 × 780, pick the palette, then
-start the build order in the doc.
+## Session: Visual theme, library and puzzle book (paused)
+Last touched: 2026-10-27
+Reads first: `docs/visual-theme.md`.
+Goal: paused. Do not restyle the live app. The look is built on `#shelf` in "Shelf UI, beside the current game". Palette not chosen. The 360px measurements are in the doc.
 Starting prompt:
 ```
-Read docs/visual-theme.md. Open #dev/explore, #dev/houses and #dev/nosing-houses through browser-check at 360x780 and tell me how the floor plan and puzzles would fit as edge-to-edge plates in the puzzle book. Then ask me which palette to use.
+Read docs/visual-theme.md. This is paused. Do not change src/styles.css or replace Home or Casebook. New screens belong to the Shelf UI session, on #shelf only.
 ```
 
 ## Session: Session hygiene review (weekly)

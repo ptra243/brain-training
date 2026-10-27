@@ -124,6 +124,13 @@ owner switches that default, this work must not change the current shell.
   components.
 - Reading her save, to draw the book that sticks out, is fine. Do not write the save from `#shelf`
   until that screen is the real one and the action is the same as today (continue or start).
+- **One save (owner, 2026-10-28).** Quick play becomes playable on `#shelf` early, writing the same
+  save, through the same progress calls the Casebook uses, so a case started in either shell
+  continues in the other. No shelf-only save prefix.
+- **Games inside a page (owner, 2026-10-28).** A puzzle page is a paper frame (header, cat hint,
+  Solve) around today's game component, unchanged. Later each game can be restyled with overrides
+  under `body.shelf` only, never by editing its CSS module.
+- **Subject pages (owner, 2026-10-28).** See screens 4–7 below. Ribbons stay four.
 - The first screen is the honey-oak bookcase the owner picked on 2026-10-27
   (`docs/mockups/shots/honey-oak-shelf.png`): cream dotted wallpaper, one wooden bookcase,
   Quick play / Campaign / Your record, the cat, teacup and candle. `docs/mockups/library.html`
@@ -136,11 +143,99 @@ owner switches that default, this work must not change the current shell.
   Copy sizes, colours and the EB Garamond headings from there; `LibHoney`/`TableHoney` just pick
   the honey palette.
 
-## Suggested build order
+## Screens 1–3, settled (owner, 2026-10-28)
 
-1. The `#shelf` route and the honey-oak bookcase (`docs/mockups/shots/honey-oak-shelf.png`). Done (2026-10-27). New case and the saved case book play a CSS open (lift, grow, stiff cover) onto a still case page: blurb, three clue choices, ribbons for Case, Map, Puzzles and Answer. The choices do nothing yet. Other books still open "This page isn't drawn yet."
-2. Each later mockup as its own screen on `#shelf`, still leaving today's game alone.
-3. Only when she is ready: make the app open on `#shelf`.
+- **Case section is two pages.** The opening (victim, blurb) shows the first time the book opens.
+  After that the Case ribbon and reopening the book land on page 3, the Find a clue page. The
+  three choices on today's still case page move to page 3.
+- **Page 3 lists every puzzle in the case**: a story line, then game · level · clue count. Finished
+  ones stay, greyed ("Solved · 2 clues found") and tappable, with a button to hide them.
+- **No separate intro page.** The puzzle page has a short header (title, level, clue count, one rule
+  line, "Turn back to page 3") with the game right under it.
+- **Story lines**: a pool per game in `src/content/`, about the house, the cat and objects only, never
+  a guest, never a case fact. The line and the page number come from the case ref through a small
+  hash in the shelf UI, not the engine `Rng`, so cases don't change. Claude drafts 3 per game; the
+  owner edits.
+- **Won page**: the finished puzzle, the clue(s) written in below, "Turn back to page 3". Until the
+  notebook is built, the clue stays on the page; later it flies into the notebook's peek. A Solve
+  shows the same with a plain "Solved by the cat" note.
+- **Ribbon timings**: as proposed above (60ms apart, about 350ms each, 450ms page turn, crossfade
+  under reduced motion), tuned on her phone. An unbuilt section's ribbon turns to "This page isn't
+  drawn yet."
+
+- **Hide finished** is a small link at the foot of page 3 ("Hide finished (2)" / "Show finished
+  (2)"), absent when nothing is finished. Remembered in a shelf-only localStorage key (guarded), not
+  the case save.
+
+## Screens 4–7, settled (owner, 2026-10-28)
+
+- **Notebook**: opens full height, index tabs along its **bottom** (Clues · Grid · Guests). Swipe
+  down on the spiral, or tap above it, to tuck it back to the peek. It reopens on the page she last
+  used, so map ↔ grid is one tap each way (check with her once both are playable). The first page,
+  before Clues, is "You" (today's You sheet; revisit for campaign).
+- **Subject page**: one notebook page per guest and per weapon. Heading (counter or chip, name,
+  "You've placed them in the library" or "Not placed yet"), the clues naming them (tick as used),
+  what they said (guests only, today's talk section), and "Place in a room". No cross-off: marks stay
+  on the map and grid.
+- **Tapping on the map** (a short tap; a drag still moves it): the notebook rises to **half height**
+  on that subject's page, the counter ringed in brass on the map above. Tapping another counter or
+  weapon swaps the page in place. Swipe up for full height; swipe down or tap the map to tuck it
+  away. A row or column name in the notebook's grid opens the same page. This replaces today's
+  suspect sheet; there is no separate card on the table.
+- **Answer page**: Quick play rules unchanged (unlimited accusations, tries counted). A printed form,
+  "It was ___ in the ___ with the ___"; tapping a blank opens a printed list and her pick is written
+  in pencil. A wrong one is crossed out in red pencil and a fresh line appears below, so earlier
+  tries stay. The "regrets" card copy comes later as a content pass.
+- **Sticker page** (Jigsaw-finish cases): the bottom belongs to the sticker sheet, a drawer about two
+  rows tall (2 × 44px plus padding) that scrolls sideways; the notebook becomes a header icon.
+
+## Screens 8–10, settled (owner, 2026-10-28)
+
+- **The campaign is one book in chapters**, a chapter per round (Chapter one: 9pm, Midnight, 3am).
+  Ribbons are Room · Plan · Answer. The room page (`CampaignRoom`) is the hub, as page 3 is in Quick
+  play: where she is, the guests there, the objects with game · level · clue count, and "Walk to ·
+  no time taken". Midnight and 3am chapters use the midnight-green palette; 9pm stays honey oak.
+- **Talking is a face-to-face spread** on the table, her portrait and theirs, as today's person
+  screen (Talk, Minigame, Clues). Its Clues opens that guest's subject page in the notebook. The
+  opening scene is the first pages of chapter one.
+- **New campaign opens on a title page**: difficulty as three ribbon bookmarks (Easy, Medium, Hard)
+  plus today's other setup options, and "Break the seal" to start.
+- **Accusations left are candles** in the room page header; a wrong one blows one out. Face to face
+  after an accusation is a spread on the table. A new body ends the chapter; the next chapter's first
+  page says "later that night". Rules unchanged; only the drawing.
+- **The deck**: tapping it fans the game cards on the table; a tap turns a card face up (picked) or
+  down; "Deal" starts the case. Same choice and save as today's Pick games.
+- **The guest book**: running totals in ink on the front page, then one handwritten entry per
+  finished run (today's history rows): date, case title, "Solved on the first accusation", the
+  killer's name signed at the end. An unsolved run has no signature and "left before dessert".
+- **Not in this plan**: the secret lever book, spine colours from the case code, solved cases
+  arriving as books, sticker rewards. They stay under Unexplored ideas.
+
+## Screen plan (owner, 2026-10-28)
+
+Quick play end to end first, then campaign, then the deck and the guest book, each its own screen on
+`#shelf`, still leaving today's game alone. Only when she is ready: make the app open on `#shelf`.
+Words in `CONTEXT.md`.
+
+Done (2026-10-27): the `#shelf` route and the honey-oak bookcase. New case and the saved case book
+play a CSS open (lift, grow, stiff cover) onto a still case page: blurb, three clue choices, ribbons
+for Case, Map, Puzzles and Answer. The choices do nothing yet. Other books still open "This page
+isn't drawn yet."
+
+| Order | Shelf screen | Replaces | Mockup |
+|---|---|---|---|
+| done | Library (bookcase) | Home | `CosyLibrary` |
+| done (still) | Case page | Opening scene | `CosyTable` |
+| 1 | Ribbons and page turn | Tabs | `CaseRibbons` |
+| 2 | Find a clue page | Get a clue | `CyoaChoices`, `CyoaPage` |
+| 3 | Puzzle page (and won) | GameScreen | `puzzle-page*.html` |
+| 4 | Notebook: You, clues, grid, subject pages | Clue drawer, grid, You sheet | `NotebookGrid` |
+| 5 | Map plate (taps open subject pages) | Map, suspect sheet | `PuzzleMap` |
+| 6 | Answer page | Accuse panel (face to face is campaign, step 8) | `puzzle-book-answer.html` |
+| 7 | Sticker page | Jigsaw end board | `StickerPage` |
+| 8 | Campaign: title page, room page, chapters | Campaign setup, view, next murder | `CampaignRoom` |
+| 9 | The deck | Pick games | none |
+| 10 | Guest book | Record | none |
 
 Each new screen needs a look check at 360 × 780. Sticker rewards and sticker branches stay later,
 and they change cases, so they are not part of this shell.
