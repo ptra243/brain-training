@@ -86,6 +86,13 @@ test('dogfight preview', async ({ page }) => {
   await checkScreen(page, 'preview dogfight');
 });
 
+test('shelf-ribbons preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-ribbons');
+  await expect(page.getByRole('heading', { name: 'Find a clue' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Map' })).toBeVisible();
+  await checkScreen(page, 'preview shelf-ribbons');
+});
+
 test('an unknown preview lists the real ones', async ({ page }) => {
   await page.goto('/#dev/nope');
   await expect(page.getByRole('link', { name: 'next-murder' })).toBeVisible();

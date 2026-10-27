@@ -103,56 +103,80 @@
   }
 }
 
-/* ---------- The case page ---------- */
-:global(body.shelf) .sheet {
+/* ---------- The puzzle book: felt, header, and the open book ----------
+   Ported from docs/mockups/ribbons-prototype.html with the book running to the left edge and the
+   ribbon for her section lying in the crease. */
+:global(body.shelf),
+:global(html:has(body.shelf)) {
+  overscroll-behavior-y: none;
+}
+
+:global(body.shelf) .app {
+  --felt: #3a7058;
+  --felt-deep: #2c5745;
+  --cover-red: #8a2e3b;
+  --paper: #f8f1df;
+  --page-line: #e4d8bb;
+  --ink: #2a2118;
+  --ink-soft: #6b5a3a;
+  --ivory: #f3ead3;
+  --brass: #d2a548;
+  --r-case: #c99a3c;
+  --r-map: #4f7a54;
+  --r-puzzles: #3f5f8a;
+  --r-answer: #9a5a32;
+  --verso: 20px;
+  --pad-l: 0px;
+  --display: 'EB Garamond', Georgia, 'Times New Roman', serif;
   position: absolute;
   inset: 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
-  overflow-y: auto;
-  color: #3a2414;
-  font-family: Georgia, 'Times New Roman', serif;
-  background-color: #fbf3dc;
-  background-image: repeating-linear-gradient(180deg, transparent 0 27px, rgba(139, 90, 43, 0.08) 27px 28px);
-  box-shadow: inset 10px 0 12px -8px rgba(74, 44, 16, 0.4);
+  gap: 12px;
+  padding-top: calc(10px + env(safe-area-inset-top, 0px));
+  padding-bottom: 22px;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: max(6px, env(safe-area-inset-right, 0px));
+  overflow: clip;
+  background: radial-gradient(120% 80% at 50% 30%, var(--felt), var(--felt-deep));
+  color: var(--ivory);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
-:global(body.shelf) .sheet button:focus-visible {
-  outline: 3px solid #ffe08a;
-  outline-offset: -4px;
-  box-shadow: inset 0 0 0 6px #3a2414;
+:global(body.shelf) .app button:focus-visible {
+  outline: 3px solid var(--brass);
+  outline-offset: 2px;
 }
 
-/* The top of the page. The ribbons lie on this paper, they are not a wooden shelf. */
-:global(body.shelf) .band {
-  flex: none;
-  box-sizing: border-box;
-  padding: calc(6px + env(safe-area-inset-top)) 16px 0;
-  background-color: #fbf3dc;
-  background-image: repeating-linear-gradient(180deg, transparent 0 27px, rgba(139, 90, 43, 0.08) 27px 28px);
-}
-:global(body.shelf) .back {
-  display: inline-flex;
+:global(body.shelf) .head {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) 46px;
   align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  margin-left: -8px;
-  padding: 0 8px;
-  background: none;
-  border: 0;
-  font-family: inherit;
-  font-size: 15px;
-  color: #4a2a10;
+  gap: 8px;
+  padding: 0 10px 0 16px;
+}
+:global(body.shelf) .round {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(243, 234, 211, 0.25);
   cursor: pointer;
 }
-:global(body.shelf) .back:hover { color: #2a1608; }
 :global(body.shelf) .caseTitle {
+  grid-column: 2;
   margin: 0;
-  font-size: 24px;
+  text-align: center;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 22px;
   line-height: 1.15;
-  font-weight: 700;
-  color: #3a2414;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -160,133 +184,308 @@
   overflow: hidden;
   overflow-wrap: anywhere;
 }
-:global(body.shelf) .ribbons {
+
+/* ---------- The book: a sliver of the left page, the crease, the right page ---------- */
+:global(body.shelf) .book {
   position: relative;
-  z-index: 1;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 18px;
-  margin-bottom: -46px;
-  padding-top: 4px;
+  flex: 1;
+  min-height: 0;
+  background: var(--cover-red);
+  border-radius: 0 8px 8px 0;
+  padding: 8px 8px 8px 0;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.45);
 }
-/* A narrow cloth bookmark. The cloth is the ::before; the button is the 44px target. */
-:global(body.shelf) .ribbon {
+:global(body.shelf) .spread {
   position: relative;
+  height: 100%;
+  display: flex;
+}
+:global(body.shelf) .verso {
   flex: none;
-  box-sizing: border-box;
-  width: 44px;
-  height: 108px;
-  padding: 10px 0 22px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  border: 0;
-  background: none;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  writing-mode: vertical-rl;
-  color: #3a2414;
-  cursor: pointer;
+  width: var(--verso);
+  border-radius: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(120, 90, 50, 0.16) 0 1px, transparent 1px 3px) left / 5px 100% no-repeat,
+    linear-gradient(90deg, #eee3c7 0%, #f5ecd6 30%, #eadcbc 72%, #cdb98f 100%);
 }
-:global(body.shelf) .ribbon::before {
-  content: '';
+/* The turning leaf may swing out to the left but never up over the header. */
+:global(body.shelf) .pages {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  perspective: 2400px;
+  clip-path: inset(-6px -100vw -6px -100vw);
+}
+:global(body.shelf) .page {
   position: absolute;
-  z-index: -1;
-  top: 0;
-  bottom: 0;
-  left: 12px;
-  width: 20px;
-  background: linear-gradient(180deg, #ead9b8 0, #d2bc92 62%, #c4ab7e 100%);
-  clip-path: polygon(0 0, 100% 0, 100% 90%, 50% 100%, 0 90%);
-  filter: drop-shadow(1px 3px 1.5px rgba(92, 54, 28, 0.38));
+  inset: 0;
+  box-sizing: border-box;
+  background: var(--paper);
+  border-radius: 0 3px 3px 0;
+  padding: 18px 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--ink);
+  font-family: var(--display);
+  overflow: hidden;
+  box-shadow: inset 14px 0 16px -10px rgba(60, 30, 10, 0.38);
 }
-:global(body.shelf) .ribbon:nth-child(2) { transform: rotate(2.5deg); }
-:global(body.shelf) .ribbon:nth-child(3) { transform: rotate(-2deg); }
-:global(body.shelf) .ribbon:nth-child(3)::before { background: linear-gradient(180deg, #ddd8bc, #c9c19a 62%, #b3a97a); }
-:global(body.shelf) .ribbon:nth-child(4) { transform: rotate(3deg); }
-:global(body.shelf) .ribbon:nth-child(4)::before { background: linear-gradient(180deg, #ecd0b4, #ddb894 62%, #c9a27e); }
-:global(body.shelf) .current {
-  height: 132px;
-  color: #fff6dc;
-  transform: rotate(-2.5deg);
-  cursor: default;
-}
-:global(body.shelf) .current::before {
-  background: linear-gradient(180deg, #c45658 0, #9a3438 58%, #842e32 100%);
-  filter: drop-shadow(2px 4px 2px rgba(80, 36, 18, 0.4));
+:global(body.shelf) .gutter {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  z-index: 12;
+  pointer-events: none;
+  left: calc(var(--pad-l) + var(--verso) - 9px);
+  width: 18px;
+  background: linear-gradient(90deg, rgba(60, 35, 12, 0) 0, rgba(60, 35, 12, 0.32) 48%, rgba(255, 248, 230, 0.25) 56%, rgba(60, 35, 12, 0) 100%);
 }
 
-/* ---------- On the page ---------- */
-:global(body.shelf) .paper {
-  flex: 1;
-  box-sizing: border-box;
-  padding: 62px 18px calc(24px + env(safe-area-inset-bottom));
+:global(body.shelf) .leaf {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  will-change: transform;
+}
+:global(body.shelf) .leaf .page {
+  backface-visibility: hidden;
+}
+:global(body.shelf) .leaf .page.back {
+  transform: rotateY(180deg);
+  border-radius: 3px 0 0 3px;
+  box-shadow: inset -14px 0 16px -10px rgba(60, 30, 10, 0.38);
+  background: linear-gradient(90deg, #efe4c8, var(--paper) 40%);
+}
+:global(body.shelf) .page.blank > * {
+  visibility: hidden;
+}
+:global(body.shelf) .page.blank > .shade {
+  visibility: visible;
+}
+:global(body.shelf) .shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(to left, rgba(60, 30, 10, 0.5), rgba(60, 30, 10, 0) 65%);
+}
+:global(body.shelf) .under {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(to right, rgba(40, 20, 8, 0.45), rgba(40, 20, 8, 0) 70%);
+}
+
+/* ---------- On the pages ---------- */
+:global(body.shelf) .running {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid var(--page-line);
+  padding-bottom: 6px;
+  margin-top: 14px;
+}
+:global(body.shelf) .running span {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+:global(body.shelf) .lede {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.4;
 }
 :global(body.shelf) .blurb {
-  margin: 0 0 18px;
-  font-size: 17px;
-  line-height: 1.45;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.35;
   font-style: italic;
 }
 :global(body.shelf) .find {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: #8a3a1a;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 :global(body.shelf) .choices {
+  list-style: none;
   margin: 0;
   padding: 0;
-  list-style: none;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 :global(body.shelf) .choice {
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 76px;
-  padding: 11px 14px;
-  text-align: left;
-  font-family: inherit;
-  color: #3a2414;
+  gap: 4px;
+  min-height: 44px;
+  padding: 10px;
+  font: inherit;
+  color: inherit;
   background: #fffaf0;
-  border: 1px solid #d8c392;
-  border-left: 5px solid #b8383c;
+  border: 1px solid var(--page-line);
   border-radius: 6px;
-  box-shadow: 0 2px 3px rgba(74, 44, 16, 0.18);
-  cursor: pointer;
 }
 :global(body.shelf) .story {
-  font-size: 15px;
-  line-height: 1.35;
+  font-size: 16px;
+  line-height: 1.3;
 }
 :global(body.shelf) .meta {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
+  gap: 8px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 13px;
-  font-weight: 700;
-  color: #6b4f36;
+  color: var(--ink-soft);
 }
-:global(body.shelf) .page {
-  flex: none;
-  color: #8a3a1a;
+:global(body.shelf) .meta b {
+  font-family: var(--display);
   font-style: italic;
+  font-weight: 500;
+  font-size: 15px;
+  white-space: nowrap;
 }
-:global(body.shelf) .turn {
-  margin: 16px 0 0;
+:global(body.shelf) .foot {
+  margin: auto 0 0;
   text-align: center;
-  font-size: 13px;
-  font-style: italic;
-  color: #6b4f36;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+/* ---------- Satin ribbons ---------- */
+:global(body.shelf) .satin {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0, rgba(0, 0, 0, 0) 16%, rgba(255, 255, 255, 0.34) 36%, rgba(255, 255, 255, 0.05) 50%, rgba(0, 0, 0, 0) 68%, rgba(0, 0, 0, 0.24) 100%),
+    linear-gradient(172deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.14) 46%, rgba(255, 255, 255, 0) 62%),
+    var(--rib);
+}
+:global(body.shelf) .satin[data-i='0'] { --rib: var(--r-case); --rib-ink: var(--ink); }
+:global(body.shelf) .satin[data-i='1'] { --rib: var(--r-map); --rib-ink: var(--ivory); }
+:global(body.shelf) .satin[data-i='2'] { --rib: var(--r-puzzles); --rib-ink: var(--ivory); }
+:global(body.shelf) .satin[data-i='3'] { --rib: var(--r-answer); --rib-ink: var(--ivory); }
+
+:global(body.shelf) .pull {
+  position: absolute;
+  top: 8px;
+  left: calc(var(--pad-l) + var(--verso));
+  right: 8px;
+  height: 44px;
+  z-index: 15;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: none;
+}
+/* Pages, the pull strip and the scrim all set `display`, which would beat the `hidden` attribute. */
+:global(body.shelf) .page[hidden],
+:global(body.shelf) .pull[hidden],
+:global(body.shelf) .scrim[hidden] {
+  display: none;
+}
+:global(body.shelf) .scrim {
+  position: absolute;
+  inset: 8px 8px 8px var(--pad-l);
+  z-index: 18;
+  touch-action: none;
+  background: rgba(42, 33, 24, 0.12);
+  border-radius: 3px;
+}
+:global(body.shelf) .ribbons {
+  position: absolute;
+  top: 8px;
+  left: calc(var(--pad-l) + var(--verso));
+  right: 8px;
+  z-index: 20;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 8px;
+}
+/* A slot clips its ribbon at the page's top edge only, so the shadow still falls on the page. */
+:global(body.shelf) .slot {
+  position: relative;
+  width: 58px;
+  height: 190px;
+  flex: none;
+  clip-path: inset(0 -24px -40px -24px);
+  filter: drop-shadow(0 2px 2px rgba(40, 20, 5, 0.32)) drop-shadow(1px 7px 6px rgba(40, 20, 5, 0.16));
+}
+/* Where the ribbon bends over the top edge of the page. */
+:global(body.shelf) .slot::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 9px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(20, 10, 4, 0.5), rgba(20, 10, 4, 0.12) 60%, rgba(255, 250, 235, 0.2) 80%, rgba(255, 250, 235, 0));
+  clip-path: inset(0);
+  transition: opacity 0.2s;
+}
+:global(body.shelf) .slot.empty::after {
+  opacity: 0;
+}
+:global(body.shelf) .ribbon {
+  --h: 132px;
+  position: absolute;
+  left: 0;
+  top: -40px;
+  box-sizing: border-box;
+  width: 58px;
+  height: calc(var(--h) + 40px);
+  border: 0;
+  cursor: pointer;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  padding: 0 0 24px;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 88%, 0 100%);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--rib-ink);
+  transform-origin: 50% 40px;
+  transform: translateY(calc(14px - var(--h)));
+}
+:global(body.shelf) .ribbons.open .ribbon {
+  pointer-events: auto;
+}
+
+/* The ribbon for the page she's on lies in the crease and hangs out of the bottom of the book. */
+:global(body.shelf) .crease {
+  position: absolute;
+  z-index: 13;
+  pointer-events: none;
+  top: 2px;
+  bottom: -16px;
+  left: calc(var(--pad-l) + var(--verso) - 7px);
+  width: 14px;
+  filter: drop-shadow(1px 1px 1.5px rgba(40, 20, 5, 0.35));
+}
+:global(body.shelf) .crease span {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 7px), 0 100%);
 }

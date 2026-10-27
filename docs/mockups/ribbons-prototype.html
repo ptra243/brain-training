@@ -1,0 +1,680 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ribbons and Page Turn</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+/* One look on purpose (honey oak at the card table): an open book on the felt, satin ribbons over the page. */
+:root {
+  color-scheme: light;
+  --felt: #3a7058;
+  --felt-deep: #2c5745;
+  --cover: #8a2e3b;
+  --page: #f8f1df;
+  --page-line: #e4d8bb;
+  --ink: #2a2118;
+  --ink-soft: #6b5a3a;
+  --ivory: #f3ead3;
+  --brass: #d2a548;
+  --brass-deep: #9a7426;
+  --r-case: #c99a3c;
+  --r-map: #4f7a54;
+  --r-puzzles: #3f5f8a;
+  --r-answer: #9a5a32;
+  --verso: 30px;
+  --pad-l: 8px;
+  --display: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  --ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+[hidden] { display: none !important; }
+html { height: 100%; overflow: hidden; overscroll-behavior: none; }
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: radial-gradient(120% 80% at 50% 30%, var(--felt), var(--felt-deep));
+  color: var(--ivory);
+  font-family: var(--ui);
+  -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+
+.app {
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 10px 22px;
+  max-width: 480px;
+  margin: 0 auto;
+  overflow: clip;
+}
+
+header { display: grid; grid-template-columns: 46px minmax(0, 1fr) 46px; align-items: center; gap: 8px; }
+.round {
+  width: 46px; height: 46px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(0, 0, 0, 0.18); border: 1px solid rgba(243, 234, 211, 0.25);
+  cursor: pointer;
+}
+header h1 { margin: 0; text-align: center; font-family: var(--display); font-weight: 600; font-size: 22px; line-height: 1.15; }
+header p { margin: 2px 0 0; text-align: center; font-size: 13px; opacity: 0.8; }
+
+/* ---------- The book: a sliver of the left page, the crease, the right page ---------- */
+.book {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: var(--cover);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.45);
+}
+.spread { position: relative; height: 100%; display: flex; }
+
+/* "To the edge": the book runs off the left of the screen, so the left page fills the gutter. */
+.app[data-book="edge"] { padding-left: env(safe-area-inset-left, 0px); padding-right: max(6px, env(safe-area-inset-right, 0px)); }
+.app[data-book="edge"] header { padding-left: 16px; padding-right: 10px; }
+.app[data-book="edge"] .book { --pad-l: 0px; padding-left: 0; border-radius: 0 8px 8px 0; }
+.app[data-book="edge"] .verso { border-radius: 0; }
+.verso {
+  flex: none; width: var(--verso);
+  border-radius: 3px 0 0 3px;
+  background:
+    repeating-linear-gradient(90deg, rgba(120, 90, 50, 0.16) 0 1px, transparent 1px 3px) left / 5px 100% no-repeat,
+    linear-gradient(90deg, #eee3c7 0%, #f5ecd6 30%, #eadcbc 72%, #cdb98f 100%);
+}
+/* The turning leaf may swing out to the left but never up over the header. */
+.pages { position: relative; flex: 1; min-width: 0; perspective: 2400px; clip-path: inset(-6px -100vw -6px -100vw); }
+.page {
+  position: absolute; inset: 0;
+  box-sizing: border-box;
+  background: var(--page);
+  border-radius: 0 3px 3px 0;
+  padding: 18px 12px 14px 14px;
+  display: flex; flex-direction: column; gap: 12px;
+  color: var(--ink);
+  overflow: hidden;
+  box-shadow: inset 14px 0 16px -10px rgba(60, 30, 10, 0.38);
+}
+.gutter {
+  position: absolute; top: 8px; bottom: 8px; z-index: 12; pointer-events: none;
+  left: calc(var(--pad-l) + var(--verso) - 9px); width: 18px;
+  background: linear-gradient(90deg, rgba(60, 35, 12, 0) 0, rgba(60, 35, 12, 0.32) 48%, rgba(255, 248, 230, 0.25) 56%, rgba(60, 35, 12, 0) 100%);
+}
+
+.leaf { position: absolute; inset: 0; z-index: 10; transform-style: preserve-3d; transform-origin: left center; will-change: transform; }
+.leaf .page { backface-visibility: hidden; }
+.leaf .page.back {
+  transform: rotateY(180deg);
+  border-radius: 3px 0 0 3px;
+  box-shadow: inset -14px 0 16px -10px rgba(60, 30, 10, 0.38);
+  background: linear-gradient(90deg, #efe4c8, var(--page) 40%);
+}
+.page.blank > * { visibility: hidden; }
+.page.blank > .shade { visibility: visible; }
+.shade {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: linear-gradient(to left, rgba(60, 30, 10, 0.5), rgba(60, 30, 10, 0) 65%);
+}
+.under {
+  position: absolute; inset: 0; z-index: 4; pointer-events: none; opacity: 0;
+  background: linear-gradient(to right, rgba(40, 20, 8, 0.45), rgba(40, 20, 8, 0) 70%);
+}
+
+.running {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1px solid var(--page-line); padding-bottom: 6px; margin-top: 14px;
+}
+.running span:first-child { font-size: 11px; letter-spacing: 0.18em; color: var(--ink-soft); text-transform: uppercase; }
+.running span:last-child { font-family: var(--display); font-style: italic; font-size: 15px; color: var(--ink-soft); }
+.page h2 { margin: 0; font-family: var(--display); font-weight: 600; font-size: 24px; text-wrap: balance; }
+.lede { margin: 0; font-family: var(--display); font-size: 17px; line-height: 1.4; }
+
+.choices { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.choice {
+  width: 100%; text-align: left; cursor: pointer;
+  display: flex; flex-direction: column; gap: 4px;
+  min-height: 44px; padding: 10px;
+  background: #fffaf0; border: 1px solid var(--page-line); border-radius: 6px;
+}
+.choice .story { font-family: var(--display); font-size: 16px; line-height: 1.35; }
+.choice .meta { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--ink-soft); }
+.choice .meta b { font-family: var(--display); font-style: italic; font-weight: 500; font-size: 15px; white-space: nowrap; }
+.choice.done { opacity: 0.55; }
+.foot { margin: auto 0 0; text-align: center; font-family: var(--display); font-size: 14px; color: var(--ink-soft); }
+
+.plan {
+  flex: 1; min-height: 0; display: grid; grid-template-columns: 1.2fr 1fr 1fr; grid-template-rows: 1fr 1fr 1.3fr;
+  border: 3px solid var(--ink); background: #fffaf0;
+}
+.plan div { border: 1.5px solid var(--ink); display: grid; place-items: center; text-align: center; font-family: var(--display); font-style: italic; font-size: 14px; color: var(--ink-soft); }
+.plan .wide { grid-column: span 2; }
+
+.contents { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; font-family: var(--display); font-size: 17px; }
+.contents li { display: flex; gap: 6px; align-items: baseline; }
+.contents li::after { content: ''; order: 1; flex: 1; border-bottom: 1.5px dotted #c9bd9f; }
+.contents li b { order: 2; font-weight: 500; font-style: italic; }
+
+.blanks { display: flex; flex-direction: column; gap: 18px; font-family: var(--display); font-size: 18px; }
+.blanks p { margin: 0; display: flex; gap: 8px; align-items: baseline; }
+.blanks p span { flex: 1; border-bottom: 1.5px dashed #c9bd9f; height: 20px; }
+
+/* ---------- Satin ribbons ---------- */
+.satin {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0, rgba(0, 0, 0, 0) 16%, rgba(255, 255, 255, 0.34) 36%, rgba(255, 255, 255, 0.05) 50%, rgba(0, 0, 0, 0) 68%, rgba(0, 0, 0, 0.24) 100%),
+    linear-gradient(172deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.14) 46%, rgba(255, 255, 255, 0) 62%),
+    var(--rib);
+}
+[data-i="0"] { --rib: var(--r-case); --rib-ink: var(--ink); }
+[data-i="1"] { --rib: var(--r-map); --rib-ink: var(--ivory); }
+[data-i="2"] { --rib: var(--r-puzzles); --rib-ink: var(--ivory); }
+[data-i="3"] { --rib: var(--r-answer); --rib-ink: var(--ivory); }
+
+.pull {
+  position: absolute; top: 8px; left: calc(var(--pad-l) + var(--verso)); right: 8px; height: 44px; z-index: 15;
+  border: 0; padding: 0; background: transparent; cursor: pointer; touch-action: none;
+}
+.scrim {
+  position: absolute; inset: 8px 8px 8px var(--pad-l); z-index: 18; touch-action: none;
+  background: rgba(42, 33, 24, 0.12); border-radius: 3px;
+}
+.ribbons {
+  position: absolute; top: 8px; left: calc(var(--pad-l) + var(--verso)); right: 8px; z-index: 20;
+  pointer-events: none;
+  display: flex; justify-content: center; align-items: flex-start; gap: 8px;
+}
+/* A slot clips its ribbon at the page's top edge only, so the shadow still falls on the page. */
+.slot {
+  position: relative; width: 58px; height: 190px; flex: none;
+  clip-path: inset(0 -24px -40px -24px);
+  filter: drop-shadow(0 2px 2px rgba(40, 20, 5, 0.32)) drop-shadow(1px 7px 6px rgba(40, 20, 5, 0.16));
+}
+/* Where the ribbon bends over the top edge of the page. */
+.slot::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 9px; pointer-events: none;
+  background: linear-gradient(180deg, rgba(20, 10, 4, 0.5), rgba(20, 10, 4, 0.12) 60%, rgba(255, 250, 235, 0.2) 80%, rgba(255, 250, 235, 0));
+  clip-path: inset(0);
+  transition: opacity 0.2s;
+}
+.slot.empty::after { opacity: 0; }
+.ribbon {
+  --h: 132px;
+  position: absolute; left: 0; top: -40px;
+  width: 58px; height: calc(var(--h) + 40px);
+  border: 0; cursor: pointer; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px;
+  padding: 0 0 24px;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 88%, 0 100%);
+  font-size: 12px; font-weight: 600; letter-spacing: 0.03em; color: var(--rib-ink);
+  transform-origin: 50% 40px;
+  transform: translateY(calc(14px - var(--h)));
+}
+.ribbons.open .ribbon { pointer-events: auto; }
+
+/* The ribbon for the page she's on lies in the crease and hangs out of the bottom of the book. */
+.crease {
+  position: absolute; z-index: 13; pointer-events: none;
+  top: 2px; bottom: -16px; left: calc(var(--pad-l) + var(--verso) - 7px); width: 14px;
+  filter: drop-shadow(1px 1px 1.5px rgba(40, 20, 5, 0.35));
+}
+/* "Left edge": the ribbon hangs in the space left of the crease instead
+   (on the felt beside an inset book, or on the left page when the book runs to the edge). */
+.app[data-ribbon="edge"] .crease { left: -15px; }
+.app[data-ribbon="edge"][data-book="edge"] .crease { left: 14px; }
+.crease span {
+  position: absolute; inset: 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 7px), 0 100%);
+}
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom, 0px)); z-index: 40;
+  transform: translateX(-50%); max-width: calc(100% - 48px);
+  padding: 10px 14px; border-radius: 6px; background: var(--ink); color: var(--ivory); font-size: 14px;
+}
+
+/* ---------- Tuning sheet ---------- */
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  width: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box;
+  max-height: 86%; overflow-y: auto; overflow-x: hidden;
+  padding-left: max(18px, env(safe-area-inset-left, 0px));
+  padding-right: max(18px, env(safe-area-inset-right, 0px));
+  padding-block: 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  background: var(--page); color: var(--ink);
+  border-radius: 12px 12px 0 0; box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.35);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.sheet > * { min-width: 0; }
+.sheet h2 { margin: 0; font-family: var(--display); font-size: 22px; font-weight: 600; }
+.sheet .help { margin: 0; font-size: 14px; line-height: 1.4; color: var(--ink-soft); }
+#knobs { display: flex; flex-direction: column; gap: 10px; }
+.knob { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; font-size: 14px; }
+.knob output { font-variant-numeric: tabular-nums; font-weight: 600; }
+.knob input { grid-column: 1 / -1; width: 100%; min-width: 0; margin: 0; height: 32px; accent-color: var(--brass-deep); }
+.seg { display: flex; gap: 6px; }
+.seg button {
+  flex: 1; min-width: 0; min-height: 44px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--page-line); background: #fffaf0; font-size: 14px;
+}
+.seg button[aria-pressed="true"] { background: var(--brass); border-color: var(--brass-deep); font-weight: 600; }
+.actions { display: flex; gap: 8px; }
+.actions button {
+  flex: 1; min-width: 0; min-height: 46px; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 600;
+  border: 1px solid var(--page-line); background: #fffaf0;
+}
+.actions .primary { background: var(--brass); border-color: var(--brass-deep); box-shadow: 0 3px 0 var(--brass-deep); }
+.numbers { margin: 0; padding: 8px 10px; border-radius: 6px; background: #fffaf0; font: 13px/1.4 ui-monospace, Consolas, monospace; user-select: all; overflow-wrap: anywhere; }
+</style>
+
+<div class="app">
+  <header>
+    <button class="round" type="button" aria-label="Back to the shelf (does nothing here)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+    </button>
+    <div>
+      <h1>The Orchid Room</h1>
+      <p>Medium · 6 guests</p>
+    </div>
+    <button class="round" type="button" id="tune" aria-label="Tune the timings">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg>
+    </button>
+  </header>
+
+  <div class="book">
+    <div class="spread">
+      <div class="verso" aria-hidden="true"></div>
+      <div class="pages" id="pages">
+        <section class="page" data-p="0" aria-label="Case, page 3">
+          <div class="running"><span>Case</span><span>3</span></div>
+          <h2>Find a clue</h2>
+          <p class="lede">Each puzzle hides a clue. Pick a line and turn to its page.</p>
+          <ul class="choices">
+            <li><button class="choice" type="button"><span class="story">A newspaper lies folded on the window seat, its crossword half done in someone else's ink.</span><span class="meta"><span>Mini crossword · Medium · 2 clues</span><b>p. 24</b></span></button></li>
+            <li><button class="choice" type="button"><span class="story">The cat keeps trotting off down the hall and looking back at you.</span><span class="meta"><span>Nosing around · Easy · 1 clue</span><b>p. 53</b></span></button></li>
+            <li><button class="choice" type="button"><span class="story">The mantel clock has stopped, and someone has left the key beside it.</span><span class="meta"><span>Number grid · Hard · 2 clues</span><b>p. 61</b></span></button></li>
+            <li><button class="choice done" type="button"><span class="story">A tarot deck lies face down on the card table, half dealt.</span><span class="meta"><span>Solved · 2 clues found</span><b>p. 46</b></span></button></li>
+          </ul>
+          <p class="foot">Turn to page 24, 53 or 61.</p>
+        </section>
+
+        <section class="page" data-p="1" aria-label="Map" hidden>
+          <div class="running"><span>Map</span><span>8</span></div>
+          <h2>The ground floor</h2>
+          <div class="plan" aria-hidden="true">
+            <div>Library</div><div class="wide">Hall</div>
+            <div>Study</div><div>Kitchen</div><div>Pantry</div>
+            <div class="wide">Conservatory</div><div>Garden door</div>
+          </div>
+        </section>
+
+        <section class="page" data-p="2" aria-label="Puzzles" hidden>
+          <div class="running"><span>Puzzles</span><span>12</span></div>
+          <h2>Puzzle pages</h2>
+          <ul class="contents">
+            <li>Mini crossword<b>24</b></li>
+            <li>Tarot match<b>46</b></li>
+            <li>Nosing around<b>53</b></li>
+            <li>Number grid<b>61</b></li>
+            <li>The final puzzle<b>88</b></li>
+          </ul>
+          <p class="foot">— 12 —</p>
+        </section>
+
+        <section class="page" data-p="3" aria-label="Answer" hidden>
+          <div class="running"><span>Answer</span><span>96</span></div>
+          <h2>Who did it?</h2>
+          <p class="lede">Write your answer when you are sure. You can't take it back.</p>
+          <div class="blanks">
+            <p>Who <span></span></p>
+            <p>With <span></span></p>
+          </div>
+          <p class="foot">— 96 —</p>
+        </section>
+        <div class="under" id="under"></div>
+      </div>
+    </div>
+
+    <div class="gutter" aria-hidden="true"></div>
+    <div class="crease" id="crease" aria-hidden="true"><span class="satin" data-i="0"></span></div>
+    <button class="pull" id="pull" type="button" aria-label="Show the ribbons"></button>
+    <div class="scrim" id="scrim" hidden></div>
+    <nav class="ribbons" id="ribbons" aria-label="Parts of the case" inert>
+      <div class="slot empty"><button class="ribbon satin" data-i="0" type="button" aria-current="page">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"></circle><path d="M15 15l5.5 5.5"></path></svg>Case
+      </button></div>
+      <div class="slot"><button class="ribbon satin" data-i="1" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16"></rect><path d="M12 4v7M3.5 11h5M12 11h8.5M15 11v9"></path></svg>Map
+      </button></div>
+      <div class="slot"><button class="ribbon satin" data-i="2" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="4" width="16" height="16"></rect><path d="M9.3 4v16M14.7 4v16M4 9.3h16M4 14.7h16"></path></svg>Puzzles
+      </button></div>
+      <div class="slot"><button class="ribbon satin" data-i="3" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"></path><circle cx="12" cy="12" r="5"></circle></svg>Answer
+      </button></div>
+    </nav>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<section class="sheet" id="sheet" aria-labelledby="sheet-title" hidden>
+  <h2 id="sheet-title">Tune the timings</h2>
+  <p class="help">Tap the ribbon tips at the top of the page, or swipe down on them. Then tap a ribbon to turn to it. The ribbon for the page you're on lies in the crease.</p>
+  <div id="knobs"></div>
+  <div>
+    <p class="help" style="margin-bottom:6px">Book</p>
+    <div class="seg" id="book-seg" data-key="book">
+      <button type="button" data-v="inset">Inset</button>
+      <button type="button" data-v="edge">To the edge</button>
+    </div>
+  </div>
+  <div>
+    <p class="help" style="margin-bottom:6px">Ribbon for this page</p>
+    <div class="seg" id="ribbon-seg" data-key="ribbon">
+      <button type="button" data-v="crease">In the crease</button>
+      <button type="button" data-v="edge">Left edge</button>
+    </div>
+  </div>
+  <div>
+    <p class="help" style="margin-bottom:6px">Motion</p>
+    <div class="seg" id="motion" data-key="motion">
+      <button type="button" data-v="auto">Phone setting</button>
+      <button type="button" data-v="full">Full</button>
+      <button type="button" data-v="reduced">Reduced</button>
+    </div>
+  </div>
+  <p class="numbers" id="numbers"></p>
+  <div class="actions">
+    <button type="button" id="reset">Reset</button>
+    <button type="button" id="copy">Copy numbers</button>
+    <button type="button" class="primary" id="done">Done</button>
+  </div>
+</section>
+
+<script>
+// Defaults are the owner's final tuning on her phone (2026-10-28), recorded in docs/visual-theme.md.
+const KNOBS = [
+  { key: 'verso', label: 'Left page showing', unit: 'px', min: 8, max: 60, step: 2, def: 20 },
+  { key: 'stagger', label: 'Gap between ribbons', unit: 'ms', min: 0, max: 150, step: 5, def: 45 },
+  { key: 'drop', label: 'Each ribbon drops in', unit: 'ms', min: 150, max: 900, step: 10, def: 510 },
+  { key: 'over', label: 'Overshoot', unit: 'px', min: 0, max: 30, step: 1, def: 11 },
+  { key: 'sway', label: 'Sway', unit: '°', min: 0, max: 6, step: 0.5, def: 5 },
+  { key: 'turn', label: 'Page turn', unit: 'ms', min: 200, max: 1000, step: 10, def: 530 },
+  { key: 'curl', label: 'Curl', unit: '°', min: 0, max: 8, step: 1, def: 6 },
+  { key: 'flicks', label: 'Extra leaves when skipping', unit: '', min: 0, max: 4, step: 1, def: 2 },
+  { key: 'flickGap', label: 'Gap between leaves', unit: 'ms', min: 30, max: 160, step: 5, def: 115 },
+];
+const KEY = 'ribbon-prototype-3';
+const defaults = () => Object.fromEntries([...KNOBS.map((k) => [k.key, k.def]), ['motion', 'auto'], ['book', 'edge'], ['ribbon', 'crease']]);
+let S = defaults();
+try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch {}
+const store = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} };
+
+const $ = (id) => document.getElementById(id);
+const pagesEl = $('pages'), pull = $('pull'), scrim = $('scrim'), nav = $('ribbons'), under = $('under');
+const creaseRib = $('crease').firstElementChild;
+const pages = [...pagesEl.querySelectorAll('.page')];
+const ribbons = [...nav.querySelectorAll('.ribbon')];
+const slots = ribbons.map((r) => r.parentElement);
+const SWAY = [1, -0.8, 0.9, -1.1];
+let cur = 0, open = false, busy = false;
+
+const reduced = () => S.motion === 'reduced' || (S.motion === 'auto' && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const visibleLength = (r) => r.offsetHeight - 40;
+const restY = (r) => 14 - visibleLength(r);
+const goneY = (r) => -r.offsetHeight - 10;
+
+function moveRibbon(r, frames, opts) {
+  const now = getComputedStyle(r).transform;
+  r.getAnimations().forEach((a) => a.cancel());
+  const from = now === 'none' ? 'translateY(0)' : now;
+  r.style.transform = from;
+  const a = r.animate([{ transform: from }, ...frames], { fill: 'forwards', ...opts });
+  a.finished.then(() => { a.commitStyles(); a.cancel(); }).catch(() => {});
+}
+
+function drop() {
+  if (open || busy) return;
+  open = true;
+  nav.classList.add('open'); nav.inert = false; scrim.hidden = false; pull.hidden = true;
+  let order = 0;
+  ribbons.forEach((r, i) => {
+    if (i === cur) return;
+    if (reduced()) return moveRibbon(r, [{ transform: 'translateY(0)' }], { duration: 0 });
+    // Falls with a little give, swings past and settles like satin.
+    const s = S.sway * SWAY[i];
+    moveRibbon(r, [
+      { transform: `translateY(${S.over}px) rotate(${s}deg)`, offset: 0.55 },
+      { transform: `translateY(${-S.over * 0.25}px) rotate(${-s * 0.55}deg)`, offset: 0.78 },
+      { transform: `translateY(${S.over * 0.08}px) rotate(${s * 0.2}deg)`, offset: 0.9 },
+      { transform: 'translateY(0) rotate(0deg)' },
+    ], { duration: S.drop, delay: order++ * S.stagger, easing: 'cubic-bezier(.25,.7,.35,1)' });
+  });
+}
+
+function tuck() {
+  const wasOpen = open;
+  open = false;
+  nav.classList.remove('open'); nav.inert = true; scrim.hidden = true; pull.hidden = false;
+  const n = ribbons.length;
+  ribbons.forEach((r, i) => {
+    const target = i === cur ? goneY(r) : restY(r);
+    if (!wasOpen && i !== cur && Math.round(new DOMMatrix(getComputedStyle(r).transform).m42) === Math.round(target)) return;
+    if (reduced()) return moveRibbon(r, [{ transform: `translateY(${target}px)` }], { duration: 0 });
+    moveRibbon(r, [{ transform: `translateY(${target}px) rotate(0deg)` }], {
+      duration: S.drop * 0.6, delay: (n - 1 - i) * S.stagger * 0.5, easing: 'cubic-bezier(.5,0,.75,.4)',
+    });
+  });
+}
+
+function setCurrent(i) {
+  ribbons.forEach((r, k) => {
+    slots[k].classList.toggle('empty', k === i);
+    if (k === i) r.setAttribute('aria-current', 'page'); else r.removeAttribute('aria-current');
+  });
+}
+
+// The crease ribbon is pulled up and out, then the new one is drawn down into the crease.
+function swapCrease(i, outDelay, inDelay) {
+  const el = creaseRib;
+  if (reduced()) { el.dataset.i = String(i); return; }
+  el.getAnimations().forEach((a) => a.cancel());
+  const out = el.animate([{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 7px), 0 100%)' }, { clipPath: 'polygon(0 0, 100% 0, 100% 0, 50% 0, 0 0)' }],
+    { duration: S.drop * 0.5, delay: outDelay, easing: 'cubic-bezier(.5,0,.75,.4)', fill: 'forwards' });
+  out.finished.then(() => {
+    el.dataset.i = String(i);
+    out.cancel();
+    el.animate([{ clipPath: 'polygon(0 0, 100% 0, 100% 0, 50% 0, 0 0)' }, { clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 7px), 0 100%)' }],
+      { duration: S.drop, delay: Math.max(0, inDelay - outDelay - S.drop * 0.5), easing: 'cubic-bezier(.25,.7,.35,1)', fill: 'backwards' });
+  }).catch(() => {});
+}
+
+function makeLeaf(page, blank, z) {
+  const leaf = document.createElement('div');
+  leaf.className = 'leaf';
+  leaf.style.zIndex = z;
+  leaf.setAttribute('aria-hidden', 'true');
+  const front = page.cloneNode(true);
+  front.hidden = false;
+  front.removeAttribute('aria-label');
+  if (blank) front.classList.add('blank');
+  const shade = document.createElement('div');
+  shade.className = 'shade';
+  front.appendChild(shade);
+  const back = document.createElement('div');
+  back.className = 'page back';
+  leaf.append(front, back);
+  pagesEl.appendChild(leaf);
+  return { leaf, shade };
+}
+
+function turnTo(i) {
+  if (busy) return;
+  if (i === cur) return tuck();
+  busy = true;
+  const from = pages[cur], to = pages[i], fwd = i > cur, skip = Math.abs(i - cur) > 1;
+  cur = i;
+  setCurrent(i);
+  tuck();
+
+  if (reduced()) {
+    swapCrease(i, 0, 0);
+    to.hidden = false; to.style.zIndex = 6;
+    to.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' }).finished.then(() => {
+      from.hidden = true; to.style.zIndex = ''; busy = false;
+    });
+    return;
+  }
+
+  const flat = 'rotateY(0deg)', over = 'rotateY(-180deg)', mid = `rotateY(-75deg) skewY(${-S.curl}deg)`;
+  const lift = [{ transform: flat }, { transform: mid, offset: 0.42 }, { transform: over }];
+  const land = [{ transform: over }, { transform: mid, offset: 0.58 }, { transform: flat }];
+  const extra = skip ? S.flicks : 0;
+  const ease = 'cubic-bezier(.45,.05,.35,1)';
+  const anims = [], leaves = [];
+  const shadeFrames = fwd ? [{ opacity: 0 }, { opacity: 1, offset: 0.4 }, { opacity: 0 }] : [{ opacity: 0 }, { opacity: 1, offset: 0.6 }, { opacity: 0 }];
+  const total = S.turn + extra * S.flickGap;
+  swapCrease(i, 0, total);
+
+  if (fwd) {
+    // The old page lifts off the new one; a few blank leaves follow it when she skips sections.
+    to.hidden = false; from.hidden = true;
+    const main = makeLeaf(from, false, 10);
+    leaves.push(main.leaf);
+    anims.push(main.leaf.animate(lift, { duration: S.turn, easing: ease, fill: 'forwards' }));
+    anims.push(main.shade.animate(shadeFrames, { duration: S.turn }));
+    for (let k = 0; k < extra; k++) {
+      const b = makeLeaf(from, true, 9 - k);
+      leaves.push(b.leaf);
+      anims.push(b.leaf.animate(lift, { duration: S.turn * 0.55, delay: (k + 1) * S.flickGap, easing: ease, fill: 'both' }));
+    }
+    anims.push(under.animate([{ opacity: 0.8 }, { opacity: 0 }], { duration: total }));
+  } else {
+    // Blank leaves fall back first, then the page she asked for lands on top.
+    for (let k = 0; k < extra; k++) {
+      const b = makeLeaf(from, true, 6 + k);
+      leaves.push(b.leaf);
+      anims.push(b.leaf.animate(land, { duration: S.turn * 0.55, delay: k * S.flickGap, easing: ease, fill: 'both' }));
+    }
+    const main = makeLeaf(to, false, 10);
+    leaves.push(main.leaf);
+    const delay = extra * S.flickGap;
+    anims.push(main.leaf.animate(land, { duration: S.turn, delay, easing: ease, fill: 'both' }));
+    anims.push(main.shade.animate(shadeFrames, { duration: S.turn, delay, fill: 'backwards' }));
+    anims.push(under.animate([{ opacity: 0 }, { opacity: 0.6, offset: 0.5 }, { opacity: 0 }], { duration: total }));
+  }
+
+  Promise.all(anims.map((a) => a.finished)).then(() => {
+    to.hidden = false; from.hidden = true;
+    leaves.forEach((l) => l.remove());
+    busy = false;
+  });
+}
+
+// The pull strip: a swipe down or a tap drops the ribbons. It never turns a page.
+let startY = null, startX = 0, fired = false;
+pull.addEventListener('pointerdown', (e) => { startY = e.clientY; startX = e.clientX; fired = false; });
+pull.addEventListener('pointermove', (e) => {
+  if (startY === null || fired) return;
+  if (e.clientY - startY > 16) { fired = true; drop(); }
+});
+window.addEventListener('pointerup', (e) => {
+  if (startY === null) return;
+  const still = Math.abs(e.clientY - startY) < 10 && Math.abs(e.clientX - startX) < 10;
+  if (!fired && still) drop();
+  startY = null;
+});
+pull.addEventListener('click', (e) => { if (e.detail === 0) drop(); });
+
+// Over the dropped ribbons: a tap on the page or a swipe up tucks them.
+let scrimY = null;
+scrim.addEventListener('pointerdown', (e) => { scrimY = e.clientY; });
+scrim.addEventListener('pointermove', (e) => { if (scrimY !== null && scrimY - e.clientY > 16) { scrimY = null; tuck(); } });
+scrim.addEventListener('pointerup', () => { if (scrimY !== null) { scrimY = null; tuck(); } });
+
+// A ribbon turns the page only when the tap started on it while the ribbons were already down,
+// so the late click from the tap that dropped them can't land on one.
+let armed = -1;
+ribbons.forEach((r, i) => {
+  r.addEventListener('pointerdown', () => { armed = open ? i : -1; });
+  r.addEventListener('click', (e) => {
+    const ok = e.detail === 0 ? open : armed === i && open;
+    armed = -1;
+    if (ok) turnTo(i);
+  });
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (!$('sheet').hidden) closeSheet(); else tuck(); } });
+
+let toastTimer;
+document.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
+  const t = $('toast');
+  t.textContent = 'Puzzle pages come later. Try the ribbons.';
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, 1800);
+}));
+
+// Start with the current ribbon out of its slot.
+setCurrent(cur);
+ribbons.forEach((r, i) => { r.style.transform = `translateY(${i === cur ? goneY(r) : restY(r)}px)`; });
+
+// ---------- Tuning sheet ----------
+const knobs = $('knobs');
+function numbersText() {
+  const parts = KNOBS.map((k) => `${k.key} ${S[k.key]}${k.unit}`);
+  return `${parts.join(' · ')} · motion ${S.motion} · book ${S.book} · ribbon ${S.ribbon}`;
+}
+function applyLayout() {
+  const app = document.querySelector('.app');
+  app.dataset.book = S.book;
+  app.dataset.ribbon = S.ribbon;
+  document.querySelector('.book').style.setProperty('--verso', `${S.verso}px`);
+}
+applyLayout();
+function render() {
+  knobs.innerHTML = '';
+  for (const k of KNOBS) {
+    const id = `knob-${k.key}`;
+    const row = document.createElement('label');
+    row.className = 'knob';
+    row.htmlFor = id;
+    row.innerHTML = `<span>${k.label}</span><output>${S[k.key]}${k.unit}</output><input id="${id}" type="range" min="${k.min}" max="${k.max}" step="${k.step}" value="${S[k.key]}">`;
+    const input = row.querySelector('input'), out = row.querySelector('output');
+    input.addEventListener('input', () => {
+      S[k.key] = Number(input.value);
+      out.textContent = `${S[k.key]}${k.unit}`;
+      applyLayout();
+      $('numbers').textContent = numbersText();
+      store();
+    });
+    knobs.appendChild(row);
+  }
+  document.querySelectorAll('.seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === S[b.parentElement.dataset.key])));
+  $('numbers').textContent = numbersText();
+}
+document.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => {
+  S[b.parentElement.dataset.key] = b.dataset.v;
+  store(); applyLayout(); render();
+}));
+function closeSheet() { $('sheet').hidden = true; $('tune').focus({ preventScroll: true }); }
+$('tune').addEventListener('click', () => { tuck(); render(); $('sheet').hidden = false; $('done').focus({ preventScroll: true }); });
+$('done').addEventListener('click', closeSheet);
+$('reset').addEventListener('click', () => { S = defaults(); store(); applyLayout(); render(); });
+$('copy').addEventListener('click', () => {
+  const text = numbersText();
+  navigator.clipboard.writeText(text).then(() => { $('copy').textContent = 'Copied'; }, () => {
+    const range = document.createRange(); range.selectNodeContents($('numbers'));
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    $('copy').textContent = 'Selected';
+  });
+  setTimeout(() => { $('copy').textContent = 'Copy numbers'; }, 1500);
+});
+</script>

@@ -159,9 +159,30 @@ owner switches that default, this work must not change the current shell.
 - **Won page**: the finished puzzle, the clue(s) written in below, "Turn back to page 3". Until the
   notebook is built, the clue stays on the page; later it flies into the notebook's peek. A Solve
   shows the same with a plain "Solved by the cat" note.
-- **Ribbon timings**: as proposed above (60ms apart, about 350ms each, 450ms page turn, crossfade
-  under reduced motion), tuned on her phone. An unbuilt section's ribbon turns to "This page isn't
-  drawn yet."
+- **Ribbons and page turn, tuned on her phone (owner, 2026-10-28).** Build from the prototype's
+  source, `docs/mockups/ribbons-prototype.html` (published at
+  https://claude.ai/artifact/KGKugQ9qeqxu8kGshshVTr): its CSS and Web Animations code are the spec,
+  with the tuning sheet and sample pages left out. Settled:
+  - **Numbers**: ribbons 45ms apart, each drops in 510ms with an 11px overshoot and a 5° sway that
+    settles (each ribbon swings its own way); page turn 530ms with a 6° curl; skipping more than one
+    section flicks 2 blank leaves 115ms apart. Reduced motion (the phone's setting): ribbons just
+    appear, a turn is a 180ms crossfade.
+  - **The open book runs to the left edge of the screen** with 20px of the empty left page showing,
+    a lit crease (shadow and highlight) between the pages, and only 6px of felt on the right. The
+    header keeps its own 16px / 10px inset.
+  - **The ribbon for the page she's on lies in the crease** and hangs out of the bottom of the book.
+    The top row keeps its four places and leaves a gap where that ribbon was. On a turn it is pulled
+    up out of the crease and the new page's ribbon is drawn down once the page lands.
+  - **Satin, draped**: a sheen across the width, darker edges, a soft shadow on the page and a fold
+    where each ribbon bends over the top edge. Each ribbon is longer than it shows, hidden above the
+    page edge, so the overshoot never lifts its top into view.
+  - **The first tap only opens them.** Tapping or swiping down on the tips drops the ribbons and
+    never turns a page; a ribbon turns the page only when the tap starts on it while they are down
+    (the late click from the opening tap would otherwise land on one). Swipe up or tap the page to
+    tuck them.
+  - Colours: Case gold, Map green, Puzzles blue, Answer rust. No brass "current" ribbon any more;
+    the crease shows where she is.
+  - An unbuilt section's page says "This page isn't drawn yet."
 
 - **Hide finished** is a small link at the foot of page 3 ("Hide finished (2)" / "Show finished
   (2)"), absent when nothing is finished. Remembered in a shelf-only localStorage key (guarded), not

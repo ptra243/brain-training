@@ -29,10 +29,10 @@ settled design may stay as a short stub; give it a doc when someone starts it.
 ## Session: Shelf UI, beside the current game
 Last touched: 2026-10-28
 Reads first: `docs/visual-theme.md` (Settled: a second shell, the Screens sections, Screen plan), `CONTEXT.md`.
-Goal: build every screen on `#shelf` only, in the Screen plan order; the current game stays as it is. The bookcase and a still case page are up. Every screen is now designed (2026-10-28): Quick play end to end first (ribbons, Find a clue page, puzzle page, notebook, map, answer, stickers), then the campaign book, the deck and the guest book. The shelf writes the same save as the current shell once a screen is playable.
+Goal: build every screen on `#shelf` only, in the Screen plan order; the current game stays as it is. The bookcase and a still case page are up. The ribbons and page turn were prototyped and tuned on her phone (2026-10-28, `docs/mockups/ribbons-prototype.html`, settled in visual-theme.md); step 1 (ribbons and page turn) is built in src/shelf with the `#dev/shelf-ribbons` preview; step 2 (Find a clue page) is next, its brief settled in the handoff. Then the puzzle page, notebook, map, answer, stickers, campaign book, deck and guest book.
 Starting prompt:
 ```
-Read the "Settled: a second shell", "Screens 1–3" and "Screen plan" sections of docs/visual-theme.md and CONTEXT.md. Build step 1 (ribbons and page turn) on #shelf only, then step 2 (Find a clue page). Do not edit src/styles.css, Home, Casebook, or any other current-shell file. Settle the brief with me, then hand it to the implementer.
+Read .claude/handoff/shelf-ribbons-find-a-clue.md (if it's gone, the "Screens 1–3" ribbon bullet in docs/visual-theme.md and docs/mockups/ribbons-prototype.html). Step 1 is done. Hand step 2 (Find a clue page) to a fresh implementer from the handoff's "Step 2" and "Story lines" sections, then look-check `#dev/shelf-find-a-clue` at 360px. #shelf only; no current-shell files.
 ```
 
 ## Session: Theme content, land the lines

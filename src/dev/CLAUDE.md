@@ -68,6 +68,9 @@ What a look check judges on each:
 - `motives`: a talk simulator (Guest, Card, Reading, Thread, Victim, Mood, Games finished, Case solved, Start over,
   Hear all, Reset), each control 44px+ and fitting 360px; the greeting changes with Mood; beats appear one per tap
   up to the ready count; {victim} shows the chosen name; the source line names the thread in use; no sideways scroll.
+- `shelf-ribbons`: the #shelf puzzle book open on Case, ribbons dropped (three ribbons in a row of four, a gap
+  where Case lies in the crease): book runs to the left edge with a 20px left page, 6px felt right, header 16/10px
+  inset; satin ribbons readable and 44px+; no sideways scroll.
 - `portraits`: the portrait gallery on its own (light dev page).
 - `dogfight`: the dog fight board in each state, with a cat helper picker
   (light dev page).

@@ -1,6 +1,6 @@
 // One #dev/<id> preview, full viewport. Every button does nothing: a preview never saves or leaves the page.
 
-import { useEffect, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, type CSSProperties, type ReactNode } from 'react';
 import { cats, content } from '../content/index.ts';
 import { isSceneGame } from '../engine/gameKinds.ts';
 import { generateCase } from '../engine/generate.ts';
@@ -13,7 +13,7 @@ import { Dialog } from '../game/Dialog.tsx';
 import { YouSheet } from '../game/YouSheet.tsx';
 import { clockTime, gamesLeft } from '../game/explore.ts';
 import { ROUND_TIMES } from '../game/labels.ts';
-import { faceClass, itemName, suspectColour, suspectName } from '../game/names.ts';
+import { caseTitle, faceClass, itemName, suspectColour, suspectName } from '../game/names.ts';
 import { HintButton, HintNote } from '../game/games/Hints.tsx';
 import chairStyles from '../game/games/InterrogationGame.module.css';
 import { SuspectCounterFace } from '../game/SuspectCounterFace.tsx';
@@ -28,6 +28,7 @@ import { emptyProgress, reduce, type Progress } from '../game/state.ts';
 import { DogFightStates } from './DogFightStates.tsx';
 import { MotivesPreview } from './MotivesPreview.tsx';
 import { PortraitGallery } from './PortraitGallery.tsx';
+import { OpenBook } from '../shelf/OpenBook.tsx';
 import { DevList } from './DevList.tsx';
 import { PREVIEWS } from './previews.ts';
 
@@ -256,6 +257,18 @@ function HintsPreview() {
   );
 }
 
+/**
+ * The #shelf puzzle book open on Case, ribbons dropped. Its styles live under body.shelf, so borrow
+ * that class, in a layout effect so it is on before the book's own effect places the ribbons.
+ */
+function ShelfRibbonsPreview() {
+  useLayoutEffect(() => {
+    document.body.classList.add('shelf');
+    return () => document.body.classList.remove('shelf');
+  }, []);
+  return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen />;
+}
+
 const SCREENS: Record<string, () => ReactNode> = {
   hints: () => <HintsPreview />,
   houses: () => <HousesPreview />,
@@ -272,6 +285,7 @@ const SCREENS: Record<string, () => ReactNode> = {
   midnight: () => <CasebookPreview midnight />,
   'you-sheet': () => <YouSheetPreview />,
   motives: () => <MotivesPreview />,
+  'shelf-ribbons': () => <ShelfRibbonsPreview />,
   portraits: () => <PortraitGallery />,
   dogfight: () => <DogFightStates />,
 };
