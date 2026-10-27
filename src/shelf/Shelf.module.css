@@ -1,0 +1,410 @@
+/* The #shelf shell: cream dotted wallpaper and one honey-oak bookcase.
+   Every colour sits under body.shelf, so nothing here reaches the green card table. */
+
+:global(body.shelf) {
+  background-color: #f2e8cf;
+  background-image: radial-gradient(circle, #dccaa0 1.3px, transparent 1.7px);
+  background-size: 16px 16px;
+  color: #3a2414;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+:global(body.shelf) .page {
+  box-sizing: border-box;
+  max-width: 30rem;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: calc(14px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-x: clip;
+}
+
+:global(body.shelf) .page a:focus-visible {
+  outline: 3px solid #ffe08a;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px #3a2414;
+}
+
+/* ---------- Header ---------- */
+:global(body.shelf) .header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 4px;
+}
+:global(body.shelf) .heading {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+:global(body.shelf) .title {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  font-size: 34px;
+  line-height: 1;
+  color: #3a2414;
+}
+:global(body.shelf) .lede {
+  margin: 0;
+  font-size: 14px;
+  font-style: italic;
+  color: #6b4f36;
+}
+:global(body.shelf) .window {
+  flex: none;
+  margin-right: 4px;
+}
+
+/* ---------- The bookcase ---------- */
+:global(body.shelf) .case {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 4px;
+  padding: 10px 12px 0;
+  background: linear-gradient(90deg, #b9782f 0, #d89a4e 14px, #d89a4e calc(100% - 14px), #b9782f 100%);
+  border-top: 5px solid #e8b56e;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 8px 18px rgba(74, 44, 16, 0.35);
+}
+:global(body.shelf) .cat {
+  position: absolute;
+  right: 18px;
+  bottom: calc(100% + 0px);
+  pointer-events: none;
+}
+:global(body.shelf) .unit {
+  display: flex;
+  flex-direction: column;
+}
+:global(body.shelf) .shelf {
+  position: relative;
+  box-sizing: border-box;
+  height: 150px;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  padding: 0 8px;
+  background: linear-gradient(180deg, #6f4a2d 0, #84593a 100%);
+  box-shadow: inset 0 5px 7px rgba(0, 0, 0, 0.2), inset 4px 0 6px rgba(0, 0, 0, 0.1), inset -4px 0 6px rgba(0, 0, 0, 0.1);
+}
+/* The board a shelf stands on: honey wood, with the brass label on its lip. */
+:global(body.shelf) .board {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  margin: 0 -12px;
+  background: linear-gradient(180deg, #e8b56e 0, #d89a4e 40%, #b9782f 100%);
+  border-bottom: 2px solid #8c5a24;
+}
+:global(body.shelf) .plaque {
+  margin: 0;
+  padding: 2px 14px;
+  background: linear-gradient(180deg, #e2c068, #b99434);
+  border: 1px solid #7e6320;
+  border-radius: 2px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: 0.2em;
+  color: #3a2810;
+}
+
+/* ---------- Books (controls) ---------- */
+:global(body.shelf) .spine {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  height: 128px;
+  min-width: 44px;
+  padding: 8px 0 10px;
+  color: #e8c66a;
+  text-decoration: none;
+  border-radius: 3px 3px 0 0;
+  /* Soft warm edges, like the reference shelf: a light catch on the left, a brown shadow on the right. */
+  box-shadow:
+    inset 2px 0 0 rgba(255, 246, 220, 0.35),
+    inset -3px 0 4px rgba(90, 48, 18, 0.18),
+    -2px 1px 3px rgba(92, 54, 28, 0.22),
+    3px 2px 4px rgba(92, 54, 28, 0.2);
+}
+/* The book she has taken down: it is on the case page now. */
+:global(body.shelf) .gone {
+  visibility: hidden;
+}
+:global(body.shelf) .spine:hover {
+  color: #ffe08a;
+}
+/* The current book is pulled forward off the shelf. */
+:global(body.shelf) .out {
+  height: 140px;
+  transform: translateY(-4px);
+  box-shadow:
+    inset 2px 0 0 rgba(255, 246, 220, 0.35),
+    inset -3px 0 4px rgba(90, 48, 18, 0.18),
+    -2px 2px 4px rgba(92, 54, 28, 0.24),
+    3px 4px 6px rgba(92, 54, 28, 0.22);
+}
+:global(body.shelf) .spineTitle {
+  writing-mode: vertical-rl;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  min-height: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The wide covers: the gold title runs down the whole cover and is never clipped. */
+:global(body.shelf) .cover {
+  height: 146px;
+  min-width: 64px;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 6px 0 4px;
+}
+:global(body.shelf) .cover .spineTitle {
+  overflow: hidden;
+  text-overflow: clip;
+  min-height: auto;
+  max-height: 108px;
+  letter-spacing: 0;
+}
+/* The hinge: a narrow page block, and the shadow where it meets the cover. */
+:global(body.shelf) .cover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 6px;
+  background: repeating-linear-gradient(90deg, #c4b496 0 1px, #e6d7bc 1px 2px);
+  box-shadow: 2px 0 2px rgba(110, 64, 28, 0.22);
+  border-radius: 2px 0 0 0;
+  pointer-events: none;
+}
+:global(body.shelf) .seal {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #d4524a, #a8322d 60%, #8a2620);
+  box-shadow: inset 0 0 0 3px #8a2620;
+}
+
+/* A long case title lies flat and wraps so every word can be read. */
+:global(body.shelf) .flat {
+  writing-mode: horizontal-tb;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 7px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 7;
+  line-clamp: 7;
+}
+:global(body.shelf) .rule {
+  width: 70%;
+  height: 0;
+  border-top: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  padding-top: 2px;
+  opacity: 0.85;
+}
+:global(body.shelf) .ribbon {
+  position: absolute;
+  bottom: -20px;
+  left: 62%;
+  width: 11px;
+  height: 28px;
+  background: #d8b04c;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+}
+:global(body.shelf) .of {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: #f0e2bc;
+}
+:global(body.shelf) .candles {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+/* Book colours */
+:global(body.shelf) .quickBook { background: linear-gradient(90deg, #7a1c33, #8c2340 60%, #6c1830); }
+:global(body.shelf) .campaignBook { background: linear-gradient(90deg, #2c3a4e, #3a4a62 60%, #2a3548); }
+:global(body.shelf) .newCase { background: linear-gradient(90deg, #2d5a4c, #386b5b 60%, #2a5144); }
+:global(body.shelf) .newCampaign { background: linear-gradient(90deg, #2d5a4c, #386b5b 60%, #2a5144); }
+:global(body.shelf) .guest { background: linear-gradient(90deg, #7a1c33, #8c2340 60%, #6c1830); }
+
+/* "Choose your games": a small white heart frame on a stack of flat books. */
+:global(body.shelf) .stack {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0;
+  width: 58px;
+  margin: 0;
+}
+/* A fan of three overlapping cards, standing on the flat books. The link is the 48 x 52 box. */
+:global(body.shelf) .frame {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: 48px;
+  height: 52px;
+  margin-bottom: 2px;
+}
+:global(body.shelf) .fanCard {
+  position: absolute;
+  bottom: 0;
+  left: 11px;
+  box-sizing: border-box;
+  width: 26px;
+  height: 38px;
+  border: 2px solid #f6ecd0;
+  border-radius: 3px;
+  transform-origin: 50% 100%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  transition: transform 120ms ease-out;
+}
+:global(body.shelf) .fanLeft { background: #a0343a; transform: rotate(-24deg); }
+:global(body.shelf) .fanMid { background: #386b5b; transform: rotate(-2deg); }
+:global(body.shelf) .fanRight { background: #d89a4e; transform: rotate(20deg); }
+:global(body.shelf) .fanMid::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  background: #e8c66a;
+  transform: rotate(45deg);
+}
+:global(body.shelf) .frame:hover .fanLeft { transform: rotate(-30deg); }
+:global(body.shelf) .frame:hover .fanRight { transform: rotate(26deg); }
+@media (prefers-reduced-motion: reduce) {
+  :global(body.shelf) .fanCard { transition: none; }
+}
+:global(body.shelf) .flatBook {
+  display: block;
+  width: 58px;
+  height: 11px;
+  border-radius: 2px;
+  border-bottom: 2px solid rgba(255, 240, 200, 0.55);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* ---------- Decoration: not buttons ---------- */
+:global(body.shelf) .thin {
+  position: relative;
+  flex: none;
+  border-radius: 3px 3px 0 0;
+  box-shadow: inset -3px 0 0 rgba(0, 0, 0, 0.22), inset 2px 0 0 rgba(255, 255, 255, 0.18);
+}
+:global(body.shelf) .diamond::after,
+:global(body.shelf) .star::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  width: 9px;
+  height: 9px;
+  transform: translateX(-50%) rotate(45deg);
+  background: #3a2414;
+  border: 1px solid #d8b04c;
+  box-sizing: border-box;
+}
+:global(body.shelf) .star::after {
+  top: 10px;
+  width: 11px;
+  height: 11px;
+  transform: translateX(-50%);
+  background: #f2cf6a;
+  border: 0;
+  clip-path: polygon(50% 0, 62% 36%, 100% 38%, 70% 60%, 80% 100%, 50% 76%, 20% 100%, 30% 60%, 0 38%, 38% 36%);
+}
+:global(body.shelf) .teacup {
+  flex: none;
+  margin-left: 4px;
+}
+:global(body.shelf) .slim {
+  flex: none;
+  margin-left: auto;
+}
+
+/* ---------- The base, with the plaque ---------- */
+:global(body.shelf) .base {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 0 -12px;
+  padding: 14px 16px 16px;
+  background: repeating-linear-gradient(90deg, #a8672a 0, #a8672a 58px, #8c5420 58px, #8c5420 60px);
+  box-shadow: inset 0 3px 0 #c98b43;
+}
+:global(body.shelf) .tap {
+  margin: 0;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 700;
+  color: #f8ecd0;
+  background: #9a3a34;
+  border: 2px solid #d8b04c;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px #7a2824, 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- The "not drawn yet" page ---------- */
+:global(body.shelf) .soon {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+}
+:global(body.shelf) .soon p {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 24px;
+  color: #3a2414;
+}
+:global(body.shelf) .back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #8a3a1a;
+  font-size: 16px;
+}
+:global(body.shelf) .back:hover {
+  color: #5c230c;
+}

@@ -1,6 +1,7 @@
 # Visual theme: library, puzzle book and notebook
 
-Status: design exploration, nothing built. Mockups in `docs/mockups/` (open `index.html`) and on the
+Status: the live app stays as it is. The new look is built on `#shelf`, one screen at a time, in the
+"Shelf UI, beside the current game" session. Mockups in `docs/mockups/` (open `index.html`) and on the
 "Library home" design canvas (https://claude.ai/artifact/JwRfscWuZEQGKRbbjx8yb2). The canvas also holds
 the three palette variants and the shared palette screens, which don't export to plain HTML.
 
@@ -41,11 +42,15 @@ Answer or Stickers); Nosing around follows the cat; the record shelf shows the g
 
 ## Still open
 
-1. **Check real screens before building.** Screenshot at 360 × 780 and compare with the mockups:
-   `#dev/explore` (campaign map at 9pm), `#dev/houses` (other floor plans), `#dev/nosing-houses`,
-   `#dev/time-card`, `#dev/midnight`, and `#dev/load/campaign-start` for a live round. Look at how
-   the floor plan, grid and Jigsaw fit once the book frame is gone, and how much scrolls.
-2. **Pick the palette** (honey oak is ahead), then fold it into the CSS variables in `src/styles.css`.
+1. **Check real screens before building.** Checked at 360 × 780 on 2026-10-27: `#dev/explore`,
+   `#dev/houses`, `#dev/nosing-houses`. The floor plan fits an edge-to-edge plate (tallest is the
+   Steps turned, about 360 × 432, about 128px spare in a 560px plate). A few room names paint past
+   the plan edge (Dining room on the T lodge, about 17px). Nosing boards fit a full-phone page
+   (328px square now, about 300px spare under an 80px header). The campaign room list (534px) does
+   not belong on the plate. Still to check: `#dev/time-card`, `#dev/midnight`, `#dev/load/campaign-start`,
+   the grid and the Jigsaw.
+2. **Pick the palette** (honey oak is ahead). Apply it only under `body.shelf`, never in the `:root`
+   variables in `src/styles.css`, until the owner makes `#shelf` the address the app opens on.
 3. **Map and grid are now in different books.** She switches between them a lot; confirm with her
    that one tap on the notebook is quick enough.
 4. **Tabs at the top are a reach on the S26.** Accepted because the bottom belongs to the notebook;
@@ -84,14 +89,32 @@ Answer or Stickers); Nosing around follows the cat; the record shelf shows the g
   evidence board (noir, generic), house cutaway as Home (most art; every house differs), page-turn
   swiping (fights dragging on the map and grid).
 
+## Settled: a second shell
+
+The new look is `#shelf` (and `#shelf/...`). The address with no hash still loads `App`. Until the
+owner switches that default, this work must not change the current shell.
+
+- Do not edit `src/styles.css`, `Home.tsx`, `Casebook.tsx`, `CampaignCard.tsx`, `GetClue.tsx`,
+  `ExploreMap.tsx`, the game CSS modules, or any other file the current game renders, in order to
+  restyle it.
+- `src/main.tsx` may gain one branch, the same way `#dev` is branched, and add a `shelf` class on
+  `body`. Nothing else there.
+- New screens are new files. Their colours apply only under `body.shelf`.
+- A screen that is not drawn yet is a short page on `#shelf`. It does not fall through into today's
+  components.
+- Reading her save, to draw the book that sticks out, is fine. Do not write the save from `#shelf`
+  until that screen is the real one and the action is the same as today (continue or start).
+- The first screen is the honey-oak bookcase the owner picked on 2026-10-27
+  (`docs/mockups/shots/honey-oak-shelf.png`): cream dotted wallpaper, one wooden bookcase,
+  Quick play / Campaign / Your record, the cat, teacup and candle. `docs/mockups/library.html`
+  is the earlier dark shelf and is not the one to build. Later screens come from `docs/mockups/`,
+  one at a time.
+
 ## Suggested build order
 
-1. Palette and fonts in `src/styles.css` (no layout change).
-2. Library Home replacing `Home.tsx` and `CampaignCard.tsx`, guest book for Your record.
-3. Puzzle book and notebook frame in `Casebook.tsx`: tabs, edge-to-edge plates, the drawer restyled
-   as the notebook.
-4. Page 3 and puzzle pages replacing the `GetClue.tsx` dialog; room pages in `ExploreMap.tsx`.
-5. Sticker styling for the Jigsaw (`src/game/board/`).
-6. Sticker rewards, then sticker branches (engine change, see above).
+1. The `#shelf` route and the honey-oak bookcase (`docs/mockups/shots/honey-oak-shelf.png`). Done (2026-10-27). New case and the saved case book play a CSS open (lift, grow, stiff cover) onto a still case page: blurb, three clue choices, ribbons for Case, Map, Puzzles and Answer. The choices do nothing yet. Other books still open "This page isn't drawn yet."
+2. Each later mockup as its own screen on `#shelf`, still leaving today's game alone.
+3. Only when she is ready: make the app open on `#shelf`.
 
-Each step needs a `#dev` preview at 360 × 780 and a `browser-check` pass.
+Each new screen needs a look check at 360 × 780. Sticker rewards and sticker branches stay later,
+and they change cases, so they are not part of this shell.

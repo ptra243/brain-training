@@ -1,0 +1,292 @@
+/* The case book opening on #shelf: the book lifts, grows to fill the screen, then the stiff cover
+   swings open onto a still page. Transforms and opacity only. Cream and wood, not the green game. */
+
+/* ---------- The stage and the moving book ---------- */
+:global(body.shelf) .stage {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+  background: rgba(58, 36, 20, 0.5);
+  animation: dim 500ms ease-out both;
+}
+@keyframes dim {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Full size at rest. --dx, --dy, --sx and --sy put it back over the book's slot at the start. */
+:global(body.shelf) .flyer {
+  position: absolute;
+  top: 0;
+  left: max(0px, calc((100vw - 480px) / 2));
+  box-sizing: border-box;
+  width: min(100vw, 480px);
+  height: 100dvh;
+  transform-origin: 0 0;
+  perspective: 2000px;
+  animation: take 800ms both;
+}
+@keyframes take {
+  0% {
+    transform: translate(var(--dx), var(--dy)) scale(var(--sx), var(--sy));
+    animation-timing-function: ease-out;
+  }
+  22% {
+    transform: translate(var(--dx), calc(var(--dy) - 14px)) scale(var(--sx), var(--sy));
+    animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1);
+  }
+  100% {
+    transform: translate(0, 0) scale(1, 1);
+  }
+}
+
+/* ---------- The hardback cover ---------- */
+:global(body.shelf) .cover {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: left center;
+  backface-visibility: hidden;
+  pointer-events: none;
+  box-shadow: inset -6px 0 0 rgba(0, 0, 0, 0.28), inset 5px 0 0 rgba(255, 255, 255, 0.1), 0 10px 26px rgba(0, 0, 0, 0.5);
+  animation: swing 700ms cubic-bezier(0.6, 0, 0.25, 1) 720ms both;
+}
+@keyframes swing {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(-180deg); }
+}
+:global(body.shelf) .quick { background: linear-gradient(90deg, #7a1c33, #8c2340 60%, #6c1830); }
+:global(body.shelf) .fresh { background: linear-gradient(90deg, #2d5a4c, #386b5b 60%, #2a5144); }
+:global(body.shelf) .frame {
+  position: absolute;
+  inset: 22px 20px;
+  border: 3px double #e8c66a;
+  opacity: 0.8;
+}
+:global(body.shelf) .coverTitle {
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 0 40px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  font-size: 52px;
+  line-height: 1.15;
+  text-align: center;
+  overflow-wrap: anywhere;
+  color: #e8c66a;
+}
+:global(body.shelf) .long { font-size: 38px; }
+:global(body.shelf) .coverSeal {
+  position: absolute;
+  bottom: 56px;
+  left: 50%;
+  width: 56px;
+  height: 56px;
+  margin-left: -28px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #d4524a, #a8322d 60%, #8a2620);
+  box-shadow: inset 0 0 0 8px #8a2620;
+}
+
+/* Reduced motion: no flight and no cover, just the page. */
+@media (prefers-reduced-motion: reduce) {
+  :global(body.shelf) .stage,
+  :global(body.shelf) .flyer {
+    animation: none;
+  }
+  :global(body.shelf) .cover {
+    display: none;
+  }
+}
+
+/* ---------- The case page ---------- */
+:global(body.shelf) .sheet {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  color: #3a2414;
+  font-family: Georgia, 'Times New Roman', serif;
+  background-color: #fbf3dc;
+  background-image: repeating-linear-gradient(180deg, transparent 0 27px, rgba(139, 90, 43, 0.08) 27px 28px);
+  box-shadow: inset 10px 0 12px -8px rgba(74, 44, 16, 0.4);
+}
+:global(body.shelf) .sheet button:focus-visible {
+  outline: 3px solid #ffe08a;
+  outline-offset: -4px;
+  box-shadow: inset 0 0 0 6px #3a2414;
+}
+
+/* The top of the page. The ribbons lie on this paper, they are not a wooden shelf. */
+:global(body.shelf) .band {
+  flex: none;
+  box-sizing: border-box;
+  padding: calc(6px + env(safe-area-inset-top)) 16px 0;
+  background-color: #fbf3dc;
+  background-image: repeating-linear-gradient(180deg, transparent 0 27px, rgba(139, 90, 43, 0.08) 27px 28px);
+}
+:global(body.shelf) .back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-left: -8px;
+  padding: 0 8px;
+  background: none;
+  border: 0;
+  font-family: inherit;
+  font-size: 15px;
+  color: #4a2a10;
+  cursor: pointer;
+}
+:global(body.shelf) .back:hover { color: #2a1608; }
+:global(body.shelf) .caseTitle {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.15;
+  font-weight: 700;
+  color: #3a2414;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+:global(body.shelf) .ribbons {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: -46px;
+  padding-top: 4px;
+}
+/* A narrow cloth bookmark. The cloth is the ::before; the button is the 44px target. */
+:global(body.shelf) .ribbon {
+  position: relative;
+  flex: none;
+  box-sizing: border-box;
+  width: 44px;
+  height: 108px;
+  padding: 10px 0 22px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  writing-mode: vertical-rl;
+  color: #3a2414;
+  cursor: pointer;
+}
+:global(body.shelf) .ribbon::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: 12px;
+  width: 20px;
+  background: linear-gradient(180deg, #ead9b8 0, #d2bc92 62%, #c4ab7e 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 90%, 50% 100%, 0 90%);
+  filter: drop-shadow(1px 3px 1.5px rgba(92, 54, 28, 0.38));
+}
+:global(body.shelf) .ribbon:nth-child(2) { transform: rotate(2.5deg); }
+:global(body.shelf) .ribbon:nth-child(3) { transform: rotate(-2deg); }
+:global(body.shelf) .ribbon:nth-child(3)::before { background: linear-gradient(180deg, #ddd8bc, #c9c19a 62%, #b3a97a); }
+:global(body.shelf) .ribbon:nth-child(4) { transform: rotate(3deg); }
+:global(body.shelf) .ribbon:nth-child(4)::before { background: linear-gradient(180deg, #ecd0b4, #ddb894 62%, #c9a27e); }
+:global(body.shelf) .current {
+  height: 132px;
+  color: #fff6dc;
+  transform: rotate(-2.5deg);
+  cursor: default;
+}
+:global(body.shelf) .current::before {
+  background: linear-gradient(180deg, #c45658 0, #9a3438 58%, #842e32 100%);
+  filter: drop-shadow(2px 4px 2px rgba(80, 36, 18, 0.4));
+}
+
+/* ---------- On the page ---------- */
+:global(body.shelf) .paper {
+  flex: 1;
+  box-sizing: border-box;
+  padding: 62px 18px calc(24px + env(safe-area-inset-bottom));
+}
+:global(body.shelf) .blurb {
+  margin: 0 0 18px;
+  font-size: 17px;
+  line-height: 1.45;
+  font-style: italic;
+}
+:global(body.shelf) .find {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #8a3a1a;
+}
+:global(body.shelf) .choices {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+:global(body.shelf) .choice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 76px;
+  padding: 11px 14px;
+  text-align: left;
+  font-family: inherit;
+  color: #3a2414;
+  background: #fffaf0;
+  border: 1px solid #d8c392;
+  border-left: 5px solid #b8383c;
+  border-radius: 6px;
+  box-shadow: 0 2px 3px rgba(74, 44, 16, 0.18);
+  cursor: pointer;
+}
+:global(body.shelf) .story {
+  font-size: 15px;
+  line-height: 1.35;
+}
+:global(body.shelf) .meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b4f36;
+}
+:global(body.shelf) .page {
+  flex: none;
+  color: #8a3a1a;
+  font-style: italic;
+}
+:global(body.shelf) .turn {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 13px;
+  font-style: italic;
+  color: #6b4f36;
+}

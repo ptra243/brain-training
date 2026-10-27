@@ -4,16 +4,22 @@ import { registerSW } from 'virtual:pwa-register';
 import { DevPage } from './dev/DevPage.tsx';
 import { App } from './game/App.tsx';
 import { ErrorBoundary } from './game/ErrorBoundary.tsx';
+import { ShelfRoute } from './shelf/ShelfRoute.tsx';
 import './styles.css';
 
 // The dev index lives at #dev, the case inspector at #dev/cases and the previews at #dev/<id>, in their own chunks; everything else is the game.
 const isDev = window.location.hash === '#dev' || window.location.hash.startsWith('#dev/');
 if (isDev) document.body.classList.add('dev');
 
+// The second shell lives at #shelf and #shelf/..., in its own chunk; the address with no hash is still the game.
+const isShelf = window.location.hash === '#shelf' || window.location.hash.startsWith('#shelf/');
+if (isShelf) document.body.classList.add('shelf');
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {isDev ? (
       <DevPage />
+    ) : isShelf ? (
+      <ShelfRoute />
     ) : (
       <ErrorBoundary>
         <App />
