@@ -247,8 +247,8 @@ isn't drawn yet."
 |---|---|---|---|
 | done | Library (bookcase) | Home | `CosyLibrary` |
 | done (still) | Case page | Opening scene | `CosyTable` |
-| 1 | Ribbons and page turn | Tabs | `CaseRibbons` |
-| 2 | Find a clue page | Get a clue | `CyoaChoices`, `CyoaPage` |
+| done | Ribbons and page turn | Tabs | `CaseRibbons` |
+| done | Find a clue page (read-only; rows turn to "not drawn yet") | Get a clue | `CyoaChoices`, `CyoaPage` |
 | 3 | Puzzle page (and won) | GameScreen | `puzzle-page*.html` |
 | 4 | Notebook: You, clues, grid, subject pages | Clue drawer, grid, You sheet | `NotebookGrid` |
 | 5 | Map plate (taps open subject pages) | Map, suspect sheet | `PuzzleMap` |

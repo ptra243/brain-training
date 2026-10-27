@@ -1,8 +1,9 @@
 // One #dev/<id> preview, full viewport. Every button does nothing: a preview never saves or leaves the page.
 
-import { useEffect, useLayoutEffect, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
 import { cats, content } from '../content/index.ts';
 import { isSceneGame } from '../engine/gameKinds.ts';
+import { caseCode, newPlayCase } from '../engine/caseRef.ts';
 import { generateCase } from '../engine/generate.ts';
 import { midSentence } from '../engine/text.ts';
 import type { Case } from '../engine/types.ts';
@@ -261,12 +262,42 @@ function HintsPreview() {
  * The #shelf puzzle book open on Case, ribbons dropped. Its styles live under body.shelf, so borrow
  * that class, in a layout effect so it is on before the book's own effect places the ribbons.
  */
+/** A sample case with its first game finished, so the shelf pages show a list without her save. */
+function useShelfSample() {
+  return useMemo(() => {
+    // A Play case, like her saved Quick case: every game carries clues.
+    const { ref, c } = newPlayCase(content, () => 0.5);
+    const progress = emptyProgress();
+    progress.games[c.games[0].kind] = { status: 'won' };
+    return { c, progress, ref: caseCode(ref), seen: true };
+  }, []);
+}
+
+function ShelfFindACluePreview() {
+  useLayoutEffect(() => {
+    document.body.classList.add('shelf');
+    return () => document.body.classList.remove('shelf');
+  }, []);
+  const sample = useShelfSample();
+  return (
+    <OpenBook
+      title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })}
+      tone="quick"
+      from={{ left: 0, top: 0, width: 360, height: 780 }}
+      onBack={noop}
+      startOpen
+      sample={sample}
+    />
+  );
+}
+
 function ShelfRibbonsPreview() {
   useLayoutEffect(() => {
     document.body.classList.add('shelf');
     return () => document.body.classList.remove('shelf');
   }, []);
-  return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen />;
+  const sample = useShelfSample();
+  return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen sample={sample} />;
 }
 
 const SCREENS: Record<string, () => ReactNode> = {
@@ -286,6 +317,7 @@ const SCREENS: Record<string, () => ReactNode> = {
   'you-sheet': () => <YouSheetPreview />,
   motives: () => <MotivesPreview />,
   'shelf-ribbons': () => <ShelfRibbonsPreview />,
+  'shelf-find-a-clue': () => <ShelfFindACluePreview />,
   portraits: () => <PortraitGallery />,
   dogfight: () => <DogFightStates />,
 };

@@ -26,6 +26,7 @@ export const PREVIEWS: readonly PreviewInfo[] = [
   { id: 'houses', about: 'The lodge, courtyard house and steps on the floor plan', look: 'game' },
   { id: 'motives', about: 'Talk to any guest on any card, thread and mood, one beat at a time or all at once', look: 'game' },
   { id: 'shelf-ribbons', about: 'The #shelf puzzle book open on Case with the ribbons dropped', look: 'plain' },
+  { id: 'shelf-find-a-clue', about: 'The #shelf Find a clue page: a sample case with one game finished and the finale locked', look: 'plain' },
   { id: 'portraits', about: 'The portrait gallery', look: 'plain' },
   { id: 'dogfight', about: 'The dog fight board in each state, with any cat helper', look: 'plain' },
 ];

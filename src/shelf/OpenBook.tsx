@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import styles from './OpenBook.module.css';
+import { FindAClue, type SampleCase } from './FindAClue.tsx';
 import { attachRibbons } from './ribbonMotion.ts';
 import { SECTIONS } from './ribbonPlan.ts';
 
@@ -43,6 +44,32 @@ const ICONS: ReactNode[] = [
   </svg>,
 ];
 
+/** The New case book stays a sample until step 3. */
+function NewCaseSample() {
+  return (
+    <>
+      <p className={styles.blurb}>{BLURB}</p>
+      <h2 className={styles.find}>Find a clue</h2>
+      <ul className={styles.choices}>
+        {CHOICES.map((c) => (
+          <li key={c.page}>
+            <button type="button" className={styles.choice}>
+              <span className={styles.story}>{c.story}</span>
+              <span className={styles.meta}>
+                <span>
+                  {c.game} · {c.level}
+                </span>
+                <b>p. {c.page}</b>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <p className={styles.foot}>Turn to page 24, 46 or 53.</p>
+    </>
+  );
+}
+
 interface OpenBookProps {
   title: string;
   tone: Tone;
@@ -50,6 +77,8 @@ interface OpenBookProps {
   onBack: () => void;
   /** Drop the ribbons as soon as the book is open (the dev preview). */
   startOpen?: boolean;
+  /** A case to show instead of her saved one (the dev preview). */
+  sample?: SampleCase;
 }
 
 /**
@@ -59,7 +88,7 @@ interface OpenBookProps {
  * `ribbonMotion.ts`, which owns the pages' `hidden` and the ribbons' transforms after the first render.
  * The cover is hidden by `prefers-reduced-motion`, which leaves only the page.
  */
-export function OpenBook({ title, tone, from, onBack, startOpen }: OpenBookProps) {
+export function OpenBook({ title, tone, from, onBack, startOpen, sample }: OpenBookProps) {
   const backRef = useRef<HTMLButtonElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
   const underRef = useRef<HTMLDivElement>(null);
@@ -131,24 +160,7 @@ export function OpenBook({ title, tone, from, onBack, startOpen }: OpenBookProps
                   <div className={styles.running}>
                     <span>Case</span>
                   </div>
-                  <p className={styles.blurb}>{BLURB}</p>
-                  <h2 className={styles.find}>Find a clue</h2>
-                  <ul className={styles.choices}>
-                    {CHOICES.map((c) => (
-                      <li key={c.page}>
-                        <button type="button" className={styles.choice}>
-                          <span className={styles.story}>{c.story}</span>
-                          <span className={styles.meta}>
-                            <span>
-                              {c.game} · {c.level}
-                            </span>
-                            <b>p. {c.page}</b>
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className={styles.foot}>Turn to page 24, 46 or 53.</p>
+                  {tone === 'quick' ? <FindAClue sample={sample} /> : <NewCaseSample />}
                 </section>
                 {SECTIONS.slice(1).map((name) => (
                   <section key={name} className={styles.page} data-section={name} aria-label={name} hidden>

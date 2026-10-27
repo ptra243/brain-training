@@ -93,6 +93,13 @@ test('shelf-ribbons preview', async ({ page }) => {
   await checkScreen(page, 'preview shelf-ribbons');
 });
 
+test('shelf-find-a-clue preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-find-a-clue');
+  await expect(page.getByRole('heading', { name: 'Find a clue' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Hide finished (1)' })).toBeVisible();
+  await checkScreen(page, 'preview shelf-find-a-clue');
+});
+
 test('an unknown preview lists the real ones', async ({ page }) => {
   await page.goto('/#dev/nope');
   await expect(page.getByRole('link', { name: 'next-murder' })).toBeVisible();

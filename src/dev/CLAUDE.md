@@ -71,6 +71,10 @@ What a look check judges on each:
 - `shelf-ribbons`: the #shelf puzzle book open on Case, ribbons dropped (three ribbons in a row of four, a gap
   where Case lies in the crease): book runs to the left edge with a 20px left page, 6px felt right, header 16/10px
   inset; satin ribbons readable and 44px+; no sideways scroll.
+- `shelf-find-a-clue`: the same book on a sample Play case (no finale; Play cases have none) with one game
+  finished: story lines (not game names) lead each line, then "game · level · N clues" and "p. NN"; the finished
+  line greyed ("Solved · N clues found"), "Hide finished (1)" at the foot; lines 44px+; no sideways scroll. The
+  ribbons start dropped, so the first tap on the page only tucks them.
 - `portraits`: the portrait gallery on its own (light dev page).
 - `dogfight`: the dog fight board in each state, with a cat helper picker
   (light dev page).

@@ -29,10 +29,10 @@ settled design may stay as a short stub; give it a doc when someone starts it.
 ## Session: Shelf UI, beside the current game
 Last touched: 2026-10-28
 Reads first: `docs/visual-theme.md` (Settled: a second shell, the Screens sections, Screen plan), `CONTEXT.md`.
-Goal: build every screen on `#shelf` only, in the Screen plan order; the current game stays as it is. The bookcase and a still case page are up. The ribbons and page turn were prototyped and tuned on her phone (2026-10-28, `docs/mockups/ribbons-prototype.html`, settled in visual-theme.md); step 1 (ribbons and page turn) is built in src/shelf with the `#dev/shelf-ribbons` preview; step 2 (Find a clue page) is next, its brief settled in the handoff. Then the puzzle page, notebook, map, answer, stickers, campaign book, deck and guest book.
+Goal: build every screen on `#shelf` only, in the Screen plan order; the current game stays as it is. The bookcase and a still case page are up. The ribbons and page turn were prototyped and tuned on her phone (2026-10-28, `docs/mockups/ribbons-prototype.html`, settled in visual-theme.md); steps 1 (ribbons and page turn, `#dev/shelf-ribbons`) and 2 (Find a clue page, read-only, `#dev/shelf-find-a-clue`) are built in src/shelf. Step 3 (puzzle page and won) is next; no brief yet. Then notebook, map, answer, stickers, campaign book, deck and guest book.
 Starting prompt:
 ```
-Read .claude/handoff/shelf-ribbons-find-a-clue.md (if it's gone, the "Screens 1–3" ribbon bullet in docs/visual-theme.md and docs/mockups/ribbons-prototype.html). Step 1 is done. Hand step 2 (Find a clue page) to a fresh implementer from the handoff's "Step 2" and "Story lines" sections, then look-check `#dev/shelf-find-a-clue` at 360px. #shelf only; no current-shell files.
+Steps 1–2 of the #shelf Screen plan are done (docs/visual-theme.md; review notes in .claude/handoff/shelf-ribbons-find-a-clue.md if it still exists). Plan step 3, the puzzle page (and won), from docs/mockups/puzzle-page*.html: read GameScreen and the registry read-only, propose to the owner how a Find a clue line opens a puzzle page and whether #shelf now writes the save, then write a handoff and hand it to an implementer. #shelf only; no current-shell files.
 ```
 
 ## Session: Theme content, land the lines
