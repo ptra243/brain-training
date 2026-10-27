@@ -20,6 +20,26 @@ buttons, and Get a clue is button → dialog list → Choose → Play.
   the puzzle pages, and the answer form (Answer, or Stickers for Jigsaw-finish cases). The *notebook*
   (kraft, top-bound, spiral) holds her working: found clues and the logic grid on graph paper. Only
   one is open at a time; the notebook peeks up from the bottom like today's clue drawer.
+- **Two edge pulls in a case (owner, 2026-10-27).** Swipe up from the bottom for the notebook.
+  Swipe down from the top and the ribbon bookmarks (Case, Map, Puzzles, Answer or Stickers) slide
+  out from behind the page and flop down over it; tap one to jump to that page. Proposed details:
+  - Both pulls start only on a strip at the edge (the notebook's peek, the ribbon tips peeking about
+    14px below the header), never anywhere on the page, so dragging on the map and grid is untouched.
+  - The ribbon tips can also be tapped, so she can always find them without knowing the gesture.
+  - The drop: ribbons slide down from behind the page one after another (about 60ms apart), with a
+    small overshoot and settle (about 350ms each), the current page's ribbon brass. Swipe up, tap the
+    page or pick a ribbon to tuck them away. Reduced motion: they just appear.
+  - `overscroll-behavior-y: none` under `body.shelf` so a pull down doesn't trigger Chrome's
+    pull-to-refresh. The gesture starts below the status bar, so it doesn't fight Android's
+    notification shade.
+  - Mockup starting point: `docs/mockups/library-home/CaseRibbons.dc.html` (ribbons at rest).
+  - **Picking a ribbon turns the page (owner, 2026-10-27).** The ribbons follow book order (Case,
+    Map, Puzzles, Answer or Stickers). Going forward, the page lifts from the right edge and turns
+    over to the left; going back, it turns from left to right. The ribbons tuck away as the page
+    turns. Proposed: about 450ms with a slight curl and shadow, and a quick flick of a few leaves
+    when she skips more than one section. Picking the page she's already on just tucks the ribbons.
+    Reduced motion: a short crossfade. It only happens on a ribbon tap, never a swipe, so it doesn't
+    bring back the page-turn swiping rejected below.
 - **Jigsaw is a sticker page** at the back of the puzzle book: loose pieces are die-cut stickers on a
   sheet, pinned pieces are printed on the page, the outline hint is the dotted silhouette sticker
   albums already print. A refused drop curls and lifts back to the sheet.
@@ -53,8 +73,8 @@ Answer or Stickers); Nosing around follows the cat; the record shelf shows the g
    variables in `src/styles.css`, until the owner makes `#shelf` the address the app opens on.
 3. **Map and grid are now in different books.** She switches between them a lot; confirm with her
    that one tap on the notebook is quick enough.
-4. **Tabs at the top are a reach on the S26.** Accepted because the bottom belongs to the notebook;
-   revisit if she struggles.
+4. **Tabs at the top are a reach on the S26.** Answered by the ribbon pull-down (above): a swipe
+   down from anywhere along the top edge, so she doesn't have to reach for a small tab.
 5. **Bottom of screen, one owner per page:** notebook peek on map and grid, sticker sheet on the
    sticker page (notebook moves to a header icon), nothing else.
 6. **Sticker sheet height at 36–40px squares** may need its own scroll, or to sit under the notebook.
@@ -109,6 +129,12 @@ owner switches that default, this work must not change the current shell.
   Quick play / Campaign / Your record, the cat, teacup and candle. `docs/mockups/library.html`
   is the earlier dark shelf and is not the one to build. Later screens come from `docs/mockups/`,
   one at a time.
+- **Build from the source, not the screenshot.** The honey-oak screens come from the "Library
+  home" design canvas (https://claude.ai/artifact/JwRfscWuZEQGKRbbjx8yb2), copied into
+  `docs/mockups/library-home/`. `CosyLibrary.dc.html` is the bookcase and `CosyTable.dc.html` the
+  case page at the table; the `honey` entry in each file's `palettes` holds the exact colours.
+  Copy sizes, colours and the EB Garamond headings from there; `LibHoney`/`TableHoney` just pick
+  the honey palette.
 
 ## Suggested build order
 

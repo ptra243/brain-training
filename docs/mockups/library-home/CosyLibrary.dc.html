@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cosy library</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="position: relative; width: 360px; height: 780px; box-sizing: border-box; padding: 18px 12px 0; display: flex; flex-direction: column; overflow: hidden; background-color: {{p.wall}}; background-image: radial-gradient({{p.pat}} 1.6px, transparent 1.8px), radial-gradient({{p.pat}} 1.6px, transparent 1.8px); background-size: 18px 18px; background-position: 0 0, 9px 9px; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: {{p.ink}}">
+
+  <span aria-hidden="true" style="position: absolute; left: -60px; top: 40px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, {{p.glow}} 0, transparent 70%); pointer-events: none"></span>
+
+  <header style="position: relative; display: flex; align-items: flex-end; justify-content: space-between; padding: 6px 4px 0">
+    <div>
+      <h1 style="margin: 0; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 32px; line-height: 1">Casebook</h1>
+      <p style="margin: 4px 0 0; font-size: 14px; color: {{p.inkSoft}}">Take a book off the shelf.</p>
+    </div>
+    <svg width="58" height="58" viewBox="0 0 58 58" aria-hidden="true" style="filter: drop-shadow(0 2px 3px rgba(0,0,0,.3))"><path d="M10 54V30a19 19 0 0 1 38 0v24z" fill="{{p.wood}}"></path><path d="M15 54V31a14 14 0 0 1 28 0v23z" fill="#2b3a4f"></path><circle cx="35" cy="22" r="3" fill="#f3e6c0"></circle><circle cx="22" cy="34" r="1.5" fill="#f3e6c0"></circle><circle cx="38" cy="40" r="1.2" fill="#f3e6c0"></circle><path d="M29 17v37M15 36h28" stroke="{{p.wood}}" stroke-width="2.5"></path></svg>
+  </header>
+
+  <section aria-label="Bookcase" style="position: relative; margin-top: 34px; background: {{p.wood}}; border-radius: 6px 6px 0 0; padding: 10px 10px 0; display: flex; flex-direction: column; gap: 2px; box-shadow: 0 10px 22px rgba(0,0,0,.35)">
+    <svg width="72" height="36" viewBox="0 0 72 36" aria-hidden="true" style="position: absolute; right: 30px; top: -31px"><ellipse cx="34" cy="27" rx="26" ry="9" fill="{{p.cat}}"></ellipse><circle cx="55" cy="21" r="9.5" fill="{{p.cat}}"></circle><path d="M49 14l2-8 5 7zM58 13l4-7 2 9z" fill="{{p.cat}}"></path><path d="M10 29c-8 2-8 6 2 5" stroke="{{p.cat}}" stroke-width="4.5" fill="none" stroke-linecap="round"></path><path d="M51 21q2 2 4 0M58 21q2 2 4 0" stroke="#5a3418" stroke-width="1.4" fill="none" stroke-linecap="round"></path><path d="M22 23q3 3 6 0M32 22q3 3 6 0" stroke="rgba(0,0,0,.18)" stroke-width="2" fill="none" stroke-linecap="round"></path></svg>
+
+    <!-- Quick play shelf -->
+    <div style="height: 150px; background: {{p.back}}; display: flex; align-items: flex-end; gap: 3px; padding: 0 8px; box-shadow: inset 0 8px 12px rgba(0,0,0,.4)">
+      <a href="#continue" aria-label="Your case, The Orchid Room: take it to the table" style="position: relative; width: 56px; height: 140px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 8px 0 6px; border-radius: 3px 3px 0 0; background: {{p.cur}}; text-decoration: none; transform: translateY(-8px); box-shadow: inset -4px 0 0 rgba(0,0,0,.22), 0 8px 12px rgba(0,0,0,.5)">
+        <span style="writing-mode: vertical-rl; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 15px; white-space: nowrap; color: {{p.foil}}">The Orchid Room</span>
+        <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true" style="filter: drop-shadow(0 1px 1.2px rgba(0,0,0,.45)); transform: rotate(-8deg)"><circle cx="17" cy="17" r="15.5" fill="#fbf4e2"></circle><circle cx="17" cy="17" r="12.5" fill="#c76b4f"></circle><circle cx="15" cy="15" r="5" fill="none" stroke="#fbf4e2" stroke-width="2.4"></circle><path d="M19 19l4.5 4.5" stroke="#fbf4e2" stroke-width="2.6" stroke-linecap="round"></path></svg>
+        <span aria-hidden="true" style="position: absolute; bottom: -22px; left: 34px; width: 10px; height: 28px; background: {{p.brass}}; clip-path: polygon(0 0,100% 0,100% 100%,50% 78%,0 100%)"></span>
+      </a>
+      <a href="#new-case" aria-label="New case" style="width: 48px; height: 128px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 8px 0 6px; border-radius: 3px 3px 0 0; background: {{p.nw}}; text-decoration: none; box-shadow: inset -4px 0 0 rgba(0,0,0,.22), inset 3px 0 0 rgba(255,255,255,.1)">
+        <span style="writing-mode: vertical-rl; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 15px; white-space: nowrap; color: {{p.foil}}">New case</span>
+        <svg width="32" height="32" viewBox="0 0 34 34" aria-hidden="true" style="filter: drop-shadow(0 1px 1.2px rgba(0,0,0,.45)); transform: rotate(5deg)"><rect x="2" y="5" width="30" height="24" rx="5" fill="#fbf4e2"></rect><rect x="5" y="8" width="24" height="18" rx="3" fill="#6f8f9a"></rect><path d="M7 11l10 7 10-7" fill="none" stroke="#fbf4e2" stroke-width="2"></path><circle cx="17" cy="19" r="3.4" fill="#b8423a"></circle></svg>
+      </a>
+      <a href="#choose" aria-label="Choose your games" style="position: relative; width: 86px; height: 70px; display: block; text-decoration: none">
+        <span style="position: absolute; left: 4px; bottom: 0; width: 78px; height: 13px; background: {{p.deck}}; border: 1px solid {{p.brass}}; border-radius: 2px"></span>
+        <span style="position: absolute; left: 1px; bottom: 12px; width: 78px; height: 13px; background: {{p.deck}}; border: 1px solid {{p.brass}}; border-radius: 2px"></span>
+        <span style="position: absolute; left: 6px; bottom: 24px; width: 78px; height: 13px; background: {{p.deck}}; border: 1px solid {{p.brass}}; border-radius: 2px; transform: rotate(-3deg)"></span>
+        <svg width="36" height="36" viewBox="0 0 34 34" aria-hidden="true" style="position: absolute; left: 25px; bottom: 34px; filter: drop-shadow(0 1px 1.2px rgba(0,0,0,.45)); transform: rotate(-4deg)"><circle cx="17" cy="17" r="15.5" fill="#fbf4e2"></circle><circle cx="17" cy="17" r="12.5" fill="#b04a5a"></circle><rect x="9" y="11" width="7" height="11" rx="1" fill="#fbf4e2" transform="rotate(-14 12 16)"></rect><rect x="13.5" y="10" width="7" height="11" rx="1" fill="#f3d68c"></rect><rect x="18" y="11" width="7" height="11" rx="1" fill="#fbf4e2" transform="rotate(14 21 16)"></rect></svg>
+      </a>
+      <span aria-hidden="true" style="width: 20px; height: 116px; border-radius: 3px 3px 0 0; background: {{p.d1}}; box-shadow: inset -3px 0 0 rgba(0,0,0,.18)"></span>
+      <span aria-hidden="true" style="width: 22px; height: 124px; border-radius: 3px 3px 0 0; background: {{p.d2}}; box-shadow: inset -3px 0 0 rgba(0,0,0,.18)"></span>
+      <a href="#secret" aria-label="An odd-looking book" style="width: 26px; height: 120px; margin-left: 10px; box-sizing: border-box; display: flex; justify-content: center; padding-top: 14px; border-radius: 3px 3px 0 0; background: {{p.secret}}; transform: rotate(-7deg); transform-origin: bottom left; box-shadow: inset 0 0 0 1px {{p.brass}}; text-decoration: none"><span style="width: 9px; height: 9px; border: 1px solid {{p.brass}}; transform: rotate(45deg)"></span></a>
+    </div>
+    <div style="display: flex; justify-content: center; height: 20px; margin: 0 -10px; background: {{p.wood}}; border-top: 3px solid {{p.lipTop}}"><span style="margin-top: -1px; padding: 0 10px; background: {{p.brass}}; border-radius: 0 0 3px 3px; font-family: 'EB Garamond', Georgia, serif; font-weight: 700; font-size: 11px; letter-spacing: .16em; line-height: 17px; color: #2a1d0f">QUICK PLAY</span></div>
+
+    <!-- Campaign shelf -->
+    <div style="height: 150px; background: {{p.back}}; display: flex; align-items: flex-end; gap: 3px; padding: 0 8px; box-shadow: inset 0 8px 12px rgba(0,0,0,.4)">
+      <a href="#campaign" aria-label="Your campaign, midnight, 2 accusations left: continue" style="width: 58px; height: 140px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 8px 0 6px; border-radius: 3px 3px 0 0; background: {{p.camp}}; text-decoration: none; box-shadow: inset -4px 0 0 rgba(0,0,0,.22), inset 3px 0 0 rgba(255,255,255,.1)">
+        <span style="writing-mode: vertical-rl; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 16px; white-space: nowrap; color: {{p.foil}}">Midnight</span>
+        <span style="font-size: 10px; font-weight: 600; color: {{p.foil}}">2 left</span>
+        <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true" style="filter: drop-shadow(0 1px 1.2px rgba(0,0,0,.45)); transform: rotate(7deg)"><circle cx="17" cy="17" r="15.5" fill="#fbf4e2"></circle><circle cx="17" cy="17" r="12.5" fill="#3f4f75"></circle><path d="M20 9a8.5 8.5 0 1 0 5 14 7 7 0 1 1-5-14z" fill="#f3d68c"></path><circle cx="11" cy="12" r="1" fill="#fbf4e2"></circle></svg>
+      </a>
+      <a href="#new-campaign" aria-label="New campaign" style="width: 48px; height: 130px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 8px 0 6px; border-radius: 3px 3px 0 0; background: {{p.ncamp}}; text-decoration: none; box-shadow: inset -4px 0 0 rgba(0,0,0,.22), inset 3px 0 0 rgba(255,255,255,.1)">
+        <span style="writing-mode: vertical-rl; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 14px; white-space: nowrap; color: {{p.foil}}">New campaign</span>
+        <svg width="32" height="32" viewBox="0 0 34 34" aria-hidden="true" style="filter: drop-shadow(0 1px 1.2px rgba(0,0,0,.45)); transform: rotate(-5deg)"><rect x="2" y="5" width="30" height="24" rx="5" fill="#fbf4e2"></rect><rect x="5" y="8" width="24" height="18" rx="3" fill="#6f8f9a"></rect><path d="M7 11l10 7 10-7" fill="none" stroke="#fbf4e2" stroke-width="2"></path><circle cx="17" cy="19" r="3.4" fill="#b8423a"></circle></svg>
+      </a>
+      <span aria-hidden="true" style="width: 22px; height: 120px; border-radius: 3px 3px 0 0; background: {{p.d3}}; box-shadow: inset -3px 0 0 rgba(0,0,0,.18)"></span>
+      <span aria-hidden="true" style="width: 18px; height: 112px; border-radius: 3px 3px 0 0; background: {{p.d4}}; box-shadow: inset -3px 0 0 rgba(0,0,0,.18)"></span>
+      <svg width="44" height="40" viewBox="0 0 44 40" aria-hidden="true" style="margin-left: 8px"><ellipse cx="20" cy="37" rx="18" ry="3" fill="#efe6d0"></ellipse><path d="M8 18h24v6a12 12 0 0 1-24 0z" fill="#efe6d0"></path><path d="M32 21c7 0 7 8 0 8" stroke="#efe6d0" stroke-width="3" fill="none"></path><path d="M10 22h20" stroke="#c76b4f" stroke-width="2"></path><path d="M16 14c-2-3 2-5 0-8M23 14c-2-3 2-5 0-8" stroke="rgba(255,255,255,.4)" stroke-width="1.5" fill="none" stroke-linecap="round"></path></svg>
+      <svg width="24" height="52" viewBox="0 0 24 52" aria-hidden="true" style="margin-left: auto"><rect x="7" y="14" width="10" height="34" fill="#f2ead2"></rect><path d="M12 2c4 5 4 9 0 11-4-2-4-6 0-11z" fill="#f0b544"></path><rect x="2" y="48" width="20" height="4" fill="{{p.brass}}"></rect></svg>
+    </div>
+    <div style="display: flex; justify-content: center; height: 20px; margin: 0 -10px; background: {{p.wood}}; border-top: 3px solid {{p.lipTop}}"><span style="margin-top: -1px; padding: 0 10px; background: {{p.brass}}; border-radius: 0 0 3px 3px; font-family: 'EB Garamond', Georgia, serif; font-weight: 700; font-size: 11px; letter-spacing: .16em; line-height: 17px; color: #2a1d0f">CAMPAIGN</span></div>
+
+    <!-- Record shelf -->
+    <a href="#record" aria-label="Your record: the guest book and 12 solved cases" style="height: 150px; background: {{p.back}}; display: flex; align-items: flex-end; gap: 3px; padding: 0 8px; box-shadow: inset 0 8px 12px rgba(0,0,0,.4); text-decoration: none">
+      <span style="position: relative; width: 104px; height: 58px; display: block; margin-right: 8px">
+        <span style="position: absolute; left: 0; bottom: 0; width: 100px; height: 22px; background: {{p.guest}}; border-radius: 2px; box-shadow: inset 0 -3px 0 #f3ead6"></span>
+        <span style="position: absolute; left: 4px; bottom: 21px; width: 94px; height: 18px; background: {{p.d6}}; border-radius: 2px; box-shadow: inset 0 -3px 0 #f3ead6"></span>
+        <span style="position: absolute; left: 14px; bottom: 25px; padding: 2px 8px 3px; background: #fbf4e2; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,.3); font-family: 'EB Garamond', Georgia, serif; font-style: italic; font-weight: 600; font-size: 13px; color: #3b2a1d">Guest book</span>
+      </span>
+      <span aria-hidden="true" style="width: 18px; height: 118px; border-radius: 3px 3px 0 0; background: {{p.d1}}"></span>
+      <span aria-hidden="true" style="width: 20px; height: 126px; border-radius: 3px 3px 0 0; background: {{p.d4}}"></span>
+      <span aria-hidden="true" style="width: 16px; height: 112px; border-radius: 3px 3px 0 0; background: {{p.d5}}"></span>
+      <span aria-hidden="true" style="position: relative; width: 22px; height: 130px; border-radius: 3px 3px 0 0; background: {{p.d6}}"><svg width="20" height="20" viewBox="0 0 20 20" style="position: absolute; left: 1px; top: 12px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.4))"><path d="M10 1l2.6 5.6 6 .7-4.5 4.1 1.2 6L10 14.4 4.7 17.4l1.2-6L1.4 7.3l6-.7z" fill="#e6c35c" stroke="#fbf4e2" stroke-width="1.5" stroke-linejoin="round"></path></svg></span>
+      <span aria-hidden="true" style="width: 18px; height: 120px; border-radius: 3px 3px 0 0; background: {{p.d2}}"></span>
+      <span aria-hidden="true" style="width: 20px; height: 108px; border-radius: 3px 3px 0 0; background: {{p.d3}}"></span>
+      <span aria-hidden="true" style="width: 18px; height: 116px; border-radius: 3px 3px 0 0; background: {{p.d1}}; transform: rotate(-9deg); transform-origin: bottom left; margin-left: 3px"></span>
+    </a>
+    <div style="display: flex; justify-content: center; height: 20px; margin: 0 -10px; background: {{p.wood}}; border-top: 3px solid {{p.lipTop}}"><span style="margin-top: -1px; padding: 0 10px; background: {{p.brass}}; border-radius: 0 0 3px 3px; font-family: 'EB Garamond', Georgia, serif; font-weight: 700; font-size: 11px; letter-spacing: .16em; line-height: 17px; color: #2a1d0f">YOUR RECORD</span></div>
+  </section>
+
+  <div style="flex: 1; margin: 0 -12px; display: flex; align-items: center; justify-content: center; background-color: {{p.floor}}; background-image: repeating-linear-gradient(90deg, rgba(0,0,0,.14) 0 1px, transparent 1px 60px)">
+    <div style="width: 280px; padding: 5px; background: {{p.rugPat}}; border-radius: 3px; box-shadow: 0 4px 8px rgba(0,0,0,.3)">
+      <div style="padding: 12px 10px; background: {{p.rug}}; border: 2px dashed {{p.rugPat}}; text-align: center; font-family: 'EB Garamond', Georgia, serif; font-style: italic; font-size: 15px; color: {{p.rugInk}}">Tap a book to take it to the table</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["honey","rose","teal"],"default":"honey"},"$preview":{"width":360,"height":780}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const palettes = {
+      honey: { wall: '#e9ddc2', pat: 'rgba(160,115,60,.22)', ink: '#3b2a1d', inkSoft: '#6b5640', glow: 'rgba(255,214,150,.55)', wood: '#b37a44', lipTop: '#cf9a5e', back: '#4a2f1d', foil: '#f6e3a8', brass: '#d2a548', cat: '#e39a52', floor: '#8a5a30', rug: '#9c4a3a', rugPat: '#e2b56a', rugInk: '#fbeed6', cur: '#8a2e3b', nw: '#3f6f70', deck: '#7b3448', camp: '#5e4a73', ncamp: '#50704f', d1: '#c4847f', d2: '#8ea688', d3: '#cf9f43', d4: '#4d8486', d5: '#e3d3ad', d6: '#7b5a78', secret: '#2a2420', guest: '#5a3a28' },
+      rose: { wall: '#6d4757', pat: 'rgba(255,225,232,.13)', ink: '#fbefe9', inkSoft: '#e6cdd3', glow: 'rgba(255,200,170,.32)', wood: '#7a4b2f', lipTop: '#96603d', back: '#33201a', foil: '#f3d999', brass: '#d9b064', cat: '#f0c9a0', floor: '#4a2c1e', rug: '#2f5560', rugPat: '#d9a46a', rugInk: '#f6ead6', cur: '#7f2633', nw: '#3f4f75', deck: '#5a3060', camp: '#2f5a55', ncamp: '#8a4f2a', d1: '#d39a94', d2: '#9db094', d3: '#d8ae58', d4: '#5a7f86', d5: '#efe2c6', d6: '#b0707e', secret: '#1e1a17', guest: '#4a2f22' },
+      teal: { wall: '#1f3c3b', pat: 'rgba(220,195,130,.14)', ink: '#f1e9d4', inkSoft: '#bccabf', glow: 'rgba(240,190,110,.22)', wood: '#6e3b27', lipTop: '#8a4f33', back: '#24140d', foil: '#e8c86e', brass: '#c8a24c', cat: '#d98c4a', floor: '#3a2116', rug: '#6a2430', rugPat: '#c8a24c', rugInk: '#f3e6c8', cur: '#5a1426', nw: '#24463c', deck: '#3e2a44', camp: '#34436a', ncamp: '#5a3a20', d1: '#7a3a4a', d2: '#3f5a4e', d3: '#8e6f27', d4: '#2c4a5a', d5: '#c9b48a', d6: '#4a3a5a', secret: '#0f0d0c', guest: '#3a2418' },
+    };
+    return { p: palettes[this.props.palette] ?? palettes.honey };
+  }
+}
+</script>
+</body>
+</html>

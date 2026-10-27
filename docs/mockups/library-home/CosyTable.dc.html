@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cosy table</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 360px; height: 780px; box-sizing: border-box; padding: 18px 0 0; display: flex; flex-direction: column; gap: 14px; overflow: hidden; background-color: {{p.felt}}; background-image: radial-gradient(rgba(255,255,255,.045) 1px, transparent 1px); background-size: 5px 5px; border-top: 10px solid {{p.rail}}; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #f6eedb">
+
+  <header style="display: grid; grid-template-columns: 46px 1fr 46px; align-items: center; gap: 6px; padding: 0 12px">
+    <a href="#shelf" aria-label="Back to the shelf" style="width: 46px; height: 46px; display: grid; place-items: center">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" style="filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.45)); transform: rotate(-6deg)"><circle cx="20" cy="20" r="18" fill="#fbf4e2"></circle><circle cx="20" cy="20" r="14.5" fill="{{p.r4}}"></circle><path d="M23 13l-7 7 7 7" fill="none" stroke="#fbf4e2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </a>
+    <div style="text-align: center">
+      <h1 style="margin: 0; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 22px; line-height: 1.1">The Orchid Room</h1>
+      <p style="margin: 2px 0 0; font-size: 13px; color: #eadfc4">Medium · 6 guests</p>
+    </div>
+    <svg width="46" height="40" viewBox="0 0 46 40" aria-hidden="true"><ellipse cx="21" cy="34" rx="19" ry="5" fill="#efe6d0"></ellipse><ellipse cx="21" cy="34" rx="12" ry="2.6" fill="rgba(0,0,0,.08)"></ellipse><path d="M10 16h22v7a11 11 0 0 1-22 0z" fill="#efe6d0"></path><path d="M32 19c6 0 6 7 0 7" stroke="#efe6d0" stroke-width="3" fill="none"></path><path d="M12 20h18" stroke="{{p.r5}}" stroke-width="2"></path><path d="M17 12c-2-3 2-5 0-8M24 12c-2-3 2-5 0-8" stroke="rgba(255,255,255,.45)" stroke-width="1.5" fill="none" stroke-linecap="round"></path></svg>
+  </header>
+
+  <div style="position: relative; z-index: 2; margin: 0 12px; height: 562px; display: flex; background: {{p.cover}}; border-radius: 8px; padding: 8px; box-shadow: 0 16px 28px rgba(0,0,0,.45)">
+    <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" style="position: absolute; left: -10px; top: -14px; z-index: 3; filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.45)); transform: rotate(-14deg)"><circle cx="20" cy="20" r="18" fill="#fbf4e2"></circle><circle cx="20" cy="20" r="14.5" fill="#e39a52"></circle><path d="M11 27c0-7 4-11 9-11s9 4 9 11z" fill="#fbf4e2"></path><path d="M12 19l1-8 5 6zM28 19l-1-8-5 6z" fill="#fbf4e2"></path><circle cx="17" cy="21" r="1.2" fill="#5a3418"></circle><circle cx="23" cy="21" r="1.2" fill="#5a3418"></circle></svg>
+    <svg width="34" height="34" viewBox="0 0 20 20" aria-hidden="true" style="position: absolute; right: -8px; top: -10px; z-index: 3; filter: drop-shadow(0 1px 1.2px rgba(0,0,0,.45)); transform: rotate(12deg)"><path d="M10 1l2.6 5.6 6 .7-4.5 4.1 1.2 6L10 14.4 4.7 17.4l1.2-6L1.4 7.3l6-.7z" fill="#e6c35c" stroke="#fbf4e2" stroke-width="1.4" stroke-linejoin="round"></path></svg>
+
+    <article style="flex: 1; min-width: 0; background: {{p.page}}; border-radius: 3px; padding: 14px 18px 10px; display: flex; flex-direction: column; gap: 12px; color: #1e2a2f; box-shadow: inset 12px 0 14px -10px rgba(60,30,10,.35)">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d8d0bb; padding-bottom: 6px">
+        <span style="font-size: 11px; letter-spacing: .18em; color: #6b5a3a">CLUES</span>
+        <span style="font-family: 'EB Garamond', Georgia, serif; font-style: italic; font-size: 14px; color: #6b5a3a">The Orchid Room</span>
+      </div>
+
+      <p style="margin: 0; font-family: 'EB Garamond', Georgia, serif; font-size: 17px; line-height: 1.4"><span style="float: left; font-size: 50px; line-height: .82; padding: 4px 6px 0 0; font-weight: 600; color: {{p.cover}}">T</span>he Host lies dead in the conservatory. Six guests are still at the table, and one of them did it.</p>
+
+      <button style="display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 50px; border: 0; border-radius: 6px; background: {{p.brass}}; box-shadow: 0 3px 0 {{p.brassDeep}}; font-family: 'EB Garamond', Georgia, serif; font-weight: 700; font-size: 19px; color: #2a1d0f; cursor: pointer">
+        <svg width="26" height="26" viewBox="0 0 34 34" aria-hidden="true" style="filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); transform: rotate(-6deg)"><circle cx="17" cy="17" r="15.5" fill="#fbf4e2"></circle><circle cx="17" cy="17" r="12.5" fill="#b04a5a"></circle><rect x="9" y="11" width="7" height="11" rx="1" fill="#fbf4e2" transform="rotate(-14 12 16)"></rect><rect x="13.5" y="10" width="7" height="11" rx="1" fill="#f3d68c"></rect><rect x="18" y="11" width="7" height="11" rx="1" fill="#fbf4e2" transform="rotate(14 21 16)"></rect></svg>
+        Find a clue
+      </button>
+
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <h2 style="margin: 0; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 17px">Your notes</h2>
+        <span style="font-size: 12px; color: #55615f">3 of 5 found</span>
+      </div>
+
+      <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 11px; font-family: 'EB Garamond', Georgia, serif; font-size: 16.5px; line-height: 1.35">
+        <li style="display: grid; grid-template-columns: 24px 1fr; gap: 6px"><span style="color: #6b5a3a; font-weight: 600">i.</span><span>The Butler was never in the kitchen.</span></li>
+        <li style="display: grid; grid-template-columns: 24px 1fr; gap: 6px; padding: 8px; margin: 0 -8px; background: {{p.fresh}}; border-radius: 4px"><span style="color: #6b5a3a; font-weight: 600">ii.</span><span>The candlestick was in a room next to the hall. <span style="display: inline-block; vertical-align: 2px; margin-left: 4px; padding: 1px 7px; border-radius: 10px; background: {{p.brass}}; font-family: system-ui, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .08em; color: #2a1d0f">NEW</span></span></li>
+        <li style="display: grid; grid-template-columns: 24px 1fr; gap: 6px; color: #6a716f"><span style="font-weight: 600">iii.</span><span style="text-decoration: line-through; text-decoration-color: #a8322d; text-decoration-thickness: 2px">The Hostess and the Uncle were in different rooms.</span></li>
+        <li style="display: grid; grid-template-columns: 24px 1fr; gap: 6px; color: #8a7a5c"><span style="font-weight: 600">iv.</span><span style="border-bottom: 1.5px dashed #c9bd9f; height: 18px"></span></li>
+        <li style="display: grid; grid-template-columns: 24px 1fr; gap: 6px; color: #8a7a5c"><span style="font-weight: 600">v.</span><span style="border-bottom: 1.5px dashed #c9bd9f; height: 18px"></span></li>
+      </ol>
+
+      <p style="margin: auto 0 0; text-align: center; font-family: 'EB Garamond', Georgia, serif; font-size: 14px; color: #8a7a5c">— 3 —</p>
+    </article>
+  </div>
+
+  <nav aria-label="Case sections" style="position: relative; z-index: 1; margin-top: -20px; display: flex; justify-content: center; align-items: flex-start; gap: 6px">
+    <button aria-current="page" style="width: 60px; height: 124px; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; padding: 0 0 22px; clip-path: polygon(0 0,100% 0,100% 100%,50% 86%,0 100%); background: {{p.brass}}; font-family: system-ui, sans-serif; font-size: 12px; font-weight: 700; color: #2a1d0f">
+      <svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true" style="filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); transform: rotate(-6deg)"><circle cx="17" cy="17" r="15.5" fill="#fbf4e2"></circle><circle cx="17" cy="17" r="12.5" fill="#c76b4f"></circle><circle cx="15" cy="15" r="5" fill="none" stroke="#fbf4e2" stroke-width="2.4"></circle><path d="M19 19l4.5 4.5" stroke="#fbf4e2" stroke-width="2.6" stroke-linecap="round"></path></svg>
+      Clues
+    </button>
+    <button style="width: 60px; height: 104px; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; padding: 0 0 22px; clip-path: polygon(0 0,100% 0,100% 100%,50% 86%,0 100%); background: {{p.r2}}; font-family: system-ui, sans-serif; font-size: 12px; font-weight: 600; color: #fbf3e0">
+      <svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true" style="filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); transform: rotate(5deg)"><rect x="2" y="2" width="30" height="30" rx="7" fill="#fbf4e2"></rect><rect x="5" y="5" width="24" height="24" rx="4" fill="#7d9a6e"></rect><path d="M9 9h16v16H9zM17 9v7M9 16h5M17 16h8M20 16v9" fill="none" stroke="#fbf4e2" stroke-width="1.8"></path></svg>
+      Map
+    </button>
+    <button style="width: 60px; height: 104px; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; padding: 0 0 22px; clip-path: polygon(0 0,100% 0,100% 100%,50% 86%,0 100%); background: {{p.r3}}; font-family: system-ui, sans-serif; font-size: 12px; font-weight: 600; color: #fbf3e0">
+      <svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true" style="filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); transform: rotate(-4deg)"><circle cx="17" cy="17" r="15.5" fill="#fbf4e2"></circle><circle cx="17" cy="17" r="12.5" fill="#4f6d9a"></circle><path d="M10 10h14v14H10zM14.7 10v14M19.3 10v14M10 14.7h14M10 19.3h14" fill="none" stroke="#fbf4e2" stroke-width="1.5"></path><path d="M10.8 10.8l3.1 3.1M13.9 10.8l-3.1 3.1" stroke="#f3a79c" stroke-width="1.6"></path></svg>
+      Grid
+    </button>
+    <button style="width: 60px; height: 104px; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; padding: 0 0 22px; clip-path: polygon(0 0,100% 0,100% 100%,50% 86%,0 100%); background: {{p.r4}}; font-family: system-ui, sans-serif; font-size: 12px; font-weight: 600; color: #fbf3e0">
+      <svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true" style="filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); transform: rotate(7deg)"><rect x="2" y="2" width="30" height="30" rx="7" fill="#fbf4e2"></rect><rect x="5" y="5" width="24" height="24" rx="4" fill="#c99a3e"></rect><path d="M9 13h4a2.5 2.5 0 1 1 5 0h4v4a2.5 2.5 0 1 1 0 5v4H9v-4a2.5 2.5 0 1 0 0-5z" fill="#fbf4e2"></path></svg>
+      Jigsaw
+    </button>
+    <button style="width: 60px; height: 104px; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; padding: 0 0 22px; clip-path: polygon(0 0,100% 0,100% 100%,50% 86%,0 100%); background: {{p.r5}}; font-family: system-ui, sans-serif; font-size: 12px; font-weight: 600; color: #fbf3e0">
+      <svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true" style="filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); transform: rotate(-7deg)"><circle cx="17" cy="17" r="15.5" fill="#fbf4e2"></circle><circle cx="17" cy="17" r="12.5" fill="#8a2e3b"></circle><path d="M8 17c3-5 6-7 9-7s6 2 9 7c-3 5-6 7-9 7s-6-2-9-7z" fill="#fbf4e2"></path><circle cx="17" cy="17" r="3.4" fill="#8a2e3b"></circle></svg>
+      Accuse
+    </button>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["honey","rose","teal"],"default":"honey"},"$preview":{"width":360,"height":780}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const palettes = {
+      honey: { felt: '#3a7058', rail: '#b37a44', cover: '#8a2e3b', page: '#f8f1df', fresh: '#fbefc9', brass: '#d2a548', brassDeep: '#9a7426', r2: '#4f7a54', r3: '#3f5f8a', r4: '#9a5a32', r5: '#8a2e3b' },
+      rose: { felt: '#2f6650', rail: '#7a4b2f', cover: '#5a3060', page: '#f8efe2', fresh: '#f8e4dc', brass: '#d9b064', brassDeep: '#a07a32', r2: '#3f6a5e', r3: '#3f4f75', r4: '#8a4f2a', r5: '#7f2633' },
+      teal: { felt: '#24463c', rail: '#6e3b27', cover: '#5a1426', page: '#f4f0e4', fresh: '#fbf3d6', brass: '#c8a24c', brassDeep: '#8e6f27', r2: '#2f5a4a', r3: '#34436a', r4: '#6b4529', r5: '#7a1c2c' },
+    };
+    return { p: palettes[this.props.palette] ?? palettes.honey };
+  }
+}
+</script>
+</body>
+</html>

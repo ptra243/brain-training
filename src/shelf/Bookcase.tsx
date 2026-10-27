@@ -23,100 +23,142 @@ const ROUNDS = 3;
 
 const cx = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ');
 
-interface SpineProps {
+interface BookProps {
   label: string;
   title: string;
-  /** Spine width in px and title size in px. */
-  width: number;
-  size: number;
   className: string;
-  out?: boolean;
-  /** Lay a long title flat and let it wrap, instead of running it up the spine. */
-  flat?: boolean;
+  /** Title size in px. */
+  size: number;
   /** Takes the book down in place (no address change). Without it the link goes to `#shelf/soon`. */
   onOpen?: (e: MouseEvent<HTMLAnchorElement>) => void;
   /** Hidden while its case page is open. */
   gone?: boolean;
-  children?: ReactNode;
+  /** The seal drawn under the title. */
+  seal: ReactNode;
+  /** Small text between the title and the seal. */
+  note?: ReactNode;
+  /** Sticks out of the shelf, with a brass ribbon. */
+  out?: boolean;
 }
 
-/** One book: the whole spine is a link. */
-function Spine({ label, title, width, size, className, out, flat, onOpen, gone, children }: SpineProps) {
+/** One book you can pick up: the whole spine is a link. */
+function Book({ label, title, className, size, onOpen, gone, seal, note, out }: BookProps) {
   return (
-    <a href={SOON} aria-label={label} onClick={onOpen} className={cx(styles.spine, className, out && styles.out, gone && styles.gone)} style={{ width }}>
-      <span aria-hidden="true" className={styles.rule} />
-      <span className={cx(styles.spineTitle, flat && styles.flat)} style={{ fontSize: size }}>
+    <a href={SOON} aria-label={label} onClick={onOpen} className={cx(styles.book, className, out && styles.out, gone && styles.gone)}>
+      <span className={styles.spineTitle} style={{ fontSize: size }}>
         {title}
       </span>
-      {children}
-      {out ? <span aria-hidden="true" className={styles.rule} /> : null}
+      {note}
+      {seal}
       {out ? <span aria-hidden="true" className={styles.ribbon} /> : null}
     </a>
   );
 }
 
 /** A thin decorative spine: not a button. */
-const thin = (width: number, height: number, background: string, extra?: string) => (
-  <span aria-hidden="true" className={cx(styles.thin, extra)} style={{ width, height, background }} />
+const thin = (className: string, children?: ReactNode) => (
+  <span aria-hidden="true" className={cx(styles.thin, className)}>
+    {children}
+  </span>
 );
 
-const Seal = () => <span aria-hidden="true" className={styles.seal} />;
+const Plaque = ({ id, children }: { id: string; children: string }) => (
+  <div className={styles.board}>
+    <h2 id={id} className={styles.plaque}>
+      {children}
+    </h2>
+  </div>
+);
 
+const MagnifierSeal = () => (
+  <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true" className={cx(styles.seal, styles.tiltL8)}>
+    <circle cx="17" cy="17" r="15.5" fill="#fbf4e2" />
+    <circle cx="17" cy="17" r="12.5" fill="#c76b4f" />
+    <circle cx="15" cy="15" r="5" fill="none" stroke="#fbf4e2" strokeWidth="2.4" />
+    <path d="M19 19l4.5 4.5" stroke="#fbf4e2" strokeWidth="2.6" strokeLinecap="round" />
+  </svg>
+);
 
-function Candle({ lit }: { lit: boolean }) {
-  return (
-    <svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true">
-      {lit ? <path d="M6 0c2.6 3.4 2.6 5.6 0 7.6-2.6-2-2.6-4.2 0-7.6z" fill="#f6c453" /> : null}
-      <rect x="3" y="8" width="6" height="12" rx="1" fill={lit ? '#f4ead2' : '#8b7a8c'} />
-    </svg>
-  );
-}
+const EnvelopeSeal = ({ className }: { className: string }) => (
+  <svg width="32" height="32" viewBox="0 0 34 34" aria-hidden="true" className={cx(styles.seal, className)}>
+    <rect x="2" y="5" width="30" height="24" rx="5" fill="#fbf4e2" />
+    <rect x="5" y="8" width="24" height="18" rx="3" fill="#6f8f9a" />
+    <path d="M7 11l10 7 10-7" fill="none" stroke="#fbf4e2" strokeWidth="2" />
+    <circle cx="17" cy="19" r="3.4" fill="#b8423a" />
+  </svg>
+);
+
+const MoonSeal = () => (
+  <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true" className={cx(styles.seal, styles.tiltR7)}>
+    <circle cx="17" cy="17" r="15.5" fill="#fbf4e2" />
+    <circle cx="17" cy="17" r="12.5" fill="#3f4f75" />
+    <path d="M20 9a8.5 8.5 0 1 0 5 14 7 7 0 1 1-5-14z" fill="#f3d68c" />
+    <circle cx="11" cy="12" r="1" fill="#fbf4e2" />
+  </svg>
+);
+
+const CardsSeal = () => (
+  <svg width="36" height="36" viewBox="0 0 34 34" aria-hidden="true" className={cx(styles.seal, styles.cardsSeal)}>
+    <circle cx="17" cy="17" r="15.5" fill="#fbf4e2" />
+    <circle cx="17" cy="17" r="12.5" fill="#b04a5a" />
+    <rect x="9" y="11" width="7" height="11" rx="1" fill="#fbf4e2" transform="rotate(-14 12 16)" />
+    <rect x="13.5" y="10" width="7" height="11" rx="1" fill="#f3d68c" />
+    <rect x="18" y="11" width="7" height="11" rx="1" fill="#fbf4e2" transform="rotate(14 21 16)" />
+  </svg>
+);
 
 function Cat() {
   return (
-    <svg className={styles.cat} width="74" height="34" viewBox="0 0 74 34" aria-hidden="true">
-      <path d="M58 26c10 0 16-3 14-9-1-3-4-3-5-1 1 3-2 5-9 5z" fill="#d9792b" />
-      <ellipse cx="34" cy="23" rx="28" ry="10" fill="#e8923a" />
-      <path d="M22 15l3 8M32 14l1 9M42 15l-1 8" stroke="#c46a1f" strokeWidth="2.4" strokeLinecap="round" />
-      <circle cx="12" cy="21" r="9" fill="#ee9b44" />
-      <path d="M5 15 4 6l7 5zM15 12l6-6 1 9z" fill="#ee9b44" />
-      <path d="M6 20q2.5 2 5 0" stroke="#6a3410" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-      <path d="M13 21q2.5 2 5 0" stroke="#6a3410" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-      <circle cx="11.5" cy="24.5" r="1.2" fill="#c9605a" />
+    <svg className={styles.cat} width="72" height="36" viewBox="0 0 72 36" aria-hidden="true">
+      <ellipse cx="34" cy="27" rx="26" ry="9" className={styles.fillCat} />
+      <circle cx="55" cy="21" r="9.5" className={styles.fillCat} />
+      <path d="M49 14l2-8 5 7zM58 13l4-7 2 9z" className={styles.fillCat} />
+      <path d="M10 29c-8 2-8 6 2 5" className={styles.strokeCat} strokeWidth="4.5" fill="none" strokeLinecap="round" />
+      <path d="M51 21q2 2 4 0M58 21q2 2 4 0" stroke="#5a3418" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+      <path d="M22 23q3 3 6 0M32 22q3 3 6 0" stroke="rgba(0,0,0,.18)" strokeWidth="2" fill="none" strokeLinecap="round" />
     </svg>
   );
 }
 
 function Window() {
   return (
-    <svg className={styles.window} width="38" height="46" viewBox="0 0 38 46" aria-hidden="true">
-      <path d="M3 45V17C3 8 10 2 19 2s16 6 16 15v28z" fill="#8a5a2b" />
-      <path d="M7 41V17C7 10.5 12 6 19 6s12 4.5 12 11v24z" fill="#2f4a6e" />
-      <path d="M19 6v35M7 24h24" stroke="#8a5a2b" strokeWidth="2.4" />
-      <path d="M26 12l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1z" fill="#f6e3a1" />
-      <rect x="1" y="43" width="36" height="3" rx="1" fill="#6f4520" />
+    <svg className={styles.window} width="58" height="58" viewBox="0 0 58 58" aria-hidden="true">
+      <path d="M10 54V30a19 19 0 0 1 38 0v24z" className={styles.fillWood} />
+      <path d="M15 54V31a14 14 0 0 1 28 0v23z" fill="#2b3a4f" />
+      <circle cx="35" cy="22" r="3" fill="#f3e6c0" />
+      <circle cx="22" cy="34" r="1.5" fill="#f3e6c0" />
+      <circle cx="38" cy="40" r="1.2" fill="#f3e6c0" />
+      <path d="M29 17v37M15 36h28" className={styles.strokeWood} strokeWidth="2.5" />
     </svg>
   );
 }
 
 function Teacup() {
   return (
-    <svg className={styles.teacup} width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
-      <path d="M13 8c-3-3 3-5 0-8M19 9c-3-3 3-5 0-9" stroke="#e9dcc0" strokeWidth="1.4" fill="none" strokeLinecap="round" opacity="0.7" />
-      <path d="M6 14h22v7a11 10 0 0 1-22 0z" fill="#f4ecd8" />
-      <path d="M28 16h3a4 4 0 0 1 0 8h-4" stroke="#f4ecd8" strokeWidth="2.4" fill="none" />
-      <path d="M6 17h22" stroke="#c0883f" strokeWidth="1.6" />
-      <ellipse cx="17" cy="35" rx="15" ry="3.4" fill="#e3d6b8" />
+    <svg className={styles.teacup} width="44" height="40" viewBox="0 0 44 40" aria-hidden="true">
+      <ellipse cx="20" cy="37" rx="18" ry="3" fill="#efe6d0" />
+      <path d="M8 18h24v6a12 12 0 0 1-24 0z" fill="#efe6d0" />
+      <path d="M32 21c7 0 7 8 0 8" stroke="#efe6d0" strokeWidth="3" fill="none" />
+      <path d="M10 22h20" stroke="#c76b4f" strokeWidth="2" />
+      <path d="M16 14c-2-3 2-5 0-8M23 14c-2-3 2-5 0-8" stroke="rgba(255,255,255,.4)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
     </svg>
   );
 }
 
 function SlimCandle() {
   return (
-    <svg className={styles.slim} width="22" height="72" viewBox="0 0 22 72" aria-hidden="true">
-      <path d="M11 0c4 5 4 9 0 12-4-3-4-7 0-12z" fill="#f6c453" />
-      <rect x="8" y="14" width="6" height="42" rx="1" fill="#f4ead2" />
-      <path d="M11 56v8M5 66h12M2 72h18" stroke="#c9a24a" strokeWidth="3" strokeLinecap="round" />
+    <svg className={styles.candle} width="24" height="52" viewBox="0 0 24 52" aria-hidden="true">
+      <rect x="7" y="14" width="10" height="34" fill="#f2ead2" />
+      <path d="M12 2c4 5 4 9 0 11-4-2-4-6 0-11z" fill="#f0b544" />
+      <rect x="2" y="48" width="20" height="4" className={styles.fillBrass} />
+    </svg>
+  );
+}
+
+function StarBadge() {
+  return (
+    <svg className={styles.star} width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M10 1l2.6 5.6 6 .7-4.5 4.1 1.2 6L10 14.4 4.7 17.4l1.2-6L1.4 7.3l6-.7z" fill="#e6c35c" stroke="#fbf4e2" strokeWidth="1.5" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -128,6 +170,7 @@ export function Bookcase() {
   const playing = campaign?.outcome === 'playing' ? campaign : null;
   const round = playing ? Math.min(Math.max(playing.rounds.length, 1), ROUNDS) : 0;
   const roundTitle = ROUND_TITLES[round - 1];
+  const quickTitle = quick ? caseTitle(quick.ref) : '';
 
   // Opening a book is React state, never a hash change: `main.tsx` reloads on every hashchange.
   const [taken, setTaken] = useState<Taken | null>(null);
@@ -147,117 +190,109 @@ export function Bookcase() {
 
   return (
     <>
-    <main className={styles.page} inert={taken !== null}>
-      <header className={styles.header}>
-        <div className={styles.heading}>
-          <h1 className={styles.title}>Casebook</h1>
-          <p className={styles.lede}>Take a book off the shelf.</p>
-        </div>
-        <Window />
-      </header>
+      <main className={styles.page} inert={taken !== null}>
+        <span aria-hidden="true" className={styles.glow} />
 
-      <div className={styles.case}>
-        <Cat />
+        <header className={styles.header}>
+          <div>
+            <h1 className={styles.title}>Casebook</h1>
+            <p className={styles.lede}>Take a book off the shelf.</p>
+          </div>
+          <Window />
+        </header>
 
-        <section className={styles.unit} aria-labelledby="shelf-quick">
-          <div className={styles.shelf}>
-            {quick ? (
-              <Spine
-                label={`Your case, ${caseTitle(quick.ref)}: continue`}
-                title={caseTitle(quick.ref)}
-                width={80}
+        <div className={styles.case}>
+          <Cat />
+
+          <section aria-labelledby="shelf-quick">
+            <div className={styles.shelf}>
+              {quick ? (
+                <Book
+                  label={`Your case, ${quickTitle}: continue`}
+                  title={quickTitle}
+                  size={quickTitle.length > 15 ? 12 : 15}
+                  className={styles.quickBook}
+                  out
+                  seal={<MagnifierSeal />}
+                  onOpen={(e) => take(e, 'quick', quickTitle, 'quick')}
+                  gone={taken?.id === 'quick'}
+                />
+              ) : null}
+              <Book
+                label="New case"
+                title="New case"
                 size={15}
-                className={styles.quickBook}
-                out
-                flat
-                onOpen={(e) => take(e, 'quick', caseTitle(quick.ref), 'quick')}
-                gone={taken?.id === 'quick'}
+                className={styles.newCase}
+                seal={<EnvelopeSeal className={styles.tiltR5} />}
+                onOpen={(e) => take(e, 'new', NEW_CASE_TITLE, 'fresh')}
+                gone={taken?.id === 'new'}
               />
-            ) : null}
-            <Spine
-              label="New case"
-              title="New case"
-              width={64}
-              size={14}
-              className={cx(styles.newCase, styles.cover)}
-              onOpen={(e) => take(e, 'new', NEW_CASE_TITLE, 'fresh')}
-              gone={taken?.id === 'new'}
-            >
-              <Seal />
-            </Spine>
-            <span className={styles.stack}>
-              <a href={SOON} aria-label="Choose your games" title="Choose your games" className={styles.frame}>
-                <span aria-hidden="true" className={cx(styles.fanCard, styles.fanLeft)} />
-                <span aria-hidden="true" className={cx(styles.fanCard, styles.fanRight)} />
-                <span aria-hidden="true" className={cx(styles.fanCard, styles.fanMid)} />
+              <a href={SOON} aria-label="Choose your games" className={styles.deckStack}>
+                <span aria-hidden="true" className={cx(styles.deck, styles.deck1)} />
+                <span aria-hidden="true" className={cx(styles.deck, styles.deck2)} />
+                <span aria-hidden="true" className={cx(styles.deck, styles.deck3)} />
+                <CardsSeal />
               </a>
-              <span aria-hidden="true" className={styles.flatBook} style={{ background: '#a0343a' }} />
-              <span aria-hidden="true" className={styles.flatBook} style={{ background: '#6d2a35', width: 52 }} />
-              <span aria-hidden="true" className={styles.flatBook} style={{ background: '#c26a4a', width: 58 }} />
-            </span>
-            {thin(15, 100, '#c97b7b')}
-            {thin(13, 118, '#3f8a8a')}
-            {thin(16, 110, '#8aa56a')}
-            {thin(14, 96, '#e7d9b5', styles.diamond)}
-          </div>
-          <div className={styles.board}>
-            <h2 id="shelf-quick" className={styles.plaque}>
-              QUICK PLAY
-            </h2>
-          </div>
-        </section>
+              {thin(styles.q1)}
+              {thin(styles.q2)}
+              <a href={SOON} aria-label="An odd-looking book" className={styles.secret}>
+                <span aria-hidden="true" className={styles.diamond} />
+              </a>
+            </div>
+            <Plaque id="shelf-quick">QUICK PLAY</Plaque>
+          </section>
 
-        <section className={styles.unit} aria-labelledby="shelf-campaign">
-          <div className={styles.shelf}>
-            {playing ? (
-              <Spine label={`Your campaign, ${roundTitle}, round ${round} of ${ROUNDS}: continue`} title={roundTitle} width={70} size={17} className={styles.campaignBook} out>
-                <span className={styles.of}>
-                  {round} of {ROUNDS}
-                </span>
-                <span aria-hidden="true" className={styles.candles}>
-                  {ROUND_TITLES.map((t, i) => (
-                    <Candle key={t} lit={i < round} />
-                  ))}
-                </span>
-              </Spine>
-            ) : null}
-            <Spine label="New campaign" title="New campaign" width={64} size={13} className={cx(styles.newCampaign, styles.cover)}>
-              <Seal />
-            </Spine>
-            <Teacup />
-            <SlimCandle />
-          </div>
-          <div className={styles.board}>
-            <h2 id="shelf-campaign" className={styles.plaque}>
-              CAMPAIGN
-            </h2>
-          </div>
-        </section>
+          <section aria-labelledby="shelf-campaign">
+            <div className={styles.shelf}>
+              {playing ? (
+                <Book
+                  label={`Your campaign, ${roundTitle}, round ${round} of ${ROUNDS}: continue`}
+                  title={roundTitle}
+                  size={16}
+                  className={styles.campaignBook}
+                  seal={<MoonSeal />}
+                  note={
+                    <span className={styles.note}>
+                      {round} of {ROUNDS}
+                    </span>
+                  }
+                />
+              ) : null}
+              <Book label="New campaign" title="New campaign" size={14} className={styles.newCampaign} seal={<EnvelopeSeal className={styles.tiltL5} />} />
+              {thin(styles.c1)}
+              {thin(styles.c2)}
+              <Teacup />
+              <SlimCandle />
+            </div>
+            <Plaque id="shelf-campaign">CAMPAIGN</Plaque>
+          </section>
 
-        <section className={styles.unit} aria-labelledby="shelf-record">
-          <div className={styles.shelf}>
-            <Spine label="Guest book" title="Guest book" width={64} size={13} className={cx(styles.guest, styles.cover)} />
-            {thin(14, 92, '#c97b7b')}
-            {thin(16, 108, '#3f8a8a')}
-            {thin(13, 98, '#e7d9b5')}
-            {thin(20, 122, '#7a5a9a', styles.star)}
-            {thin(14, 104, '#d9a441')}
-            {thin(18, 116, '#c97b7b')}
-            {thin(14, 94, '#4f7a9a')}
-          </div>
-          <div className={styles.board}>
-            <h2 id="shelf-record" className={styles.plaque}>
-              YOUR RECORD
-            </h2>
-          </div>
-        </section>
-
-        <div className={styles.base}>
-          <p className={styles.tap}>Tap a book to take it to the table</p>
+          <section aria-labelledby="shelf-record">
+            <a href={SOON} aria-label="Your record: the guest book" className={cx(styles.shelf, styles.recordShelf)}>
+              <span aria-hidden="true" className={styles.guestStack}>
+                <span className={styles.guestBottom} />
+                <span className={styles.guestTop} />
+                <span className={styles.guestLabel}>Guest book</span>
+              </span>
+              {thin(styles.r1)}
+              {thin(styles.r2)}
+              {thin(styles.r3)}
+              {thin(styles.r4, <StarBadge />)}
+              {thin(styles.r5)}
+              {thin(styles.r6)}
+              {thin(styles.r7)}
+            </a>
+            <Plaque id="shelf-record">YOUR RECORD</Plaque>
+          </section>
         </div>
-      </div>
-    </main>
-    {taken ? <OpenBook key={taken.id} title={taken.title} tone={taken.tone} from={taken.from} onBack={() => setTaken(null)} /> : null}
+
+        <div className={styles.floor}>
+          <div className={styles.rug}>
+            <p className={styles.rugText}>Tap a book to take it to the table</p>
+          </div>
+        </div>
+      </main>
+      {taken ? <OpenBook key={taken.id} title={taken.title} tone={taken.tone} from={taken.from} onBack={() => setTaken(null)} /> : null}
     </>
   );
 }
