@@ -88,7 +88,7 @@ What a look check judges on each:
   rings and one hand-written line ("Notebook · N of M to use"), the book above it not hidden behind it. Open
   (header and a sliver of the book stay under a scrim): kraft cover with rings, "Pull down to put away", the page on
   squared paper, four 48px tabs along the bottom (You, Clues, Grid, Guests; the current one underlined in red);
-  You: portrait and three lines; Grid: Hint button and the whole grid readable; subject: back link, counter and
+  You: portrait and three lines; Grid: Hint button and the whole grid readable (weapons as line icons, rooms as vertical words, 30px cells); subject: back link, counter and
   name, placement line, clue cards, "What they said"; no sideways scroll at 360px. A sample never saves the tab.
 - `portraits`: the portrait gallery on its own (light dev page).
 - `dogfight`: the dog fight board in each state, with a cat helper picker
