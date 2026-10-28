@@ -3,7 +3,7 @@ import { guestContent } from './guestNames.ts';
 import { WORDLE_BLANK, cluePool, compileClue, type ClueContext } from './clues.ts';
 import { canLocate, plainText, wordClue } from './wording.ts';
 import { Rng, hashSeed } from './rng.ts';
-import { allHoldings, allRoomings, countMatching } from './search.ts';
+import { countMatching, holdingTable, roomingTable } from './search.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
 import { BOARD_SHARE, CLUE_SOURCE, PLAY_GAMES_MAX, PLAY_GAMES_MIN, NOSING_SHARE, ROTATION, SCENE_GAMES, TAROT_SHARE } from './gameKinds.ts';
 import { tarotClueCards, tarotPairsFor } from './tarotCards.ts';
@@ -618,26 +618,54 @@ function sharedTruth(content: Content, settings: CaseSettings, rng: Rng, code: s
 
   // 3. Two passes over one weighted order: rooms, then weapon holders.
   const ordered = weightedOrder(pool, settings, rng);
-  let roomings: Solution[] = allRoomings(rooms, n).map((r) => ({ room: r, item }));
-  let holdings: Solution[] = allHoldings(items, n).map((i) => ({ room, item: i }));
+  // Candidates are rows of shared flat tables, kept as lists of row numbers; one reused Solution per list is
+  // filled from a row to test it, so a clue's filter allocates nothing.
+  const roomTable = roomingTable(rooms.length, n);
+  const holdTable = holdingTable(items.length, n);
+  const roomNow = new Array<string>(n);
+  const holdNow = new Array<string | null>(n);
+  const roomSol: Solution = { room: roomNow, item };
+  const holdSol: Solution = { room, item: holdNow };
+  const roomSet = { rows: new Int32Array(roomTable.length / n), spare: new Int32Array(roomTable.length / n), len: roomTable.length / n };
+  const holdSet = { rows: new Int32Array(holdTable.length / n), spare: new Int32Array(holdTable.length / n), len: holdTable.length / n };
+  for (let r = 0; r < roomSet.len; r++) roomSet.rows[r] = r;
+  for (let r = 0; r < holdSet.len; r++) holdSet.rows[r] = r;
   const chosen: ClueFact[] = [];
   const used: Partial<Record<ClueType, number>> = {};
   for (const fact of ordered) {
-    if (roomings.length === 1 && holdings.length === 1) break;
+    if (roomSet.len === 1 && holdSet.len === 1) break;
     const cap = settings.caps[fact.type];
     if (cap !== undefined && (used[fact.type] ?? 0) >= cap) continue;
     const test = compileClue(fact, ctx);
     const forItems = ITEM_TYPES.has(fact.type);
-    const before = forItems ? holdings : roomings;
-    const after = before.filter(test);
-    if (after.length < before.length) {
-      if (forItems) holdings = after;
-      else roomings = after;
+    const set = forItems ? holdSet : roomSet;
+    const kept = set.spare;
+    let len = 0;
+    if (forItems) {
+      for (let i = 0; i < set.len; i++) {
+        const base = set.rows[i] * n;
+        for (let g = 0; g < n; g++) {
+          const w = holdTable[base + g];
+          holdNow[g] = w < 0 ? null : items[w];
+        }
+        if (test(holdSol)) kept[len++] = set.rows[i];
+      }
+    } else {
+      for (let i = 0; i < set.len; i++) {
+        const base = set.rows[i] * n;
+        for (let g = 0; g < n; g++) roomNow[g] = rooms[roomTable[base + g]];
+        if (test(roomSol)) kept[len++] = set.rows[i];
+      }
+    }
+    if (len < set.len) {
+      set.spare = set.rows;
+      set.rows = kept;
+      set.len = len;
       chosen.push(fact);
       used[fact.type] = (used[fact.type] ?? 0) + 1;
     }
   }
-  if (roomings.length !== 1 || holdings.length !== 1) {
+  if (roomSet.len !== 1 || holdSet.len !== 1) {
     throw new Error(`Case ${code}: clue pool could not pin down a single solution`);
   }
 
