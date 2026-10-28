@@ -30,6 +30,20 @@ createRoot(document.getElementById('root')!).render(
 
 window.addEventListener('hashchange', () => window.location.reload());
 
+// Her progress lives only in localStorage, and Chrome may evict it under storage
+// pressure. Ask to keep it; the browser may say no, and that is fine.
+try {
+  const storage = navigator.storage;
+  if (storage?.persist && storage.persisted) {
+    storage
+      .persisted()
+      .then((already) => (already ? true : storage.persist()))
+      .catch(() => {});
+  }
+} catch {
+  // Not available here; nothing to do.
+}
+
 // Pick up new deploys without a hard refresh. The service worker only looks for
 // a new version when a page loads, and on her phone the app stays open in the
 // background, so also check whenever she comes back to it and once an hour.
