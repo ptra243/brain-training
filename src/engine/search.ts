@@ -365,3 +365,44 @@ export function allHoldings(items: readonly string[], n: number): (string | null
   }
   return out;
 }
+
+/**
+ * `allRoomings` as one flat table, built once per (rooms, n) and shared: row `r`
+ * holds each suspect's room as an index into `rooms`, in `allRoomings` order.
+ */
+const roomingTables = new Map<string, Uint8Array>();
+export function roomingTable(roomCount: number, n: number): Uint8Array {
+  const key = `${roomCount}/${n}`;
+  let table = roomingTables.get(key);
+  if (!table) {
+    const rows = roomCount ** n;
+    table = new Uint8Array(rows * n);
+    for (let r = 0; r < rows; r++) {
+      let rest = r;
+      for (let s = n - 1; s >= 0; s--) {
+        table[r * n + s] = rest % roomCount;
+        rest = Math.floor(rest / roomCount);
+      }
+    }
+    roomingTables.set(key, table);
+  }
+  return table;
+}
+
+/**
+ * `allHoldings` as one flat table, built once per (items, n) and shared: row `r`
+ * holds each suspect's weapon as an index into the items (-1 for nothing), in
+ * `allHoldings` order.
+ */
+const holdingTables = new Map<string, Int8Array>();
+export function holdingTable(itemCount: number, n: number): Int8Array {
+  const key = `${itemCount}/${n}`;
+  let table = holdingTables.get(key);
+  if (!table) {
+    const rows = allHoldings(Array.from({ length: itemCount }, (_, i) => String(i)), n);
+    table = new Int8Array(rows.length * n);
+    rows.forEach((row, r) => row.forEach((held, s) => (table![r * n + s] = held === null ? -1 : Number(held))));
+    holdingTables.set(key, table);
+  }
+  return table;
+}
