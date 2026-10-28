@@ -130,3 +130,26 @@ test('shelf-puzzle previews', async ({ page }) => {
   await expect(page.getByText(/^Solved by /)).toBeVisible();
   await checkScreen(page, 'preview shelf-puzzle-revealed');
 });
+
+test('shelf-notebook previews', async ({ page }) => {
+  await page.goto('/#dev/shelf-notebook');
+  await expect(page.getByRole('button', { name: /^Notebook · (\d+ of \d+ to use|all clues used)$/ })).toBeVisible();
+  await checkScreen(page, 'preview shelf-notebook');
+  await page.goto('/#dev/shelf-notebook-you');
+  await expect(page.getByRole('heading', { name: 'You', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Notebook/ })).toHaveCount(0);
+  await checkScreen(page, 'preview shelf-notebook-you');
+  await page.goto('/#dev/shelf-notebook-subject');
+  await expect(page.getByRole('button', { name: /^‹ Guests$/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'What they said' })).toBeVisible();
+  await checkScreen(page, 'preview shelf-notebook-subject');
+});
+
+test('shelf-notebook-grid preview', async ({ page }) => {
+  // The same known bug as the Casebook's Grid tab (tabs.spec.ts): the grid's axis labels are under 44px.
+  test.fail(true, 'Real layout bug: grid axis labels are about 24px wide (rooms, weapons across) or 40px tall (rows), as in the Casebook.');
+  await page.goto('/#dev/shelf-notebook-grid');
+  await expect(page.getByRole('navigation', { name: 'Notebook pages' }).getByRole('button', { name: 'Grid' })).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByRole('button', { name: /^Ask .* for a hint$/ })).toBeVisible();
+  await checkScreen(page, 'preview shelf-notebook-grid');
+});

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import styles from './OpenBook.module.css';
-import { FindAClue, type SampleCase } from './FindAClue.tsx';
+import { FindAClue } from './FindAClue.tsx';
+import { Notebook } from './Notebook.tsx';
+import { useQuickBook, type SampleCase } from './useQuickBook.ts';
 import { attachRibbons } from './ribbonMotion.ts';
 import { SECTIONS } from './ribbonPlan.ts';
 
@@ -97,6 +99,9 @@ export function OpenBook({ title, tone, from, onBack, startOpen, sample }: OpenB
   const navRef = useRef<HTMLElement>(null);
   const creaseRef = useRef<HTMLSpanElement>(null);
   const [section, setSection] = useState(0);
+  // Her case, shared by the Case page and the notebook. The New case book has none.
+  const book = useQuickBook(sample, tone === 'quick');
+  const [puzzleOpen, setPuzzleOpen] = useState(false);
 
   // Where the book started, as a move and a scale from the page's final place. Read once.
   const [start] = useState<CSSProperties>(() => {
@@ -142,7 +147,7 @@ export function OpenBook({ title, tone, from, onBack, startOpen, sample }: OpenB
   return (
     <div className={styles.stage}>
       <div className={styles.flyer} style={start}>
-        <section className={styles.app} aria-label={`${title}: ${SECTIONS[section]}`} data-section={SECTIONS[section]}>
+        <section className={styles.app} style={book ? ({ paddingBottom: 'calc(52px + env(safe-area-inset-bottom, 0px))' } as CSSProperties) : undefined} aria-label={`${title}: ${SECTIONS[section]}`} data-section={SECTIONS[section]}>
           <header className={styles.head}>
             <button ref={backRef} type="button" className={styles.round} aria-label="Back to the shelf" onClick={onBack}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -160,7 +165,7 @@ export function OpenBook({ title, tone, from, onBack, startOpen, sample }: OpenB
                   <div className={styles.running}>
                     <span>Case</span>
                   </div>
-                  {tone === 'quick' ? <FindAClue sample={sample} /> : <NewCaseSample />}
+                  {tone === 'quick' ? <FindAClue book={book} sample={sample} onPuzzleOpen={setPuzzleOpen} /> : <NewCaseSample />}
                 </section>
                 {SECTIONS.slice(1).map((name) => (
                   <section key={name} className={styles.page} data-section={name} aria-label={name} hidden>
@@ -191,6 +196,7 @@ export function OpenBook({ title, tone, from, onBack, startOpen, sample }: OpenB
               ))}
             </nav>
           </div>
+          {book ? <Notebook book={book} sample={sample} hidden={puzzleOpen} /> : null}
         </section>
 
         <div aria-hidden="true" className={`${styles.cover} ${tone === 'quick' ? styles.quick : styles.fresh}`}>

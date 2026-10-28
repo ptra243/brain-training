@@ -227,6 +227,18 @@ owner switches that default, this work must not change the current shell.
 - **Sticker page** (Jigsaw-finish cases): the bottom belongs to the sticker sheet, a drawer about two
   rows tall (2 × 44px plus padding) that scrolls sideways; the notebook becomes a header icon.
 
+## Screen 4, settled (owner, 2026-10-28)
+
+- **Peek**: a 52px kraft strip with the spiral at the bottom of the screen, below the book (the book
+  is 52px shorter), one Caveat line "Notebook · 3 of 5 to use". Tap or swipe up to open.
+- **Open**: from 96px below the top to the bottom; the header and a dimmed strip of the book stay
+  above it. Tap that strip, the spiral handle, or swipe down to tuck it away.
+- **Tabs along the bottom**: You · Clues · Grid · Guests. It reopens on the last tab (shelfStore).
+- **Grid** is today's `GridPanel` unchanged; a row or column name opens that guest's, weapon's or
+  room's page. The cat's grid hint works as in the Casebook.
+- **Not on the puzzle page**: each puzzle stands alone.
+- **Left for step 5**: half height from a map tap, the brass ring, "Place in a room", "Question them".
+
 ## Screens 8–10, settled (owner, 2026-10-28)
 
 - **The campaign is one book in chapters**, a chapter per round (Chapter one: 9pm, Midnight, 3am).
@@ -266,8 +278,8 @@ isn't drawn yet."
 | done (still) | Case page | Opening scene | `CosyTable` |
 | done | Ribbons and page turn | Tabs | `CaseRibbons` |
 | done | Find a clue page (read-only; rows turn to "not drawn yet") | Get a clue | `CyoaChoices`, `CyoaPage` |
-| 3 | Puzzle page (and won) | GameScreen | `puzzle-page*.html` |
-| 4 | Notebook: You, clues, grid, subject pages | Clue drawer, grid, You sheet | `NotebookGrid` |
+| done | Puzzle page (and won) | GameScreen | `puzzle-page*.html` |
+| done | Notebook: You, clues, grid, subject pages | Clue drawer, grid, You sheet | `NotebookGrid` |
 | 5 | Map plate (taps open subject pages) | Map, suspect sheet | `PuzzleMap` |
 | 6 | Answer page | Accuse panel (face to face is campaign, step 8) | `puzzle-book-answer.html` |
 | 7 | Sticker page | Jigsaw end board | `StickerPage` |

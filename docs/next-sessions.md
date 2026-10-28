@@ -29,10 +29,10 @@ settled design may stay as a short stub; give it a doc when someone starts it.
 ## Session: Shelf UI, beside the current game
 Last touched: 2026-10-28
 Reads first: `docs/visual-theme.md` (Settled: a second shell, the Screens sections, Screen plan), `CONTEXT.md`.
-Goal: build every screen on `#shelf` only, in the Screen plan order; the current game stays as it is. The bookcase and a still case page are up. The ribbons and page turn were prototyped and tuned on her phone (2026-10-28, `docs/mockups/ribbons-prototype.html`, settled in visual-theme.md); steps 1 (ribbons and page turn, `#dev/shelf-ribbons`), 2 (Find a clue page, `#dev/shelf-find-a-clue`) and 3 (puzzle page and won, `#dev/shelf-puzzle`, `-won`, `-revealed`; #shelf now writes the Quick save) are built in src/shelf. Left from step 3: the turning leaf covers only the book page, so the book's edges pop. Step 4 (notebook) is next. Then map, answer, stickers, campaign book, deck and guest book.
+Goal: build every screen on `#shelf` only, in the Screen plan order; the current game stays as it is. The bookcase and a still case page are up. The ribbons and page turn were prototyped and tuned on her phone (2026-10-28, `docs/mockups/ribbons-prototype.html`, settled in visual-theme.md); steps 1 (ribbons and page turn, `#dev/shelf-ribbons`), 2 (Find a clue page, `#dev/shelf-find-a-clue`) and 3 (puzzle page and won, `#dev/shelf-puzzle`, `-won`, `-revealed`; #shelf now writes the Quick save) are built in src/shelf. Step 4, the notebook, is built (`src/shelf/Notebook.tsx`, `useQuickBook.ts`; `#dev/shelf-notebook`, `-you`, `-grid`, `-subject`; settled numbers in "Screen 4, settled"): a 52px peek at the bottom, open from 96px, tabs You · Clues · Grid · Guests, guest/weapon/room pages, hidden on the puzzle page. Not yet seen on her phone. Left: the grid's cells and labels are under 44px in the notebook too (`test.fail` in e2e/shelfNotebook.spec.ts, as in the Casebook); from step 3, the turning leaf covers only the book page, so the book's edges pop. Step 5 (map plate) is next and adds the half-height notebook on a counter tap, the brass ring, "Place in a room" and "Question them". Then answer, stickers, campaign book, deck and guest book.
 Starting prompt:
 ```
-Steps 1–3 of the #shelf Screen plan are done (docs/visual-theme.md "Screen 3, settled"; notes in .claude/handoff/shelf-puzzle-page.md if it still exists). Plan step 4, the notebook (You, clues, grid, subject pages; "Screens 4–7, settled"), from the NotebookGrid mockup: read ClueDrawer, GridPanel and YouSheet read-only, propose to the owner how the peek and full height sit beside the open book and the puzzle page, then write a handoff and hand it to an implementer. #shelf only; no current-shell files.
+Steps 1–4 of the #shelf Screen plan are done (docs/visual-theme.md "Screen 4, settled"; notes in .claude/handoff/shelf-notebook.md if it still exists). Plan step 5, the map plate ("Screens 4–7, settled": a tap on a counter raises the notebook to half height on that subject's page, ringed in brass; "Place in a room" on subject pages), from the PuzzleMap mockup: read MapPanel and ExploreMap read-only, propose to the owner, then write a handoff and hand it to an implementer. #shelf only; no current-shell files.
 ```
 
 ## Session: Theme content, land the lines
@@ -202,7 +202,7 @@ Read the Grid cases build plan doc, go through its open questions with me, then 
 ```
 
 ## Session: CSS Modules for game styles
-Last touched: 2026-10-27
+Last touched: 2026-10-28
 Reads first: `docs/css-modules.md` (why, decision, shared pieces, what to watch).
 Goal: move the remaining games (nosing lock / key / speed / board, number grid, typing) to
 `<Game>.module.css`, one per commit, following `TarotGame.module.css`. Move e2e class selectors to

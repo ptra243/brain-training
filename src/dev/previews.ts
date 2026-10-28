@@ -30,6 +30,10 @@ export const PREVIEWS: readonly PreviewInfo[] = [
   { id: 'shelf-puzzle-won', about: 'The #shelf puzzle page after a win: the finished board, then the clues', look: 'plain' },
   { id: 'shelf-puzzle-revealed', about: 'The #shelf puzzle page after Solve: "Solved by" the cat, then the clues', look: 'plain' },
   { id: 'shelf-find-a-clue', about: 'The #shelf Find a clue page: a sample case with one game finished and the finale locked', look: 'plain' },
+  { id: 'shelf-notebook', about: 'The #shelf book on Case with the notebook closed to its strip at the foot', look: 'plain' },
+  { id: 'shelf-notebook-you', about: 'The #shelf notebook open on the You tab', look: 'plain' },
+  { id: 'shelf-notebook-grid', about: 'The #shelf notebook open on the Grid tab, with the cat hint and a few marks', look: 'plain' },
+  { id: 'shelf-notebook-subject', about: 'The #shelf notebook on a guest page: placement, clues that name them, what they said', look: 'plain' },
   { id: 'portraits', about: 'The portrait gallery', look: 'plain' },
   { id: 'dogfight', about: 'The dog fight board in each state, with any cat helper', look: 'plain' },
 ];

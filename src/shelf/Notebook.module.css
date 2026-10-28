@@ -1,0 +1,339 @@
+/* The notebook on #shelf: a kraft-covered pad that pulls up over the open book. From
+   docs/mockups/notebook-grid.html. Everything is under body.shelf so it can't reach the other screens.
+   The casebook pieces inside (grid, clue cards, talk) get paper colours by setting the app's
+   variables here, as PuzzlePage does; their own CSS is not touched. */
+:global(body.shelf) .root {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  --hand: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  --kraft: #b98a5a;
+  --ring: #5b4a3a;
+  --ink-n: #2a2a3a;
+  --pencil-n: #a8322d;
+}
+:global(body.shelf) .root[hidden] {
+  display: none;
+}
+:global(body.shelf) .root button {
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+:global(body.shelf) .root button:focus-visible {
+  outline: 3px solid #fff4cf;
+  outline-offset: -3px;
+}
+:global(body.shelf) .panel:focus {
+  outline: none;
+}
+
+/* ---------- The spiral rings ---------- */
+:global(body.shelf) .rings {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  top: -7px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 2;
+}
+:global(body.shelf) .rings span {
+  box-sizing: border-box;
+  width: 9px;
+  height: 18px;
+  border-radius: 5px;
+  border: 2.5px solid var(--ring);
+}
+
+/* ---------- The peek: a strip at the foot of the screen ---------- */
+:global(body.shelf) .peek {
+  pointer-events: auto;
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 0;
+  box-sizing: border-box;
+  height: calc(52px + env(safe-area-inset-bottom, 0px));
+  padding: 8px 8px env(safe-area-inset-bottom, 0px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  border: 0;
+  border-radius: 10px 10px 0 0;
+  background: var(--kraft);
+  box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.35);
+  color: #2a1f14;
+  cursor: pointer;
+  transition: opacity 120ms;
+}
+:global(body.shelf) .peekLine {
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+:global(body.shelf) .isOpen .peek {
+  opacity: 0;
+}
+
+/* ---------- The open pad ---------- */
+:global(body.shelf) .scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 14, 8, 0.42);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 250ms ease-out;
+}
+:global(body.shelf) .isOpen .scrim {
+  opacity: 1;
+  pointer-events: auto;
+}
+:global(body.shelf) .panel {
+  pointer-events: auto;
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: calc(96px + env(safe-area-inset-top, 0px));
+  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 5px 0;
+  border-radius: 10px 10px 0 0;
+  background: var(--kraft);
+  box-shadow: 0 -8px 22px rgba(0, 0, 0, 0.45);
+  transform: translateY(100%);
+  visibility: hidden;
+  transition: transform 250ms ease-out, visibility 0s linear 250ms;
+}
+:global(body.shelf) .isOpen .panel {
+  transform: none;
+  visibility: visible;
+  transition: transform 250ms ease-out, visibility 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  :global(body.shelf) .panel,
+  :global(body.shelf) .isOpen .panel,
+  :global(body.shelf) .scrim,
+  :global(body.shelf) .peek {
+    transition: none;
+  }
+}
+
+:global(body.shelf) .paper {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: #fbf7ea;
+  background-image: linear-gradient(rgba(80, 120, 170, 0.16) 1px, transparent 1px), linear-gradient(90deg, rgba(80, 120, 170, 0.16) 1px, transparent 1px);
+  background-size: 16px 16px;
+  border-radius: 4px 4px 0 0;
+  color: var(--ink-n);
+  /* The casebook pieces inside read these. */
+  --baize: #fbf7ea;
+  --baize-deep: #f1ead3;
+  --baize-line: #d3c6a6;
+  --on-baize: #2a2a3a;
+  --on-baize-soft: #55615f;
+  --card: #fffcf3;
+  --card-edge: #cbbd9c;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+:global(body.shelf) .handle {
+  align-self: center;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-height: 44px;
+  min-width: 160px;
+  padding: 8px 0 0;
+  touch-action: none;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+:global(body.shelf) .bar {
+  width: 44px;
+  height: 5px;
+  border-radius: 3px;
+  background: #c9bd9f;
+}
+:global(body.shelf) .handleText {
+  font-size: 11px;
+  color: #6b6458;
+}
+
+:global(body.shelf) .scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+  padding: 4px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+:global(body.shelf) .scroll > * {
+  flex: none;
+}
+
+/* ---------- The tabs along the bottom ---------- */
+:global(body.shelf) .tabs {
+  flex: none;
+  display: flex;
+  border-top: 1px solid rgba(42, 42, 58, 0.18);
+  background: #fbf7ea;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+:global(body.shelf) .tabs button {
+  flex: 1;
+  min-height: 48px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 26px;
+  color: #6b6458;
+}
+:global(body.shelf) .tabs button[aria-current='page'] {
+  color: var(--ink-n);
+  text-decoration: underline;
+  text-decoration-color: var(--pencil-n);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
+}
+
+/* ---------- The pages ---------- */
+:global(body.shelf) .title {
+  margin: 0;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1.1;
+}
+:global(body.shelf) .withBadge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+:global(body.shelf) .heading {
+  margin: 6px 0 0;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.1;
+}
+:global(body.shelf) .scene,
+:global(body.shelf) .note,
+:global(body.shelf) .where {
+  margin: 0;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 21px;
+  line-height: 1.2;
+  color: var(--ink-n);
+}
+:global(body.shelf) .note {
+  font-weight: 400;
+  color: #55615f;
+}
+:global(body.shelf) .where {
+  font-weight: 400;
+}
+:global(body.shelf) .lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 23px;
+  line-height: 1.2;
+}
+:global(body.shelf) .you {
+  display: flex;
+  justify-content: center;
+}
+:global(body.shelf) .back {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 8px 0 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--pencil-n);
+}
+
+:global(body.shelf) .rows,
+:global(body.shelf) .clues {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+:global(body.shelf) .row {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px;
+  border: 0;
+  border-bottom: 1px solid rgba(42, 42, 58, 0.15);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--ink-n);
+}
+:global(body.shelf) .clues li {
+  position: relative;
+}
+:global(body.shelf) .clues :global(.clue) {
+  background: #fffcf3;
+}
+:global(body.shelf) .pawed {
+  border-radius: 6px;
+  box-shadow: 0 0 0 3px #d2a548;
+}
+:global(body.shelf) .pawed > :global(.paw) {
+  position: absolute;
+  top: -9px;
+  right: -6px;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  color: #9a7425;
+}
+
+:global(body.shelf) .hintBar {
+  display: flex;
+  justify-content: flex-end;
+}
+:global(body.shelf) .grid {
+  /* Use the paper's full width: the grid's cells are already the smallest touch targets. */
+  margin: 0 -14px;
+}

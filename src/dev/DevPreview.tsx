@@ -25,7 +25,7 @@ import { NextMurderScene } from '../game/NextMurderScene.tsx';
 import { OpeningScene } from '../game/OpeningScene.tsx';
 import { campaignRound } from '../engine/campaign.ts';
 import { openingScript } from '../game/opening.ts';
-import { emptyProgress, reduce, type Progress } from '../game/state.ts';
+import { emptyProgress, mentions, reduce, visibleClues, type Progress } from '../game/state.ts';
 import { DogFightStates } from './DogFightStates.tsx';
 import { MotivesPreview } from './MotivesPreview.tsx';
 import { PortraitGallery } from './PortraitGallery.tsx';
@@ -312,6 +312,36 @@ function ShelfRibbonsPreview() {
   return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen sample={sample} />;
 }
 
+/**
+ * The #shelf notebook over the sample case: a few games won (so there are clues), one guest placed, one
+ * cross. `view` picks how it starts: peeking on Case, open on You, open on Grid, or open on a guest's page.
+ */
+function ShelfNotebookPreview({ view }: { view: 'peek' | 'you' | 'grid' | 'subject' }) {
+  useLayoutEffect(() => {
+    document.body.classList.add('shelf');
+    return () => document.body.classList.remove('shelf');
+  }, []);
+  const sample = useMemo(() => {
+    const { ref, c } = newPlayCase(content, () => 0.5);
+    let progress = emptyProgress();
+    for (const g of c.games.slice(0, 3)) progress = reduce(c, progress, { type: 'game-finish', kind: g.kind, status: 'won', data: null });
+    progress = reduce(c, progress, { type: 'place', suspect: c.suspects[0], room: c.rooms[0] });
+    progress = reduce(c, progress, { type: 'cycle', kind: 'suspect-room', row: c.suspects[1], col: c.rooms[1] });
+    const found = visibleClues(c, progress);
+    // The guest with the most clues about them, so the subject page has some.
+    const count = (id: string) => found.filter((cl) => mentions(cl, { kind: 'suspect', id })).length;
+    const guest = [...c.suspects].sort((a, b) => count(b) - count(a))[0];
+    const notebook = {
+      peek: {},
+      you: { open: true, tab: 'you' as const },
+      grid: { open: true, tab: 'grid' as const },
+      subject: { open: true, tab: 'guests' as const, subject: { kind: 'suspect' as const, id: guest } },
+    }[view];
+    return { c, progress, ref: caseCode(ref), seen: true, notebook };
+  }, [view]);
+  return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen sample={sample} />;
+}
+
 const SCREENS: Record<string, () => ReactNode> = {
   hints: () => <HintsPreview />,
   houses: () => <HousesPreview />,
@@ -330,6 +360,10 @@ const SCREENS: Record<string, () => ReactNode> = {
   motives: () => <MotivesPreview />,
   'shelf-ribbons': () => <ShelfRibbonsPreview />,
   'shelf-find-a-clue': () => <ShelfFindACluePreview />,
+  'shelf-notebook': () => <ShelfNotebookPreview view="peek" />,
+  'shelf-notebook-you': () => <ShelfNotebookPreview view="you" />,
+  'shelf-notebook-grid': () => <ShelfNotebookPreview view="grid" />,
+  'shelf-notebook-subject': () => <ShelfNotebookPreview view="subject" />,
   'shelf-puzzle': () => <ShelfPuzzlePreview page="unplayed" />,
   'shelf-puzzle-won': () => <ShelfPuzzlePreview page="won" />,
   'shelf-puzzle-revealed': () => <ShelfPuzzlePreview page="revealed" />,

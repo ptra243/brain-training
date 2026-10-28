@@ -80,6 +80,13 @@ What a look check judges on each:
   "level · N clues", one rule line, then the game; the won and revealed pages keep the board and add the clue
   heading, "Solved by <cat>" (revealed only), the clue cards and "Turn back to page 3". Wrapped help is two lines at
   most; no sideways scroll; buttons 44px+.
+- `shelf-notebook`, `shelf-notebook-you`, `shelf-notebook-grid`, `shelf-notebook-subject`: the #shelf notebook over
+  the sample case (three games won, one guest placed, one cross). Closed: a 52px kraft strip at the foot with spiral
+  rings and one hand-written line ("Notebook · N of M to use"), the book above it not hidden behind it. Open
+  (header and a sliver of the book stay under a scrim): kraft cover with rings, "Pull down to put away", the page on
+  squared paper, four 48px tabs along the bottom (You, Clues, Grid, Guests; the current one underlined in red);
+  You: portrait and three lines; Grid: Hint button and the whole grid readable; subject: back link, counter and
+  name, placement line, clue cards, "What they said"; no sideways scroll at 360px. A sample never saves the tab.
 - `portraits`: the portrait gallery on its own (light dev page).
 - `dogfight`: the dog fight board in each state, with a cat helper picker
   (light dev page).

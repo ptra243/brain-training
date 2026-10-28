@@ -1,56 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { caseCode } from '../engine/caseRef.ts';
-import type { Case, GameKind } from '../engine/types.ts';
-import { generate } from '../game/caseClient.ts';
+import type { GameKind } from '../engine/types.ts';
 import { DIFFICULTY_LABEL } from '../game/labels.ts';
 import { victimLine } from '../game/names.ts';
 import { GAMES } from '../game/games/registry.tsx';
-import type { Action, Progress } from '../game/state.ts';
-import { loadQuick, saveQuick } from '../game/storage.ts';
 import styles from './FindAClue.module.css';
 import { clueRows, hideLabel, openingText, plural, visibleRows, type ClueRow } from './findAClue.ts';
 import { PuzzlePage } from './PuzzlePage.tsx';
-import { advance, type SaveKey } from './quickProgress.ts';
+import type { QuickBook, SampleCase } from './useQuickBook.ts';
 import { loadHideFinished, markOpeningSeen, openingSeen, saveHideFinished } from './shelfStore.ts';
-
-/** A case to show without loading her save (the dev preview). */
-export interface SampleCase {
-  c: Case;
-  progress: Progress;
-  ref: string;
-  /** Skip the opening and show the list. */
-  seen?: boolean;
-  /** Open this game's puzzle page at once, with no page turn. */
-  open?: GameKind;
-}
-
-interface Loaded {
-  c: Case;
-  progress: Progress;
-  ref: string;
-  /** Her save's own ref and history id, to write back; none for a sample. */
-  key: SaveKey | null;
-}
-
-/** Rebuilds her saved Quick case. Null while it builds, false when there is none. */
-function useQuickCase(sample: SampleCase | undefined): Loaded | null | false {
-  // Her save is read once; with none, there is nothing to build.
-  const [saved] = useState(() => (sample ? null : loadQuick()));
-  const [built, setBuilt] = useState<Loaded | false | null>(null);
-  useEffect(() => {
-    if (!saved) return;
-    let live = true;
-    generate({ kind: 'case', ref: saved.ref }).then(
-      (c) => live && setBuilt({ c, progress: saved.progress, ref: caseCode(saved.ref), key: { ref: saved.ref, historyId: saved.historyId } }),
-      () => live && setBuilt(false),
-    );
-    return () => {
-      live = false;
-    };
-  }, [saved]);
-  if (sample) return { ...sample, key: null };
-  return saved ? built : false;
-}
 
 function Line({ row, onPick }: { row: ClueRow; onPick: (row: ClueRow) => void }) {
   const meta = row.locked
@@ -76,25 +33,20 @@ function Line({ row, onPick }: { row: ClueRow; onPick: (row: ClueRow) => void })
  * Her moves are written to the shared Quick save (the Casebook sees them); a sample case never writes.
  * Tapping a line turns to that game's puzzle page.
  */
-export function FindAClue({ sample }: { sample?: SampleCase }) {
-  const loaded = useQuickCase(sample);
+export function FindAClue({ book, sample, onPuzzleOpen }: { book: QuickBook | null | false; sample?: SampleCase; onPuzzleOpen?: (open: boolean) => void }) {
+  const loaded = book;
   const [hide, setHide] = useState(loadHideFinished);
   const [opened, setOpened] = useState<boolean | null>(null);
   const [picked, setPicked] = useState<{ kind: GameKind; turn: boolean } | null>(() => (sample?.open ? { kind: sample.open, turn: false } : null));
-  // Her latest progress, so two actions in one tick (a save, then a finish) both land.
-  const [moves, setMoves] = useState<Progress | null>(null);
-  const latest = useRef<Progress | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const puzzleOpen = picked !== null;
+  useEffect(() => {
+    onPuzzleOpen?.(puzzleOpen);
+  }, [puzzleOpen, onPuzzleOpen]);
 
   if (loaded === null) return <p className={styles.lede}>Opening the case…</p>;
   if (loaded === false) return <p className={styles.lede}>There is no case saved on this shelf yet.</p>;
-  const { c, ref, key } = loaded;
-  const progress = moves ?? loaded.progress;
-  const dispatch = (a: Action) => {
-    const next = advance(c, latest.current ?? loaded.progress, a, key, saveQuick);
-    latest.current = next;
-    setMoves(next);
-  };
+  const { c, ref, progress, dispatch } = loaded;
   const seen = opened ?? sample?.seen ?? openingSeen(ref);
 
   if (!seen) {
