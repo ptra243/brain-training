@@ -263,14 +263,16 @@ function HintsPreview() {
  * that class, in a layout effect so it is on before the book's own effect places the ribbons.
  */
 /** A sample case with its first game finished, so the shelf pages show a list without her save. */
-function useShelfSample() {
+function useShelfSample(page?: 'unplayed' | 'won' | 'revealed') {
   return useMemo(() => {
     // A Play case, like her saved Quick case: every game carries clues.
     const { ref, c } = newPlayCase(content, () => 0.5);
     const progress = emptyProgress();
-    progress.games[c.games[0].kind] = { status: 'won' };
-    return { c, progress, ref: caseCode(ref), seen: true };
-  }, []);
+    progress.games[c.games[0].kind] = { status: page === 'revealed' ? 'revealed' : 'won' };
+    // A puzzle page opens on the second game (still to play) or on the finished first one.
+    const open = page === undefined ? undefined : page === 'unplayed' ? c.games[1].kind : c.games[0].kind;
+    return { c, progress, ref: caseCode(ref), seen: true, open };
+  }, [page]);
 }
 
 function ShelfFindACluePreview() {
@@ -289,6 +291,16 @@ function ShelfFindACluePreview() {
       sample={sample}
     />
   );
+}
+
+/** The Find a clue page with a game's puzzle page already open over the book. */
+function ShelfPuzzlePreview({ page }: { page: 'unplayed' | 'won' | 'revealed' }) {
+  useLayoutEffect(() => {
+    document.body.classList.add('shelf');
+    return () => document.body.classList.remove('shelf');
+  }, []);
+  const sample = useShelfSample(page);
+  return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} sample={sample} />;
 }
 
 function ShelfRibbonsPreview() {
@@ -318,6 +330,9 @@ const SCREENS: Record<string, () => ReactNode> = {
   motives: () => <MotivesPreview />,
   'shelf-ribbons': () => <ShelfRibbonsPreview />,
   'shelf-find-a-clue': () => <ShelfFindACluePreview />,
+  'shelf-puzzle': () => <ShelfPuzzlePreview page="unplayed" />,
+  'shelf-puzzle-won': () => <ShelfPuzzlePreview page="won" />,
+  'shelf-puzzle-revealed': () => <ShelfPuzzlePreview page="revealed" />,
   portraits: () => <PortraitGallery />,
   dogfight: () => <DogFightStates />,
 };

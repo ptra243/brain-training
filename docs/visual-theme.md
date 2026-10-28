@@ -188,6 +188,23 @@ owner switches that default, this work must not change the current shell.
   (2)"), absent when nothing is finished. Remembered in a shelf-only localStorage key (guarded), not
   the case save.
 
+## Screen 3, settled (owner, 2026-10-28)
+
+- **#shelf writes the Quick save now**: the same `reduce` and `saveQuick` as the Casebook, keeping
+  her `historyId`. A game won in either shell shows won in the other. The dev preview's sample case
+  never writes storage.
+- **The puzzle page is a full-width paper page** (the mockup), not inside the book: ribbons hidden,
+  chevron "Turn back to page 3". A line opens it with a forward page turn (same numbers) and it turns
+  back the same way; the Case ribbon stays in the crease.
+- **The Puzzles ribbon stays undrawn** for now.
+- **Rule line** is the registry's `rule`: one line of at most about 47 characters, so it fits on
+  one line at 360px (`help` ran 3–4 lines).
+- **Won / revealed**: the finished board, then the `titles` heading, "Solved by {cat}" on a reveal,
+  the scene line if this game gives it, the clue cards, "Turn back to page 3". It scrolls to the
+  clues once. The half-heard teaser stays as a pencilled note above the game.
+- **`src/shelf/PuzzlePage.tsx` repeats `GameScreen`'s glue** instead of sharing it, so `GameScreen` is
+  untouched; merge them when #shelf becomes the default.
+
 ## Screens 4–7, settled (owner, 2026-10-28)
 
 - **Notebook**: opens full height, index tabs along its **bottom** (Clues · Grid · Guests). Swipe

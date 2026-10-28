@@ -75,6 +75,11 @@ What a look check judges on each:
   finished: story lines (not game names) lead each line, then "game · level · N clues" and "p. NN"; the finished
   line greyed ("Solved · N clues found"), "Hide finished (1)" at the foot; lines 44px+; no sideways scroll. The
   ribbons start dropped, so the first tap on the page only tucks them.
+- `shelf-puzzle`, `shelf-puzzle-won`, `shelf-puzzle-revealed`: a puzzle page (full-width paper, 360px) open over the
+  book on the sample case (nothing is saved): header with a ribbon chevron, the game name, Solve (not once finished),
+  "level · N clues", one rule line, then the game; the won and revealed pages keep the board and add the clue
+  heading, "Solved by <cat>" (revealed only), the clue cards and "Turn back to page 3". Wrapped help is two lines at
+  most; no sideways scroll; buttons 44px+.
 - `portraits`: the portrait gallery on its own (light dev page).
 - `dogfight`: the dog fight board in each state, with a cat helper picker
   (light dev page).

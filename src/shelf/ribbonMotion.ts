@@ -54,6 +54,71 @@ export interface RibbonControls {
 const CREASE_SHOWN = 'polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 7px), 0 100%)';
 const CREASE_HIDDEN = 'polygon(0 0, 100% 0, 100% 0, 50% 0, 0 0)';
 
+/** The leaf's keyframes: `lift` turns it over to the left, `land` turns it back flat. */
+function leafFrames(S: Motion) {
+  const flat = 'rotateY(0deg)';
+  const over = 'rotateY(-180deg)';
+  const mid = `rotateY(-75deg) skewY(${-S.curl}deg)`;
+  const lift: Keyframe[] = [{ transform: flat }, { transform: mid, offset: 0.42 }, { transform: over }];
+  const land: Keyframe[] = [{ transform: over }, { transform: mid, offset: 0.58 }, { transform: flat }];
+  return { lift, land, ease: 'cubic-bezier(.45,.05,.35,1)' };
+}
+
+export interface LeafOptions {
+  /** The page to turn: it is cloned, so the original stays where it is. */
+  source: HTMLElement;
+  /** `forward`: the page lifts off and turns away. `back`: it lands on top. */
+  dir: 'forward' | 'back';
+  classes: Pick<RibbonClasses, 'leaf' | 'page' | 'back' | 'shade'>;
+  /** Called once, at the middle of the turn (or at the start of the crossfade). */
+  onMid?: () => void;
+  motion?: Motion;
+}
+
+/**
+ * Turns one leaf over `source`, on its own host over the page: a copy of the page lifts away
+ * (forward) or lands on top (back), with `turnTo`'s numbers. Reduced motion is the crossfade.
+ * Resolves when the leaf is gone.
+ */
+export function turnLeaf({ source, dir, classes, onMid, motion }: LeafOptions): Promise<void> {
+  const S: Motion = motion ?? { ...MOTION };
+  const rect = source.getBoundingClientRect();
+  const host = document.createElement('div');
+  host.setAttribute('aria-hidden', 'true');
+  host.style.cssText = `position:fixed;z-index:40;pointer-events:none;perspective:2400px;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px`;
+  const leaf = document.createElement('div');
+  leaf.className = classes.leaf;
+  const front = source.cloneNode(true) as HTMLElement;
+  front.hidden = false;
+  front.removeAttribute('aria-label');
+  const shade = document.createElement('div');
+  shade.className = classes.shade;
+  front.appendChild(shade);
+  const back = document.createElement('div');
+  back.className = `${classes.page} ${classes.back}`;
+  leaf.append(front, back);
+  host.appendChild(leaf);
+  document.body.appendChild(host);
+  const fwd = dir === 'forward';
+
+  const done = (anims: Animation[]) =>
+    Promise.all(anims.map((a) => a.finished))
+      .catch(() => {})
+      .then(() => host.remove());
+
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    onMid?.();
+    const fade = leaf.animate(fwd ? [{ opacity: 1 }, { opacity: 0 }] : [{ opacity: 0 }, { opacity: 1 }], { duration: S.fade, easing: 'ease-out', fill: 'both' });
+    return done([fade]);
+  }
+
+  const { lift, land, ease } = leafFrames(S);
+  const shadeFrames: Keyframe[] = fwd ? [{ opacity: 0 }, { opacity: 1, offset: 0.4 }, { opacity: 0 }] : [{ opacity: 0 }, { opacity: 1, offset: 0.6 }, { opacity: 0 }];
+  const anims = [leaf.animate(fwd ? lift : land, { duration: S.turn, easing: ease, fill: 'both' }), shade.animate(shadeFrames, { duration: S.turn })];
+  if (onMid) setTimeout(onMid, S.turn / 2);
+  return done(anims);
+}
+
 export function attachRibbons(els: RibbonElements, cls: RibbonClasses, opts: RibbonOptions = {}): RibbonControls {
   const S: Motion = opts.motion ?? { ...MOTION };
   const { pages: pagesEl, under, sections, pull, scrim, nav, ribbons, crease } = els;
@@ -215,12 +280,7 @@ export function attachRibbons(els: RibbonElements, cls: RibbonClasses, opts: Rib
       return;
     }
 
-    const flat = 'rotateY(0deg)';
-    const over = 'rotateY(-180deg)';
-    const mid = `rotateY(-75deg) skewY(${-S.curl}deg)`;
-    const lift: Keyframe[] = [{ transform: flat }, { transform: mid, offset: 0.42 }, { transform: over }];
-    const land: Keyframe[] = [{ transform: over }, { transform: mid, offset: 0.58 }, { transform: flat }];
-    const ease = 'cubic-bezier(.45,.05,.35,1)';
+    const { lift, land, ease } = leafFrames(S);
     const anims: Animation[] = [];
     const leaves: HTMLElement[] = [];
     const shadeFrames: Keyframe[] = fwd

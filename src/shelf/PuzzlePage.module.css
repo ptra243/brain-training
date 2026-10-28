@@ -1,0 +1,229 @@
+/* A minigame on its own paper page, over the open book. From docs/mockups/puzzle-page.html and
+   puzzle-page-won.html. It is rendered on document.body, so everything is scoped under body.shelf.
+   The game inside is today's component: the app's colour variables are set to paper here so it
+   reads as printed (docs/puzzle-book.md, "Paper colours"). */
+:global(body.shelf) .page {
+  --baize: #f4ecd8;
+  --baize-deep: #e6dbc1;
+  --baize-line: #d3c6a6;
+  --on-baize: #1e2a2f;
+  --on-baize-soft: #55615f;
+  --card: #fffcf3;
+  --card-edge: #cbbd9c;
+  --display: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: #3a7058;
+  color: #1e2a2f;
+}
+:global(body.shelf) .paper {
+  position: relative;
+  box-sizing: border-box;
+  width: min(100vw, 480px);
+  height: 100dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f4ecd8;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+:global(body.shelf) .paper button:focus-visible {
+  outline: 3px solid #8a2e3b;
+  outline-offset: 2px;
+}
+
+/* The spine's shadow down the left and the other pages' edges down the right, over the game's margins. */
+:global(body.shelf) .spine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 22px;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(90deg, #8a2e3b 0 3px, rgba(60, 40, 20, 0.28) 3px, rgba(60, 40, 20, 0.08) 10px, transparent 22px);
+}
+:global(body.shelf) .edge {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, #e9e0c8 0 1px, #f4ecd8 1px 2.5px);
+  box-shadow: inset 1px 0 0 #d8ccb0;
+}
+
+:global(body.shelf) .head {
+  position: relative;
+  flex: none;
+  height: calc(80px + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  z-index: 1;
+  background: #f4ecd8;
+}
+:global(body.shelf) .running {
+  position: absolute;
+  left: 66px;
+  right: 16px;
+  top: calc(10px + env(safe-area-inset-top, 0px));
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1.5px solid #1e2a2f;
+  padding-bottom: 4px;
+  font-family: var(--display);
+  font-size: 13px;
+}
+:global(body.shelf) .num {
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+:global(body.shelf) .aside {
+  font-style: italic;
+  color: #55615f;
+}
+:global(body.shelf) .name {
+  position: absolute;
+  left: 66px;
+  right: 92px;
+  top: calc(38px + env(safe-area-inset-top, 0px));
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 23px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #1e2a2f;
+}
+:global(body.shelf) .solve {
+  position: absolute;
+  right: 14px;
+  top: calc(32px + env(safe-area-inset-top, 0px));
+  min-height: 44px;
+  min-width: 72px;
+  padding: 0 14px;
+  border: 1.5px solid #1e2a2f;
+  border-radius: 22px;
+  background: transparent;
+  color: #1e2a2f;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 17px;
+  cursor: pointer;
+}
+/* The ribbon bookmark that turns back to the list. */
+:global(body.shelf) .ribbon {
+  position: absolute;
+  left: 14px;
+  top: 0;
+  width: 44px;
+  height: calc(66px + env(safe-area-inset-top, 0px));
+  z-index: 3;
+  display: grid;
+  place-items: start center;
+  padding: calc(22px + env(safe-area-inset-top, 0px)) 0 0;
+  border: 0;
+  background: #8a2e3b;
+  color: #fbf3e0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 84%, 0 100%);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
+  cursor: pointer;
+}
+
+:global(body.shelf) .main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+}
+:global(body.shelf) .level {
+  margin: 4px 18px 2px 30px;
+  font-size: 14px;
+  color: #55615f;
+}
+:global(body.shelf) .rule {
+  margin: 0 18px 12px 30px;
+  font-size: 15px;
+  line-height: 1.4;
+  color: #3b4649;
+}
+
+/* The pencilled note over a half-heard clue. */
+:global(body.shelf) .halfHeard {
+  margin: 0 18px 12px 30px;
+  display: grid;
+  gap: 4px;
+}
+:global(body.shelf) .pencil {
+  margin: 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 16px;
+  color: #55615f;
+}
+
+/* After a puzzle: the finished board stays, then the clues as slips. */
+:global(body.shelf) .won {
+  margin: 8px 18px 0 30px;
+  display: grid;
+  gap: 10px;
+}
+:global(body.shelf) .wonTitle {
+  margin: 0;
+  padding-bottom: 4px;
+  border-bottom: 1.5px solid #1e2a2f;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 19px;
+}
+:global(body.shelf) .by {
+  margin: 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 16px;
+  color: #8a2e3b;
+}
+:global(body.shelf) .clues {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+:global(body.shelf) .scene {
+  font-weight: 600;
+  line-height: 1.4;
+}
+:global(body.shelf) .turnBack {
+  min-height: 48px;
+  margin-top: 6px;
+  border: 0;
+  border-radius: 24px;
+  background: #8a2e3b;
+  color: #fbf3e0;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 18px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(body.shelf) .clues li {
+    animation: clue-in 380ms ease-out both;
+  }
+}
+@keyframes clue-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+}

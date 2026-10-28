@@ -29,10 +29,10 @@ settled design may stay as a short stub; give it a doc when someone starts it.
 ## Session: Shelf UI, beside the current game
 Last touched: 2026-10-28
 Reads first: `docs/visual-theme.md` (Settled: a second shell, the Screens sections, Screen plan), `CONTEXT.md`.
-Goal: build every screen on `#shelf` only, in the Screen plan order; the current game stays as it is. The bookcase and a still case page are up. The ribbons and page turn were prototyped and tuned on her phone (2026-10-28, `docs/mockups/ribbons-prototype.html`, settled in visual-theme.md); steps 1 (ribbons and page turn, `#dev/shelf-ribbons`) and 2 (Find a clue page, read-only, `#dev/shelf-find-a-clue`) are built in src/shelf. Step 3 (puzzle page and won) is next; no brief yet. Then notebook, map, answer, stickers, campaign book, deck and guest book.
+Goal: build every screen on `#shelf` only, in the Screen plan order; the current game stays as it is. The bookcase and a still case page are up. The ribbons and page turn were prototyped and tuned on her phone (2026-10-28, `docs/mockups/ribbons-prototype.html`, settled in visual-theme.md); steps 1 (ribbons and page turn, `#dev/shelf-ribbons`), 2 (Find a clue page, `#dev/shelf-find-a-clue`) and 3 (puzzle page and won, `#dev/shelf-puzzle`, `-won`, `-revealed`; #shelf now writes the Quick save) are built in src/shelf. Left from step 3: the turning leaf covers only the book page, so the book's edges pop. Step 4 (notebook) is next. Then map, answer, stickers, campaign book, deck and guest book.
 Starting prompt:
 ```
-Steps 1–2 of the #shelf Screen plan are done (docs/visual-theme.md; review notes in .claude/handoff/shelf-ribbons-find-a-clue.md if it still exists). Plan step 3, the puzzle page (and won), from docs/mockups/puzzle-page*.html: read GameScreen and the registry read-only, propose to the owner how a Find a clue line opens a puzzle page and whether #shelf now writes the save, then write a handoff and hand it to an implementer. #shelf only; no current-shell files.
+Steps 1–3 of the #shelf Screen plan are done (docs/visual-theme.md "Screen 3, settled"; notes in .claude/handoff/shelf-puzzle-page.md if it still exists). Plan step 4, the notebook (You, clues, grid, subject pages; "Screens 4–7, settled"), from the NotebookGrid mockup: read ClueDrawer, GridPanel and YouSheet read-only, propose to the owner how the peek and full height sit beside the open book and the puzzle page, then write a handoff and hand it to an implementer. #shelf only; no current-shell files.
 ```
 
 ## Session: Theme content, land the lines

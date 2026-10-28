@@ -116,3 +116,17 @@ for (const id of ['opening', 'opening-midway', 'opening-cat', 'opening-skip']) {
     await checkScreen(page, `preview ${id}`);
   });
 }
+
+test('shelf-puzzle previews', async ({ page }) => {
+  await page.goto('/#dev/shelf-puzzle');
+  await expect(page.getByRole('button', { name: 'Solve', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Turn back to page 3' })).toBeVisible();
+  await checkScreen(page, 'preview shelf-puzzle');
+  await page.goto('/#dev/shelf-puzzle-won');
+  await expect(page.getByRole('button', { name: 'Turn back to page 3' }).last()).toBeVisible();
+  await expect(page.getByText(/^Solved by /)).toHaveCount(0);
+  await checkScreen(page, 'preview shelf-puzzle-won');
+  await page.goto('/#dev/shelf-puzzle-revealed');
+  await expect(page.getByText(/^Solved by /)).toBeVisible();
+  await checkScreen(page, 'preview shelf-puzzle-revealed');
+});
