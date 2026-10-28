@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { createPortal, flushSync } from 'react-dom';
 import { cats } from '../content/index.ts';
 import { isSceneGame } from '../engine/gameKinds.ts';
 import type { Case, Difficulty, GameSpec } from '../engine/types.ts';
@@ -25,7 +25,7 @@ interface Props {
   turn: boolean;
   /** The Case page the leaf is cut from. */
   turnSource: () => HTMLElement | null;
-  /** Called when the turn back is under way and the book should be showing again. */
+  /** Called when the turned-back leaf has landed and the book should be showing again. */
   onClose: () => void;
 }
 
@@ -86,12 +86,13 @@ export function PuzzlePage({ c, spec, progress, dispatch, page, level, turn, tur
   const unlocked = c.clues.filter((cl) => spec.clues.includes(cl.id));
   const titles = titlesOf(entry);
 
-  // The page turns back to the Case page; the book is put back under the leaf halfway.
+  // The page turns back to the Case page. This page stays under the leaf until it lands, then goes
+  // in the same frame the leaf is removed, so the Case page never shows twice.
   const turnBack = () => {
     if (leaving) return;
     setLeaving(true);
     const source = turnSource();
-    if (source) void turnLeaf({ source, dir: 'back', classes: LEAF, onMid: onClose });
+    if (source) void turnLeaf({ source, dir: 'back', classes: LEAF, onLanded: () => flushSync(onClose) });
     else onClose();
   };
 

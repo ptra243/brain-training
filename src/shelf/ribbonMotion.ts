@@ -70,8 +70,8 @@ export interface LeafOptions {
   /** `forward`: the page lifts off and turns away. `back`: it lands on top. */
   dir: 'forward' | 'back';
   classes: Pick<RibbonClasses, 'leaf' | 'page' | 'back' | 'shade'>;
-  /** Called once, at the middle of the turn (or at the start of the crossfade). */
-  onMid?: () => void;
+  /** Called once, when the leaf lies still, just before it is removed: the page under it can change then. */
+  onLanded?: () => void;
   motion?: Motion;
 }
 
@@ -80,7 +80,7 @@ export interface LeafOptions {
  * (forward) or lands on top (back), with `turnTo`'s numbers. Reduced motion is the crossfade.
  * Resolves when the leaf is gone.
  */
-export function turnLeaf({ source, dir, classes, onMid, motion }: LeafOptions): Promise<void> {
+export function turnLeaf({ source, dir, classes, onLanded, motion }: LeafOptions): Promise<void> {
   const S: Motion = motion ?? { ...MOTION };
   const rect = source.getBoundingClientRect();
   const host = document.createElement('div');
@@ -104,10 +104,12 @@ export function turnLeaf({ source, dir, classes, onMid, motion }: LeafOptions): 
   const done = (anims: Animation[]) =>
     Promise.all(anims.map((a) => a.finished))
       .catch(() => {})
-      .then(() => host.remove());
+      .then(() => {
+        onLanded?.();
+        host.remove();
+      });
 
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    onMid?.();
     const fade = leaf.animate(fwd ? [{ opacity: 1 }, { opacity: 0 }] : [{ opacity: 0 }, { opacity: 1 }], { duration: S.fade, easing: 'ease-out', fill: 'both' });
     return done([fade]);
   }
@@ -115,7 +117,6 @@ export function turnLeaf({ source, dir, classes, onMid, motion }: LeafOptions): 
   const { lift, land, ease } = leafFrames(S);
   const shadeFrames: Keyframe[] = fwd ? [{ opacity: 0 }, { opacity: 1, offset: 0.4 }, { opacity: 0 }] : [{ opacity: 0 }, { opacity: 1, offset: 0.6 }, { opacity: 0 }];
   const anims = [leaf.animate(fwd ? lift : land, { duration: S.turn, easing: ease, fill: 'both' }), shade.animate(shadeFrames, { duration: S.turn })];
-  if (onMid) setTimeout(onMid, S.turn / 2);
   return done(anims);
 }
 
