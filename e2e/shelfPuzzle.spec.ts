@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { content } from '../src/content/index.ts';
 import { newPlayCase } from '../src/engine/caseRef.ts';
 import { emptyProgress } from '../src/game/state.ts';
@@ -6,7 +7,10 @@ import { expect, test } from './fixtures.ts';
 
 // A saved Quick case, built on this run with the app's own engine: #shelf reads it from storage.
 const { ref, c } = newPlayCase(content, () => 0.5);
-const KEY = 'brain-training:v12:quick';
+// The save prefix is read from storage.ts (which doesn't export it), so a prefix bump can't break this test.
+const PREFIX = /const PREFIX = '([^']+)'/.exec(readFileSync(new URL('../src/game/storage.ts', import.meta.url), 'utf8'))?.[1];
+if (!PREFIX) throw new Error('No PREFIX in src/game/storage.ts');
+const KEY = `${PREFIX}quick`;
 
 test('a puzzle page: Solve, the clues, turn back, and the shared save says revealed', async ({ page }) => {
   await page.addInitScript(
