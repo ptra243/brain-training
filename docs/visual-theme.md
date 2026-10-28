@@ -237,7 +237,48 @@ owner switches that default, this work must not change the current shell.
 - **Grid** is today's `GridPanel` unchanged; a row or column name opens that guest's, weapon's or
   room's page. The cat's grid hint works as in the Casebook.
 - **Not on the puzzle page**: each puzzle stands alone.
-- **Left for step 5**: half height from a map tap, the brass ring, "Place in a room", "Question them".
+- **Left for step 5**: half height from a map tap, the brass ring, "Place in a room". ("Question them"
+  is dropped: see Milestone 1.)
+
+## Milestone 1: Quick play on the shelf (owner, 2026-10-29)
+
+**Done when** she plays one real Quick case on her phone, from the bookcase to the answer, without
+help and without opening the current shell. Campaign, the deck and the guest book come after.
+
+Decisions:
+
+- **Palette**: honey oak, locked in (Still open #2). Midnight green stays a campaign question.
+- **Fonts ship with the app** (Still open #8): EB Garamond and Caveat bundled, precached for offline.
+- **New case settings**: the New case book uses her last-used difficulty, length and cast from the
+  save. No picker until the deck (step 9).
+- **Finish: Grid or Jigsaw, in the same place.** They are alternatives, so the Jigsaw is a notebook
+  tab in place of Grid (You · Clues · Jigsaw · Guests) in a Jigsaw-finish case, never both. Ribbons
+  stay Case · Map · Puzzles · Answer in every Quick case. Built as the sticker version from
+  `docs/mockups/sticker-page.html` redrawn as a notebook page: the board on the page, the sticker
+  sheet (2 × 44px rows, scrolls sideways) just above the tabs. The owner judges it once built. This
+  replaces the Stickers section and step 7's "notebook becomes a header icon".
+- **No talk in Quick play.** Subject pages show placement and clues only; the conversation (greeting,
+  beats, "So far") is flavour from content, gives no clue, and stays for the campaign's face-to-face
+  spread. A questioning is a minigame, so it is a row on the Find a clue page like the rest; there is
+  no "Question them" on a subject page. Her talk progress in the save is left untouched.
+- **Look option.** A gear on the current shell's Home and on the bookcase opens a small options
+  sheet with the look, Classic or Shelf (CONTEXT.md "Look"). Stored in its own localStorage key, not
+  the case save; the address with no hash opens the chosen look; `#shelf` and `#dev` keep working.
+  This is the one exception to "Settled: a second shell": `Home.tsx` gains the gear and `main.tsx`
+  reads the choice. Finishing the shelf means flipping the default to Shelf, later removing Classic.
+- **Known gaps**: grid cells and labels to 44px in the notebook (the `test.fail` in
+  `e2e/shelfNotebook.spec.ts`), and the notebook checked on her phone. The page turn's popping book
+  edges wait until after the milestone.
+
+Order (1 and 4 don't depend on 2 and 3 and can run alongside):
+
+1. Small pieces: bundle the fonts, grid to 44px, New case uses her last settings.
+2. Map plate (step 5): a counter tap raises the notebook to half height on its subject page, brass
+   ring, "Place in a room".
+3. Answer page (step 6).
+4. Jigsaw tab (the sticker version, above).
+5. The look option.
+6. Her test on her phone.
 
 ## Screens 8–10, settled (owner, 2026-10-28)
 
@@ -285,7 +326,7 @@ Quick case is asked about first (`#dev/shelf-new-case`).
 | done | Notebook: You, clues, grid, subject pages | Clue drawer, grid, You sheet | `NotebookGrid` |
 | 5 | Map plate (taps open subject pages) | Map, suspect sheet | `PuzzleMap` |
 | 6 | Answer page | Accuse panel (face to face is campaign, step 8) | `puzzle-book-answer.html` |
-| 7 | Sticker page | Jigsaw end board | `StickerPage` |
+| 7 | Jigsaw tab in the notebook, sticker version (Milestone 1) | Jigsaw end board | `StickerPage` |
 | 8 | Campaign: title page, room page, chapters | Campaign setup, view, next murder | `CampaignRoom` |
 | 9 | The deck | Pick games | none |
 | 10 | Guest book | Record | none |
