@@ -1,4 +1,5 @@
 import type { MarkKind } from './nosingUi.ts';
+import styles from './NosingKey.module.css';
 
 // The icons of the Nosing board, drawn once around (0, 0) in squares (about 0.5 wide).
 // The board scales and places them; the key draws the same shapes in small SVGs.
@@ -112,7 +113,7 @@ export function MarkIcon({ kind }: { kind: MarkKind }) {
 /** A small SVG of one icon, for the key. */
 export function KeyIcon({ kind }: { kind: MarkKind }) {
   return (
-    <svg className="key-icon" viewBox="-0.4 -0.45 0.8 0.9" aria-hidden="true">
+    <svg className={styles.icon} viewBox="-0.4 -0.45 0.8 0.9" aria-hidden="true">
       <MarkIcon kind={kind} />
     </svg>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import type { SpeedQuestion } from '../../games/speedRound.ts';
+import styles from './NosingSpeed.module.css';
 
 /** Seconds a wrong card takes off the clock. */
 const SPEED_PENALTY_SECONDS = 3;
@@ -56,7 +57,7 @@ export function NosingSpeed({ questions, seconds, onEnd }: Props) {
 
   if (!running) {
     return (
-      <div className="speed">
+      <div className={styles.round}>
         <h2>Speed round</h2>
         <p>
           Tap the card that fills the blank. You have {seconds} seconds. A wrong card costs {SPEED_PENALTY_SECONDS}{' '}
@@ -77,17 +78,19 @@ export function NosingSpeed({ questions, seconds, onEnd }: Props) {
 
   const q = questions[Math.min(index, questions.length - 1)];
   return (
-    <div className="speed">
-      <div className="sand" role="timer" aria-label={`${left} seconds left`}>
-        <span className="sand-fill" style={{ width: `${(left / seconds) * 100}%` }} />
-        <span className="sand-text">{left}s</span>
+    <div className={styles.round}>
+      <div className={styles.sand} role="timer" aria-label={`${left} seconds left`}>
+        <span className={styles.fill} style={{ width: `${(left / seconds) * 100}%` }} />
+        <span className={styles.sandText}>{left}s</span>
       </div>
-      <p className="speed-count">{right} right</p>
-      <p className="question-text speed-sum">{q.text}</p>
+      <p className={styles.count} data-testid="speed-count">
+        {right} right
+      </p>
+      <p className={styles.sum}>{q.text}</p>
       {!over && (
-        <div className="speed-cards" role="group" aria-label="Four cards">
+        <div className={styles.cards} role="group" aria-label="Four cards">
           {q.cards.map((c) => (
-            <button key={c} className="speed-card" onClick={() => tap(c)}>
+            <button key={c} className={styles.card} onClick={() => tap(c)}>
               {c}
             </button>
           ))}

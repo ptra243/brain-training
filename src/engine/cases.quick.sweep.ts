@@ -1,12 +1,12 @@
 // Cases from the player-facing modes: Quick start (every difficulty, length and cast), Quick play codes, picked games
 // ("Choose games") and every combination of three or more picked games, plus two scans over Play codes until each
-// level has 5 Tarot and 5 Nosing cases. Each case is built and checked by caseChecks.ts. The Nosing dog's fallback play
-// stays rare across the fights those Play-case boards play (3%); the forced boards' own bound is in nosing.sweep.ts.
+// level has 5 Tarot and 5 Nosing cases. Each case is built and checked by caseChecks.ts. nosingProblems checks the
+// board, the lock, the questions and that a run meets the dog; it does not play the fight.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
-import { dogPlays, nosingChecked } from '../games/nosingSweeps.ts';
+import { nosingChecked } from '../games/nosingSweeps.ts';
 import { FULL, sweep } from '../sweep.ts';
 import { problems, stats } from './caseChecks.ts';
 import { PICK_ORDER, caseCode, caseFor, codeFor, pickedInOrder, type Cast, type PlayRef, type QuickRef } from './caseRef.ts';
@@ -112,12 +112,6 @@ test('nosing scan', () => {
   inCases = { ...nosingChecked };
 });
 
-test('nosing dog fallback is rare in Play cases', () => {
-  // Built cases are a small sample of dog fights (about 140 plays on the quick run). The 2% limit stays on the dog-fight
-  // seed sweep. 3% here still keeps the copy-of-her-cards play rare, and one extra play from a different case mix does not fail it.
-  assert.ok(dogPlays.fallbacks <= dogPlays.plays * 0.03, `the dog's fallback play fired ${dogPlays.fallbacks} of ${dogPlays.plays} times (over 3%)`);
-});
-
 test('summary', (t) => {
   t.diagnostic(`${QUICK_CHOICES} Quick start choices × ${PER_QUICK} codes`);
   t.diagnostic(playLine);
@@ -128,5 +122,4 @@ test('summary', (t) => {
   t.diagnostic(`Cases counted toward the total: ${QUICK_CHOICES * PER_QUICK + PER_PLAY}`);
   t.diagnostic(`Talk: ${stats.talk.guests} guests have a thread; ${stats.talk.short} still have a beat waiting for the solved case once every game is done`);
   t.diagnostic(`Case boards:${stats.boards.puzzles} puzzles and ${stats.boards.ends} end boards built (slowest ${stats.boards.slowest.toFixed(0)} ms)`);
-  t.diagnostic(`Nosing dog: ${dogPlays.plays} dog plays across the fights the hint bot won, ${dogPlays.fallbacks} fallbacks`);
 });

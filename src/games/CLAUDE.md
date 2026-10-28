@@ -66,7 +66,7 @@ Pure puzzle logic, no React. Components live in `src/game/games/`.
   any search square she never landed on, come with the lock, so every clue is
   guaranteed. Hints are `nosingHint` (question ladder, then `lockHint`), never in
   the speed round. The header Solve acts on the current step only (`nosingSolveKind`, `nosingSolveStep`: a question or the dog fight is answered for her as a hint; only the lock reveals the game; hidden otherwise). A speed question is a sum with one blank and four cards, rebuilt from the seed. Every roll stops first (phase `rolled`, `nosingLanding` gives the square a Move would reach); a wrong plain-obstacle answer sends the cat back 2 squares (`obstacleBack`). The exact turn bounds model ladders, snakes, the back-2 and the `steps` bonus (shared helpers in `nosingBoard.ts`), so every run, however she answers, takes `NOSING_LEVELS[level].turns`. Tests drive bots that follow hints, are always wrong, and answer at random,
-  on a few fixed seeds per level; the 100-seed sweeps live in `nosingSweeps.ts`
+  on a few fixed seeds per level. Those bots end the dog fight with `skipDog` (pass or fail) and do not play the cards. The 100-seed sweeps live in `nosingSweeps.ts`
   and run from `nosing.sweep.ts` and `nosingBoard.sweep.ts` (sampled quick, all with
   `--full`); `nosing.sweep.ts` also covers every scene room at every level.
   `node --test src/games/nosing*.sweep.ts` runs just the nosing sweeps.
@@ -85,8 +85,11 @@ Pure puzzle logic, no React. Components live in `src/game/games/`.
   next turn. Each attack turn may carry one seeded challenge, drawn only if her
   hand can meet it while beating the dog (`challengeWay`; data, the UI words
   it). She may swap 1-2 cards once per fight (`swap` move). The nosing save
-  has a version (`NOSING_VERSION`): an older save restarts its dog fight
-  (`nosingUpgrade`); bump it when the fight rules change. Following hints (never
+  has a version (`NOSING_VERSION`): a save from before version 3 drops its walk
+  without replaying it, because the board may leave a room out and a room may hold
+  a second search clue (`nosingUpgrade`). Bump it when the board or the fight rules
+  change. Following hints (never
   swapping) always wins; a win
   carries the cat on to where the move was going and never gives `steps`, a
   loss slides it; `nosingBounds` models the stop, so turn bounds hold.
+  Nosing bots end the fight with `skipDog` (pass or fail) and do not play the cards. Fight fairness is only `dogFightSweeps.ts`, which does not build a nosing board.

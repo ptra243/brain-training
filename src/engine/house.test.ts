@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { doorSpots, houseFromLayout, roomAdjacency, sharedWallAdjacency } from './house.ts';
-import { buildNosingBoard, NOSING_LEVELS, type NosingLevel } from '../games/nosingBoard.ts';
+import { buildNosingBoard, NOSING_LEVELS, nosingRoomTarget, nosingSpec, type NosingLevel } from '../games/nosingBoard.ts';
 
 const meta = (id: string) => ({ id, name: id, tint: '#ccc', objects: [], things: [] });
 const legend = (letters: string) => Object.fromEntries(letters.split('').map((l) => [l, meta(l.toLowerCase())]));
@@ -95,7 +95,10 @@ for (const [name, doors] of [['chain', CHAIN], ['ring', RING]] as const) {
           const x = Math.floor((s % board.width) / n);
           assert.equal(owner.get(`${y},${x}`), board.roomOf[k], `square ${s} is void or in the wrong room`);
         });
-        assert.deepEqual([...new Set(board.roomOf)].sort(), house.rooms.map((r) => r.id).sort(), 'every room is entered');
+        const entered = [...new Set(board.roomOf)];
+        const lv = nosingSpec(house, level);
+        assert.ok(entered.length >= nosingRoomTarget(lv, house.rooms.length, 2), `enters only ${entered.length} rooms`);
+        assert.ok(entered.every((r) => house.rooms.some((room) => room.id === r)));
       }
     });
   }

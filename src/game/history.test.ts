@@ -96,7 +96,7 @@ test('clearSaves leaves the history alone', () => {
   try {
     const h = recordQuick(solved(), qc, emptyHistory(), mint, DATE).history;
     saveHistory(h);
-    for (const k of ['quick', 'campaign', 'screen']) store.set(`brain-training:v11:${k}`, '{}');
+    for (const k of ['quick', 'campaign', 'screen']) store.set(`brain-training:v12:${k}`, '{}');
     clearSaves();
     assert.deepEqual(loadHistory(), h);
     assert.deepEqual([...store.keys()].filter((k) => !k.endsWith(':history')), []);

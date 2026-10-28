@@ -1,0 +1,34 @@
+/* The Nosing around screen: everything the shell draws around the board, key, lock, speed round and dog. */
+.strip { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.2rem 0.75rem; margin: 0; font-size: 0.85rem; color: var(--on-baize-soft); }
+.note { margin: 0; font-size: 0.85rem; color: var(--on-baize-soft); }
+.messages { display: grid; gap: 0.35rem; font-family: var(--serif); }
+.messages p { margin: 0; line-height: 1.4; }
+.working { margin: 0; padding-left: 1.1rem; font-family: var(--sans); font-size: 0.9rem; color: var(--ink-soft); }
+.roll { display: grid; gap: 0.7rem; }
+.dice { display: flex; justify-content: center; gap: 0.75rem; }
+.die { width: 3.2rem; height: 3.2rem; }
+.die rect { fill: #fffcf3; stroke: var(--ink); stroke-width: 1.5; }
+.die circle { fill: var(--ink); }
+.buttons { display: grid; gap: 0.5rem; }
+.encounter { display: grid; gap: 0.6rem; }
+.text { margin: 0; font-family: var(--serif); font-size: 1.1rem; line-height: 1.4; }
+.stake { margin: 0; font-size: 0.9rem; color: var(--ink-soft); }
+.choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+.speed { display: grid; gap: 0.5rem; }
+.lock { display: grid; gap: 0.7rem; }
+:global(.nosing.tight) .lock { gap: 0.4rem; }
+.question { display: grid; padding: 0.65rem 0.75rem; gap: 0.4rem; }
+.question :global(.hint-bar) { margin: 0; }
+/* The card stops short of the bottom of a 780px screen, under the heading and the 3.5rem board strip: the story and the cat's choices
+   scroll in .scroll, the pad (and its OK) never does. 11rem is what sits above the card (it starts at 166px; the rest is slack). */
+.question { grid-template-rows: minmax(0, 1fr) auto; max-height: calc(100dvh - 11rem); }
+.scroll { display: grid; gap: 0.4rem; align-content: start; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+@media (prefers-reduced-motion: no-preference) {
+  .dice.tumble .die { animation: die-tumble 0.6s ease-out; }
+  .dice.tumble .die:nth-child(2) { animation-delay: 0.05s; }
+}
+@keyframes die-tumble {
+  0% { transform: rotate(-200deg) translateY(-14px) scale(0.8); opacity: 0.4; }
+  60% { transform: rotate(25deg) translateY(2px) scale(1.05); opacity: 1; }
+  100% { transform: none; }
+}

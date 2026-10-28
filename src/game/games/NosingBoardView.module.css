@@ -1,0 +1,13 @@
+.board { display: block; width: 100%; height: auto; border-radius: 0.3rem; background: var(--baize-deep); box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35); }
+.board.compact { max-height: 3.5rem; }
+.wall { stroke: var(--wall); stroke-width: 0.1; stroke-linecap: square; }
+.path { fill: none; stroke: var(--ink); stroke-width: 0.1; stroke-linejoin: round; stroke-linecap: round; opacity: 0.2; }
+/* Room squares are pale, so the board ghost uses a dark dash. The key keeps the lighter stroke. */
+.purr :global(.mi-ghost) * { stroke: var(--wall); stroke-width: 0.08; }
+.mark.spent, .ladder.taken :global(.mi) { opacity: 0.35; }
+.picked { fill: none; stroke: var(--on-baize); stroke-width: 0.07; stroke-dasharray: 0.12 0.08; }
+.ladder use { fill: var(--brass-deep); opacity: 0.85; }
+.ladder.taken use { opacity: 0.45; }
+.foot { fill: none; stroke: var(--brass-deep); stroke-width: 0.06; }
+.snake > path { fill: none; stroke: var(--pencil); stroke-width: 0.08; stroke-linecap: round; opacity: 0.85; }
+.snake.used { opacity: 0.35; }

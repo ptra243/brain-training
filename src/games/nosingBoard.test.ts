@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { NOSING_LEVELS, nosingSpec, rerollFor, rollFor } from './nosingBoard.ts';
+import { NOSING_LEVELS, buildNosingBoard, nosingRoomTarget, nosingSpec, rerollFor, rollFor } from './nosingBoard.ts';
 import { house as manor } from '../content/index.ts';
+import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
 import { lodge, otherHouses, tLodge } from '../content/houses.ts';
 import { BOARD_LEVELS, boardSeed } from './nosingBoardSweeps.ts';
 
@@ -50,4 +51,37 @@ test('nosingSpec: the manor gets the stock level, other houses their overrides',
   }
   assert.deepEqual(nosingSpec(lodge, 'easy').len, NOSING_LEVELS.easy.len);
   assert.deepEqual(nosingSpec(lodge, 'medium').len, [92, 100]);
+});
+
+test('nosingRoomTarget leaves one room out unless the house already asks for fewer', () => {
+  assert.equal(nosingRoomTarget(NOSING_LEVELS.medium, 6, 4), 5);
+  assert.equal(nosingRoomTarget({ ...NOSING_LEVELS.medium, enterExtra: 3 }, 10, 5), 8);
+  assert.equal(nosingRoomTarget({ ...NOSING_LEVELS.medium, enterExtra: 3 }, 10, 0), 3);
+  assert.equal(nosingRoomTarget(NOSING_LEVELS.medium, 1, 0), 1);
+});
+
+// One of seedsOf(36, 300, 24): scene i % rooms, clues i % 6, seed case-${i}-medium. 47, 113 and 245 share a room.
+test('manor medium case-47-medium puts two search clues in one room', () => {
+  const i = 47;
+  const rooms = manor.rooms.map((r) => r.id);
+  const sceneRoom = rooms[i % rooms.length];
+  const searchClues = i % 6;
+  const b = buildNosingBoard({
+    house: manor,
+    level: 'medium',
+    seed: `case-${i}-medium`,
+    sceneRoom,
+    searchClues,
+    ladders: nosingLadders,
+    snakes: nosingSnakes,
+  });
+  const clues = b.squares.flatMap((s, k) => (s.kind === 'search' && s.clueIndex != null ? [{ room: b.roomOf[k], clueIndex: s.clueIndex }] : []));
+  const counts = new Map<string, number>();
+  for (const c of clues) counts.set(c.room, (counts.get(c.room) ?? 0) + 1);
+  const shared = [...counts.entries()].filter(([, n]) => n >= 2);
+  assert.equal(shared.length, 1);
+  assert.equal(shared[0][1], 2);
+  assert.notEqual(shared[0][0], sceneRoom);
+  assert.equal(clues.length, searchClues);
+  assert.deepEqual(clues.map((c) => c.clueIndex), clues.map((_, j) => j));
 });

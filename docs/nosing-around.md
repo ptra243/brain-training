@@ -118,7 +118,7 @@ must account for each encounter's worst case.
   number of question squares.
 - Every lock target is reachable with no bonuses.
 - Every question's answer is a whole number in its level's range.
-- Every room has its search square; ladders and snakes only sit in rooms their content allows.
+- The path enters all but one room, unless the house already asks for fewer. Every entered room has a search square, and a second sits in a visited room that is not the scene when search clues remain. Ladders and snakes only sit in rooms their content allows.
 
 ## Decided in the build session (2026-10-21)
 
@@ -128,8 +128,9 @@ must account for each encounter's worst case.
   goes last in `PLAY_ROLLED`. Not in presets or the campaign yet. Existing cases don't change.
 - **Clue split:** share 1 → lock 1 + search 0; 2 → 1 + 1; 3 → 1 + 2; 4 → 2 + 2; 5 → 2 + 3; 6 → 2 + 4; 7 → 2 + 5. Shares 1 and 2 only happen to a picked Nosing around; the Quick play stand-in needs a share of 3 or more. With 0 search clues every room's search square gives a bonus; the lock room is still a clue room (never the scene room), so `clueRooms` is the search-clue rooms plus the lock room.
 - **The path winds** (this replaces the row-by-row path above): a seeded self-avoiding walk over the
-  board's squares that visits every room and lingers in the clue rooms. One search square per search
-  clue, each in its own clue room; the lock is the last square, in a clue room. Clue rooms are never the
+  board's squares that enters all but one room, unless the house already asks for fewer, and lingers in
+  the clue rooms. One search square per entered room, and a second in a visited room that is not the
+  scene when search clues remain. The lock is the last square, in a clue room. Clue rooms are never the
   scene room. Rooms with no clue are passed through and get a search square that gives a bonus.
 - **First build:** plain questions and the speed round. Pick-your-card, the dog, estimate, scales and
   pattern come later.
@@ -145,7 +146,7 @@ must account for each encounter's worst case.
 
 The path is a randomised depth-first walk that fills the current room first (fewest onward moves
 first, random ties), then steps into a room not yet entered. It starts on an edge square, has a budget
-of 3000 steps, and must visit every room. The board takes up to 600 attempts (`-0`, `-1`, …). An
+of 3000 steps, and must enter all but one room, unless the house already asks for fewer. The board takes up to 600 attempts (`-0`, `-1`, …). An
 attempt fails when the path fails, when the lock's room is the scene room, or when any check below
 fails. Every one of the 6000 cases built, at about 3.5ms each in Node.
 
@@ -155,7 +156,7 @@ fails. Every one of the 6000 cases built, at about 3.5ms each in Node.
 | Medium | 2×2 | 2 | 80–90 | 3 (5–9) | 2 (4–8) | 25 + 2 (4 cat finds) | 10–16 | at least 3 |
 | Hard | 2×2 | 2 | 80–90 | 3 (5–9) | 4 (5–9) | 25 + 2 (4 cat finds) | 10–16 | at least 3 |
 
-- One search square per room, plus a question square on every ladder foot and snake head. Ladder
+- One search square per entered room, and a second in a visited room that is not the scene when search clues remain, plus a question square on every ladder foot and snake head. Ladder
   tops, snake tails, the first square and the last square are plain squares.
 - **The turn and question checks are exact.** They search every mix of right and wrong answers, with
   the rolls fixed by seed and turn: the fewest turns, the most turns and the fewest question squares

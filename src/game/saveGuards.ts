@@ -143,6 +143,8 @@ const isNosingMove = (v: unknown): v is NosingMove | LegacyNosingMove => {
     case 'play':
     case 'solve':
       return true;
+    case 'skipDog':
+      return isBool(v.pass);
     case 'answer':
       return isNum(v.value);
     case 'speed':

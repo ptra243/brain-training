@@ -16,7 +16,11 @@ Long sessions re-read their whole context every turn, so keep them short.
 - In Cursor, pass one of these on the sub-session instead of inheriting the
   chat: Composer 2.5 for a mechanical brief (CSS, copy, content lists, test
   updates), or Grok 4.7 with Fast off when the brief touches the generator,
-  seeds or saves.
+  seeds or saves. Until the owner says the usage cycle has reset (set 27 Oct
+  2026; see `.cursor/rules/cursor-models-only.mdc`), stay on those Cursor
+  models. Do not pass Claude, GPT, Gemini, or any other third-party model,
+  and do not inherit the chat if it is one. If the tool only lists Fast
+  slugs, pass `grok-4.7-high-fast`.
 - Delegate: any change to more than two code files (`.ts`, `.tsx`, `.css`,
   tests; not `.md`), anything you can describe in a few sentences, and any bug
   fix with a known cause. Always delegate content lists of more than ~20
@@ -120,7 +124,8 @@ prompt (the implementer creates the file for its review notes).
   drift.
 - Session ideas worth starting fresh live in `docs/next-sessions.md`, each with
   a `Last touched` date and a starting prompt. The `SessionStart` hook
-  (`stale-sessions.mjs`) shows them as a numbered menu and its output says how
-  to start one (including renaming the session to the entry's heading). Keep
+  (`stale-sessions.mjs`) shows them as a numbered menu and flags handoff files
+  older than 3 days; how to start one (including renaming the session to the
+  entry's heading) lives only in `.claude/commands/next.md`. Keep
   each heading short: it is the menu line. When you suggest a split, offer to
   add or refresh the entry.

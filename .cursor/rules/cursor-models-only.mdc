@@ -1,0 +1,15 @@
+---
+description: Until the usage cycle resets, use only Cursor models on this project
+alwaysApply: true
+---
+
+# Cursor models only, until the next cycle
+
+Set 27 Oct 2026. Applies to every Cursor session on this project until the owner says the usage cycle has reset. Then delete this rule and the matching sentence in `docs/workflow.md`.
+
+Cursor models are Grok 4.7, Grok 4.6, Grok 4.5, and Composer 2.5. Claude, GPT, Gemini, and any other third-party model are off limits here, including when the user asks for a subagent, a review, or a faster model.
+
+- This chat stays on a Cursor model. Do not suggest switching it to a third-party model.
+- Subagents get an explicit Cursor model. Prefer Composer 2.5 for a mechanical brief, or Grok 4.7 with Fast off when the brief touches the generator, seeds, or saves. If the tool only lists Fast slugs, pass `grok-4.7-high-fast`.
+- Do not pass `inherit` when the parent chat is a third-party model.
+- Leave `.claude/agents/implementer.md` at `model: sonnet`. That line is for Claude Code, not for Cursor subagents.

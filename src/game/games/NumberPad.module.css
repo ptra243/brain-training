@@ -1,0 +1,15 @@
+/* The pad is only used on the nosing question, so these are the question-screen sizes. */
+.pad { display: grid; gap: 0.4rem; }
+.screen {
+  margin: 0; min-height: 2.75rem; display: grid; place-items: center; border-radius: 0.35rem;
+  background: #fffcf3; border: 2px solid var(--card-edge); font-family: var(--serif); font-size: 1.6rem; font-variant-numeric: tabular-nums;
+}
+.empty { font-size: 0.95rem; color: var(--ink-soft); font-family: var(--sans); }
+.keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
+.key {
+  min-height: 2.75rem; border: 1px solid var(--card-edge); border-radius: 0.35rem; cursor: pointer;
+  background: #fffcf3; color: var(--ink); font-family: var(--serif); font-size: 1.3rem; font-weight: 600;
+}
+.key:active { background: var(--card-edge); }
+.ok { background: var(--ink); color: var(--card); border-color: var(--ink); }
+.ok:disabled { opacity: 0.4; cursor: default; }

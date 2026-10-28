@@ -1,5 +1,6 @@
 import { useEffect, useEffectEvent, useMemo, useState, type ReactNode } from 'react';
 import { Dialog } from '../Dialog.tsx';
+import styles from './NosingGame.module.css';
 import { loadAutoRoll, saveAutoRoll } from '../storage.ts';
 import { nosingBonuses, nosingEmptyLines,nosingDog, nosingLadders, nosingObstacleStakeWrong, nosingSnakes } from '../../content/nosing.ts';
 import {
@@ -78,7 +79,7 @@ const reducedMotion =() => typeof window !== 'undefined' && !!window.matchMedia?
 
 function Die({ face }: { face: number }) {
   return (
-    <svg className="die" viewBox="0 0 30 30" role="img" aria-label={`A ${face}`}>
+    <svg className={styles.die} viewBox="0 0 30 30" role="img" aria-label={`A ${face}`}>
       <rect x="1.5" y="1.5" width="27" height="27" rx="5" />
       {PIPS[face].map(([c, r], i) => (
         <circle key={i} cx={7.5 + c * 7.5} cy={7.5 + r * 7.5} r="2.4" />
@@ -277,7 +278,7 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
 
       {showKey && <NosingKey info={pickInfo} />}
 
-      <p className="nosing-strip">
+      <p className={styles.strip}>
         {view.phase !== 'lock' && view.phase !== 'dog' && (
           <span>
             Turn {view.phase === 'open' ? view.turn - 1 : view.turn} · {squareName(at)} of {puzzle.board.path.length}
@@ -291,18 +292,18 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
       </p>
 
       {view.messages.length > 0 && view.phase === 'lock' && !view.dog && (
-        <p className="muted nosing-note" role="status">
+        <p className={`muted ${styles.note}`} role="status">
           {view.messages.join(' ')}
         </p>
       )}
 
       {view.messages.length > 0 && view.phase !== 'open' && view.phase !== 'dog' && view.phase !== 'lock' && !view.dog && (
-        <div className="nosing-messages card" role="status">
+        <div className={`${styles.messages} card`} data-testid="nosing-messages" role="status">
           {view.messages.map((m, i) => (
             <p key={i}>{m}</p>
           ))}
           {view.working && (
-            <ul className="working" aria-label="The working">
+            <ul className={styles.working} aria-label="The working">
               {view.working.map((l, i) => (
                 <li key={i}>{l}</li>
               ))}
@@ -326,8 +327,8 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
       )}
 
       {!walking && !done && !showEnd && (view.phase === 'roll' || view.phase === 'rolled') && (
-        <div className="card nosing-roll">
-          <div key={`${moveCount}-${view.pendingRoll}`} className={view.phase === 'rolled' ? 'dice tumble' : 'dice'} aria-label={view.phase === 'rolled' ? `You rolled ${view.pendingRoll}` : view.lastRoll ? `Last roll ${view.lastRoll}` : 'The dice'}>
+        <div className={`card ${styles.roll}`} data-testid="nosing-roll">
+          <div key={`${moveCount}-${view.pendingRoll}`} className={view.phase === 'rolled' ? `${styles.dice} ${styles.tumble}` : styles.dice} aria-label={view.phase === 'rolled' ? `You rolled ${view.pendingRoll}` : view.lastRoll ? `Last roll ${view.lastRoll}` : 'The dice'}>
             {diceFaces(level.dice, view.phase === 'rolled' ? view.pendingRoll! : (view.lastRoll ?? level.dice)).map((f, i) => (
               <Die key={i} face={f} />
             ))}
@@ -346,7 +347,7 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
           {view.phase === 'rolled' ? (
             <>
               <p className="muted">{rollLine}</p>
-              <div className="nosing-buttons">
+              <div className={styles.buttons}>
                 <button className="primary" onClick={() => play({ t: 'roll' })}>
                   Move
                 </button>
@@ -367,12 +368,12 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
 
       {!walking && !done && !showEnd && q && card && atEncounter && (
         <TimedDialog onClose={() => setStarted(moveCount)} labelId="nosing-landing-title">
-          <div className="nosing-encounter">
-            <p id="nosing-landing-title" className="question-text">
+          <div className={styles.encounter} data-testid="nosing-encounter">
+            <p id="nosing-landing-title" className={styles.text}>
               {card.reason}
             </p>
-            <p className="stake">{card.right}</p>
-            <p className="stake">{card.wrong}</p>
+            <p className={styles.stake} data-testid="stake">{card.right}</p>
+            <p className={styles.stake} data-testid="stake">{card.wrong}</p>
             <button className="primary" onClick={() => setStarted(moveCount)}>
               {card.button}
             </button>
@@ -382,8 +383,8 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
 
       {atEmpty && (
         <TimedDialog onClose={() => setSeenEmpty(moveCount)} labelId="nosing-landing-title">
-          <div className="nosing-encounter">
-            <p id="nosing-landing-title" className="question-text">
+          <div className={styles.encounter} data-testid="nosing-encounter">
+            <p id="nosing-landing-title" className={styles.text}>
               {nosingEmptyLines[land0 % nosingEmptyLines.length]}
             </p>
             <button className="primary" onClick={() => setSeenEmpty(moveCount)}>
@@ -394,12 +395,12 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
       )}
 
       {!walking && !done && !showEnd && q && !atEncounter && (
-        <div className="card nosing-question">
-          <div className="question-scroll">
+        <div className={`card ${styles.question}`} data-testid="nosing-question">
+          <div className={styles.scroll} data-testid="question-scroll">
             {hintBlock}
-            <p className="question-text">{q.q.text}</p>
+            <p className={styles.text} data-testid="question-text">{q.q.text}</p>
             {questionHint && questionHint.choices && (
-              <div className="choices" role="group" aria-label="The cat's three choices">
+              <div className={styles.choices} role="group" aria-label="The cat's three choices">
                 {questionHint.choices.map((c) => (
                   <button key={c} className="secondary" onClick={() => play({ t: 'answer', value: c })}>
                     {c}
@@ -413,7 +414,7 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
       )}
 
       {!walking && !done && !showEnd && view.speed && (
-        <div className="card nosing-speed">
+        <div className={`card ${styles.speed}`} data-testid="nosing-speed">
           <NosingSpeed
             key={view.speed.square}
             questions={view.speed.questions}
@@ -424,7 +425,7 @@ export function NosingGame({ puzzle, data, finished, helper = 'The cat', onChang
       )}
 
       {(view.phase === 'lock' || view.phase === 'open') && !walking && !showEnd && (
-        <div className="card nosing-lock">
+        <div className={`card ${styles.lock}`}>
           <NosingLock
             puzzle={puzzle}
             view={view}

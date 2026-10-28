@@ -3,6 +3,7 @@ import { roomAdjacency } from '../../engine/house.ts';
 import { nosingLanding, type NosingPuzzle, type NosingView } from '../../games/nosing.ts';
 import { MarkIcon, Paw } from './NosingIcons.tsx';
 import { markKinds, nearestMark, pawTrail, roomSquares, squareCentre, wallLines, woolPath } from './nosingUi.ts';
+import styles from './NosingBoardView.module.css';
 
 interface Props {
   puzzle: NosingPuzzle;
@@ -48,7 +49,8 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false, spent, s
 
   return (
     <svg
-      className={`nosing-board ${compact ? 'compact' : ''}`}
+      data-testid="nosing-board"
+      className={compact ? `${styles.board} ${styles.compact}` : styles.board}
       viewBox={`-0.5 -0.5 ${board.width + 1} ${board.height + 1}`}
       role="img"
       aria-label={`The floor plan as a board. The cat is on square ${catAt + 1} of ${board.path.length}.${landing !== null ? ` Purr-diction: it will land on square ${landing + 1}.` : ''}`}
@@ -64,16 +66,16 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false, spent, s
           s.room && <rect key={`${s.x}-${s.y}`} x={s.x} y={s.y} width="1" height="1" style={{ fill: tint(s.room) }} />,
       )}
       {walls.map((w, i) => (
-        <line key={i} className="nosing-wall" x1={w.x1} y1={w.y1} x2={w.x2} y2={w.y2} />
+        <line key={i} className={styles.wall} x1={w.x1} y1={w.y1} x2={w.x2} y2={w.y2} />
       ))}
-      <polyline className="nosing-path" points={pts(centres)} />
+      <polyline className={styles.path} points={pts(centres)} />
 
       {board.squares.map((sq, i) => {
         const kind = sq.kind === 'obstacle' || sq.kind === 'search' || sq.kind === 'speed' || sq.kind === 'catFind' ? sq.kind : null;
         if (!kind) return null;
         const c = centres[i];
         return (
-          <g key={i} className={`nosing-mark ${spent?.has(i) ? 'spent' : ''}`} transform={`translate(${c.x} ${c.y}) scale(${unit * 1.1})`}>
+          <g key={i} className={`${styles.mark} ${spent?.has(i) ? styles.spent : ''}`} transform={`translate(${c.x} ${c.y}) scale(${unit * 1.1})`}>
             <MarkIcon kind={kind} />
           </g>
         );
@@ -85,11 +87,11 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false, spent, s
         const b = centres[sq.to];
         const taken = view.takenLadders.includes(i);
         return (
-          <g key={`l${i}`} className={`nosing-ladder ${taken ? 'taken' : ''}`}>
+          <g key={`l${i}`} className={`${styles.ladder} ${taken ? styles.taken : ''}`}>
             {pawTrail(a, b, 0.9 * unit).map((p, k) => (
               <use key={k} href="#nosing-paw" transform={`translate(${p.x} ${p.y}) rotate(${p.angle}) scale(${unit})`} />
             ))}
-            <circle className="nosing-foot" cx={a.x} cy={a.y} r={0.26 * unit} />
+            <circle className={styles.foot} cx={a.x} cy={a.y} r={0.26 * unit} />
             <g transform={`translate(${a.x} ${a.y}) scale(${unit * 1.1})`}>
               <MarkIcon kind="ladder" />
             </g>
@@ -103,13 +105,13 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false, spent, s
         const a = centres[i];
         const b = centres[sq.to];
         return (
-          <g key={`s${i}`} className={`nosing-snake ${used ? 'used' : ''}`}>
+          <g key={`s${i}`} className={`${styles.snake} ${used ? styles.used : ''}`}>
             <path d={woolPath(a, b)} />
             <g transform={`translate(${a.x} ${a.y}) scale(${unit * 1.1})`}>
               <MarkIcon kind="snake" />
             </g>
             {i === puzzle.dogSquare && !used && (
-              <g className="nosing-dog-mark" transform={`translate(${a.x} ${a.y - (compact ? 0.1 : 0.3) * unit}) scale(${(compact ? 7 : 1.2) * unit})`}>
+              <g data-testid="nosing-dog-mark" transform={`translate(${a.x} ${a.y - (compact ? 0.1 : 0.3) * unit}) scale(${(compact ? 7 : 1.2) * unit})`}>
                 <title>A dog is waiting here</title>
                 <MarkIcon kind="dog" />
               </g>
@@ -126,16 +128,16 @@ export function NosingBoardView({ puzzle, view, catAt, compact = false, spent, s
       </g>
 
       {selected !== null && centres[selected] && (
-        <circle className="nosing-picked" cx={centres[selected].x} cy={centres[selected].y} r={0.36 * unit} />
+        <circle className={styles.picked} cx={centres[selected].x} cy={centres[selected].y} r={0.36 * unit} />
       )}
 
       {landing !== null && (
-        <g className="nosing-purr" transform={`translate(${centres[landing].x} ${centres[landing].y}) scale(${unit})`}>
+        <g className={styles.purr} data-testid="nosing-purr" transform={`translate(${centres[landing].x} ${centres[landing].y}) scale(${unit})`}>
           <MarkIcon kind="purr" />
         </g>
       )}
 
-      <g className="nosing-cat" transform={`translate(${cat.x} ${cat.y}) scale(${unit})`}>
+      <g transform={`translate(${cat.x} ${cat.y}) scale(${unit})`}>
         <MarkIcon kind="cat" />
       </g>
     </svg>

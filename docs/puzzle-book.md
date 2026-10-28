@@ -4,7 +4,8 @@ A redesign idea: each case becomes a puzzle book on the card table, with a noteb
 and each minigame opens as a printed page of that book. Mockups only so far, in `docs/mockups/`
 (open `index.html` through the dev server at `/docs/mockups/`, or in Chrome or Edge; the Claude
 desktop browser pane shows local files as a snapshot without their images). Nothing in the app has
-changed.
+changed. Building them happens on `#shelf`, not by changing the live app (`docs/visual-theme.md`,
+"Settled: a second shell").
 
 ## Settled
 

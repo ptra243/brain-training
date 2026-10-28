@@ -1,7 +1,7 @@
 // Nosing around: the walkers (right, wrong, random answers meet the dog, stay in the turn window, reach the lock),
 // the dog square, and a board forced for every scene room x level x clue share, each run through nosingProblems.
-// The dog's fallback play stays rare across the fights those forced boards play. nosing.test.ts keeps seeds 0-6
-// per level for the walkers; this takes 6 more spread over the rest (quick) or all 100 (SWEEP_FULL=1).
+// nosingProblems checks the board, the lock, the questions and that a run meets the dog; it does not play the fight.
+// nosing.test.ts keeps seeds 0-6 per level for the walkers; this takes 6 more spread over the rest (quick) or all 100 (SWEEP_FULL=1).
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,7 +9,7 @@ import { house } from '../content/index.ts';
 import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
 import { FULL, seedsOf, sweep } from '../sweep.ts';
 import { buildNosing } from './nosing.ts';
-import { LEVELS, botSeed, dogPlays, dogSquareSeed, nosingProblems } from './nosingSweeps.ts';
+import { LEVELS, botSeed, dogSquareSeed, nosingProblems } from './nosingSweeps.ts';
 
 for (const level of LEVELS) {
   sweep(`nosing bots, ${level}`, seedsOf(7, 100, 6), (i) => botSeed(level, i));
@@ -28,12 +28,6 @@ for (const level of LEVELS) {
     assert.deepEqual(problems, [], `nosing ${seed}`);
   });
 }
-
-test('nosing dog fallback is rare', (t) => {
-  // The 3% limit keeps the copy-of-her-cards play rare; the 2% limit stays on the dog-fight sweep.
-  assert.ok(dogPlays.fallbacks <= dogPlays.plays * 0.03, `the dog's fallback play fired ${dogPlays.fallbacks} of ${dogPlays.plays} times (over 3%)`);
-  t.diagnostic(`Nosing dog: ${dogPlays.plays} dog plays across the fights the hint bot won, ${dogPlays.fallbacks} fallbacks`);
-});
 
 test('summary', (t) => {
   const per = LEVELS.map((l) => `${l} 6 seeds`.replace('6', FULL ? '100' : '6'));

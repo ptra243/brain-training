@@ -4,7 +4,6 @@ import { nosingSpec, rerollFor, rollFor, nosingRollSeed, type NosingLevel } from
 import { lockAccepts, lockNote } from './lock.ts';
 import { wordingPairs } from './mentalMaths.ts';
 import { usedNumbers } from './numberGrid.ts';
-import { CAT_LIVES } from './dogFight.ts';
 import { NOSING_LEVELS } from './nosingBoard.ts';
 import {
   nosingHint,
@@ -240,6 +239,10 @@ test('the dog waits on a snake head, which has no question, and never pays out s
 });
 
 test('the dog fight: landing starts it, a win keeps the cat and pays two bonuses, a loss slides it, Solve works mid-fight', () => {
+  const fresh = nosingInitial();
+  const sample = make('easy', 0);
+  assert.equal(nosingStep(sample, fresh, { t: 'skipDog', pass: true }), fresh);
+  assert.equal(nosingStep(sample, fresh, { t: 'skipDog', pass: false }), fresh);
   for (const level of LEVELS) {
     const lost = find(level, 'hints', (x) => x.phase === 'dog');
     const { p, s, v } = lost;
@@ -282,13 +285,12 @@ test('the dog fight: landing starts it, a win keeps the cat and pays two bonuses
     }
 
     const slid = drive(p, 'wrong', (x) => !!x.dog?.over);
-    if (slid.v.dog?.over === 'lost') {
-      const sq = p.board.squares[p.dogSquare];
-      assert.equal(slid.v.pos, sq.to);
-      assert.ok(slid.v.usedSnakes.includes(p.dogSquare), "an earlier wrong snake answer may also be used");
-      assert.equal(slid.v.phase, 'roll');
-      assert.ok(slid.v.messages[0].startsWith('The dog chases the cat'));
-    }
+    const sq = p.board.squares[p.dogSquare];
+    assert.equal(slid.v.dog?.over, 'lost');
+    assert.equal(slid.v.pos, sq.to);
+    assert.ok(slid.v.usedSnakes.includes(p.dogSquare), 'an earlier wrong snake answer may also be used');
+    assert.equal(slid.v.phase, 'roll');
+    assert.ok(slid.v.messages[0].startsWith('The dog chases the cat'));
   }
 });
 
@@ -348,27 +350,22 @@ test('an old save with combine or undo loses the lock moves and keeps the rest',
   assert.equal(v.turn, 2);
 });
 
-test('an older save in the dog fight restarts the fight and keeps the walk before it', () => {
-  const { p, s, v } = find('medium', 'hints', (x) => x.phase === 'dog' && x.dog!.turn >= 2);
-  const first = s.moves.findIndex((_, i) => nosingView(p, { ...s, moves: s.moves.slice(0, i) }).phase === 'dog');
-  assert.ok(first >= 0 && first < s.moves.length);
-  const saved = { moves: s.moves, hints: s.hints }; // no version: from before the new rules
-  const up = nosingUpgrade(saved, p);
-  assert.equal(up.v, NOSING_VERSION);
-  assert.deepEqual(up.moves, s.moves.slice(0, first));
-  const after = nosingView(p, up);
-  assert.equal(after.phase, 'dog');
-  assert.equal(after.dog!.turn, 1);
-  assert.equal(after.dog!.catLives, CAT_LIVES); // a fresh fight: full lives
-  assert.ok(v.dog!.turn >= 2);
-  // Idempotent, and a current save is left alone.
-  assert.equal(nosingUpgrade(up, p), up);
+test('a save from before the room cap drops the walk', () => {
+  const landed = find('medium', 'hints', (x) => x.phase === 'dog');
+  const { p } = landed;
+  const s: NosingState = { ...landed.s, moves: [...landed.s.moves, { t: 'hint' }] };
+  // A current save is left alone, and upgrading it again changes nothing.
   assert.equal(nosingUpgrade(s, p), s);
-  // A finished game that loses its fight stays open, as revealed.
-  assert.equal(nosingUpgrade(saved, p, true).solved, 'revealed');
-  // A save with no fight move in it only gets the version.
-  const walk = { moves: s.moves.slice(0, first), hints: 0 };
-  assert.deepEqual(nosingUpgrade(walk, p, true), { ...walk, v: NOSING_VERSION });
+  assert.deepEqual(nosingUpgrade({ moves: [{ t: 'roll' }], hints: 4, v: 2 }, p), { moves: [], hints: 0, v: 3 });
+  // An unversioned save used to keep the walk up to the dog fight. The board changed, so the walk goes.
+  const saved = { moves: s.moves, hints: s.hints };
+  const up = nosingUpgrade(saved, p);
+  assert.deepEqual(up, { moves: [], hints: 0, v: 3 });
+  assert.equal(nosingUpgrade(up, p), up);
+  const finished = nosingUpgrade(saved, p, true);
+  assert.equal(finished.solved, 'revealed');
+  assert.deepEqual(finished.moves, []);
+  assert.equal(finished.hints, 0);
 });
 
 test('the swap move works inside a nosing dog fight', () => {

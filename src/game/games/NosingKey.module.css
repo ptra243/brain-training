@@ -1,0 +1,10 @@
+.key { display: grid; gap: 0.5rem; }
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.info { margin: 0; flex: 1; font-size: 0.9rem; color: var(--on-baize); }
+/* button.toggle: must beat the global .secondary, which loads after this module. */
+button.toggle { min-height: 44px; min-width: 4.5rem; width: auto; color: var(--on-baize); border-color: var(--on-baize-soft); }
+.list { list-style: none; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 0.6rem; }
+.list li { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; line-height: 1.25; }
+.list li:last-child { grid-column: 1 / -1; }
+.icon { flex: none; width: 1.8rem; height: 2rem; }
+.list :global(.mi-ghost) * { stroke: var(--ink-soft); }

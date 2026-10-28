@@ -15,7 +15,8 @@ import type { Progress } from './state.ts';
 // v9: cases are set in one of six houses (rotated or mirrored), which changes every case.
 // v10: the lodge's Nosing around medium and hard boards are shorter (92-100 squares, was 100-110).
 // v11: word searches have no blank squares (the hidden word is placed last), which changes their grids.
-const PREFIX = 'brain-training:v11:';
+// v12: Nosing around may leave one room unvisited, and a room may hold a second search clue, which changes those boards.
+const PREFIX = 'brain-training:v12:';
 
 function read(key: string): unknown {
   try {

@@ -3,7 +3,7 @@ import { house as manor } from '../content/index.ts';
 import { roomAdjacency } from '../engine/house.ts';
 import type { House } from '../engine/types.ts';
 import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
-import { buildNosingBoard, nosingBounds, nosingSpec, type NosingBoard, type NosingLevel } from './nosingBoard.ts';
+import { buildNosingBoard, nosingBounds, nosingRoomTarget, nosingSpec, type NosingBoard, type NosingLevel } from './nosingBoard.ts';
 
 /** The sweep behind "nosing board: every rule holds": seed `i` of a level. `npm test` runs a few; check-cases a sample or all 300. */
 export const BOARD_SEEDS = 300;
@@ -45,13 +45,10 @@ export function boardSeed(level: NosingLevel, i: number, house: House = manor): 
   }
   assert.equal(b.roomOf.length, len);
   assert.equal(b.squares.length, len);
-  // Every room is entered, unless the house stops the path at some of them (then at least searchClues + enterExtra).
+  // At least nosingRoomTarget rooms: all but one, unless the house already asks for fewer. The walk may still enter the last one.
   const entered = [...new Set(b.roomOf)].sort();
-  if (lv.enterExtra === undefined) assert.deepEqual(entered, [...roomIds].sort(), `${ctx}: misses a room`);
-  else {
-    assert.ok(entered.length >= Math.min(roomIds.length, searchClues + lv.enterExtra, lv.enterMax ?? roomIds.length), `${ctx}: enters only ${entered.length} rooms`);
-    assert.ok(entered.every((r) => roomIds.includes(r)), ctx);
-  }
+  assert.ok(entered.length >= nosingRoomTarget(lv, roomIds.length, searchClues), `${ctx}: enters only ${entered.length} rooms`);
+  assert.ok(entered.every((r) => roomIds.includes(r)), ctx);
   if (lv.minEndRoom !== undefined) {
     let run = 0;
     while (run < len && b.roomOf[len - 1 - run] === lockRoomOf(b)) run++;
@@ -65,7 +62,6 @@ export function boardSeed(level: NosingLevel, i: number, house: House = manor): 
   assert.equal(count('obstacle'), lv.obstacles, ctx);
   assert.equal(count('speed'), lv.speed, ctx);
   assert.equal(count('catFind'), lv.catFinds, ctx);
-  assert.equal(count('search'), entered.length, ctx);
 
   // Jumps.
   const ends = new Set<number>();
@@ -96,15 +92,23 @@ export function boardSeed(level: NosingLevel, i: number, house: House = manor): 
   assert.notEqual(lockRoom, sceneRoom, ctx);
   assert.ok(b.clueRooms.includes(lockRoom), `${ctx}: lock room not a clue room`);
   assert.ok(!b.clueRooms.includes(sceneRoom), ctx);
-  assert.equal(b.clueRooms.length, Math.max(searchClues, 1), ctx);
+  assert.ok(b.clueRooms.length >= 1 && b.clueRooms.length <= Math.max(searchClues, 1), `${ctx}: ${b.clueRooms.length} clue rooms`);
 
-  // Search squares: one per room, exactly searchClues hold clues.
+  // One search square in every entered room. Any further one is a clue, never in the scene room.
   const searches = b.squares.map((s, k) => ({ s, k })).filter((x) => x.s.kind === 'search');
-  assert.deepEqual(searches.map((x) => b.roomOf[x.k]).sort(), entered, `${ctx}: search per room`);
+  const inRoom = (r: string) => searches.filter((x) => b.roomOf[x.k] === r);
+  for (const r of entered) assert.ok(inRoom(r).length >= 1, `${ctx}: ${r} has no search square`);
+  assert.equal(inRoom(sceneRoom).length, entered.includes(sceneRoom) ? 1 : 0, `${ctx}: scene searches`);
+  for (const x of searches) {
+    const earlier = searches.some((y) => y.k < x.k && b.roomOf[y.k] === b.roomOf[x.k]);
+    if (!earlier) continue;
+    assert.notEqual(x.s.clueIndex, null, `${ctx}: extra search is not a clue`);
+    assert.notEqual(b.roomOf[x.k], sceneRoom, ctx);
+  }
   const withClue = searches.filter((x) => x.s.clueIndex !== null);
   assert.equal(withClue.length, searchClues, ctx);
   assert.deepEqual(withClue.map((x) => x.s.clueIndex), withClue.map((_, j) => j), `${ctx}: clue order`);
-  assert.deepEqual(withClue.map((x) => b.roomOf[x.k]).sort(), searchClues ? [...b.clueRooms].sort() : [], ctx);
+  assert.deepEqual([...new Set(withClue.map((x) => b.roomOf[x.k]))].sort(), searchClues ? [...b.clueRooms].sort() : [], ctx);
   for (const x of searches) assert.equal(x.s.bonus !== undefined, x.s.clueIndex === null, ctx);
   for (const s of b.squares) if (s.kind === 'obstacle' || s.kind === 'catFind') assert.ok(s.bonus, ctx);
 

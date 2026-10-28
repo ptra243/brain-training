@@ -1,8 +1,12 @@
 # Casebook UI
 
+- **The new look is not this folder.** Cosy library and puzzle-book screens live on `#shelf`
+  (`docs/visual-theme.md`). Do not restyle `Home`, `Casebook`, `styles.css` or the other screens
+  here to match them.
 - **Adding a minigame**: give it a kind and spec in `src/engine/types.ts`
   and its role in `src/engine/gameKinds.ts`, then an entry in
-  `games/registry.tsx` (name, how its puzzle is built, its screen).
+  `games/registry.tsx` (name, how its puzzle is built, its screen, and a
+  `rule` of at most about 47 characters for the #shelf puzzle page header).
   `GameScreen` and `CluesPanel` read everything from the registry; don't
   switch on the kind of game anywhere else. Use `isSceneGame` /
   `isInterrogation` to narrow a `GameSpec`, not optional fields.

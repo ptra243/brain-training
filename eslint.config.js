@@ -12,6 +12,16 @@ export default defineConfig(
   {
     files: ['src/**/*.{ts,tsx}'],
     languageOptions: { globals: globals.browser },
+    rules: {
+      // Same ref = same case: engine randomness goes through the seeded Rng,
+      // new codes through crypto (root CLAUDE.md).
+      'no-restricted-properties': [
+        'error',
+        { object: 'Math', property: 'random', message: 'Use the seeded Rng (or crypto for new codes).' },
+        { object: 'window', property: 'confirm', message: 'Use the in-app Dialog.' },
+      ],
+      'no-restricted-globals': ['error', { name: 'confirm', message: 'Use the in-app Dialog.' }],
+    },
   },
   {
     files: ['scripts/**/*.ts', 'src/**/*.test.ts', '.claude/**/*.mjs', 'vite.config.ts', 'eslint.config.js'],

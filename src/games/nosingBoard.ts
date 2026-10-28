@@ -30,7 +30,7 @@ export interface NosingLevelSpec {
   catFinds: number;
   /** The fewest question squares she must land on, even answering everything wrong. */
   minQuestions: number;
-  /** The path ends once (search clues + this) rooms are entered, capped at the room count; absent = every room. */
+  /** The path ends once (search clues + this) rooms are entered, capped at the room count; absent = no house limit. `nosingRoomTarget` still leaves one room out. */
   enterExtra?: number;
   /** ...but never more than this many rooms. */
   enterMax?: number;
@@ -135,11 +135,21 @@ function gridFor(house: House, n: number): Grid {
   return { width, height, room, roomNo, roomTotal: ids.length, adj };
 }
 
+/**
+ * Rooms the path must enter. The house's own limit when it already asks for fewer;
+ * otherwise every room but one. A one-room house still enters that room. A minimum:
+ * the walk may still step into the last room to reach its length.
+ */
+export function nosingRoomTarget(lv: NosingLevelSpec, allRooms: number, searchClues: number): number {
+  const today = lv.enterExtra === undefined ? allRooms : Math.min(allRooms, searchClues + lv.enterExtra, lv.enterMax ?? allRooms);
+  return Math.min(today, Math.max(1, allRooms - 1));
+}
+
 /** Room-by-room randomised DFS: fill the current room, then move to a room not yet entered. */
 function windingPath(lv: NosingLevelSpec, grid: Grid, rng: Rng, searchClues: number): number[] | null {
   const { width, height, room, roomNo, adj, roomTotal: allRooms } = grid;
   const target = lv.len[0] + rng.int(lv.len[1] - lv.len[0] + 1);
-  const roomCount = lv.enterExtra === undefined ? allRooms : Math.min(allRooms, searchClues + lv.enterExtra, lv.enterMax ?? allRooms);
+  const roomCount = nosingRoomTarget(lv, allRooms, searchClues);
   /** Squares at the end of the path that are in the last room. */
   const endRun = (): number => {
     const last = room[path[path.length - 1]];
@@ -277,7 +287,7 @@ function lay(
   const chosen = new Set<string>(want > 0 ? [lockRoom, ...candidates.slice(0, want - 1)] : []);
   const clueRooms = order.filter((r) => chosen.has(r) || r === lockRoom);
 
-  // One search square per room.
+  // One search square per entered room. Room picks, then (only when clues remain) extra picks, then bonus picks.
   const searchAt: number[] = [];
   for (const r of order) {
     const spots = path.map((_, i) => i).filter((i) => roomOf[i] === r && !blocked(i));
@@ -286,7 +296,16 @@ function lay(
     q.add(i);
     searchAt.push(i);
   }
-  const clueSquares = searchAt.filter((i) => chosen.has(roomOf[i])).sort((a, b) => a - b);
+  const clueAt = searchAt.filter((i) => chosen.has(roomOf[i]));
+  while (clueAt.length < searchClues) {
+    const spots = path.map((_, i) => i).filter((i) => squares[i].kind === 'plain' && !blocked(i) && roomOf[i] !== sceneRoom);
+    if (!spots.length) return null;
+    const i = rng.pick(spots);
+    q.add(i);
+    searchAt.push(i);
+    clueAt.push(i);
+  }
+  const clueSquares = clueAt.slice().sort((a, b) => a - b);
   for (const i of searchAt) {
     const idx = clueSquares.indexOf(i);
     squares[i] = idx >= 0 ? { kind: 'search', clueIndex: idx } : { kind: 'search', clueIndex: null, bonus: rng.pick(BONUS_KINDS) };

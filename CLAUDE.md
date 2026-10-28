@@ -50,6 +50,9 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
   suspect counters, red-pencil crosses, serif headings. The floor plan is the
   one bold element; keep everything else quiet. Colours and type are CSS
   variables at the top of `src/styles.css`.
+- **The new look stays on `#shelf`.** Cosy library and puzzle-book screens are
+  a second shell and must not change `src/styles.css`, `Home`, `Casebook`, or
+  the address with no hash. See `docs/visual-theme.md`.
 - Write UI copy in plain sentence case, from her point of view.
 
 ## Working on it

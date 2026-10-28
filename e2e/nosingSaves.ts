@@ -4,7 +4,7 @@ import { content } from '../src/content/index.ts';
 import { houseOf } from '../src/content/houses.ts';
 import { nosingLadders, nosingSnakes } from '../src/content/nosing.ts';
 import { caseFor, type CaseRef } from '../src/engine/caseRef.ts';
-import { buildNosing, nosingSeed, type NosingPhase, type NosingView } from '../src/games/nosing.ts';
+import { buildNosing, nosingHint, nosingSeed, nosingStep, nosingView, type NosingPhase, type NosingView } from '../src/games/nosing.ts';
 import { drive } from '../src/games/nosingSweeps.ts';
 
 /** Casebook -> Clues -> Get a clue -> Nosing around (the game must be in the list and not done). */
@@ -62,11 +62,27 @@ export async function openNosingAt(page: Page, phase: Exclude<NosingPhase, 'open
     ladders: nosingLadders,
     snakes: nosingSnakes,
   });
-  // A short board can jump over a speed square or the dog with right answers: try the hint bot, then random bots.
-  // `also` narrows the stop, e.g. a dog turn with a challenge or a bonus hand.
+  // Drive stops before it moves on a dog fight, so a stop on phase dog still sees the opening deal.
+  // A short board can jump over a speed square: try the hint bot, then random bots.
   const stop = (v: NosingView) => v.phase === phase && also(v);
-  let run = drive(puzzle, 'hints', stop);
-  for (let salt = 0; !stop(run.v) && salt < 100; salt++) run = drive(puzzle, 'mixed', stop, String(salt));
+  const land = phase === 'dog' ? (v: NosingView) => v.phase === 'dog' : stop;
+  let run = drive(puzzle, 'hints', land);
+  for (let salt = 0; !land(run.v) && salt < 100; salt++) run = drive(puzzle, 'mixed', land, String(salt));
+  if (!land(run.v)) throw new Error(`no bot reaches '${phase}' (seed ${spec.seed})`);
+  // A challenge or a bonus hand can be a later turn. This one save plays the hint bot; the scans do not.
+  if (phase === 'dog' && !stop(run.v)) {
+    for (let turn = 0; turn < 8 && run.v.phase === 'dog' && !run.v.dog?.over && !stop(run.v); turn++) {
+      let s = run.s;
+      for (let k = 0; k < 3; k++) {
+        const h = nosingHint(puzzle, s);
+        if (!h) break;
+        s = h.state;
+      }
+      const next = nosingStep(puzzle, s, { t: 'play' });
+      if (next === s) break;
+      run = { ...run, s: next, v: nosingView(puzzle, next) };
+    }
+  }
   if (!stop(run.v)) throw new Error(`no bot reaches '${phase}' (seed ${spec.seed})`);
 
   save.progress.games.nosing = { status: 'playing', data: run.s };

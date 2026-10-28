@@ -614,15 +614,7 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
 
 /* Nosing around */
 .nosing { display: grid; gap: 0.75rem; }
-.nosing-board { display: block; width: 100%; height: auto; border-radius: 0.3rem; background: var(--baize-deep); box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35); }
-.nosing-board.compact { max-height: 3.5rem; }
-.nosing-question, .nosing-speed { gap: 0.5rem; }
-.nosing-question .question-text { font-size: 1.1rem; }
-.nosing-question .numpad-key, .nosing-speed .numpad-key { min-height: 2.75rem; }
-.nosing-question .numpad-screen, .nosing-speed .numpad-screen { min-height: 2.75rem; }
-.nosing-question .numpad, .nosing-speed .numpad, .nosing-question .numpad-keys, .nosing-speed .numpad-keys { gap: 0.4rem; }
-.nosing-wall { stroke: var(--wall); stroke-width: 0.1; stroke-linecap: square; }
-.nosing-path { fill: none; stroke: var(--ink); stroke-width: 0.1; stroke-linejoin: round; stroke-linecap: round; opacity: 0.2; }
+/* Nosing board: src/game/games/NosingBoardView.module.css. Key: NosingKey.module.css. Icon paint stays here. */
 /* Icons (NosingIcons.tsx): one set of shapes for the board and the key */
 .mi * { fill: none; stroke: var(--ink); stroke-width: 0.06; stroke-linecap: round; stroke-linejoin: round; }
 .mi .card { fill: var(--card); }
@@ -635,49 +627,9 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
 .mi-cat .face, .mi-cat .ear { fill: var(--brass); stroke: var(--wall); }
 .mi-cat .eye { fill: var(--wall); }
 .mi-ghost * { stroke: var(--on-baize); stroke-width: 0.05; stroke-dasharray: 0.09 0.07; stroke-linecap: butt; }
-/* Room squares are pale, so the board ghost uses a dark dash. The key keeps the lighter stroke. */
-.nosing-purr .mi-ghost * { stroke: var(--wall); stroke-width: 0.08; }
-.nosing-mark.spent, .nosing-ladder.taken .mi { opacity: 0.35; }
-.nosing-picked { fill: none; stroke: var(--on-baize); stroke-width: 0.07; stroke-dasharray: 0.12 0.08; }
-.nosing-ladder use { fill: var(--brass-deep); opacity: 0.85; }
-.nosing-ladder.taken use { opacity: 0.45; }
-.nosing-foot { fill: none; stroke: var(--brass-deep); stroke-width: 0.06; }
-.nosing-snake > path { fill: none; stroke: var(--pencil); stroke-width: 0.08; stroke-linecap: round; opacity: 0.85; }
-.nosing-snake.used { opacity: 0.35; }
-.nosing-strip { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.2rem 0.75rem; margin: 0; font-size: 0.85rem; color: var(--on-baize-soft); }
-.nosing-messages { display: grid; gap: 0.35rem; font-family: var(--serif); }
-.nosing-messages p { margin: 0; line-height: 1.4; }
-.working { margin: 0; padding-left: 1.1rem; font-family: var(--sans); font-size: 0.9rem; color: var(--ink-soft); }
-.nosing-roll, .nosing-question, .nosing-speed, .nosing-lock { display: grid; gap: 0.7rem; }
-.dice { display: flex; justify-content: center; gap: 0.75rem; }
-.die { width: 3.2rem; height: 3.2rem; }
-.die rect { fill: #fffcf3; stroke: var(--ink); stroke-width: 1.5; }
-.die circle { fill: var(--ink); }
-.nosing-buttons { display: grid; gap: 0.5rem; }
-.question-text { margin: 0; font-family: var(--serif); font-size: 1.25rem; line-height: 1.4; }
-.stake { margin: 0; font-size: 0.9rem; color: var(--ink-soft); }
-.choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
-.numpad { display: grid; gap: 0.5rem; }
-.numpad-screen {
-  margin: 0; min-height: 3rem; display: grid; place-items: center; border-radius: 0.35rem;
-  background: #fffcf3; border: 2px solid var(--card-edge); font-family: var(--serif); font-size: 1.6rem; font-variant-numeric: tabular-nums;
-}
-.numpad-empty { font-size: 0.95rem; color: var(--ink-soft); font-family: var(--sans); }
-.numpad-keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
-.numpad-key {
-  min-height: 3rem; border: 1px solid var(--card-edge); border-radius: 0.35rem; cursor: pointer;
-  background: #fffcf3; color: var(--ink); font-family: var(--serif); font-size: 1.3rem; font-weight: 600;
-}
-.numpad-key:active { background: var(--card-edge); }
-.numpad-ok { background: var(--ink); color: var(--card); border-color: var(--ink); }
-.numpad-ok:disabled { opacity: 0.4; cursor: default; }
-.speed { display: grid; gap: 0.7rem; }
-.speed h2 { margin: 0; }
-.speed p { margin: 0; }
-.speed-count { color: var(--ink-soft); font-size: 0.9rem; }
-.sand { position: relative; height: 1.8rem; border-radius: 999px; overflow: hidden; background: var(--card-edge); }
-.sand-fill { position: absolute; inset: 0 auto 0 0; background: var(--brass); transition: width 250ms linear; }
-.sand-text { position: relative; display: block; text-align: center; line-height: 1.8rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+/* Nosing shell: src/game/games/NosingGame.module.css */
+/* Number pad: src/game/games/NumberPad.module.css */
+/* Speed round: src/game/games/NosingSpeed.module.css */
 .lock h2, .lock h3 { margin: 0; }
 .lock p { margin: 0; }
 .lock { display: grid; gap: 0.7rem; }
@@ -736,7 +688,7 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
 /* Lock and dog screens: tighter, so the grid, cards and buttons fit 780px without scrolling. */
 .nosing.tight { gap: 0.45rem; }
 .nosing.tight .card { padding: 0.65rem 0.75rem; }
-.nosing.tight .nosing-lock, .nosing.tight .lock, .nosing.tight .number-grid { gap: 0.4rem; }
+.nosing.tight .lock, .nosing.tight .number-grid { gap: 0.4rem; }
 .nosing.tight .hint-bar { margin: 0; }
 /* The action buttons stay pinned to the bottom of the screen, whatever sits above them (a hint note, say). */
 .nosing.tight .lock-actions {
@@ -746,23 +698,6 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
 .nosing.tight .grid-rows { gap: 0; }
 .lock-title { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
 .small { font-size: 0.85rem; line-height: 1.3; }
-.nosing-note { margin: 0; font-size: 0.85rem; color: var(--on-baize-soft); }
-.nosing-question { padding: 0.65rem 0.75rem; gap: 0.4rem; }
-.nosing-question .hint-bar { margin: 0; }
-/* The card stops short of the bottom of a 780px screen, under the heading and the 3.5rem board strip: the story and the cat's choices
-   scroll in .question-scroll, the pad (and its OK) never does. 11rem is what sits above the card (it starts at 166px; the rest is slack). */
-.nosing-question { grid-template-rows: minmax(0, 1fr) auto; max-height: calc(100dvh - 11rem); }
-.question-scroll { display: grid; gap: 0.4rem; align-content: start; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
-/* The speed round's four cards: a 2x2 grid of big targets. */
-.speed-sum { text-align: center; font-size: 1.6rem; font-variant-numeric: tabular-nums; padding: 0.25rem 0; }
-.speed-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
-.speed-card {
-  min-height: 3.5rem; border: 1px solid var(--card-edge); border-radius: 0.35rem; cursor: pointer;
-  background: #fffcf3; color: var(--ink); font-family: var(--serif); font-size: 1.5rem; font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-.speed-card:active { background: var(--card-edge); }
-
 /* ---------- Exploring a campaign round ---------- */
 /* Rooms are tapped, so a square must stay at least 44px wide: the frame gives up its padding for it. */
 .floorplan-frame.explore { padding: 0.15rem; }
@@ -876,27 +811,6 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
 .midnight-note { font-weight: 600; color: var(--on-baize); }
 
 /* Nosing: key, tap line, encounter card, dice tumble */
-.nosing-key { display: grid; gap: 0.5rem; }
-.nosing-key-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
-.nosing-info { margin: 0; flex: 1; font-size: 0.9rem; color: var(--on-baize); }
-.key-toggle { min-height: 44px; min-width: 4.5rem; width: auto; color: var(--on-baize); border-color: var(--on-baize-soft); }
-.key-list { list-style: none; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 0.6rem; }
-.key-list li { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; line-height: 1.25; }
-.key-list li:last-child { grid-column: 1 / -1; }
-.key-icon { flex: none; width: 1.8rem; height: 2rem; }
-.key-list .mi-ghost * { stroke: var(--ink-soft); }
-.nosing-encounter { display: grid; gap: 0.6rem; }
-.nosing-encounter .question-text { font-size: 1.1rem; }
-@media (prefers-reduced-motion: no-preference) {
-  .dice.tumble .die { animation: die-tumble 0.6s ease-out; }
-  .dice.tumble .die:nth-child(2) { animation-delay: 0.05s; }
-}
-@keyframes die-tumble {
-  0% { transform: rotate(-200deg) translateY(-14px) scale(0.8); opacity: 0.4; }
-  60% { transform: rotate(25deg) translateY(2px) scale(1.05); opacity: 1; }
-  100% { transform: none; }
-}
-
 /* Face to face: the accused's questioning after an accusation (campaign). */
 .face-ending { display: grid; gap: 0.75rem; margin-top: 0.9rem; }
 .face-line { margin: 0; font-family: var(--serif); font-size: 1.1rem; }

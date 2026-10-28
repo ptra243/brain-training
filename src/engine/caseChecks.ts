@@ -106,7 +106,7 @@ export function playProblems(c: Case): string[] {
 /**
  * What's unfair about the games built from this case's facts: interrogations, word games, tarot, nosing, boards, talk.
  * The games' own rules are swept in their own files (tarot and cat hints in tarot.test.ts and cats.test.ts, nosing
- * boards in nosing.sweep.ts); a Nosing puzzle built here still gets the full nosingProblems.
+ * boards in nosing.sweep.ts). nosingProblems checks the board, lock, questions and that a run meets the dog; it does not play the fight.
  */
 export function puzzleProblems(c: Case): string[] {
   const out: string[] = [];

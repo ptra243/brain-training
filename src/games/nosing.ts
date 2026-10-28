@@ -155,13 +155,18 @@ export type NosingMove =
   /** A cat hint was taken (also counted in `hints`); it lets the next hint be a step stronger. */
   | { t: 'hint' }
   /** Solve on a question square or in the dog fight: the cat answers that step for her (also counted in `hints`). */
-  | { t: 'solve' };
+  | { t: 'solve' }
+  /**
+   * End the dog fight without playing cards. Pass carries the cat on (the same `endDog` as a won Solve);
+   * fail slides it. Walks, drives and a replayed save send this. The player UI never does.
+   */
+  | { t: 'skipDog'; pass: boolean };
 
 /**
- * The save version. 2: the dog fight got its challenge, +1/+1 bonus and swap, which replay old
- * fights differently. A save without `v` is older, and `nosingUpgrade` restarts its dog fight.
+ * The save version. 3: the path may leave one room unvisited, and a room may hold a second
+ * search clue. A save from before that drops its walk and is not replayed.
  */
-export const NOSING_VERSION = 2;
+export const NOSING_VERSION = 3;
 
 export interface NosingState {
   moves: NosingMove[];
@@ -189,13 +194,15 @@ export interface SavedNosingState {
  * moves belonged to the lock, the last square, so they are dropped; `hints` and
  * `solved` stay. A state with none of them comes back as it is. When the game is
  * already `finished`, the cut leaves it open as `revealed`, so its clues stay.
- * A save from before version 2 that has made a move inside the dog fight is cut at
- * that move (the fight restarts from turn 1, later moves are dropped) the same way;
- * it needs the puzzle to replay where the fight starts.
+ * A save from before version 3 drops every move and sets `hints` to 0. Those moves
+ * were for the old path, so they are not replayed (a walk on the new board can throw).
+ * A finished game still comes back `revealed`. A save already at this version is
+ * unchanged, apart from the lock cut.
  */
-export function nosingUpgrade(state: SavedNosingState, p: NosingPuzzle, finished = false): NosingState {
+export function nosingUpgrade(state: SavedNosingState, _p: NosingPuzzle, finished = false): NosingState {
   const old = (m: { t: string }) => m.t === 'combine' || m.t === 'undo';
   let moves = state.moves;
+  let hints = state.hints;
   let cut = false;
   if (moves.some(old)) {
     moves = moves.slice(0, moves.findIndex((m) => old(m) || m.t === 'try'));
@@ -203,20 +210,13 @@ export function nosingUpgrade(state: SavedNosingState, p: NosingPuzzle, finished
   }
   let v = state.v;
   if ((v ?? 1) < NOSING_VERSION) {
-    const sim = newSim();
-    const at = moves.findIndex((m) => {
-      if (sim.phase === 'dog') return true;
-      act(p, sim, m as NosingMove);
-      return false;
-    });
-    if (at >= 0) {
-      moves = moves.slice(0, at);
-      cut = true;
-    }
+    moves = [];
+    hints = 0;
+    cut = true;
     v = NOSING_VERSION;
   }
   if (!cut && v === state.v) return state as NosingState;
-  const out = { ...state, moves, v } as NosingState;
+  const out = { ...state, moves, hints, v } as NosingState;
   return cut && finished && !state.solved ? { ...out, solved: 'revealed' } : out;
 }
 
@@ -615,6 +615,14 @@ function act(p: NosingPuzzle, sim: Sim, move: NosingMove): boolean {
       }
       return false;
     }
+    case 'skipDog': {
+      // Same ending as Solve, without a hint: pass carries on, fail slides. Illegal once the fight is over.
+      if (sim.phase !== 'dog' || !sim.fight || sim.fight.over) return false;
+      sim.messages = [];
+      sim.fight.over = move.pass ? 'won' : 'lost';
+      endDog(p, sim, move.pass);
+      break;
+    }
     case 'roll': {
       if (sim.phase !== 'roll' && sim.phase !== 'rolled') return false;
       sim.hintRun = 0;
@@ -828,7 +836,7 @@ export function nosingLanding(p: NosingPuzzle, view: NosingView): number | null 
 
 /** One move. An illegal move gives back the same state. */
 export function nosingStep(p: NosingPuzzle, state: NosingState, move: NosingMove): NosingState {
-  if (move.t === 'hint' || move.t === 'solve') return state; // these go through `nosingHint` and `nosingSolveStep`
+  if (move.t === 'hint' || move.t === 'solve') return state; // these go through `nosingHint` and `nosingSolveStep`; `skipDog` is a real move
   if (state.solved) return state;
   if (!act(p, replay(p, state), move)) return state;
   return { ...state, moves: [...state.moves, move] };
