@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { caseCode } from '../engine/caseRef.ts';
+import type { CaseRef } from '../engine/caseRef.ts';
 import type { Case, GameKind } from '../engine/types.ts';
 import { generate } from '../game/caseClient.ts';
 import type { Action, Progress } from '../game/state.ts';
 import { loadQuick, saveQuick } from '../game/storage.ts';
-import { advance, type SaveKey } from './quickProgress.ts';
+import { advance, startNewQuick, type SaveKey } from './quickProgress.ts';
 import type { Subject } from '../game/state.ts';
 import type { NotebookTab } from './notebook.ts';
 
@@ -27,6 +28,8 @@ export interface QuickBook {
   progress: Progress;
   ref: string;
   dispatch: (a: Action) => void;
+  /** The save's own ref, for the title; none for a sample. */
+  fullRef: CaseRef | null;
 }
 
 interface Loaded {
@@ -37,33 +40,55 @@ interface Loaded {
   key: SaveKey | null;
 }
 
-/** Rebuilds her saved Quick case. Null while it builds, false when there is none. */
-function useQuickCase(sample: SampleCase | undefined, enabled: boolean): Loaded | null | false {
+/** Where the case comes from: her Quick save, or a new Play case built now and saved at once. */
+export type BookMode = 'saved' | 'new';
+
+/**
+ * Rebuilds her saved Quick case, or (mode 'new') builds a Play case and saves it as the Quick save.
+ * Null while it builds, false when there is none or it failed. The effect's `live` flag drops a build
+ * that StrictMode's first run started: only the surviving run saves, so one save is written.
+ */
+function useQuickCase(sample: SampleCase | undefined, mode: BookMode): Loaded | null | false {
   // Her save is read once; with none, there is nothing to build.
-  const [saved] = useState(() => (sample || !enabled ? null : loadQuick()));
+  const [saved] = useState(() => (sample || mode === 'new' ? null : loadQuick()));
   const [built, setBuilt] = useState<Loaded | false | null>(null);
   useEffect(() => {
-    if (!saved) return;
+    if (sample) return;
     let live = true;
-    generate({ kind: 'case', ref: saved.ref }).then(
-      (c) => live && setBuilt({ c, progress: saved.progress, ref: caseCode(saved.ref), key: { ref: saved.ref, historyId: saved.historyId } }),
-      () => live && setBuilt(false),
-    );
+    if (mode === 'new') {
+      generate({ kind: 'play' }).then(
+        (made) => {
+          if (!live) return;
+          const save = startNewQuick(made);
+          saveQuick(save);
+          setBuilt({ c: made.c, progress: save.progress, ref: caseCode(made.ref), key: { ref: made.ref, historyId: undefined } });
+        },
+        (err) => {
+          console.error(err);
+          if (live) setBuilt(false);
+        },
+      );
+    } else if (saved) {
+      generate({ kind: 'case', ref: saved.ref }).then(
+        (c) => live && setBuilt({ c, progress: saved.progress, ref: caseCode(saved.ref), key: { ref: saved.ref, historyId: saved.historyId } }),
+        () => live && setBuilt(false),
+      );
+    }
     return () => {
       live = false;
     };
-  }, [saved]);
+  }, [saved, mode, sample]);
   if (sample) return { ...sample, key: null };
-  return saved ? built : false;
+  return mode === 'new' || saved ? built : false;
 }
 
 /**
  * Her Quick case and her progress, shared by the Case page and the notebook. Null while it builds,
- * false when there is none (or when `enabled` is off, as in the New case book). Her moves are written
+ * false when there is none (or it failed to build, in the New case book). Her moves are written
  * to the Quick save (the Casebook sees them); a sample case never writes.
  */
-export function useQuickBook(sample: SampleCase | undefined, enabled: boolean): QuickBook | null | false {
-  const loaded = useQuickCase(sample, enabled);
+export function useQuickBook(sample: SampleCase | undefined, mode: BookMode): QuickBook | null | false {
+  const loaded = useQuickCase(sample, mode);
   // Her latest progress, so two actions in one tick (a save, then a finish) both land.
   const [moves, setMoves] = useState<Progress | null>(null);
   const latest = useRef<Progress | null>(null);
@@ -74,5 +99,5 @@ export function useQuickBook(sample: SampleCase | undefined, enabled: boolean): 
     latest.current = next;
     setMoves(next);
   };
-  return { c, ref, progress: moves ?? loaded.progress, dispatch };
+  return { c, ref, progress: moves ?? loaded.progress, dispatch, fullRef: key?.ref ?? null };
 }

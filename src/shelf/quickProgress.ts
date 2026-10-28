@@ -3,8 +3,13 @@
 
 import type { Case } from '../engine/types.ts';
 import type { CaseRef } from '../engine/caseRef.ts';
-import { reduce, type Action, type Progress } from '../game/state.ts';
+import { emptyProgress, reduce, type Action, type Progress } from '../game/state.ts';
 import type { QuickSave } from '../game/storage.ts';
+
+/** The Quick save for a case just built by Play: her ref, no moves, no history row yet (as `App`'s `startCase`). */
+export function startNewQuick(made: { ref: CaseRef }): QuickSave {
+  return { ref: made.ref, progress: emptyProgress() };
+}
 
 /** What `loadQuick` gave back, apart from her moves: kept so each write puts it back unchanged. */
 export type SaveKey = Pick<QuickSave, 'ref' | 'historyId'> & { ref: CaseRef };

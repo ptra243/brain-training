@@ -1,6 +1,6 @@
 // One #dev/<id> preview, full viewport. Every button does nothing: a preview never saves or leaves the page.
 
-import { useEffect, useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { cats, content } from '../content/index.ts';
 import { isSceneGame } from '../engine/gameKinds.ts';
 import { caseCode, newPlayCase } from '../engine/caseRef.ts';
@@ -303,6 +303,20 @@ function ShelfPuzzlePreview({ page }: { page: 'unplayed' | 'won' | 'revealed' })
   return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} sample={sample} />;
 }
 
+/** The New case book over a case built from a fixed seed: the opening not yet seen, nothing saved. */
+function ShelfNewCasePreview() {
+  useLayoutEffect(() => {
+    document.body.classList.add('shelf');
+    return () => document.body.classList.remove('shelf');
+  }, []);
+  // The real book swaps "New case" for the built case's title; a sample has no save, so title it here.
+  const [{ title, fresh }] = useState(() => {
+    const { ref, c } = newPlayCase(content, () => 0.5);
+    return { title: caseTitle(ref), fresh: { c, progress: emptyProgress(), ref: caseCode(ref), seen: false } };
+  });
+  return <OpenBook title={title} tone="fresh" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} sample={fresh} />;
+}
+
 function ShelfRibbonsPreview() {
   useLayoutEffect(() => {
     document.body.classList.add('shelf');
@@ -359,6 +373,7 @@ const SCREENS: Record<string, () => ReactNode> = {
   'you-sheet': () => <YouSheetPreview />,
   motives: () => <MotivesPreview />,
   'shelf-ribbons': () => <ShelfRibbonsPreview />,
+  'shelf-new-case': () => <ShelfNewCasePreview />,
   'shelf-find-a-clue': () => <ShelfFindACluePreview />,
   'shelf-notebook': () => <ShelfNotebookPreview view="peek" />,
   'shelf-notebook-you': () => <ShelfNotebookPreview view="you" />,

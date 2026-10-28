@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react';
+import { Dialog } from '../game/Dialog.tsx';
 import { caseTitle } from '../game/names.ts';
 import { loadCampaign, loadQuick } from '../game/storage.ts';
 import { OpenBook, type Box, type Tone } from './OpenBook.tsx';
@@ -11,9 +12,6 @@ interface Taken {
   tone: Tone;
   from: Box;
 }
-
-/** The title on the "New case" prototype page. */
-const NEW_CASE_TITLE = 'The Orchid Room';
 
 // Nothing on this screen is drawn yet beyond the shelf itself, so every control goes here.
 const SOON = '#shelf/soon';
@@ -165,21 +163,24 @@ function StarBadge() {
 
 /** The library: one honey-oak bookcase. Her save is only read, to see which books stick out. */
 export function Bookcase() {
-  const quick = loadQuick();
   const campaign = loadCampaign();
   const playing = campaign?.outcome === 'playing' ? campaign : null;
   const round = playing ? Math.min(Math.max(playing.rounds.length, 1), ROUNDS) : 0;
   const roundTitle = ROUND_TITLES[round - 1];
-  const quickTitle = quick ? caseTitle(quick.ref) : '';
 
   // Opening a book is React state, never a hash change: `main.tsx` reloads on every hashchange.
   const [taken, setTaken] = useState<Taken | null>(null);
+  // Asks first when she has an unsolved Quick case that a new one would replace.
+  const [confirming, setConfirming] = useState<HTMLAnchorElement | null>(null);
+  // Read again whenever a book is taken down or put back: the New case book saves a case while open.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- `taken` is the trigger, not an input
+  const quick = useMemo(() => loadQuick(), [taken]);
+  const quickTitle = quick ? caseTitle(quick.ref) : '';
   const trigger = useRef<HTMLAnchorElement | null>(null);
 
-  const take = (e: MouseEvent<HTMLAnchorElement>, id: Taken['id'], title: string, tone: Tone) => {
-    e.preventDefault();
-    trigger.current = e.currentTarget;
-    const r = e.currentTarget.getBoundingClientRect(); // before the book is hidden
+  const take = (el: HTMLAnchorElement, id: Taken['id'], title: string, tone: Tone) => {
+    trigger.current = el;
+    const r = el.getBoundingClientRect(); // before the book is hidden
     setTaken({ id, title, tone, from: { left: r.left, top: r.top, width: r.width, height: r.height } });
   };
 
@@ -214,7 +215,10 @@ export function Bookcase() {
                   className={styles.quickBook}
                   out
                   seal={<MagnifierSeal />}
-                  onOpen={(e) => take(e, 'quick', quickTitle, 'quick')}
+                  onOpen={(e) => {
+                    e.preventDefault();
+                    take(e.currentTarget, 'quick', quickTitle, 'quick');
+                  }}
                   gone={taken?.id === 'quick'}
                 />
               ) : null}
@@ -224,7 +228,11 @@ export function Bookcase() {
                 size={15}
                 className={styles.newCase}
                 seal={<EnvelopeSeal className={styles.tiltR5} />}
-                onOpen={(e) => take(e, 'new', NEW_CASE_TITLE, 'fresh')}
+                onOpen={(e) => {
+                  e.preventDefault();
+                  if (quick && !quick.progress.solved) setConfirming(e.currentTarget);
+                  else take(e.currentTarget, 'new', 'New case', 'fresh');
+                }}
                 gone={taken?.id === 'new'}
               />
               <a href={SOON} aria-label="Choose your games" className={styles.deckStack}>
@@ -292,6 +300,27 @@ export function Bookcase() {
           </div>
         </div>
       </main>
+      {confirming && quick ? (
+        <Dialog placement="center" labelId="new-case-title" onClose={() => setConfirming(null)}>
+          <h2 id="new-case-title">Start a new case?</h2>
+          <p className="dialog-text">{quickTitle} isn&apos;t solved yet. A new case replaces it.</p>
+          <div className="dialog-actions">
+            <button data-autofocus className="secondary" onClick={() => setConfirming(null)}>
+              Keep playing
+            </button>
+            <button
+              className="primary"
+              onClick={() => {
+                const el = confirming;
+                setConfirming(null);
+                take(el, 'new', 'New case', 'fresh');
+              }}
+            >
+              Start new
+            </button>
+          </div>
+        </Dialog>
+      ) : null}
       {taken ? <OpenBook key={taken.id} title={taken.title} tone={taken.tone} from={taken.from} onBack={() => setTaken(null)} /> : null}
     </>
   );

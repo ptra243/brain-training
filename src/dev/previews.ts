@@ -29,6 +29,7 @@ export const PREVIEWS: readonly PreviewInfo[] = [
   { id: 'shelf-puzzle', about: 'The #shelf puzzle page: a sample game still to play, open over the book', look: 'plain' },
   { id: 'shelf-puzzle-won', about: 'The #shelf puzzle page after a win: the finished board, then the clues', look: 'plain' },
   { id: 'shelf-puzzle-revealed', about: 'The #shelf puzzle page after Solve: "Solved by" the cat, then the clues', look: 'plain' },
+  { id: 'shelf-new-case', about: 'The #shelf New case book on a fresh case: the opening (who died, the story) before Find a clue', look: 'plain' },
   { id: 'shelf-find-a-clue', about: 'The #shelf Find a clue page: a sample case with one game finished and the finale locked', look: 'plain' },
   { id: 'shelf-notebook', about: 'The #shelf book on Case with the notebook closed to its strip at the foot', look: 'plain' },
   { id: 'shelf-notebook-you', about: 'The #shelf notebook open on the You tab', look: 'plain' },

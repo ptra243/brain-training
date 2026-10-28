@@ -153,3 +153,9 @@ test('shelf-notebook-grid preview', async ({ page }) => {
   await expect(page.getByRole('button', { name: /^Ask .* for a hint$/ })).toBeVisible();
   await checkScreen(page, 'preview shelf-notebook-grid');
 });
+
+test('shelf-new-case preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-new-case');
+  await expect(page.getByRole('button', { name: 'Find a clue' })).toBeVisible();
+  await checkScreen(page, 'preview shelf-new-case');
+});

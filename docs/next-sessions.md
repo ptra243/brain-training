@@ -27,7 +27,7 @@ open questions go in a linked `docs/<slug>.md`, and the entry points to it. An e
 settled design may stay as a short stub; give it a doc when someone starts it.
 
 ## Session: Shelf UI, beside the current game
-Last touched: 2026-10-28
+Last touched: 2026-10-28 (the New case book now builds a real Play case and saves it as the Quick save)
 Reads first: `docs/visual-theme.md` (Settled: a second shell, the Screens sections, Screen plan), `CONTEXT.md`.
 Goal: build every screen on `#shelf` only, in the Screen plan order; the current game stays as it is. The bookcase and a still case page are up. The ribbons and page turn were prototyped and tuned on her phone (2026-10-28, `docs/mockups/ribbons-prototype.html`, settled in visual-theme.md); steps 1 (ribbons and page turn, `#dev/shelf-ribbons`), 2 (Find a clue page, `#dev/shelf-find-a-clue`) and 3 (puzzle page and won, `#dev/shelf-puzzle`, `-won`, `-revealed`; #shelf now writes the Quick save) are built in src/shelf. Step 4, the notebook, is built (`src/shelf/Notebook.tsx`, `useQuickBook.ts`; `#dev/shelf-notebook`, `-you`, `-grid`, `-subject`; settled numbers in "Screen 4, settled"): a 52px peek at the bottom, open from 96px, tabs You · Clues · Grid · Guests, guest/weapon/room pages, hidden on the puzzle page. Not yet seen on her phone. Left: the grid's cells and labels are under 44px in the notebook too (`test.fail` in e2e/shelfNotebook.spec.ts, as in the Casebook); from step 3, the turning leaf covers only the book page, so the book's edges pop. Step 5 (map plate) is next and adds the half-height notebook on a counter tap, the brass ring, "Place in a room" and "Question them". Then answer, stickers, campaign book, deck and guest book.
 Starting prompt:

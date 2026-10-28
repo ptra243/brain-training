@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import styles from './OpenBook.module.css';
 import { FindAClue } from './FindAClue.tsx';
+import { caseTitle } from '../game/names.ts';
 import { Notebook } from './Notebook.tsx';
 import { useQuickBook, type SampleCase } from './useQuickBook.ts';
 import { attachRibbons } from './ribbonMotion.ts';
@@ -18,14 +19,6 @@ export type Tone = 'quick' | 'fresh';
 
 /** The case page is a column no wider than this, like the shelf page. */
 const MAX_WIDTH = 480;
-
-// Static sample copy: this prototype is not wired to a real case.
-const BLURB = 'Dinner is over and nobody is going anywhere. Somewhere in this house is the clue that names the killer.';
-const CHOICES = [
-  { story: "A newspaper lies folded on the window seat, its crossword half done in someone else's ink.", game: 'Mini crossword', level: 'Medium', page: 24 },
-  { story: 'The cat keeps trotting off down the hall and looking back at you.', game: 'Nosing around', level: 'Easy', page: 53 },
-  { story: 'A tarot deck lies face down on the card table, half dealt.', game: 'Tarot match', level: 'Hard', page: 46 },
-];
 
 const ICONS: ReactNode[] = [
   <svg key="case" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
@@ -46,32 +39,6 @@ const ICONS: ReactNode[] = [
   </svg>,
 ];
 
-/** The New case book stays a sample until step 3. */
-function NewCaseSample() {
-  return (
-    <>
-      <p className={styles.blurb}>{BLURB}</p>
-      <h2 className={styles.find}>Find a clue</h2>
-      <ul className={styles.choices}>
-        {CHOICES.map((c) => (
-          <li key={c.page}>
-            <button type="button" className={styles.choice}>
-              <span className={styles.story}>{c.story}</span>
-              <span className={styles.meta}>
-                <span>
-                  {c.game} · {c.level}
-                </span>
-                <b>p. {c.page}</b>
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
-      <p className={styles.foot}>Turn to page 24, 46 or 53.</p>
-    </>
-  );
-}
-
 interface OpenBookProps {
   title: string;
   tone: Tone;
@@ -90,7 +57,7 @@ interface OpenBookProps {
  * `ribbonMotion.ts`, which owns the pages' `hidden` and the ribbons' transforms after the first render.
  * The cover is hidden by `prefers-reduced-motion`, which leaves only the page.
  */
-export function OpenBook({ title, tone, from, onBack, startOpen, sample }: OpenBookProps) {
+export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sample }: OpenBookProps) {
   const backRef = useRef<HTMLButtonElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
   const underRef = useRef<HTMLDivElement>(null);
@@ -99,8 +66,9 @@ export function OpenBook({ title, tone, from, onBack, startOpen, sample }: OpenB
   const navRef = useRef<HTMLElement>(null);
   const creaseRef = useRef<HTMLSpanElement>(null);
   const [section, setSection] = useState(0);
-  // Her case, shared by the Case page and the notebook. The New case book has none.
-  const book = useQuickBook(sample, tone === 'quick');
+  // Her case, shared by the Case page and the notebook. The New case book builds one and saves it.
+  const book = useQuickBook(sample, tone === 'quick' ? 'saved' : 'new');
+  const title = book && book.fullRef ? caseTitle(book.fullRef) : coverTitle;
   const [puzzleOpen, setPuzzleOpen] = useState(false);
 
   // Where the book started, as a move and a scale from the page's final place. Read once.
@@ -165,7 +133,13 @@ export function OpenBook({ title, tone, from, onBack, startOpen, sample }: OpenB
                   <div className={styles.running}>
                     <span>Case</span>
                   </div>
-                  {tone === 'quick' ? <FindAClue book={book} sample={sample} onPuzzleOpen={setPuzzleOpen} /> : <NewCaseSample />}
+                  {tone === 'fresh' && book === null ? (
+                    <p className={styles.lede}>Laying out the cards…</p>
+                  ) : tone === 'fresh' && book === false ? (
+                    <p className={styles.lede}>That case wouldn&apos;t deal. Go back and try again.</p>
+                  ) : (
+                    <FindAClue book={book} sample={sample} onPuzzleOpen={setPuzzleOpen} />
+                  )}
                 </section>
                 {SECTIONS.slice(1).map((name) => (
                   <section key={name} className={styles.page} data-section={name} aria-label={name} hidden>

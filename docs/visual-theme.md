@@ -271,6 +271,9 @@ Done (2026-10-27): the `#shelf` route and the honey-oak bookcase. New case and t
 play a CSS open (lift, grow, stiff cover) onto a still case page: blurb, three clue choices, ribbons
 for Case, Map, Puzzles and Answer. The choices do nothing yet. Other books still open "This page
 isn't drawn yet."
+Update (2026-10-28): the New case book now builds a real Play case (`generate({ kind: 'play' })`),
+saves it as the Quick save and opens on the real opening, Find a clue and the notebook; an unsolved
+Quick case is asked about first (`#dev/shelf-new-case`).
 
 | Order | Shelf screen | Replaces | Mockup |
 |---|---|---|---|

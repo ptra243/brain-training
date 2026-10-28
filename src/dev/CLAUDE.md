@@ -71,6 +71,9 @@ What a look check judges on each:
 - `shelf-ribbons`: the #shelf puzzle book open on Case, ribbons dropped (three ribbons in a row of four, a gap
   where Case lies in the crease): book runs to the left edge with a 20px left page, 6px felt right, header 16/10px
   inset; satin ribbons readable and 44px+; no sideways scroll.
+- `shelf-new-case`: the New case book on a fresh sample Play case (fixed seed, nothing saved), opening not yet seen: the
+  body line, the story paragraph and the button that goes on to Find a clue; notebook strip at the foot; no sideways
+  scroll. The real book builds its case when opened ("Laying out the cards…" until it arrives).
 - `shelf-find-a-clue`: the same book on a sample Play case (no finale; Play cases have none) with one game
   finished: story lines (not game names) lead each line, then "game · level · N clues" and "p. NN"; the finished
   line greyed ("Solved · N clues found"), "Hide finished (1)" at the foot; lines 44px+; no sideways scroll. The
