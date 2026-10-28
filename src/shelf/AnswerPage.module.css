@@ -1,0 +1,162 @@
+/* The Answer page on #shelf, inside OpenBook's page (which sets ink, paper and --display).
+   From docs/mockups/puzzle-book-answer.html: a printed form with pencil (Caveat) in the blanks. */
+:global(body.shelf) .scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 8px;
+}
+:global(body.shelf) .head {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1.5px solid var(--ink);
+  padding-bottom: 5px;
+}
+:global(body.shelf) .head span {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+:global(body.shelf) .head em {
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+:global(body.shelf) .note {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
+:global(body.shelf) .slip {
+  display: flex;
+  flex-direction: column;
+  padding: 7px 10px 8px;
+  background: #fff6d6;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  transform: rotate(-0.8deg);
+}
+:global(body.shelf) .slip strong {
+  font-size: 16px;
+}
+:global(body.shelf) .slip span {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+:global(body.shelf) .tries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 17px;
+  line-height: 1.4;
+}
+:global(body.shelf) .tries:empty {
+  display: none;
+}
+:global(body.shelf) .tries small {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+:global(body.shelf) .crossed {
+  text-decoration: line-through;
+  text-decoration-color: #a8322d;
+  text-decoration-thickness: 2px;
+}
+/* A wrong try: one red line through the middle of every line of it, whatever fonts sit on the line. */
+:global(body.shelf) .struck {
+  background: linear-gradient(transparent calc(50% - 1px), #a8322d calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px));
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+:global(body.shelf) .tries li {
+  line-height: 1.7;
+}
+:global(body.shelf) .pencil {
+  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  font-weight: 700;
+  font-size: 1.2em;
+  color: #2a2a3a;
+}
+:global(body.shelf) .form,
+:global(body.shelf) .verdict {
+  margin: 2px 0 0;
+  font-size: 18px;
+  line-height: 2.1;
+}
+:global(body.shelf) .blank {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 110px;
+  min-height: 44px;
+  padding: 0 6px;
+  vertical-align: middle;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-bottom: 1.5px solid var(--ink);
+  cursor: pointer;
+}
+:global(body.shelf) .blank[aria-expanded='true'] {
+  background: #fff6d6;
+}
+:global(body.shelf) .printed {
+  font-weight: 600;
+}
+:global(body.shelf) .unknown {
+  font-style: italic;
+  color: var(--ink-soft);
+}
+:global(body.shelf) .list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+:global(body.shelf) .option {
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0 13px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  background: #fffcf3;
+  border: 1.5px solid #8e6f27;
+  border-radius: 6px;
+  cursor: pointer;
+}
+:global(body.shelf) .option[aria-pressed='true'] {
+  border-color: #a8322d;
+  box-shadow: inset 0 0 0 1.5px #a8322d;
+}
+:global(body.shelf) .submit {
+  box-sizing: border-box;
+  margin-top: 4px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 24px;
+  background: #a8322d;
+  color: #fffcf3;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 18px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+:global(body.shelf) .submit:disabled {
+  background: #cdbfa3;
+  color: #6b5a3a;
+  box-shadow: none;
+  cursor: default;
+}

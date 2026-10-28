@@ -19,6 +19,7 @@ import {
   visibleClues,
   type Action,
   type Progress,
+  type Subject,
 } from './state.ts';
 import { SuspectSheet } from './SuspectSheet.tsx';
 import { usePointerDrag } from './usePointerDrag.ts';
@@ -35,6 +36,8 @@ interface Props {
   onQuestion?: (kind: GameKind) => void;
   /** The house to draw (default: the manor). */
   house?: House;
+  /** When given, a short tap on a counter or weapon calls this instead of opening the classic sheet. */
+  onSubject?: (s: Subject) => void;
 }
 
 type Piece = { kind: 'suspect' | 'item'; id: string };
@@ -69,7 +72,7 @@ const SPREAD: [number, number][][] = [
   [[-0.27, -0.3], [-0.27, 0.3], [0.27, -0.3], [0.27, 0.3], [0, 0]],
 ];
 
-export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQuestion, house = houseOf(c) }: Props) {
+export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQuestion, house = houseOf(c), onSubject }: Props) {
   // The cat's hint: the person or weapon and the room (or weapon) its square is about.
   const hint = pawedSquare ? cellOf(pawedSquare) : null;
   const hintedPiece = (p: Piece) => !!hint && hint.row === p.id;
@@ -119,6 +122,8 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
     dispatch({ type: 'place-item', item: piece.id, room: room?.id ?? null });
   };
 
+  const showPiece = (piece: Piece) => (onSubject ? onSubject(piece) : setOpen(piece));
+
   const { start, held, ghostRef } = usePointerDrag<Piece>({
     onDrop: (piece, at) => {
       drop(piece, at.x, at.y);
@@ -129,7 +134,7 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
         setSelected(null); // tapping the counter again cancels "tap a room"
       } else {
         setSelected(null);
-        setOpen(piece); // short tap: show the clues about it
+        showPiece(piece); // short tap: show the clues about it
       }
     },
   });
@@ -138,7 +143,7 @@ export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQues
     onPointerDown: (e: ReactPointerEvent) => start(piece, e),
     // Keyboard activation (Enter/Space) fires click with detail 0 and no pointer events.
     onClick: (e: { detail: number }) => {
-      if (e.detail === 0) setOpen(piece);
+      if (e.detail === 0) showPiece(piece);
     },
   });
 

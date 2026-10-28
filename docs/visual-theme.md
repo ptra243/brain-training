@@ -280,6 +280,20 @@ Order (1 and 4 don't depend on 2 and 3 and can run alongside):
 5. The look option.
 6. Her test on her phone.
 
+**Status (2026-10-29):** 1–5 are built; 6 is left. Fonts are `@fontsource` packages imported from the
+shelf chunk and precached. New case repeats her last Quick settings (`planNewCase`). The map plate
+reuses `MapPanel` (one optional `onSubject` prop) and drops accusing from the map on the shelf. The
+Answer page prints the room (accusations are who + weapon) and ends with "Back to the shelf". The
+Jigsaw tab runs `EndBoardPanel` unchanged inside the notebook. The look is `src/game/look.ts`
+(`brain-training-look` key), the sheet `OptionsSheet.tsx`. For the owner to judge:
+- **Play cases keep Grid, no Jigsaw** (the classic Casebook shows both). One rule, `hasJigsaw` in
+  `src/shelf/notebook.ts`.
+- The sticker drawer: captions hidden and mini grids at 14px so two rows fit; a sideways drag on a
+  sticker scrolls the drawer. Each sticker is its mini piece with the classic caption; the intro
+  is hidden and "How to play" is a small disclosure.
+- The notebook grid at 44px is wider than the page: it scrolls sideways in its own box (weapon
+  columns start off-screen), with a soft right-edge shadow as the cue.
+
 ## Screens 8–10, settled (owner, 2026-10-28)
 
 - **The campaign is one book in chapters**, a chapter per round (Chapter one: 9pm, Midnight, 3am).
@@ -324,9 +338,9 @@ Quick case is asked about first (`#dev/shelf-new-case`).
 | done | Find a clue page (read-only; rows turn to "not drawn yet") | Get a clue | `CyoaChoices`, `CyoaPage` |
 | done | Puzzle page (and won) | GameScreen | `puzzle-page*.html` |
 | done | Notebook: You, clues, grid, subject pages | Clue drawer, grid, You sheet | `NotebookGrid` |
-| 5 | Map plate (taps open subject pages) | Map, suspect sheet | `PuzzleMap` |
-| 6 | Answer page | Accuse panel (face to face is campaign, step 8) | `puzzle-book-answer.html` |
-| 7 | Jigsaw tab in the notebook, sticker version (Milestone 1) | Jigsaw end board | `StickerPage` |
+| done | Map plate (taps open subject pages) | Map, suspect sheet | `PuzzleMap` |
+| done | Answer page | Accuse panel (face to face is campaign, step 8) | `puzzle-book-answer.html` |
+| done | Jigsaw tab in the notebook, sticker version (Milestone 1) | Jigsaw end board | `StickerPage` |
 | 8 | Campaign: title page, room page, chapters | Campaign setup, view, next murder | `CampaignRoom` |
 | 9 | The deck | Pick games | none |
 | 10 | Guest book | Record | none |

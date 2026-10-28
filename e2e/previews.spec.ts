@@ -141,21 +141,55 @@ test('shelf-notebook previews', async ({ page }) => {
   await checkScreen(page, 'preview shelf-notebook-you');
   await page.goto('/#dev/shelf-notebook-subject');
   await expect(page.getByRole('button', { name: /^‹ Guests$/ })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'What they said' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Place in a room' })).toBeVisible();
   await checkScreen(page, 'preview shelf-notebook-subject');
 });
 
 test('shelf-notebook-grid preview', async ({ page }) => {
-  // The same known bug as the Casebook's Grid tab (tabs.spec.ts): the grid's axis labels are under 44px.
-  test.fail(true, 'Real layout bug: grid axis labels are about 24px wide (rooms, weapons across) or 40px tall (rows), as in the Casebook.');
   await page.goto('/#dev/shelf-notebook-grid');
   await expect(page.getByRole('navigation', { name: 'Notebook pages' }).getByRole('button', { name: 'Grid' })).toHaveAttribute('aria-current', 'page');
   await expect(page.getByRole('button', { name: /^Ask .* for a hint$/ })).toBeVisible();
   await checkScreen(page, 'preview shelf-notebook-grid');
 });
 
-test('shelf-new-case preview', async ({ page }) => {
+async function noSideways(page: import('@playwright/test').Page, label: string) {
+  const w = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
+  expect(w[0], `${label}: sideways scroll`).toBeLessThanOrEqual(w[1]);
+}
+
+test('shelf-map previews', async ({ page }) => {
+  await page.goto('/#dev/shelf-map');
+  await expect(page.getByText('The house, after dinner')).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Notebook · / })).toBeVisible();
+  await noSideways(page, 'preview shelf-map');
+  await page.goto('/#dev/shelf-map-subject');
+  await expect(page.getByRole('heading', { name: 'Place in a room' })).toBeVisible();
+  await expect(page.locator('[data-ringed]')).toHaveCount(1);
+  await noSideways(page, 'preview shelf-map-subject');
+  // The notebook's own buttons keep the 44px rule (the map's counters and weapons are 35px by design; the plate adds touch area).
+  await expect.poll(() => page.getByRole('region', { name: 'Your notebook' }).getByRole('button').evaluateAll((els) => els.filter((e) => e.getBoundingClientRect().height < 44).length)).toBe(0);
+});
+
+test('shelf-answer previews', async ({ page }) => {
+  await page.goto('/#dev/shelf-answer');
+  await expect(page.getByText('1 of 2 right. Keep digging.')).toBeVisible();
+  await checkScreen(page, 'preview shelf-answer');
+  await page.goto('/#dev/shelf-answer-solved');
+  await expect(page.getByText('Case closed')).toBeVisible();
+  await checkScreen(page, 'preview shelf-answer-solved');
+});
+
+test('shelf-new-case preview',async ({ page }) => {
   await page.goto('/#dev/shelf-new-case');
   await expect(page.getByRole('button', { name: 'Find a clue' })).toBeVisible();
   await checkScreen(page, 'preview shelf-new-case');
+});
+
+test('shelf-notebook-jigsaw preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-notebook-jigsaw');
+  const tabs = page.getByRole('navigation', { name: 'Notebook pages' });
+  await expect(tabs.getByRole('button', { name: 'Jigsaw' })).toHaveAttribute('aria-current', 'page');
+  await expect(tabs.getByRole('button', { name: 'Grid' })).toHaveCount(0);
+  await expect(page.locator('.cb-tray')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });

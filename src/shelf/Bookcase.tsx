@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { Dialog } from '../game/Dialog.tsx';
 import { caseTitle } from '../game/names.ts';
+import { OptionsSheet } from '../game/OptionsSheet.tsx';
 import { loadCampaign, loadQuick } from '../game/storage.ts';
 import { OpenBook, type Box, type Tone } from './OpenBook.tsx';
 import styles from './Shelf.module.css';
@@ -170,6 +171,7 @@ export function Bookcase() {
 
   // Opening a book is React state, never a hash change: `main.tsx` reloads on every hashchange.
   const [taken, setTaken] = useState<Taken | null>(null);
+  const [options, setOptions] = useState(false);
   // Asks first when she has an unsolved Quick case that a new one would replace.
   const [confirming, setConfirming] = useState<HTMLAnchorElement | null>(null);
   // Read again whenever a book is taken down or put back: the New case book saves a case while open.
@@ -199,6 +201,12 @@ export function Bookcase() {
             <h1 className={styles.title}>Casebook</h1>
             <p className={styles.lede}>Take a book off the shelf.</p>
           </div>
+          <button type="button" aria-label="Options" className={styles.gear} onClick={() => setOptions(true)}>
+            <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" />
+            </svg>
+          </button>
           <Window />
         </header>
 
@@ -300,6 +308,7 @@ export function Bookcase() {
           </div>
         </div>
       </main>
+      {options ? <OptionsSheet current="shelf" onClose={() => setOptions(false)} /> : null}
       {confirming && quick ? (
         <Dialog placement="center" labelId="new-case-title" onClose={() => setConfirming(null)}>
           <h2 id="new-case-title">Start a new case?</h2>

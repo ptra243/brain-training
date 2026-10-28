@@ -13,29 +13,7 @@ export default defineConfig({
       includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'],
       workbox: {
         // words.txt is fetched on demand, but precache it so word games work offline.
-        globPatterns: ['**/*.{js,css,html,svg,txt,png}'],
-        // The #shelf font comes from Google Fonts; it is cached the first time
-        // #shelf is opened online, then works offline.
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\//,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-stylesheets',
-              cacheableResponse: { statuses: [0, 200] },
-              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\//,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-files',
-              cacheableResponse: { statuses: [0, 200] },
-              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
-        ],
+        globPatterns: ['**/*.{js,css,html,svg,txt,png,woff2}'],
       },
       manifest: {
         name: 'Brain Training',

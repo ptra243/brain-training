@@ -4,6 +4,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { DevPage } from './dev/DevPage.tsx';
 import { App } from './game/App.tsx';
 import { ErrorBoundary } from './game/ErrorBoundary.tsx';
+import { loadLook, opensShelf } from './game/look.ts';
 import { ShelfRoute } from './shelf/ShelfRoute.tsx';
 import './styles.css';
 
@@ -12,7 +13,8 @@ const isDev = window.location.hash === '#dev' || window.location.hash.startsWith
 if (isDev) document.body.classList.add('dev');
 
 // The second shell lives at #shelf and #shelf/..., in its own chunk; the address with no hash is still the game.
-const isShelf = window.location.hash === '#shelf' || window.location.hash.startsWith('#shelf/');
+// With no hash it is whichever look she chose in Options.
+const isShelf = !isDev && opensShelf(window.location.hash, loadLook());
 if (isShelf) document.body.classList.add('shelf');
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

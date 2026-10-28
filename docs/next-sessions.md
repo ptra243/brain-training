@@ -27,12 +27,12 @@ open questions go in a linked `docs/<slug>.md`, and the entry points to it. An e
 settled design may stay as a short stub; give it a doc when someone starts it.
 
 ## Session: Shelf UI, beside the current game
-Last touched: 2026-10-29 (Milestone 1 planned: Quick play on the shelf, end to end)
-Reads first: `docs/visual-theme.md` ("Milestone 1", Settled: a second shell, the Screens sections, Screen plan), `CONTEXT.md`.
-Goal: Milestone 1, Quick play on the shelf end to end (`docs/visual-theme.md` "Milestone 1"): she plays a real Quick case on her phone at `#shelf` without the current shell. Steps 1–4 are built (bookcase, ribbons, Find a clue, puzzle page, notebook). Left, in order: (1) bundle fonts, grid to 44px, New case uses her last settings; (2) map plate; (3) answer page; (4) Jigsaw tab, sticker version; (5) the look option; (6) her test.
+Last touched: 2026-10-29 (Milestone 1 pieces 1–5 built: fonts, grid 44px, last settings, map plate, answer page, Jigsaw tab, look option)
+Reads first: `docs/visual-theme.md` ("Milestone 1" and its Status), `CONTEXT.md`.
+Goal: finish Milestone 1: the owner judges the open calls in its Status (Play cases keep Grid with no Jigsaw; the sticker drawer), then she plays one real Quick case on her phone at `#shelf` (step 6). Fix what that turns up; then campaign (Screen plan step 8).
 Starting prompt:
 ```
-Read docs/visual-theme.md "Milestone 1". Start at piece 1 (fonts bundled for offline, notebook grid cells and labels to 44px, New case book uses her last-used settings): write a handoff and hand it to an implementer. Pieces 2 (map plate) and 4 (Jigsaw tab) can then be planned with the owner. #shelf only, except the look option's gear on Home.
+Read docs/visual-theme.md "Milestone 1" Status. Ask me how her phone test went and about the open calls listed there, then brief an implementer with the fixes. #shelf only.
 ```
 
 ## Session: Theme content, land the lines

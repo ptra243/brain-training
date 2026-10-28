@@ -3,7 +3,9 @@
 import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { cats, content } from '../content/index.ts';
 import { isSceneGame } from '../engine/gameKinds.ts';
-import { caseCode, newPlayCase } from '../engine/caseRef.ts';
+import { caseCode, newPlayCase, newQuickCase } from '../engine/caseRef.ts';
+import { endBoard } from '../engine/caseBoard.ts';
+import { boardInitial, makeRules, trayIds, truthPlacement } from '../game/board/boardSave.ts';
 import { generateCase } from '../engine/generate.ts';
 import { midSentence } from '../engine/text.ts';
 import type { Case } from '../engine/types.ts';
@@ -25,7 +27,7 @@ import { NextMurderScene } from '../game/NextMurderScene.tsx';
 import { OpeningScene } from '../game/OpeningScene.tsx';
 import { campaignRound } from '../engine/campaign.ts';
 import { openingScript } from '../game/opening.ts';
-import { emptyProgress, mentions, reduce, visibleClues, type Progress } from '../game/state.ts';
+import { emptyProgress, gameDone, mentions, reduce, sceneUnlocked, unlockedClueIds, visibleClues, type Progress } from '../game/state.ts';
 import { DogFightStates } from './DogFightStates.tsx';
 import { MotivesPreview } from './MotivesPreview.tsx';
 import { PortraitGallery } from './PortraitGallery.tsx';
@@ -356,7 +358,80 @@ function ShelfNotebookPreview({ view }: { view: 'peek' | 'you' | 'grid' | 'subje
   return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen sample={sample} />;
 }
 
+/**
+ * The #shelf notebook open on Jigsaw over a Jigsaw-finish Quick sample: two games won, the end board built
+ * the way EndBoardPanel builds it, and three stickers already pressed in at their true places.
+ */
+function ShelfJigsawPreview() {
+  useLayoutEffect(() => {
+    document.body.classList.add('shelf');
+    return () => document.body.classList.remove('shelf');
+  }, []);
+  const sample = useMemo(() => {
+    const { ref, c } = newQuickCase(content, 'medium', 'normal', 'classic', () => 0.5);
+    let progress = emptyProgress();
+    for (const g of c.games.slice(0, 2)) progress = reduce(c, progress, { type: 'game-finish', kind: g.kind, status: 'won', data: null });
+    // The same key and board EndBoardPanel makes, so its saved moves line up with this one.
+    const unlocked = unlockedClueIds(c, progress);
+    const scene = sceneUnlocked(c, progress);
+    const left = c.games.filter((g) => (c.sceneGiven || !g.unlocksScene) && !gameDone(progress, g.kind)).length;
+    const key = `${[...unlocked].sort().join(',')}|${scene ? 'scene' : ''}|${left}`;
+    const board = endBoard(content, c, unlocked, scene, left);
+    if (board) {
+      const save = boardInitial();
+      for (const pid of trayIds(makeRules(board, c.levels.logic, false, c.guests), save).slice(0, 3)) save.placed[pid] = truthPlacement(board, pid);
+      progress = reduce(c, progress, { type: 'end-board', key, save });
+    }
+    return { c, progress, ref: caseCode(ref), seen: true, endBoard: true, notebook: { open: true, tab: 'jigsaw' as const } };
+  }, []);
+  return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen sample={sample} />;
+}
+
+/** The #shelf book turned to Answer on a sample case: one wrong try crossed out, or solved after it. */
+function ShelfAnswerPreview({ solved }: { solved: boolean }) {
+  useLayoutEffect(() => {
+    document.body.classList.add('shelf');
+    return () => document.body.classList.remove('shelf');
+  }, []);
+  const sample = useMemo(() => {
+    const { ref, c } = newPlayCase(content, () => 0.5);
+    let progress = emptyProgress();
+    const wrong = c.suspects.find((s) => s !== c.murderer)!;
+    progress = reduce(c, progress, { type: 'accuse', suspect: wrong, item: c.weapon });
+    if (solved) progress = reduce(c, progress, { type: 'accuse', suspect: c.murderer, item: c.weapon });
+    return { c, progress, ref: caseCode(ref), seen: true, section: 3 };
+  }, [solved]);
+  return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen sample={sample} />;
+}
+
+/**
+ * The #shelf book turned to Map on a sample case: a few guests and a weapon placed, the notebook peeking, or
+ * (subject) a placed guest ringed on the map with the notebook at half height on their page.
+ */
+function ShelfMapPreview({ subject }: { subject: boolean }) {
+  useLayoutEffect(() => {
+    document.body.classList.add('shelf');
+    return () => document.body.classList.remove('shelf');
+  }, []);
+  const sample = useMemo(() => {
+    const { ref, c } = newPlayCase(content, () => 0.5);
+    let progress = emptyProgress();
+    for (const g of c.games.slice(0, 3)) progress = reduce(c, progress, { type: 'game-finish', kind: g.kind, status: 'won', data: null });
+    c.suspects.slice(0, 3).forEach((s, i) => {
+      progress = reduce(c, progress, { type: 'place', suspect: s, room: c.rooms[i % c.rooms.length] });
+    });
+    progress = reduce(c, progress, { type: 'place-item', item: c.items[0], room: c.rooms[1] });
+    const notebook = subject ? { half: true, tab: 'guests' as const, subject: { kind: 'suspect' as const, id: c.suspects[1] } } : undefined;
+    return { c, progress, ref: caseCode(ref), seen: true, section: 1, notebook };
+  }, [subject]);
+  return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen sample={sample} />;
+}
+
 const SCREENS: Record<string, () => ReactNode> = {
+  'shelf-map': () => <ShelfMapPreview subject={false} />,
+  'shelf-map-subject': () => <ShelfMapPreview subject />,
+  'shelf-answer': () => <ShelfAnswerPreview solved={false} />,
+  'shelf-answer-solved': () => <ShelfAnswerPreview solved />,
   hints: () => <HintsPreview />,
   houses: () => <HousesPreview />,
   'nosing-houses': () => <NosingHousesPreview />,
@@ -379,6 +454,7 @@ const SCREENS: Record<string, () => ReactNode> = {
   'shelf-notebook-you': () => <ShelfNotebookPreview view="you" />,
   'shelf-notebook-grid': () => <ShelfNotebookPreview view="grid" />,
   'shelf-notebook-subject': () => <ShelfNotebookPreview view="subject" />,
+  'shelf-notebook-jigsaw': () => <ShelfJigsawPreview />,
   'shelf-puzzle': () => <ShelfPuzzlePreview page="unplayed" />,
   'shelf-puzzle-won': () => <ShelfPuzzlePreview page="won" />,
   'shelf-puzzle-revealed': () => <ShelfPuzzlePreview page="revealed" />,
@@ -405,9 +481,12 @@ export function DevPreview({ id }: { id: string }) {
   }
   return (
     <>
-      <a className="dev-back" href="#dev" aria-label="Back to dev pages">
-        ‹
-      </a>
+      {/* The shelf book has its own back chevron; a second one would be an artefact of the preview. */}
+      {id.startsWith('shelf') ? null : (
+        <a className="dev-back" href="#dev" aria-label="Back to dev pages">
+          ‹
+        </a>
+      )}
       {render()}
     </>
   );

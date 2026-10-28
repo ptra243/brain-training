@@ -5,9 +5,9 @@ import type { Case, GameKind } from '../engine/types.ts';
 import { generate } from '../game/caseClient.ts';
 import type { Action, Progress } from '../game/state.ts';
 import { loadQuick, saveQuick } from '../game/storage.ts';
-import { advance, startNewQuick, type SaveKey } from './quickProgress.ts';
+import { advance, planNewCase, startNewQuick, withEndBoard, type SaveKey } from './quickProgress.ts';
 import type { Subject } from '../game/state.ts';
-import type { NotebookTab } from './notebook.ts';
+import { hasJigsaw, type NotebookTab } from './notebook.ts';
 
 /** A case to show without loading her save (the dev preview). */
 export interface SampleCase {
@@ -19,7 +19,11 @@ export interface SampleCase {
   /** Open this game's puzzle page at once, with no page turn. */
   open?: GameKind;
   /** Start the notebook open on this tab, on a subject page, or just peeking. Never saved. */
-  notebook?: { open?: boolean; tab?: NotebookTab; subject?: Subject };
+  notebook?: { open?: boolean; half?: boolean; tab?: NotebookTab; subject?: Subject };
+  /** Turn the book to this section (an index into SECTIONS) once it is open. Sample only; with `startOpen`. */
+  section?: number;
+  /** Sample only: pretend the ref chose the Jigsaw finish (a sample has no ref). */
+  endBoard?: boolean;
 }
 
 /** Her Quick case, rebuilt, with her moves and a way to make one (saved to the shared Quick save). */
@@ -30,6 +34,8 @@ export interface QuickBook {
   dispatch: (a: Action) => void;
   /** The save's own ref, for the title; none for a sample. */
   fullRef: CaseRef | null;
+  /** The notebook shows Jigsaw in place of Grid (`hasJigsaw`). */
+  jigsaw: boolean;
 }
 
 interface Loaded {
@@ -56,9 +62,12 @@ function useQuickCase(sample: SampleCase | undefined, mode: BookMode): Loaded | 
     if (sample) return;
     let live = true;
     if (mode === 'new') {
-      generate({ kind: 'play' }).then(
-        (made) => {
+      // Her last settings, as the Casebook's New case does.
+      const plan = planNewCase(loadQuick());
+      (plan.job.kind === 'quick' ? generate(plan.job) : generate({ kind: 'play' })).then(
+        (built) => {
           if (!live) return;
+          const made = { c: built.c, ref: withEndBoard(built.ref, plan.endBoard) };
           const save = startNewQuick(made);
           saveQuick(save);
           setBuilt({ c: made.c, progress: save.progress, ref: caseCode(made.ref), key: { ref: made.ref, historyId: undefined } });
@@ -99,5 +108,5 @@ export function useQuickBook(sample: SampleCase | undefined, mode: BookMode): Qu
     latest.current = next;
     setMoves(next);
   };
-  return { c, ref, progress: moves ?? loaded.progress, dispatch, fullRef: key?.ref ?? null };
+  return { c, ref, progress: moves ?? loaded.progress, dispatch, fullRef: key?.ref ?? null, jigsaw: hasJigsaw(c, key?.ref ?? null, sample?.endBoard) };
 }

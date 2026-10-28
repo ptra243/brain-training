@@ -1,0 +1,91 @@
+/* The Map section on #shelf: the classic floor plan and tray printed on the page. From
+   docs/mockups/puzzle-book-map.html (honey palette); everything is under body.shelf. MapPanel's own
+   CSS is untouched; its colours come from the variables set here. */
+:global(body.shelf) .scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 8px;
+}
+:global(body.shelf) .scroll > * {
+  flex: none;
+}
+:global(body.shelf) .head {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1.5px solid var(--ink);
+  padding-bottom: 5px;
+}
+:global(body.shelf) .head span {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+:global(body.shelf) .head em {
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+:global(body.shelf) .plate {
+  --baize: #f8f1df;
+  --on-baize: #2a2118;
+  --on-baize-soft: #6b5a3a;
+  --card: #fffcf3;
+  --card-edge: #cbbd9c;
+  --ink-soft: #6b5a3a;
+}
+/* The panel's own side padding would shrink the plan inside the page's padding. */
+:global(body.shelf) .plate :global(.panel) {
+  padding: 0;
+  gap: 10px;
+}
+:global(body.shelf) .plate :global(.hint),
+:global(body.shelf) .plate :global(.legend) {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+:global(body.shelf) .plate :global(.card) {
+  background: #fffcf3;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  padding: 10px 12px;
+}
+:global(body.shelf) .plate :global(.card h2) {
+  font-family: var(--display);
+  font-size: 16px;
+  margin: 0 0 6px;
+}
+/* She accuses on the Answer page, so the map's own accuse bar is not drawn. */
+:global(body.shelf) .plate :global(.accuse-bar) {
+  display: none;
+}
+/* The tray's weapons and counters may be small to look at; their touch area is not. */
+:global(body.shelf) .plate :global(.counter),
+:global(body.shelf) .plate :global(.weapon) {
+  position: relative;
+}
+:global(body.shelf) .plate :global(.counter)::after,
+:global(body.shelf) .plate :global(.weapon)::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+}
+:global(body.shelf) .plate :global(.weapon)::after {
+  inset: -10px -6px;
+}
+/* The piece her notebook page is about: a brass ring. */
+:global(body.shelf) .plate [data-ringed] {
+  z-index: 3;
+  box-shadow: 0 0 0 3px #fff4cf, 0 0 0 6px #d2a548, 0 3px 8px rgba(0, 0, 0, 0.45);
+}
+/* Room to scroll the ringed piece above the notebook at half height. */
+:global(body.shelf) .spacer {
+  height: 50vh;
+}

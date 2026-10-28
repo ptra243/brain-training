@@ -90,6 +90,20 @@ What a look check judges on each:
   squared paper, four 48px tabs along the bottom (You, Clues, Grid, Guests; the current one underlined in red);
   You: portrait and three lines; Grid: Hint button and the whole grid readable (weapons as line icons, rooms as vertical words, 30px cells); subject: back link, counter and
   name, placement line, clue cards, "What they said"; no sideways scroll at 360px. A sample never saves the tab.
+- `shelf-notebook-jigsaw`: the notebook open on a Jigsaw-finish Quick sample (two games won, three stickers placed at
+  their true spots). Tabs You, Clues, Jigsaw, Guests (no Grid); the sticker page on squared paper: board, Hint/Undo/Check
+  /Restart, and the sticker sheet pinned as a drawer just above the tabs (2 rows of 44px, scrolls sideways); no sideways
+  page scroll at 360px.
+- `shelf-map`, `shelf-map-subject`: the #shelf book turned to Map on the sample case (three guests and a weapon placed,
+  nothing saved). Map: "Plate II" head, the floor plan with counters and weapons on it, the tray, the legend; no
+  Accuse bar; notebook strip at the foot. Subject: a placed guest ringed in brass on the plan, still fully visible
+  above the notebook, which covers the lower half on that guest's page (back link, placement line, clues, "Place in
+  a room" with a 44px button per room, the current one marked); no talk; no sideways scroll.
+- `shelf-answer`, `shelf-answer-solved`: the #shelf book turned to Answer on the sample case (nothing saved). Form:
+  "THE ANSWER / Fill in the blanks", a yellow slip ("1 of 2 right. Keep digging."), the wrong try struck through in red,
+  a fresh "It was ___ in the <room>, with the ___." with 44px blanks, a disabled "Fill both blanks first" button; tapping a
+  blank opens a list of 44px names. Solved: pencil verdict, "Solved in 2 accusations", effort line, "Back to the shelf".
+  No sideways scroll; the notebook strip stays at the foot.
 - `portraits`: the portrait gallery on its own (light dev page).
 - `dogfight`: the dog fight board in each state, with a cat helper picker
   (light dev page).

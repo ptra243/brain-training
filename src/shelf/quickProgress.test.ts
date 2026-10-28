@@ -4,7 +4,7 @@ import { content } from '../content/index.ts';
 import { newPlayCase } from '../engine/caseRef.ts';
 import { emptyProgress } from '../game/state.ts';
 import type { QuickSave } from '../game/storage.ts';
-import { advance, startNewQuick } from './quickProgress.ts';
+import { advance, planNewCase, startNewQuick, withEndBoard } from './quickProgress.ts';
 
 const { ref, c } = newPlayCase(content, () => 0.5);
 const kind = c.games[0].kind;
@@ -31,4 +31,20 @@ test('a new Quick save has her ref, no moves and no history id', () => {
   assert.equal(save.ref, ref);
   assert.deepEqual(save.progress, emptyProgress());
   assert.equal(save.historyId, undefined);
+});
+
+test('New case repeats her last settings: Play with no save or a Play save, else the same Quick settings', () => {
+  assert.deepEqual(planNewCase(null), { job: { kind: 'play' }, endBoard: false });
+  assert.deepEqual(planNewCase({ ref }), { job: { kind: 'play' }, endBoard: false });
+  const quick = { mode: 'quick', seed: 'abc', difficulty: 'hard', length: 'long', cast: 'big', endBoard: true } as unknown as QuickSave['ref'];
+  assert.deepEqual(planNewCase({ ref: quick }), { job: { kind: 'quick', difficulty: 'hard', length: 'long', cast: 'big' }, endBoard: true });
+  const old = { mode: 'quick', seed: 'abc', difficulty: 'easy', length: 'short' } as unknown as QuickSave['ref'];
+  assert.deepEqual(planNewCase({ ref: old }), { job: { kind: 'quick', difficulty: 'easy', length: 'short', cast: 'classic' }, endBoard: false });
+});
+
+test('withEndBoard sets the flag on a Quick ref only', () => {
+  const quick = { mode: 'quick', seed: 's', difficulty: 'easy', length: 'short' } as unknown as QuickSave['ref'];
+  assert.equal((withEndBoard(quick, true) as { endBoard?: boolean }).endBoard, true);
+  assert.equal(withEndBoard(quick, false), quick);
+  assert.equal(withEndBoard(ref, true), ref);
 });

@@ -3,18 +3,18 @@ import { cats } from '../content/index.ts';
 import { playerPortrait } from '../content/portraits.ts';
 import type { Case, Clue } from '../engine/types.ts';
 import { ClueCard } from '../game/ClueCard.tsx';
+import { EndBoardPanel } from '../game/EndBoardPanel.tsx';
 import { PortraitCard } from '../game/ExploreMap.tsx';
 import { GridPanel } from '../game/GridPanel.tsx';
 import { HintButton, HintNote, Paw } from '../game/games/Hints.tsx';
 import { afterHint, gridHint, markActions } from '../game/gridHints.ts';
 import { gridHintText } from '../game/gridHintText.ts';
 import { faceClass, itemName, roomName, suspectColour, suspectName } from '../game/names.ts';
-import { SCENE_TEASER, sceneText, sceneUnlocked, unlockedClueIds, visibleClues, type Progress, type Subject } from '../game/state.ts';
+import { SCENE_TEASER, holderOf, itemRoom, placedRoom, sceneText, sceneUnlocked, unlockedClueIds, visibleClues, type Progress, type Subject } from '../game/state.ts';
 import { SuspectCounterFace } from '../game/SuspectCounterFace.tsx';
-import { TalkSection } from '../game/TalkSection.tsx';
 import { youLines } from '../game/youSheet.ts';
 import styles from './Notebook.module.css';
-import { NOTEBOOK_TABS, peekLine, placementLine, subjectClues, subjectTitle, type NotebookTab } from './notebook.ts';
+import { afterSwipe, peekLine, placeAction, placeRooms, placementLine, subjectClues, subjectTitle, tabForCase, tabsFor, type Height, type NotebookTab } from './notebook.ts';
 import { saveNotebookTab, loadNotebookTab } from './shelfStore.ts';
 import type { QuickBook, SampleCase } from './useQuickBook.ts';
 
@@ -41,6 +41,31 @@ function swipe(dir: 'up' | 'down', onSwipe: () => void) {
     },
     onPointerCancel: () => {
       y0 = null;
+    },
+  };
+}
+
+/** Swipes on the handle: up to full height, down to the strip. A swipe also sends a click; ignore that one. */
+function handleSwipe(setHeight: (h: Height) => void, g: { y0: number | null; swiped: boolean }) {
+  return {
+    onPointerDown: (e: ReactPointerEvent) => {
+      g.y0 = e.clientY;
+      g.swiped = false;
+    },
+    onPointerUp: (e: ReactPointerEvent) => {
+      if (g.y0 === null) return;
+      const dy = e.clientY - g.y0;
+      g.y0 = null;
+      if (Math.abs(dy) <= SWIPE) return;
+      g.swiped = true;
+      setHeight(afterSwipe(dy < 0 ? 'up' : 'down'));
+    },
+    onPointerCancel: () => {
+      g.y0 = null;
+    },
+    onClick: () => {
+      if (!g.swiped) setHeight('peek');
+      g.swiped = false;
     },
   };
 }
@@ -202,11 +227,26 @@ function GridTab({ book, onPick }: { book: QuickBook; onPick: (s: Subject) => vo
   );
 }
 
+/** The Jigsaw tab: the classic end board on the notebook's page, its sticker sheet pinned as a drawer above the tabs. */
+function JigsawTab({ book, onAccuse }: { book: QuickBook; onAccuse: () => void }) {
+  const { c, progress, dispatch } = book;
+  const helper = cats[c.number % cats.length];
+  return (
+    <div className={styles.jigsaw}>
+      <p className={styles.sheetHead}>
+        <span>Sticker page</span>
+        <em>Fit every clue in the house</em>
+      </p>
+      <EndBoardPanel c={c} progress={progress} dispatch={dispatch} helper={helper} onAccuse={onAccuse} />
+    </div>
+  );
+}
+
 /** A guest's, a weapon's or a room's page. */
 function SubjectPage({ book, page, onBack }: { book: QuickBook; page: Page; onBack: () => void }) {
   const { c, progress, dispatch } = book;
   const { subject } = page;
-  const back = NOTEBOOK_TABS.find((t) => t.id === page.from)?.label ?? 'Back';
+  const back = tabsFor(book.jigsaw).find((t) => t.id === page.from)?.label ?? 'Back';
   const clues = subjectClues(c, progress, subject);
   const them = subject.kind === 'suspect' ? 'them' : 'it';
   let head: ReactNode;
@@ -235,12 +275,31 @@ function SubjectPage({ book, page, onBack }: { book: QuickBook; page: Page; onBa
       ) : (
         <p className={styles.note}>{subject.kind === 'room' ? "No clue you've found mentions it yet." : `No clue you've found names ${them} yet.`}</p>
       )}
-      {subject.kind === 'suspect' ? (
+      {subject.kind === 'room' ? null : (
         <>
-          <h3 className={styles.heading}>What they said</h3>
-          <TalkSection c={c} progress={progress} dispatch={dispatch} suspect={subject.id} />
+          <h3 className={styles.heading}>Place in a room</h3>
+          <ul className={styles.rooms} aria-label="Place in a room">
+            {placeRooms(c).map((room) => {
+              const here = subject.kind === 'suspect' ? placedRoom(c, progress, subject.id) === room : itemRoom(c, progress, subject.id) === room && !holderOf(c, progress, subject.id);
+              return (
+                <li key={room}>
+                  <button
+                    type="button"
+                    className={here ? styles.here : undefined}
+                    aria-pressed={here}
+                    onClick={() => {
+                      const action = placeAction(subject, room);
+                      if (action) dispatch(action);
+                    }}
+                  >
+                    {roomName(room)}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         </>
-      ) : null}
+      )}
     </>
   );
 }
@@ -262,6 +321,15 @@ interface Props {
   sample?: SampleCase;
   /** A puzzle page is open over the book: the notebook steps aside. */
   hidden: boolean;
+  /** How far up it is. OpenBook owns this so the map can raise it. */
+  height: Height;
+  onHeight: (h: Height) => void;
+  /** A counter or weapon she tapped on the map: show its page. A new `seq` is a new tap. */
+  focus?: { subject: Subject; seq: number } | null;
+  /** The guest or weapon page showing (none on a tab or a room page), so the map can ring it. */
+  onPage?: (s: Subject | null) => void;
+  /** The board's Accuse button: turn the book to its Answer page. */
+  onAccuse: () => void;
 }
 
 /**
@@ -269,14 +337,25 @@ interface Props {
  * a kraft-covered pad with You, Clues, Grid and Guests tabs. It reuses the casebook's grid, clue cards
  * and talk, restyled under body.shelf. Her last tab is remembered; a subject page belongs to its tab.
  */
-export function Notebook({ book, sample, hidden }: Props) {
+export function Notebook({ book, sample, hidden, height, onHeight, focus, onPage, onAccuse }: Props) {
   const start = sample?.notebook;
-  const [open, setOpen] = useState(start?.open ?? false);
-  const [tab, setTab] = useState<NotebookTab>(() => start?.tab ?? (sample ? 'clues' : loadNotebookTab()));
-  const [page, setPage] = useState<Page | null>(() => (start?.subject ? { subject: start.subject, from: start.tab ?? 'guests' } : null));
+  const open = height !== 'peek';
+  const [gesture] = useState<{ y0: number | null; swiped: boolean }>(() => ({ y0: null, swiped: false }));
+  const [tab, setTab] = useState<NotebookTab>(() => tabForCase(start?.tab ?? (sample ? 'clues' : loadNotebookTab()), book.jigsaw));
+  const [page, setPage] = useState<Page | null>(() => (start?.subject ? { subject: start.subject, from: tabForCase(start.tab ?? 'guests', book.jigsaw) } : null));
   const peekRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const wasOpen = useRef(open);
+  const [seenFocus, setSeenFocus] = useState(focus?.seq ?? 0);
+  // A map tap shows that subject's page (adjusting state while rendering, not in an effect).
+  if (focus && focus.seq !== seenFocus) {
+    setSeenFocus(focus.seq);
+    setPage({ subject: focus.subject, from: tab });
+  }
+  const pageSubject = page ? page.subject : null;
+  useEffect(() => {
+    onPage?.(pageSubject);
+  }, [pageSubject, onPage]);
 
   // Focus goes into the pad when it opens and back to the strip when it closes (not on the first render).
   useEffect(() => {
@@ -289,15 +368,17 @@ export function Notebook({ book, sample, hidden }: Props) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') onHeight('peek');
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open]);
+  }, [open, onHeight]);
 
   const choose = (t: NotebookTab) => {
     setTab(t);
     setPage(null);
+    // The board needs the room: Jigsaw opens the notebook full height.
+    if (t === 'jigsaw' && height === 'half') onHeight('full');
     if (!sample) saveNotebookTab(t);
   };
   const pick = (from: NotebookTab) => (subject: Subject) => setPage({ subject, from });
@@ -307,12 +388,13 @@ export function Notebook({ book, sample, hidden }: Props) {
   else if (tab === 'you') content = <YouTab c={book.c} progress={book.progress} />;
   else if (tab === 'clues') content = <CluesTab c={book.c} progress={book.progress} dispatch={book.dispatch} />;
   else if (tab === 'grid') content = <GridTab book={book} onPick={pick('grid')} />;
+  else if (tab === 'jigsaw') content = <JigsawTab book={book} onAccuse={onAccuse} />;
   else content = <GuestsTab c={book.c} onPick={pick('guests')} />;
 
-  const close = () => setOpen(false);
+  const close = () => onHeight('peek');
   return (
-    <div className={`${styles.root} ${open ? styles.isOpen : ''}`} hidden={hidden}>
-      <button ref={peekRef} type="button" className={styles.peek} inert={open} onClick={() => setOpen(true)} {...swipe('up', () => setOpen(true))}>
+    <div className={`${styles.root} ${open ? styles.isOpen : ''} ${height === 'half' ? styles.isHalf : ''}`} hidden={hidden}>
+      <button ref={peekRef} type="button" className={styles.peek} inert={open} onClick={() => onHeight('full')} {...swipe('up', () => onHeight('full'))}>
         <Rings />
         <span className={styles.peekLine}>{peekLine(book.c, book.progress)}</span>
       </button>
@@ -320,7 +402,7 @@ export function Notebook({ book, sample, hidden }: Props) {
       <section ref={panelRef} tabIndex={-1} className={styles.panel} inert={!open} aria-label="Your notebook">
         <Rings />
         <div className={styles.paper}>
-          <button type="button" className={styles.handle} aria-label="Put the notebook away" onClick={close} {...swipe('down', close)}>
+          <button type="button" className={styles.handle} aria-label="Put the notebook away" {...handleSwipe(onHeight, gesture)}>
             <span className={styles.bar} />
             <span className={styles.handleText}>Pull down to put away</span>
           </button>
@@ -328,7 +410,7 @@ export function Notebook({ book, sample, hidden }: Props) {
             {content}
           </div>
           <nav className={styles.tabs} aria-label="Notebook pages">
-            {NOTEBOOK_TABS.map((t) => (
+            {tabsFor(book.jigsaw).map((t) => (
               <button key={t.id} type="button" aria-current={tab === t.id ? 'page' : undefined} onClick={() => choose(t.id)}>
                 {t.label}
               </button>

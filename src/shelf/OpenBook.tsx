@@ -2,7 +2,11 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import styles from './OpenBook.module.css';
 import { FindAClue } from './FindAClue.tsx';
 import { caseTitle } from '../game/names.ts';
+import { AnswerPage } from './AnswerPage.tsx';
+import { MapPlate } from './MapPlate.tsx';
 import { Notebook } from './Notebook.tsx';
+import { afterMapTap, ringedSubject, type Height } from './notebook.ts';
+import type { Subject } from '../game/state.ts';
 import { useQuickBook, type SampleCase } from './useQuickBook.ts';
 import { attachRibbons } from './ribbonMotion.ts';
 import { SECTIONS } from './ribbonPlan.ts';
@@ -66,10 +70,17 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   const navRef = useRef<HTMLElement>(null);
   const creaseRef = useRef<HTMLSpanElement>(null);
   const [section, setSection] = useState(0);
+  // The ribbons' page turn, for the Jigsaw's Accuse button.
+  const turnRef = useRef<((i: number) => void) | null>(null);
   // Her case, shared by the Case page and the notebook. The New case book builds one and saves it.
   const book = useQuickBook(sample, tone === 'quick' ? 'saved' : 'new');
   const title = book && book.fullRef ? caseTitle(book.fullRef) : coverTitle;
   const [puzzleOpen, setPuzzleOpen] = useState(false);
+  const sampleSection = sample?.section;
+  // How far the notebook is up, which page it shows (a map tap sets `focus`), and so which piece is ringed.
+  const [height, setHeight] = useState<Height>(() => (sample?.notebook?.half ? 'half' : sample?.notebook?.open ? 'full' : 'peek'));
+  const [focus, setFocus] = useState<{ subject: Subject; seq: number } | null>(null);
+  const [pageSubject, setPageSubject] = useState<Subject | null>(() => sample?.notebook?.subject ?? null);
 
   // Where the book started, as a move and a scale from the page's final place. Read once.
   const [start] = useState<CSSProperties>(() => {
@@ -109,8 +120,14 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
       { open: styles.open, empty: styles.empty, leaf: styles.leaf, page: styles.page, back: styles.back, blank: styles.blank, shade: styles.shade },
       { onTurn: setSection, startOpen },
     );
-    return controls.dispose;
-  }, [startOpen]);
+    // A sample can open on another section (the dev previews); a real book always starts on Case.
+    if (startOpen && sampleSection) controls.turnTo(sampleSection);
+    turnRef.current = controls.turnTo;
+    return () => {
+      turnRef.current = null;
+      controls.dispose();
+    };
+  }, [startOpen, sampleSection]);
 
   return (
     <div className={styles.stage}>
@@ -146,7 +163,22 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                     <div className={styles.running}>
                       <span>{name}</span>
                     </div>
-                    <p className={styles.lede}>This page isn&apos;t drawn yet.</p>
+                    {name === 'Answer' && book ? (
+                      <AnswerPage book={book} onBack={onBack} />
+                    ) : name === 'Map' && book ? (
+                      <MapPlate
+                        book={book}
+                        ring={ringedSubject(height, pageSubject)}
+                        height={height}
+                        onSubject={(subject) => {
+                          setFocus((f) => ({ subject, seq: (f?.seq ?? 0) + 1 }));
+                          setHeight(afterMapTap(height));
+                        }}
+                        onTuck={() => setHeight('peek')}
+                      />
+                    ) : (
+                      <p className={styles.lede}>This page isn&apos;t drawn yet.</p>
+                    )}
                   </section>
                 ))}
                 <div className={styles.under} ref={underRef} />
@@ -170,7 +202,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
               ))}
             </nav>
           </div>
-          {book ? <Notebook book={book} sample={sample} hidden={puzzleOpen} /> : null}
+          {book ? <Notebook book={book} sample={sample} hidden={puzzleOpen} height={height} onHeight={setHeight} focus={focus} onPage={setPageSubject} onAccuse={() => { setHeight('peek'); turnRef.current?.(SECTIONS.indexOf('Answer')); }} /> : null}
         </section>
 
         <div aria-hidden="true" className={`${styles.cover} ${tone === 'quick' ? styles.quick : styles.fresh}`}>

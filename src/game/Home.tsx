@@ -4,6 +4,7 @@ import type { Case } from '../engine/types.ts';
 import { DIFFICULTY_LABEL } from './labels.ts';
 import { Dialog } from './Dialog.tsx';
 import { caseTitle } from './names.ts';
+import { OptionsSheet } from './OptionsSheet.tsx';
 import { puzzlesDone, type Progress } from './state.ts';
 
 const LENGTH_LABEL = { short: 'Short', normal: 'Normal', long: 'Long' } as const;
@@ -37,10 +38,22 @@ function caseLine(ref: CaseRef, c: Case, progress: Progress) {
 /** Where she starts: her case in progress, a new Quick play case, and the campaign. */
 export function Home({ current, onContinue, onStart, onChoose, onRecord, campaign }: Props) {
   const [confirming, setConfirming] = useState<'new' | 'choose' | null>(null);
+  const [options, setOptions] = useState(false);
   const unfinished = current !== null && !current.progress.solved;
 
   return (
     <div className="home">
+      <button
+        className="secondary"
+        aria-label="Options"
+        onClick={() => setOptions(true)}
+        style={{ position: 'absolute', top: 'calc(0.5rem + env(safe-area-inset-top))', right: '0.5rem', width: 44, height: 44, minHeight: 44, padding: 0 }}
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" />
+        </svg>
+      </button>
       <header className="home-header">
         <h1>Casebook</h1>
         <p>Solve a murder, one puzzle at a time.</p>
@@ -72,6 +85,8 @@ export function Home({ current, onContinue, onStart, onChoose, onRecord, campaig
       </article>
 
       {campaign}
+
+      {options && <OptionsSheet current="classic" onClose={() => setOptions(false)} />}
 
       {confirming !== null && current && (
         <Dialog placement="center" labelId="new-case-title" onClose={() => setConfirming(null)}>

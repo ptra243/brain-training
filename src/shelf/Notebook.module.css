@@ -132,7 +132,7 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  /* One paper square; the grid's cells are two squares a side (see .grid). */
+  /* One paper square; the grid's cells are three squares a side (see .grid). */
   --square: 15px;
   background-color: #fbf7ea;
   background-image: linear-gradient(rgba(80, 120, 170, 0.16) 1px, transparent 1px), linear-gradient(90deg, rgba(80, 120, 170, 0.16) 1px, transparent 1px);
@@ -344,10 +344,22 @@
   margin: 0 calc(-1 * var(--square));
   /* Set by GridTab so the cells land on the paper's squares. */
   padding-top: var(--grid-nudge, 0px);
-  --cell: calc(2 * var(--square));
+  /* Three squares (45px) a side: the 44px touch target. A wide grid scrolls inside this box, not the page. */
+  --cell: calc(3 * var(--square));
+  overflow-x: auto;
+  /* A soft shadow on the right edge says the grid scrolls sideways. */
+  background: linear-gradient(to left, rgba(60, 40, 20, 0.22), transparent 14px) no-repeat;
+}
+/* The instructions wrap within the page, and stay put while the grid scrolls under them. */
+:global(body.shelf) .grid :global(.hint) {
+  position: sticky;
+  left: var(--square);
+  box-sizing: border-box;
+  width: calc(100vw - 4 * var(--square));
+  max-width: 100%;
 }
 
-/* Drawn straight on the squared paper: no card behind it, and every cell is two by two squares. */
+/* Drawn straight on the squared paper: no card behind it, and every cell is three by three squares. */
 :global(body.shelf) .grid :global(.panel) {
   padding-inline: var(--square);
 }
@@ -357,17 +369,19 @@
   border: 0;
   background: transparent;
 }
+/* Fixed layout sizes the table from its cells, so a wide grid is as wide as its cells. */
 :global(body.shelf) .grid :global(.logic-grid) {
   width: auto;
 }
 :global(body.shelf) .grid :global(.logic-grid thead th) {
-  width: var(--cell);
+  /* One extra pixel: collapsed borders take half a pixel off each side, which left cells at 43-44px. */
+  width: calc(var(--cell) + 1px);
   height: calc(6 * var(--square));
   padding: 0 0 4px;
   box-sizing: border-box;
 }
 :global(body.shelf) .grid :global(.logic-grid thead th:first-child) {
-  width: var(--cell);
+  width: calc(var(--cell) + 1px);
 }
 :global(body.shelf) .grid :global(.logic-grid thead .axis-label) {
   min-height: 0;
@@ -405,4 +419,158 @@
 }
 :global(body.shelf) .grid :global(.logic-grid.icons .axis-label.row-label) {
   justify-content: center;
+}
+
+/* Each label button fills its whole cell, so it is a 44px touch target. */
+:global(body.shelf) .grid :global(.logic-grid thead .axis-label),
+:global(body.shelf) .grid :global(.logic-grid tbody .axis-label) {
+  width: 100%;
+  min-width: 44px;
+  box-sizing: border-box;
+}
+
+/* ---------- Half height: a map tap raises the pad to the lower half, the map stays tappable above ---------- */
+:global(body.shelf) .isHalf .scrim {
+  opacity: 0;
+  pointer-events: none;
+}
+:global(body.shelf) .isHalf .panel {
+  top: 50%;
+}
+
+/* ---------- Place in a room: a printed list of the case's rooms ---------- */
+:global(body.shelf) .rooms {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+:global(body.shelf) .rooms button {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid rgba(42, 42, 58, 0.45);
+  border-radius: 6px;
+  background: #fffcf3;
+  color: var(--ink-n);
+  cursor: pointer;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 22px;
+}
+:global(body.shelf) .rooms button.here {
+  border-color: var(--pencil-n);
+  box-shadow: 0 0 0 1.5px var(--pencil-n);
+  background: #fff4cf;
+}
+
+/* ---------- The Jigsaw tab: the classic end board on the page, its tray as a sticker-sheet drawer ---------- */
+:global(body.shelf) .sheetHead {
+  margin: 0 0 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  border-bottom: 1.5px solid var(--ink-n);
+  padding-bottom: 4px;
+  font-family: 'EB Garamond', Georgia, serif;
+}
+:global(body.shelf) .sheetHead span {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+:global(body.shelf) .sheetHead em {
+  font-size: 14px;
+  color: #55615f;
+}
+/* The tray stays pinned to the foot of the scrolling page, just above the tabs: two rows of 44px that
+   scroll sideways. The pieces pan sideways with a finger and are dragged by moving up or down. */
+:global(body.shelf) .jigsaw :global(.cb-tray) {
+  --tcell: 14px;
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(2, minmax(44px, auto));
+  grid-auto-columns: max-content;
+  gap: 4px 8px;
+  justify-content: start;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 0;
+  border-top: 2px dashed #c9bd9f;
+  border-radius: 0;
+  background-color: #e6ecee;
+  background-image: repeating-linear-gradient(135deg, rgba(120, 140, 150, 0.08) 0 2px, transparent 2px 8px);
+  box-shadow: 0 -6px 10px -6px rgba(0, 0, 0, 0.25);
+  min-height: 0;
+}
+:global(body.shelf) .jigsaw :global(.cb-tray.over) {
+  background-color: #dfe8d8;
+}
+/* A sticker is its piece beside its name (the classic caption), so she can tell which is which. */
+:global(body.shelf) .jigsaw :global(.cb-tpiece) {
+  touch-action: pan-x;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 4px;
+}
+:global(body.shelf) .jigsaw :global(.cb-cap) {
+  display: block;
+  max-width: 72px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.1;
+  text-align: left;
+  color: var(--ink-n);
+  overflow-wrap: anywhere;
+}
+/* The shelf has its own sheet head; the intro box goes, "How to play" stays as a small link. */
+:global(body.shelf) .jigsaw :global(.cb-intro) {
+  display: none;
+}
+:global(body.shelf) .jigsaw :global(.cb-how) {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+:global(body.shelf) .jigsaw :global(.cb-how[open]) {
+  align-self: stretch;
+  padding: 0 10px;
+  border: 1px solid var(--baize-line);
+  background: var(--baize-deep);
+}
+:global(body.shelf) .jigsaw :global(.cb-how summary) {
+  font-size: 14px;
+  text-decoration: underline;
+}
+/* The drawer is last on the page and pinned to its foot even when the page is short: the board
+   (and the toolbar) always scroll clear of it, because it comes after them. */
+:global(body.shelf) .jigsaw {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+:global(body.shelf) .jigsaw > :global(.cb-root) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+:global(body.shelf) .jigsaw > :global(.cb-root) > * {
+  flex: none;
+}
+:global(body.shelf) .jigsaw :global(.cb-tray) {
+  order: 99;
+  margin-top: auto;
 }
