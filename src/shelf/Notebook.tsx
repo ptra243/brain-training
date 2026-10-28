@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { cats } from '../content/index.ts';
 import { playerPortrait } from '../content/portraits.ts';
 import type { Case, Clue } from '../engine/types.ts';
@@ -143,6 +143,29 @@ function GridTab({ book, onPick }: { book: QuickBook; onPick: (s: Subject) => vo
   const helper = cats[c.number % cats.length];
   const [hintNote, setHintNote] = useState<string | null>(null);
   const [pawed, setPawed] = useState<string[]>([]);
+  const gridRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const grid = gridRef.current;
+    const page = grid?.parentElement;
+    if (!grid || !page) return;
+    // Nudge the grid down so its cells land on the paper's squares, whatever sits above it.
+    const align = () => {
+      const square = parseFloat(getComputedStyle(grid).getPropertyValue('--square')) || 14;
+      const cell = grid.querySelector('td');
+      if (!cell) return;
+      const nudge = parseFloat(grid.style.getPropertyValue('--grid-nudge')) || 0;
+      // Divide out the notebook's opening animation, which scales the page.
+      const box = page.getBoundingClientRect();
+      const scale = box.height / page.offsetHeight || 1;
+      const top = (cell.getBoundingClientRect().top - box.top) / scale + page.scrollTop - nudge;
+      grid.style.setProperty('--grid-nudge', `${(square - (top % square)) % square}px`);
+    };
+    align();
+    const watch = new ResizeObserver(align);
+    // Anything above the grid, or the grid's own instructions, can change height (fonts, hint notes).
+    for (const el of page.children) watch.observe(el);
+    return () => watch.disconnect();
+  }, []);
   const askHint = () => {
     const clues = visibleClues(c, progress);
     const state = progress.gridHints ?? {};
@@ -171,8 +194,8 @@ function GridTab({ book, onPick }: { book: QuickBook; onPick: (s: Subject) => vo
         />
       ) : null}
       {pawedClues.length ? <ClueList c={c} progress={progress} dispatch={dispatch} clues={pawedClues} pawed={pawed} /> : null}
-      <div className={styles.grid}>
-        <GridPanel c={c} progress={progress} dispatch={dispatch} focus={null} onFocus={onPick} pawedSquare={hintNote ? progress.gridHints?.target : undefined} />
+      <div ref={gridRef} className={styles.grid}>
+        <GridPanel icons c={c} progress={progress} dispatch={dispatch} focus={null} onFocus={onPick} pawedSquare={hintNote ? progress.gridHints?.target : undefined} />
       </div>
       <p className={styles.note}>Tap a name to read what you know about it.</p>
     </>

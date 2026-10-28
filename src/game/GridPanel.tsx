@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import type { Case } from '../engine/types.ts';
 import { itemName, roomName, suspectColour, suspectName, faceClass } from './names.ts';
 import { SuspectCounterFace } from './SuspectCounterFace.tsx';
+import { itemIcons } from '../content/gridIcons.ts';
 import { Paw } from './games/Hints.tsx';
 import { showsWrong } from './gridHints.ts';
 import { cellState, markKey, sharedRooms, type Action, type GridKind, type Progress, type Subject } from './state.ts';
@@ -15,6 +16,8 @@ interface Props {
   onFocus: (s: Subject) => void;
   /** `markKey` of the square the cat's hint is about. */
   pawedSquare?: string;
+  /** Draw the weapons as small line icons instead of words (the #shelf notebook). */
+  icons?: boolean;
 }
 
 /**
@@ -33,12 +36,23 @@ const shortLabel = (name: string) => {
 
 const LABEL: Record<string, string> = { x: 'crossed out', o: 'ticked', 'auto-x': 'ruled out by a tick', none: 'blank' };
 
-export function GridPanel({ c, progress, dispatch, focus, onFocus, pawedSquare }: Props) {
+export function GridPanel({ c, progress, dispatch, focus, onFocus, pawedSquare, icons = false }: Props) {
+  const itemLabel = (item: string, word: ReactNode) => {
+    const icon = icons ? itemIcons[item] : undefined;
+    if (!icon) return word;
+    return (
+      <svg className="item-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        {icon.paths.map((d) => (
+          <path key={d} d={d} />
+        ))}
+      </svg>
+    );
+  };
   /** A row or column label: tap it to see the clues about that person, room or weapon. */
   const label = (s: Subject, name: string, content: ReactNode, className = 'axis-label') => {
     const on = focus?.kind === s.kind && focus.id === s.id;
     return (
-      <button className={`${className} ${on ? 'focused' : ''}`} aria-pressed={on} aria-label={`Clues about ${name}`} onClick={() => onFocus(s)}>
+      <button className={`${className} ${on ? 'focused' : ''}`} aria-pressed={on} aria-label={`Clues about ${name}`} title={icons ? name : undefined} onClick={() => onFocus(s)}>
         {content}
       </button>
     );
@@ -72,7 +86,7 @@ export function GridPanel({ c, progress, dispatch, focus, onFocus, pawedSquare }
         Tap a name to see its clues.
       </p>
       <article className="card logic-grid-card">
-        <table className="logic-grid">
+        <table className={icons ? 'logic-grid icons' : 'logic-grid'}>
           <thead>
             <tr>
               <th />
@@ -83,7 +97,7 @@ export function GridPanel({ c, progress, dispatch, focus, onFocus, pawedSquare }
               ))}
               {c.items.map((item, i) => (
                 <th key={item} scope="col" className={i === 0 ? 'split' : undefined}>
-                  {label({ kind: 'item', id: item }, `the ${itemName(item)}`, <span>{itemName(item)}</span>)}
+                  {label({ kind: 'item', id: item }, `the ${itemName(item)}`, itemLabel(item, <span>{itemName(item)}</span>))}
                 </th>
               ))}
             </tr>
@@ -110,7 +124,7 @@ export function GridPanel({ c, progress, dispatch, focus, onFocus, pawedSquare }
             {c.items.map((item, r) => (
               <tr key={item}>
                 <th scope="row" title={itemName(item)}>
-                  {label({ kind: 'item', id: item }, `the ${itemName(item)}`, shortLabel(itemName(item)), 'axis-label row-label')}
+                  {label({ kind: 'item', id: item }, `the ${itemName(item)}`, itemLabel(item, shortLabel(itemName(item))), 'axis-label row-label')}
                 </th>
                 {c.rooms.map((room) => cell('item-room', item, room, `The ${itemName(item)}`, roomName(room)))}
                 {r === 0 && <td className="void" colSpan={c.items.length} rowSpan={c.items.length} />}

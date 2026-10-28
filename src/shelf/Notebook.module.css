@@ -132,9 +132,11 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
+  /* One paper square; the grid's cells are two squares a side (see .grid). */
+  --square: 15px;
   background-color: #fbf7ea;
   background-image: linear-gradient(rgba(80, 120, 170, 0.16) 1px, transparent 1px), linear-gradient(90deg, rgba(80, 120, 170, 0.16) 1px, transparent 1px);
-  background-size: 16px 16px;
+  background-size: var(--square) var(--square);
   border-radius: 4px 4px 0 0;
   color: var(--ink-n);
   /* The casebook pieces inside read these. */
@@ -179,7 +181,11 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   box-sizing: border-box;
-  padding: 4px 14px 16px;
+  padding: 4px var(--square) 16px;
+  /* The squares scroll with the page, so the grid stays on them. */
+  background: inherit;
+  background-attachment: local;
+  border-radius: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -334,6 +340,69 @@
   justify-content: flex-end;
 }
 :global(body.shelf) .grid {
-  /* Use the paper's full width: the grid's cells are already the smallest touch targets. */
-  margin: 0 -14px;
+  /* Use the paper's full width, starting on a paper line. */
+  margin: 0 calc(-1 * var(--square));
+  /* Set by GridTab so the cells land on the paper's squares. */
+  padding-top: var(--grid-nudge, 0px);
+  --cell: calc(2 * var(--square));
+}
+
+/* Drawn straight on the squared paper: no card behind it, and every cell is two by two squares. */
+:global(body.shelf) .grid :global(.panel) {
+  padding-inline: var(--square);
+}
+:global(body.shelf) .grid :global(.logic-grid-card) {
+  margin: 0 calc(-1 * var(--square));
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+:global(body.shelf) .grid :global(.logic-grid) {
+  width: auto;
+}
+:global(body.shelf) .grid :global(.logic-grid thead th) {
+  width: var(--cell);
+  height: calc(6 * var(--square));
+  padding: 0 0 4px;
+  box-sizing: border-box;
+}
+:global(body.shelf) .grid :global(.logic-grid thead th:first-child) {
+  width: var(--cell);
+}
+:global(body.shelf) .grid :global(.logic-grid thead .axis-label) {
+  min-height: 0;
+  height: 100%;
+}
+:global(body.shelf) .grid :global(.logic-grid tbody th),
+:global(body.shelf) .grid :global(.logic-grid td) {
+  height: var(--cell);
+  padding: 0;
+  box-sizing: border-box;
+}
+:global(body.shelf) .grid :global(.logic-grid td) {
+  /* Inked lines, so the pale squares read as paper rather than a second grid. */
+  border-color: rgba(43, 36, 28, 0.55);
+}
+:global(body.shelf) .grid :global(.logic-grid .mark),
+:global(body.shelf) .grid :global(.logic-grid .axis-label.row-label) {
+  min-height: 0;
+  height: calc(var(--cell) - 1px);
+}
+:global(body.shelf) .grid :global(.logic-grid .counter.mini) {
+  width: calc(var(--cell) - 4px);
+  height: calc(var(--cell) - 4px);
+}
+
+/* Weapons are line icons, in the header (bottom of the tall row, above the grid) and down the side. */
+:global(body.shelf) .grid :global(.logic-grid .item-icon) {
+  display: block;
+  width: 22px;
+  height: 22px;
+  margin: 0 auto;
+}
+:global(body.shelf) .grid :global(.logic-grid.icons tbody th) {
+  overflow: visible;
+}
+:global(body.shelf) .grid :global(.logic-grid.icons .axis-label.row-label) {
+  justify-content: center;
 }
