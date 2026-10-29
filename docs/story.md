@@ -110,6 +110,64 @@ a rival from the moment the body is found.
 - Plots: the Host invited them because something is wrong at the company; they once let something
   slide for the Host and have regretted it since; they're sure who did it, and sometimes they're wrong.
 
+## How they fit together (draft for the owner)
+
+Any guest can be the victim or the killer, and any seven are seated, so the backstory has two layers:
+
+- **Fixed history**: true in every case, whoever is seated or dead. Nobody's version ever contradicts it.
+- **Rolled secrets**: each guest's six versions (3 cards x upright/reversed) are six answers to the
+  questions below. Only the version she hears is true in that case. Two versions that can be heard in
+  the same case must not contradict each other.
+
+### Fixed history
+- **Fifty years ago** the Host and the Uncle opened one small shop. The bar that made it famous was
+  the Hostess's recipe. The family all know this. The box has only the Host's name on it.
+- **The Housekeeper** came to run the family house before either child was born.
+- **The Fixer** started on the factory floor at seventeen. The Host noticed them, and they have been
+  the Host's right hand ever since. The children grew up with them around.
+- **Twenty years ago** the Uncle was pushed out after a fight nobody will explain. The Uncle kept
+  their shares. The Housekeeper is the only one who stayed in touch.
+- **The Detective** and the Host have been friends since school. The Detective retired from the police
+  last year.
+- **The Accountant** was brought in by the Host ten years ago, from outside the family.
+- **The Elder heir** joined the company straight from university and has been told it will be theirs.
+  **The Younger heir** left after a row with the Host and built a life in the city.
+- **This spring** the Investor's fund made an offer. The Host called the weekend to give the answer.
+
+### Three questions everyone has an answer to
+1. **Whose company is it, really?** The Hostess's recipe, the Uncle's shares, the Fixer's work, the
+   heirs' birthright, the Host's name on the box.
+2. **Is it as healthy as it looks?** The Accountant's numbers, the Investor's offer, whatever the
+   Fixer has made go away, why the Host invited a retired detective.
+3. **Who will the Host pick?** Elder heir, Younger heir, the Fixer, or a sale. The Uncle's vote and the
+   Hostess's opinion both count.
+
+Every guest has a stake in at least two, so any seven at the table have plenty to argue about.
+
+### Who pulls which way
+Fixed feelings, so talk and pair threads have something to lean on. Close (+), tension (−).
+
+| Guest | Close to | Tension with |
+|---|---|---|
+| Host | Detective, Fixer | Uncle, Hostess (the credit), Elder heir (the promise) |
+| Hostess | Housekeeper, Younger heir | Host (the credit); something old with the Uncle |
+| Fixer | Host, Younger heir | Elder heir (the job), Accountant (both know the numbers) |
+| Investor | (courts) Uncle, Hostess | Accountant (wants the real numbers), Fixer (in the way) |
+| Housekeeper | Hostess, Uncle | Fixer (one knows the house, one the company) |
+| Accountant | (nobody) | Fixer, Investor, Detective (asks too many questions) |
+| Uncle | Housekeeper; something old with the Hostess | Host |
+| Elder heir | Host (wants to be) | Fixer, Younger heir |
+| Younger heir | Fixer, Hostess | Elder heir; Host (the row) |
+| Detective | Host | Accountant; and you |
+
+### Answers the versions can give (examples, not final)
+- Why the Uncle was pushed out: the recipe (Uncle wanted the Hostess's name on the box); money
+  (the Accountant's predecessor found something); the Hostess (the old flame).
+- Why the Host invited the Detective: money is missing; an anonymous letter; just an old friend.
+- Why the Younger heir left: refused to be the heir; the row was about the Fixer; the Host found out
+  about someone they loved.
+- What the Fixer made go away: a bad batch, a lawsuit, someone's debt.
+
 ## How motives use it
 
 Every motive answers one question: what does this guest gain or lose depending on the company, and
