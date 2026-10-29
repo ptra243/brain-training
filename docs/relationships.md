@@ -61,6 +61,21 @@ Why the strong ones:
 - **To check when built**: talk sets are built from a seed, never from a `Case`; the victim's id comes
   from the seating shuffle, not the killer, so passing it in keeps that rule.
 
+### Ideas, not settled (2026-10-29)
+- **Relationship motives aimed at the victim.** About 15 of the 60 versions are about one person (the
+  Hostess and the Host's affair, the Uncle and the Hostess). Beat 3 must hold for any victim, which
+  flattens them. Idea: an extra beat 3 used only when the victim is that person ("The prenup dies with
+  him."), else the general one. Safe (the victim is drawn apart from the killer) but needs the victim's
+  id in the sets, and a campaign's new body would switch it between rounds: keep the beat she heard.
+- **Two killers (`docs/second-killer.md`): how the ending ties them.** Only in the ending, never in talk
+  (talk can't depend on the killers). Every motive already shares one lever (the sale and announcement
+  on hold), so any pair has a common reason. Three endings:
+  - **Opportunist** (the usual): each saw their chance in the confusion; maybe neither knew.
+  - **Accomplices** (rarer): the grid says the two are fond of each other; they planned it, for love,
+    family or loyalty.
+  - **Cover-up**: the second killer knew or guessed who did the first, and silenced someone who could
+    expose it, to protect the first killer or themselves. Probably needs the second to like or owe the first.
+
 ## Card pairs
 
 Tarot pairs (Emperor and Empress, Magician and High Priestess, Devil and Lovers) open a thread between
