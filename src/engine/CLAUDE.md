@@ -91,7 +91,7 @@
   Play code, then one fixed letter per game in `PICK_ORDER`, at least 3): the
   code rolls the levels exactly like a Play case, so what she saw is what she
   plays. `caseFor` tries seed texts `pick-<code>-<letters>`, then `-1`, `-2`,
-  ... (30) and returns the first that builds; never retry with another code.
+  ... (100) and returns the first that builds; never retry with another code.
   Her games are kept (any failure of one throws, so the next suffix is tried);
   only when the clues need more games (`atLeast`) are extras added from the
   seeded draw, and extras may be swapped or dropped. Tarot is a real chosen

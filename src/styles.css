@@ -574,6 +574,7 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
   border: 1px solid #b9b09a; border-radius: 0.35rem; background: #fffcf3; color: var(--ink); font: inherit; text-align: left; cursor: pointer;
 }
 .pick-row[aria-pressed='true'] { border-color: var(--ink); background: #f0ead6; }
+.pick-row:disabled { opacity: 0.5; cursor: default; }
 .pick-box {
   flex: none; display: grid; place-items: center; width: 1.4rem; height: 1.4rem; border: 1.5px solid var(--ink-soft); border-radius: 0.2rem;
   color: var(--pencil); font-weight: 700; line-height: 1;

@@ -45,6 +45,10 @@ export type PickedGame = 'wordle' | 'crossword' | 'wordsearch' | 'cats' | 'sudok
 export const PICK_ORDER: readonly PickedGame[] = ['wordle', 'crossword', 'wordsearch', 'cats', 'sudoku', 'interrogation', 'board', 'tarot', 'nosing'];
 const PICK_LETTER: Record<PickedGame, string> = { wordle: 'W', crossword: 'C', wordsearch: 'F', cats: 'K', sudoku: 'S', interrogation: 'I', board: 'B', tarot: 'T', nosing: 'N' };
 export const PICK_MIN = 3;
+/** New picks only; codes with more games still parse. */
+export const PICK_MAX = 7;
+/** The first `PICK_MAX` of the games, in canonical order (saved picks from before the cap). */
+export const cappedPicks = (games: readonly PickedGame[]): PickedGame[] => pickedInOrder(games).slice(0, PICK_MAX);
 /** Picked games in canonical order, without repeats. */
 export const pickedInOrder = (games: readonly PickedGame[]): PickedGame[] => PICK_ORDER.filter((g) => games.includes(g));
 
@@ -148,7 +152,7 @@ function caseVia(content: Content, ref: CaseRef, build: typeof buildCase, buildP
 }
 
 /** How many seed suffixes a picked case tries (`pick-<code>-<letters>`, then `-1`, `-2`, ...). */
-const PICK_TRIES = 30;
+const PICK_TRIES = 100;
 
 /**
  * A picked case: the same code and so the same levels she saw, with the first

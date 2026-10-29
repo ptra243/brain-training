@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { content } from '../content/index.ts';
-import { PICK_ORDER, caseCode, caseFor, caseName, newPickCase, parseCase, parseCaseCode, playLevels, type PickedGame, type PlayRef } from './caseRef.ts';
+import { PICK_MAX, PICK_ORDER, cappedPicks, caseCode, caseFor, caseName, newPickCase, parseCase, parseCaseCode, playLevels, type PickedGame, type PlayRef } from './caseRef.ts';
 import { caseNameWords } from '../content/caseNames.ts';
 import { gameLevel } from './settings.ts';
 
@@ -66,4 +66,17 @@ test('every combination of three or more games builds, with every picked game in
     }
   }
   assert.equal(combos, 466);
+});
+
+test('a picked case that needs more than 30 seed suffixes still builds, and old all-9 codes load', () => {
+  // F99KH with all 9 games first builds at suffix 38 (measured with builds of up to 100 tries).
+  const c = caseFor(content, { mode: 'play', code: 'F99KH', games: [...PICK_ORDER] });
+  assert.ok(c.games.length >= 9);
+  assert.equal(parseCaseCode('F99KH+WCFKSIBTN')?.mode, 'play');
+});
+
+test('capped picks keep the first PICK_MAX in canonical order', () => {
+  assert.equal(PICK_MAX, 7);
+  assert.deepEqual(cappedPicks([...PICK_ORDER].reverse()), PICK_ORDER.slice(0, 7));
+  assert.deepEqual(cappedPicks(['cats', 'wordle']), ['wordle', 'cats']);
 });

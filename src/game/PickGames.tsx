@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { PICK_MIN, PICK_ORDER, codeFor, pickedInOrder, playLevels, type PickedGame } from '../engine/caseRef.ts';
+import { PICK_MAX, PICK_MIN, PICK_ORDER, codeFor, pickedInOrder, playLevels, type PickedGame } from '../engine/caseRef.ts';
 import { gameLevel } from '../engine/settings.ts';
 import { DIFFICULTY_LABEL } from './labels.ts';
 import { GAMES } from './games/registry.tsx';
@@ -52,14 +52,15 @@ export function PickGames({ random, onHome, onStart }: Props) {
       </header>
       <main>
         <article className="card">
-          <p className="muted pick-lead">Tick at least {PICK_MIN} games. Some cases need a few more, and those are added for you.</p>
+          <p className="muted pick-lead">Tick {PICK_MIN} to {PICK_MAX} games. Some cases need a few more, and those are added for you.</p>
           <ul className="pick-list">
             {PICK_ORDER.map((g) => {
               const level = gameLevel(levels, g);
               const on = ticked.includes(g);
+              const full = !on && ticked.length >= PICK_MAX;
               return (
                 <li key={g}>
-                  <button className="pick-row" aria-pressed={on} onClick={() => toggle(g)}>
+                  <button className="pick-row" aria-pressed={on} disabled={full} onClick={() => toggle(g)}>
                     <span className="pick-box" aria-hidden="true">
                       {on ? '✓' : ''}
                     </span>

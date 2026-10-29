@@ -2,7 +2,7 @@
 // (private mode, blocked site data), so every access is guarded and the game
 // still works without it, just without remembering.
 
-import { PICK_ORDER, pickedInOrder, type CaseRef, type PickedGame } from '../engine/caseRef.ts';
+import { PICK_ORDER, cappedPicks, type CaseRef, type PickedGame } from '../engine/caseRef.ts';
 import type { CampaignSave } from './campaignSave.ts';
 import type { History } from './history.ts';
 import { PLAY_VERSION, sanitizeCampaign, sanitizeHistory, sanitizeQuick } from './saveGuards.ts';
@@ -73,7 +73,7 @@ export const saveScreen = (s: Screen) => write('screen', s);
 export function loadPicks(): PickedGame[] {
   const saved = read('picks');
   if (!Array.isArray(saved)) return [];
-  return pickedInOrder(saved.filter((g): g is PickedGame => PICK_ORDER.includes(g)));
+  return cappedPicks(saved.filter((g): g is PickedGame => PICK_ORDER.includes(g)));
 }
 
 export const savePicks = (games: readonly PickedGame[]) => write('picks', games);

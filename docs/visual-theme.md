@@ -396,12 +396,12 @@ taken" are ideas turned down). Copy sizes and colours from the mockups.
   the New case book does. A game the case adds for her says "The cat added this one" under its story.
 - **If the case won't build**, see "A mix that won't build" below; it never shows "That mix wouldn't
   come together".
-- Unchanged: the 3-game minimum, the code format and the classic Choose games screen. The 7 cap is
-  the tin's alone.
+- Unchanged: the 3-game minimum and the code format. Both pick screens (the tin and the classic Choose games
+  screen) cap new picks at 7 (`PICK_MAX`); codes with 8–9 games still load.
 
 ### A mix that won't build (owner, 2026-10-29: handle it quietly)
 
-- The engine already retries quietly: a picked case tries 30 seeds with the same code
+- The engine already retries quietly: a picked case tries 100 seeds with the same code
   (`PICK_TRIES` in `src/engine/caseRef.ts`), so the stars she saw stay. Measured: 0 of 400 random
   sets of 3 to 7 games failed; only all 9 at once failed (4 of 150), and the tin's cap rules that
   out.
