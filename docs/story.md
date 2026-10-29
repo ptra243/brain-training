@@ -62,13 +62,13 @@ Runs the family like the company: decisions come down, not up. Has put off namin
 years; this weekend they finally have to.
 - Versions (the card she meets them on):
   - **Emperor (home)**
-    - Upright: Has already decided, and it is written down and sealed. Everyone wants to know what it says.
+    - Upright: Has already decided, and it is sealed. Someone has been trying to get the Host declared unfit to make the decision.
     - Reversed: Has kept everyone waiting on purpose for years and enjoys being needed. The decision is a test, and someone is being set up to lose.
   - **Hierophant**
     - Upright: The company goes to family, as it always has. Will never sell, which infuriates everyone who wants the money.
     - Reversed: Afraid the true founding story (whose recipe it was) gets out at the 50th, now the Investor wants it in the sale.
   - **Hanged Man**
-    - Upright: Bad news from a doctor. Deciding now because there may not be much time.
+    - Upright: Bad news from a doctor, kept secret. If it gets out before the announcement, the sale price collapses.
     - Reversed: The company is in trouble and the Host has hidden it. The sale is a rescue, not a choice.
 
 ### The Hostess: Empress (borrows Star, Lovers)
@@ -76,11 +76,11 @@ Married to the Host for thirty years. Warm, funny, feeds everyone. The first rec
 made the company, was theirs; the Host's name went on the box. Has never said this out loud in public.
 - Versions (the card she meets them on):
   - **Empress (home)**
-    - Upright: Wants the credit for the recipe at last, and plans to say so at the party.
+    - Upright: Plans to claim the recipe at the party. If it is legally theirs, it is worth millions in the sale, and someone has destroyed the only proof.
     - Reversed: Wants the company sold. It has the family fighting at every meal, and has for fifty years. Sell it, and they might just be a family.
   - **Star**
     - Upright: Has a plan of their own: a shop under their own name, with their own recipes. Needs a share of the money.
-    - Reversed: Has quietly given up. This is the last weekend they will put up with.
+    - Reversed: Has found out about the Host's affair, and it is the final straw. But the prenup says they leave with nothing.
   - **Lovers**
     - Upright: An old flame: the Uncle. The fight twenty years ago was partly about them.
     - Reversed: Has privately promised support to both heirs, and can only keep one promise.
@@ -97,7 +97,7 @@ and never decided whether they're staff or family.
     - Upright: Runs the place day to day, and has earned the top job.
     - Reversed: Has made themselves impossible to replace: every password, every supplier, every key.
   - **High Priestess**
-    - Upright: People confide in them. Knows a secret about every guest and has never told.
+    - Upright: Knows a secret about every guest and has never told. One of those secrets would put the Fixer in prison too.
     - Reversed: Has never used what they know, but makes sure people remember they could. Has just decided to stop covering for someone.
 
 ### The Investor: Magician (borrows Star, Devil)
@@ -109,24 +109,24 @@ the company.
     - Upright: Genuinely loves the brand and wants to make it huge. Has half the table convinced already.
     - Reversed: The offer is a bluff: buy cheap, close the factory, keep the name.
   - **Star**
-    - Upright: Grew up on these bars. The deal is personal, a childhood dream.
+    - Upright: The deal is personal: the Investor's parent was fired from this factory years ago.
     - Reversed: The fund is in trouble. This deal has to happen, or they are finished.
   - **Devil**
     - Upright: Has been talking privately to one of the family, promising them a role after the sale.
-    - Reversed: Met someone here before, under another name, and hopes it does not come up.
+    - Reversed: Met someone here before, under another name. It was more than business, and they hope it does not come up.
 
 ### The Housekeeper: High Priestess (borrows Hermit, Death)
 Has run the family house for longer than the kids have been alive. Quiet, dry, misses nothing.
 Treated as part of the furniture, which suits them. Sees what the family leaves lying around.
 - Versions (the card she meets them on):
   - **High Priestess (home)**
-    - Upright: Sees everything in the house, and knows who has been reading the Host's papers this year.
-    - Reversed: Reads what the family leaves lying around, and knows the Younger heir's secret.
+    - Upright: Sees everything in this house, and has quietly stopped trouble before, one way or another.
+    - Reversed: Reads what the family leaves lying around, and knows the Younger heir's secret. Someone caught them, and being sacked would mean losing the only home they have.
   - **Hermit**
     - Upright: Has kept in touch with the Uncle all these years, and is quietly on the Uncle's side.
     - Reversed: Was promised a home for life by the Host years ago. A sale would end it.
   - **Death**
-    - Upright: Has handed in their notice for after the weekend. Nothing to lose.
+    - Upright: Leaving after the weekend. Their grandchild is ill and needs treatment abroad. The Host promised to help, then said the company could not spare it.
     - Reversed: Was left something in a will years ago, and is afraid it has been changed.
 
 ### The Accountant: Devil (borrows Emperor, Hanged Man)
@@ -149,8 +149,8 @@ twenty years ago after a fight nobody explains. Still owns shares, so still has 
 the first time in years and keeps to the edges of the room.
 - Versions (the card she meets them on):
   - **Hermit (home)**
-    - Upright: Came back to make peace with the Host before it is too late.
-    - Reversed: Has been alone so long they have stopped caring. Came to vote and leave.
+    - Upright: Came to make peace and clear their name at last. Someone here would rather it stayed dirty.
+    - Reversed: Twenty years alone because of what this family did. Came to see someone pay.
   - **Death**
     - Upright: The fight was partly about the recipe: the Uncle wanted the Hostess's name on the box, and still does.
     - Reversed: Wants revenge, and will vote for the sale just to see the Host lose the company.
@@ -182,7 +182,7 @@ assume he'll take over, and knows his sister hears it every time.
     - Upright: Happy in the city, and truly does not want the company. But he would do anything for the people he loves, and the victim had been making one of them miserable for years.
     - Reversed: Has been asked by the Host to take over instead of his sister, and has not told her.
   - **Lovers**
-    - Upright: In love with someone the family would hate.
+    - Upright: In love with someone the family would hate, and someone has threatened to tell.
     - Reversed: The Host made it a condition: the job, or the person. He has to choose.
   - **Star**
     - Upright: His own business needs money, and the sale would give it.
@@ -197,11 +197,11 @@ a rival from the moment the body is found.
     - Upright: Investigated the company years ago. The case was dropped, and they want the truth at last.
     - Reversed: Let something slide back then, for the Hostess's sake, and has regretted it since.
   - **High Priestess**
-    - Upright: The Hostess invited them for a reason nobody has said yet: something is wrong, and the Hostess wants a witness.
-    - Reversed: Kept the old case file, and has been reading it again.
+    - Upright: The Hostess asked them here to deal with someone. Nobody has said who.
+    - Reversed: Kept the old case file, has been reading it again, and has found the name they missed.
   - **Hermit**
     - Upright: Retired and lonely. It was the only invitation this year.
-    - Reversed: Decides who did it before anyone speaks. Often wrong, never admits it.
+    - Reversed: Decides who did it before anyone speaks, and has been sure about someone here for years.
 
 ## How they fit together (draft for the owner)
 
@@ -211,8 +211,9 @@ Any guest can be the victim or the killer, and any seven are seated, so the back
 - **Rolled secrets**: each guest's six versions (3 cards x upright/reversed) are six answers to the
   questions below. Only the version she hears is true in that case. Two versions that can be heard in
   the same case must not contradict each other. **Every version answers "why might they have done it?"**
-  The reason can be sympathetic (protecting someone, cornered, a lot to lose), but it has to be there,
-  because the killer is drawn separately and any version may turn out guilty.
+  It must be one of the reasons people kill in a whodunnit: **money** (a lot of it), **exposure** (prison,
+  ruin), **protecting someone**, **revenge** for a real wrong, or **freedom** from something unbearable.
+  A grievance or gossip is not enough. The killer is drawn separately, so any version may turn out guilty.
 
 ### Fixed history
 - **Fifty years ago** the Host and the Uncle opened one small shop. The bar that made it famous was
@@ -268,6 +269,9 @@ Any two guests' versions can be heard in the same case, so these were checked to
   slide for the Hostess: both can be part of why it was dropped.
 - **Who the Host picks**: the sealed decision (Host), the son asked to take over (Younger heir) and the
   Fixer's hopes are all rumours of a decision nobody has seen, so they never cancel out.
+- **The Host's affair** (Hostess, Star reversed) never names the other person. The Investor's Devil
+  reversed ("met someone here before, under another name … more than business") can be the other half;
+  when both come up, she can connect them herself. Neither version says it outright.
 - **Watch when writing lines**: the Housekeeper knowing "the Younger heir's secret" must stay vague, since
   his secret differs by version.
 
