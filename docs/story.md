@@ -169,7 +169,7 @@ the first time in years and keeps to the edges of the room.
     - Upright: Took the blame for something the Host did, so the company could survive. That was part of the fight.
     - Reversed: Has already promised their shares to the Investor and taken the money.
 
-### The Elder heir: Chariot (borrows Emperor, Devil)
+### The Elder heir: Chariot (borrows Empress, Devil; was Emperor)
 The daughter. Works at the company and has been told for years it will be hers. Driven, impatient,
 better at the job than anyone and knows it. Has been "nearly ready" for eight years and is starting to
 think it was never about being ready. Has already made plans, and maybe promises, on the strength of it.
@@ -177,12 +177,17 @@ think it was never about being ready. Has already made plans, and maybe promises
   - **Chariot (home)**
     - Upright: Will win it on merit. The Fixer is the rival to beat.
     - Reversed: Done waiting, and ready to force the Host's hand.
-  - **Emperor**
-    - Upright: Already runs it in all but name, and the Host's delay is the insult.
-    - Reversed: Bitter at the Hostess: "You of all people let this happen."
+  - **Empress** (replaces the Emperor; see the note below)
+    - Upright: The one who'd grow it. Has ideas the company never lets her try (new bars, the shops), the things her mother would have made if anyone had let her. Wants to create, not just inherit. (freedom)
+    - Reversed: Terrified of becoming her mother: watched her mother's recipe go out under her father's name, and her mother smile about it for thirty years. Won't let it happen to her. (freedom, revenge)
   - **Devil**
     - Upright: Quietly talking to the Investor: if they won't give it to her, she'll help sell it.
     - Reversed: Borrowed against an inheritance she may never get, and her brother is why.
+- **Card swap to make when her threads are written** (owner, 2026-10-29): she borrows the **Empress**
+  instead of the Emperor, sharing it with her mother; her bitterness lives with her mother, not her
+  father. "Already runs it in all but name" folds into the Chariot. Content change: `mayAlsoRoll` in
+  `src/content/`, and the Empress's neutral lines and card threads must fit both mother and daughter.
+  The Emperor drops to 3 holders. Cases stay the same (talk sets are not in a `Case`).
 
 ### The Younger heir: Sun (borrows Lovers, Star)
 The son, and everyone's favourite. Left the company to do something of his own in the city and is
