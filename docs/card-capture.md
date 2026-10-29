@@ -1,25 +1,32 @@
 # Card Capture: idea
 
-The owner's idea for a card game, added 2026-10-29: a small solo deck builder played with a standard
-deck. The first build's design is settled (grilled 2026-10-29); only the 360px layout is left, as a
-mockup at the start of the build.
+The owner's idea for a card game, added 2026-10-29: a small solo deck builder played with a deck of
+cards whose face cards are the guests. The first build's design is settled (grilled 2026-10-29), and
+so is the 360px layout: the mockup canvas is https://claude.ai/artifact/SSyPmgaZw3UyAe66Kuifuc (the
+game's page, discard and draw, a playable capture screen, the losing-move warning, and a sheet of the
+whole deck).
 
 **Not a normal minigame.** She can play herself into a loss, and normal case minigames must always be
 winnable (the Solve button rule in `CLAUDE.md`). Settled 2026-10-29: the first build is **a standalone
 game for fun** on the Shelf, with no clue reward and no solver (the rules are self-contained and a
 loss is allowed). A **hard-mode campaign where she can lose**, in which games like this unlock clues,
-may come later; the guest faces and the Easter egg below belong to it.
+may come later; the Easter egg below belongs to it. The guest faces are in the first build.
 
-**First build:** a standard 52-card deck plus 2 jokers, standard suits. Each deal is a seeded shuffle
+**First build:** the guest deck (settled 2026-10-29): number cards 2 to 10 in the four standard
+suits, the 10 guests as the face cards in place of the 16 J, Q, K and A, and 2 jokers, 46 cards in
+all. Each deal is a seeded shuffle
 (same code, same deal), any shuffle, not filtered for winnability. Every turn ends with exactly one
 action: capture, bury or give way (no passing). The 4 face-up cards are **the hall**.
 
 ## Owner's rules
 
-**Values.** Number cards are face value. J = 11, Q = 12, K = 13, A = 14. Jokers have no suit or colour.
+**Values.** Number cards are face value. Face cards keep the letters for their value: J = 11,
+Q = 12, K = 13, A = 14 (each guest's suit and value: "The guests as face cards" below). Jokers have
+no suit or colour.
 
 **Set-up.** Every card of 4 or lower (the 2s, 3s and 4s) plus the 2 jokers make the player deck
-(14 cards). Everything else (5 to A, 36 cards) is shuffled into the enemy deck.
+(14 cards). Everything else (5 to 10 in four suits and the 10 guests, 34 cards) is shuffled into the
+enemy deck. (The owner's rules were written for a standard deck, where the enemy deck had 36.)
 
 **Two discard piles.** Her own discard pile is safe for any card. The enemy discard (the door) is
 where cards she **sacrifices** go, and a face card there loses.
@@ -27,7 +34,7 @@ where cards she **sacrifices** go, and a face card there loses.
 **Win.** The enemy deck and the hall are both empty: every card was captured, or sacrificed with no
 face card reaching the door. Buried cards come back, so every face card must be captured in the end.
 
-**Lose.** A face card (J, Q, K or A) lands in the enemy discard, however it gets there.
+**Lose.** A face card (a guest) lands in the enemy discard, however it gets there.
 
 **Each turn has four phases:**
 
@@ -63,23 +70,35 @@ of 4 face cards is not stuck on its own. It is a dead end when nothing she can d
 holds fewer than 2 number cards to bury with, and the rightmost hall card is a face card: every move
 then sends a face card to the door. Real losses are part of the game.
 
-## Later: the guests as face cards (campaign version)
+## The guests as face cards
 
-The owner's idea (2026-10-29): use the guests' portraits as the face cards. A standard deck has 16
-(J, Q, K, A in four suits) but there are 10 guests, so the enemy deck would swap the 16 for 10 guest
-cards: 5 to 10 in four suits (24) plus 10 guests is 34 cards, near the 36 it has now.
-Each guest gets a suit and a value (11 to 14) in `src/content/`, never in code. A first guess at
-values, by standing in the house:
+The owner's idea (2026-10-29), **in the first build** (settled 2026-10-29 from the mockup): use the
+guests' portraits as the face cards. A standard deck has 16 (J, Q, K, A in four suits) but there are
+10 guests, so the enemy deck swaps the 16 for 10 guest cards: 5 to 10 in four suits (24) plus 10
+guests is 34 cards. Each guest gets a suit and a value (11 to 14) in `src/content/`, never in code.
+Values, by standing in the house, with the mockup's suits (the suits are a guess, still to settle):
 
 | Value | Guests |
 |---|---|
-| 14 | The Host, the Hostess |
-| 13 | The Financier, the Detective, the Uncle |
-| 12 | The Conjurer, the Elder heir, the Younger heir |
-| 11 | The Butler, the Housekeeper |
+| 14 (A) | The Host ♠, the Hostess ♥ |
+| 13 (K) | The Financier ♦, the Detective ♣, the Uncle ♥ |
+| 12 (Q) | The Conjurer ♠, the Elder heir ♦, the Younger heir ♣ |
+| 11 (J) | The Butler ♣, the Housekeeper ♥ |
 
-Alternative: in a hard-mode campaign, only the guests seated at that case are face cards (7, or 8
-with the victim), so each case's deck has a different cast.
+The 2 jokers carry her own portrait and the cat's (below).
+
+**How the cards look** (the mockup's deck sheet):
+
+- **Number cards** show their value as that many suit pips in the usual layouts (the bottom half
+  turned upside down), with a corner index top left and the same index turned round bottom right.
+- **Face cards and jokers** are portrait cards: the full portrait (`portraitShapes`, no tint) fills
+  the card, the value letter and suit sit in a small ivory chip top left, and the guest's role name
+  is in a strip along the bottom ("Conjurer"). A joker's chip is ★ and its strip says "You" or
+  "The cat". Face cards and jokers have a brass edge; number cards an ivory one.
+- Red suits in pencil red, black suits in ink, jokers in the tarot-back burgundy.
+
+Later, in a hard-mode campaign: only the guests seated at that case are face cards (7, or 8 with
+the victim), so each case's deck has a different cast.
 
 In the campaign the killer and a few decoys show up more often (say 2 cards each, 1 for everyone
 else), so the game feels haunted by the guilty. The deck is then a clue in itself: she can count
@@ -106,7 +125,7 @@ discard has slipped away from the house, which loses the game.
   cases. Card Capture is the first.
 - **Its page:** before starting, the book turns to the game's own page: the rules in short and her
   last 5 **deals** (one game from one deal code; "run" stays the campaign's word). Each shows the date,
-  won or lost, face cards captured out of 16, and **Replay** (same code, same deal). Its history
+  won or lost, face cards captured out of 10, and **Replay** (same code, same deal). Its history
   stays out of Your record and the guest book.
 - **The table:** one full-bleed page like the map, green baize: house, hall and door across the top,
   her hand at the bottom.
@@ -122,6 +141,7 @@ discard has slipped away from the house, which loses the game.
 
 ## To settle
 
-- Later, for a campaign version: tarot suits, the guest faces, what losing costs her, and whether
-  other losable games join it.
-- Phone layout at 360px: a 4-card hall, a 4-card hand, the two piles and the enemy deck count.
+- Each guest's suit (the table above is the mockup's guess).
+- Which cat's coat the cat joker wears outside a case (the mockup uses Biscuit's).
+- Later, for a campaign version: tarot suits, what losing costs her, and whether other losable games
+  join it.

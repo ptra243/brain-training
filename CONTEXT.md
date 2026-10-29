@@ -53,6 +53,8 @@ A solo card game she can lose (`docs/card-capture.md`).
 - **Hall**: the 4 face-up cards she can capture or bury. Cards enter on the left and move right
   toward the door. Not the shop, not a room.
 - **Door**: the enemy's discard pile, right of the hall. A face card at the door loses the game.
+- **Face card**: one of the 10 guest cards (values 11 to 14), drawn as the guest's portrait. Not a
+  standard J, Q, K or A.
 - **Discard**: putting cards from her hand on her own discard pile. Free and safe.
 - **Sacrifice**: putting her cards at the door. Unsafe: a face card there loses.
 - **Capture**: taking a hall card with same-suit cards that add up to its value or more. Not "buy".

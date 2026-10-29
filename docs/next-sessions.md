@@ -202,12 +202,12 @@ Read the Grid cases build plan doc, go through its open questions with me, then 
 ```
 
 ## Session: Card Capture in Parlour games, build
-Last touched: 2026-10-29 (designed with the owner; nothing built)
-Reads first: `docs/card-capture.md` (rules and "On the Shelf"), the Card Capture terms in `CONTEXT.md`, `src/games/CLAUDE.md`.
-Goal: a standalone card game she can lose, the first in a new Parlour games book on the Shelf: seeded deals, saved moves, her last 5 deals with Replay. #shelf only.
+Last touched: 2026-10-29 (designed and mocked up with the owner; nothing built)
+Reads first: `docs/card-capture.md` (rules, "The guests as face cards", "On the Shelf"; its mockup canvas is the layout), the Card Capture terms in `CONTEXT.md`, `src/games/CLAUDE.md`.
+Goal: a standalone card game she can lose, the first in a new Parlour games book on the Shelf: the guest deck (pip number cards, portrait face cards and jokers), seeded deals, saved moves, her last 5 deals with Replay. #shelf only. Left to settle first: each guest's suit, and the cat joker's coat outside a case.
 Starting prompt:
 ```
-Read docs/card-capture.md and the Card Capture terms in CONTEXT.md, mock up the card table at 360px, then plan the build and brief the implementer.
+Read docs/card-capture.md and the Card Capture terms in CONTEXT.md. Settle the guest suits and the cat joker's coat with me, then plan the build from the mockup canvas and brief the implementer.
 ```
 
 ## Session: CSS Modules for game styles
