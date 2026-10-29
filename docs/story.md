@@ -60,53 +60,71 @@ is a grievance and a motive.
 Built the company from one shop into a brand everyone knows. Generous, loud, used to being right.
 Runs the family like the company: decisions come down, not up. Has put off naming a successor for
 years; this weekend they finally have to.
-- Plots: why decide now (bad news from a doctor, the company in trouble, or just tired)? Has the
-  decision already been made and written down? Is someone being set up to lose?
+- Possible plots:
+  - Why decide now: bad news from a doctor, the company in trouble, or just tired?
+  - Has the decision already been made and written down?
+  - Is someone being set up to lose?
 
 ### The Hostess: Empress (borrows Star, Lovers)
 Married to the Host for thirty years. Warm, funny, feeds everyone. The first recipe, the one that
 made the company, was theirs; the Host's name went on the box. Has never said this out loud in public.
-- Plots: wants the credit at last; wants the company sold so the family is free of it; an old flame
-  (Lovers) who is closer to home than anyone thinks.
+- Possible plots:
+  - Wants the credit at last.
+  - Wants the company sold so the family is free of it.
+  - An old flame (Lovers) who is closer to home than anyone thinks.
 
 ### The Fixer: Hierophant (borrows Emperor, High Priestess)
 Started on the factory floor at seventeen and worked up to the person who sorts out every problem
 the Host has. Calm, capable, knows how everything works. The family's kids grew up with them around
 and never decided whether they're staff or family.
-- Plots: the Host might hand them the company; they've covered up something big for the Host; they
-  know a secret about every guest and have never used one.
+- Possible plots:
+  - The Host might hand them the company.
+  - They've covered up something big for the Host.
+  - They know a secret about every guest and have never used one.
 
 ### The Investor: Magician (borrows Star, Devil)
 Runs the fund that made the offer. Charming, quick, very good at making people feel clever. Came in
 person to close the deal and brought expensive wine. Nobody knows how much they actually know about
 the company.
-- Plots: the offer is a bluff to buy cheap and close the factory; they've been talking privately to
-  one of the family; they met someone here before, under another name.
+- Possible plots:
+  - The offer is a bluff to buy cheap and close the factory.
+  - They've been talking privately to one of the family.
+  - They met someone here before, under another name.
 
 ### The Housekeeper: High Priestess (borrows Hermit, Death)
 Has run the family house for longer than the kids have been alive. Quiet, dry, misses nothing.
 Treated as part of the furniture, which suits them. Sees what the family leaves lying around.
-- Plots: knows who changed what in the Host's papers; promised something in a will years ago; has
-  been quietly looking after the Uncle's interests all along.
+- Possible plots:
+  - Knows who changed what in the Host's papers.
+  - Promised something in a will years ago.
+  - Has been quietly looking after the Uncle's interests all along.
 
 ### The Accountant: Devil (borrows Emperor, Hanged Man)
 Keeps the company's books, and a few people's private ones. Precise, dry, a little too pleased to
 know what everyone is worth. Lends money on the side to people who can't ask their family.
-- Plots: the numbers don't add up and they know why; half the table owes them; they lost money on a
-  sure thing and covered it with company money.
+- Possible plots:
+  - The numbers don't add up and they know why.
+  - Half the table owes them.
+  - They lost money on a sure thing and covered it with company money.
 
 ### The Uncle: Hermit (borrows Death, Hanged Man)
 The Host's brother-in-arms from the first shop, and family by marriage. Pushed out of the company
 twenty years ago after a fight nobody explains. Still owns shares, so still has a vote. Came back for
 the first time in years and keeps to the edges of the room.
-- Plots: wants revenge, or wants peace; the fight was about the recipe; their vote decides a sale.
+- Possible plots:
+  - Wants revenge, or wants peace.
+  - The fight was about the recipe.
+  - Their vote decides a sale.
 
 ### The Elder heir: Chariot (borrows Emperor, Devil)
 The daughter. Works at the company and has been told for years it will be hers. Driven, impatient,
 better at the job than anyone and knows it. Has been "nearly ready" for eight years and is starting to
 think it was never about being ready. Has already made plans, and maybe promises, on the strength of it.
-- Plots: has borrowed against an inheritance she doesn't have yet; is quietly talking to the Investor
-  in case it all goes wrong; thinks the Fixer is in the way; is tired of hearing her brother's name.
+- Possible plots:
+  - Has borrowed against an inheritance she doesn't have yet.
+  - Is quietly talking to the Investor in case it all goes wrong.
+  - Thinks the Fixer is in the way.
+  - Is tired of hearing her brother's name.
 - Her six versions, each aiming the bitterness somewhere:
 
   | Card | Upright | Reversed |
@@ -119,14 +137,18 @@ think it was never about being ready. Has already made plans, and maybe promises
 The son, and everyone's favourite. Left the company to do something of his own in the city and is
 happy there, or says so. Easy-going, funny, the one people tell things to at parties. Knows people
 assume he'll take over, and knows his sister hears it every time.
-- Plots: has secretly been asked to take over instead; is in love with someone the family would hate;
-  needs money for their own business and the sale would give it.
+- Possible plots:
+  - Has secretly been asked to take over instead.
+  - Is in love with someone the family would hate.
+  - Needs money for his own business, and the sale would give it.
 
 ### The Detective: Justice (borrows High Priestess, Hermit)
 A retired police detective and the Host's oldest friend. Fair, stubborn, a little smug. Treats you as
 a rival from the moment the body is found.
-- Plots: the Host invited them because something is wrong at the company; they once let something
-  slide for the Host and have regretted it since; they're sure who did it, and sometimes they're wrong.
+- Possible plots:
+  - The Host invited them because something is wrong at the company.
+  - They once let something slide for the Host and have regretted it since.
+  - They're sure who did it, and sometimes they're wrong.
 
 ## How they fit together (draft for the owner)
 
