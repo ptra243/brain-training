@@ -36,7 +36,6 @@ export const PREVIEWS: readonly PreviewInfo[] = [
   { id: 'shelf-answer', about: 'The #shelf book turned to Answer: the form with one wrong try crossed out and a fresh blank line', look: 'plain' },
   { id: 'shelf-answer-solved', about: 'The #shelf Answer page once solved: the verdict in pencil, tries, Back to the shelf', look: 'plain' },
   { id: 'shelf-notebook',about: 'The #shelf book on Case with the notebook closed to its strip at the foot', look: 'plain' },
-  { id: 'shelf-notebook-you', about: 'The #shelf notebook open on the You tab', look: 'plain' },
   { id: 'shelf-notebook-grid', about: 'The #shelf notebook open on the Grid tab, with the cat hint and a few marks', look: 'plain' },
   { id: 'shelf-notebook-jigsaw', about: 'The #shelf notebook open on the Jigsaw tab (a Jigsaw-finish case): the board on the page, three stickers placed, the sticker sheet drawer above the tabs', look: 'plain' },
   { id: 'shelf-notebook-subject', about: 'The #shelf notebook on a guest page: placement, clues that name them, what they said', look: 'plain' },

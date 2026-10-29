@@ -2,7 +2,7 @@
 // leaves flick past. No DOM here; `ribbonMotion.ts` does the moving.
 
 /** The sections in book order. */
-export const SECTIONS = ['Case', 'Map', 'Puzzles', 'Answer'] as const;
+export const SECTIONS = ['Case', 'Map', 'Answer'] as const;
 export type Section = (typeof SECTIONS)[number];
 
 /** The prototype's tuned numbers (docs/visual-theme.md), in ms, px and degrees. */

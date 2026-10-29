@@ -31,6 +31,19 @@ async function openNotebook(page: Page, save: unknown) {
   return page.getByRole('region', { name: 'Your notebook' });
 }
 
+test('a Play case shows both Grid and Jigsaw, and no You', async ({ page }) => {
+  const notebook = await openNotebook(page, playSave);
+  const tabs = notebook.getByRole('navigation', { name: 'Notebook pages' });
+  await expect(tabs.getByRole('button', { name: 'Grid' })).toBeVisible();
+  await expect(tabs.getByRole('button', { name: 'Jigsaw' })).toBeVisible();
+  await expect(tabs.getByRole('button', { name: 'You' })).toHaveCount(0);
+  for (const b of await tabs.getByRole('button').all()) {
+    const box = (await b.boundingBox())!;
+    expect(box.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+  }
+});
+
 test('a Jigsaw-finish Quick case: Jigsaw tab, no Grid; a sticker placed by touch is in the classic save', async ({ page }) => {
   const notebook = await openNotebook(page, jigsawSave);
   const tabs = notebook.getByRole('navigation', { name: 'Notebook pages' });
@@ -76,11 +89,4 @@ test('a saved Grid tab opens Jigsaw in a Jigsaw case', async ({ page }) => {
   await page.addInitScript(([k, v]) => localStorage.setItem(k, v), ['brain-training:shelf:notebook-tab', 'grid']);
   const notebook = await openNotebook(page, jigsawSave);
   await expect(notebook.getByRole('navigation', { name: 'Notebook pages' }).getByRole('button', { name: 'Jigsaw' })).toHaveAttribute('aria-current', 'page');
-});
-
-test('a Play case keeps Grid and has no Jigsaw tab', async ({ page }) => {
-  const notebook = await openNotebook(page, playSave);
-  const tabs = notebook.getByRole('navigation', { name: 'Notebook pages' });
-  await expect(tabs.getByRole('button', { name: 'Grid' })).toBeVisible();
-  await expect(tabs.getByRole('button', { name: 'Jigsaw' })).toHaveCount(0);
 });

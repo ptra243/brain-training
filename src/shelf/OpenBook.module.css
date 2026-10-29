@@ -111,7 +111,10 @@
   overscroll-behavior-y: none;
 }
 
-:global(body.shelf) .app {
+/* The book's colours. A turning leaf is added to body, outside .app, so it needs them too
+   (without them its paper is see-through). */
+:global(body.shelf) .app,
+:global(body.shelf) .leaf {
   --felt: #3a7058;
   --felt-deep: #2c5745;
   --cover-red: #8a2e3b;
@@ -123,11 +126,13 @@
   --brass: #d2a548;
   --r-case: #c99a3c;
   --r-map: #4f7a54;
-  --r-puzzles: #3f5f8a;
   --r-answer: #9a5a32;
   --verso: 20px;
   --pad-l: 0px;
   --display: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+:global(body.shelf) .app {
   position: absolute;
   inset: 0;
   box-sizing: border-box;
@@ -141,7 +146,6 @@
   overflow: clip;
   background: radial-gradient(120% 80% at 50% 30%, var(--felt), var(--felt-deep));
   color: var(--ivory);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
 :global(body.shelf) .app button:focus-visible {
@@ -312,8 +316,7 @@
 }
 :global(body.shelf) .satin[data-i='0'] { --rib: var(--r-case); --rib-ink: var(--ink); }
 :global(body.shelf) .satin[data-i='1'] { --rib: var(--r-map); --rib-ink: var(--ivory); }
-:global(body.shelf) .satin[data-i='2'] { --rib: var(--r-puzzles); --rib-ink: var(--ivory); }
-:global(body.shelf) .satin[data-i='3'] { --rib: var(--r-answer); --rib-ink: var(--ivory); }
+:global(body.shelf) .satin[data-i='2'] { --rib: var(--r-answer); --rib-ink: var(--ivory); }
 
 :global(body.shelf) .pull {
   position: absolute;

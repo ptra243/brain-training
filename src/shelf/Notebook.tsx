@@ -14,7 +14,7 @@ import { SCENE_TEASER, holderOf, itemRoom, placedRoom, sceneText, sceneUnlocked,
 import { SuspectCounterFace } from '../game/SuspectCounterFace.tsx';
 import { youLines } from '../game/youSheet.ts';
 import styles from './Notebook.module.css';
-import { afterSwipe, peekLine, placeAction, placeRooms, placementLine, subjectClues, subjectTitle, tabForCase, tabsFor, type Height, type NotebookTab } from './notebook.ts';
+import { accuseLabel, accuseRequest, afterSwipe, peekLine, placeAction, placeRooms, placementLine, subjectClues, subjectTitle, tabForCase, tabsFor, type AccuseRequest, type Height, type NotebookTab } from './notebook.ts';
 import { saveNotebookTab, loadNotebookTab } from './shelfStore.ts';
 import type { QuickBook, SampleCase } from './useQuickBook.ts';
 
@@ -243,11 +243,13 @@ function JigsawTab({ book, onAccuse }: { book: QuickBook; onAccuse: () => void }
 }
 
 /** A guest's, a weapon's or a room's page. */
-function SubjectPage({ book, page, onBack }: { book: QuickBook; page: Page; onBack: () => void }) {
+function SubjectPage({ book, page, onBack, onAccuseGuest }: { book: QuickBook; page: Page; onBack: () => void; onAccuseGuest: (req: AccuseRequest) => void }) {
   const { c, progress, dispatch } = book;
   const { subject } = page;
-  const back = tabsFor(book.jigsaw).find((t) => t.id === page.from)?.label ?? 'Back';
+  const back = tabsFor(book.finish).find((t) => t.id === page.from)?.label ?? 'Back';
   const clues = subjectClues(c, progress, subject);
+  const accuse = accuseRequest(c, progress, subject);
+  const move = subject.kind === 'suspect' ? 'Move their counter' : 'Move it';
   const them = subject.kind === 'suspect' ? 'them' : 'it';
   let head: ReactNode;
   if (subject.kind === 'room') {
@@ -277,8 +279,8 @@ function SubjectPage({ book, page, onBack }: { book: QuickBook; page: Page; onBa
       )}
       {subject.kind === 'room' ? null : (
         <>
-          <h3 className={styles.heading}>Place in a room</h3>
-          <ul className={styles.rooms} aria-label="Place in a room">
+          <h3 className={styles.heading}>{move}</h3>
+          <ul className={styles.rooms} aria-label={move}>
             {placeRooms(c).map((room) => {
               const here = subject.kind === 'suspect' ? placedRoom(c, progress, subject.id) === room : itemRoom(c, progress, subject.id) === room && !holderOf(c, progress, subject.id);
               return (
@@ -300,6 +302,11 @@ function SubjectPage({ book, page, onBack }: { book: QuickBook; page: Page; onBa
           </ul>
         </>
       )}
+      {accuse ? (
+        <button type="button" className={styles.accuse} onClick={() => onAccuseGuest(accuse)}>
+          {accuseLabel(c, accuse)}
+        </button>
+      ) : null}
     </>
   );
 }
@@ -330,6 +337,8 @@ interface Props {
   onPage?: (s: Subject | null) => void;
   /** The board's Accuse button: turn the book to its Answer page. */
   onAccuse: () => void;
+  /** A guest page's Accuse button: turn the book to Answer with this guest (and weapon) written in. */
+  onAccuseGuest: (req: AccuseRequest) => void;
 }
 
 /**
@@ -337,12 +346,12 @@ interface Props {
  * a kraft-covered pad with You, Clues, Grid and Guests tabs. It reuses the casebook's grid, clue cards
  * and talk, restyled under body.shelf. Her last tab is remembered; a subject page belongs to its tab.
  */
-export function Notebook({ book, sample, hidden, height, onHeight, focus, onPage, onAccuse }: Props) {
+export function Notebook({ book, sample, hidden, height, onHeight, focus, onPage, onAccuse, onAccuseGuest }: Props) {
   const start = sample?.notebook;
   const open = height !== 'peek';
   const [gesture] = useState<{ y0: number | null; swiped: boolean }>(() => ({ y0: null, swiped: false }));
-  const [tab, setTab] = useState<NotebookTab>(() => tabForCase(start?.tab ?? (sample ? 'clues' : loadNotebookTab()), book.jigsaw));
-  const [page, setPage] = useState<Page | null>(() => (start?.subject ? { subject: start.subject, from: tabForCase(start.tab ?? 'guests', book.jigsaw) } : null));
+  const [tab, setTab] = useState<NotebookTab>(() => tabForCase(start?.tab ?? (sample ? 'clues' : loadNotebookTab()), book.finish));
+  const [page, setPage] = useState<Page | null>(() => (start?.subject ? { subject: start.subject, from: tabForCase(start.tab ?? 'guests', book.finish) } : null));
   const peekRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const wasOpen = useRef(open);
@@ -384,7 +393,7 @@ export function Notebook({ book, sample, hidden, height, onHeight, focus, onPage
   const pick = (from: NotebookTab) => (subject: Subject) => setPage({ subject, from });
 
   let content: ReactNode;
-  if (page) content = <SubjectPage book={book} page={page} onBack={() => setPage(null)} />;
+  if (page) content = <SubjectPage book={book} page={page} onBack={() => setPage(null)} onAccuseGuest={onAccuseGuest} />;
   else if (tab === 'you') content = <YouTab c={book.c} progress={book.progress} />;
   else if (tab === 'clues') content = <CluesTab c={book.c} progress={book.progress} dispatch={book.dispatch} />;
   else if (tab === 'grid') content = <GridTab book={book} onPick={pick('grid')} />;
@@ -410,7 +419,7 @@ export function Notebook({ book, sample, hidden, height, onHeight, focus, onPage
             {content}
           </div>
           <nav className={styles.tabs} aria-label="Notebook pages">
-            {tabsFor(book.jigsaw).map((t) => (
+            {tabsFor(book.finish).map((t) => (
               <button key={t.id} type="button" aria-current={tab === t.id ? 'page' : undefined} onClick={() => choose(t.id)}>
                 {t.label}
               </button>

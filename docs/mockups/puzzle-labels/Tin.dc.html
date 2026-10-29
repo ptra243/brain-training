@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sticker tin: pick the games</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,500&amp;family=Caveat:wght@600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#3a7058}
+a{color:#8a2620}a:hover{color:#5a1426}
+.stk{position:relative;box-sizing:border-box;height:60px;padding:6px 8px 6px 10px;border:0;border-radius:9px;background:#fffdf6;display:flex;align-items:center;gap:8px;text-align:left;cursor:pointer;font:inherit;color:#1e2a2f}
+.tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.nm{font-family:'EB Garamond',Georgia,serif;font-weight:600;font-size:14px;font-variant:small-caps;letter-spacing:.02em;line-height:1.05}
+.st{font-size:11.5px;letter-spacing:1.5px;color:#8a2e3b;line-height:1}
+.tick{position:absolute;right:-6px;top:-7px;width:22px;height:22px;border-radius:50%;background:#d2a548;box-shadow:0 1px 2px rgba(0,0,0,.4);display:grid;place-items:center}
+.rattle{animation:rattle .42s ease-in-out}
+@keyframes rattle{0%{transform:translate(0,0) rotate(0)}15%{transform:translate(-7px,2px) rotate(-1.6deg)}35%{transform:translate(6px,-2px) rotate(1.4deg)}55%{transform:translate(-5px,1px) rotate(-1deg)}75%{transform:translate(4px,0) rotate(.7deg)}100%{transform:translate(0,0) rotate(0)}}
+@media (prefers-reduced-motion: reduce){.rattle{animation:none}.stk{transition:none !important}}
+.btn{box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;min-height:50px;border-radius:6px;font-family:'EB Garamond',Georgia,serif;font-weight:700;font-size:19px;text-decoration:none;cursor:pointer}
+</style>
+</helmet>
+<div style="position: relative; width: 360px; height: 780px; box-sizing: border-box; padding: 18px 0 0; display: flex; flex-direction: column; overflow: hidden; background-color: #3a7058; background-image: radial-gradient(rgba(255,255,255,.045) 1px, transparent 1px); background-size: 5px 5px; border-top: 10px solid #b37a44; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #f6eedb">
+
+  <header style="display: grid; grid-template-columns: 46px 1fr 46px; align-items: center; gap: 6px; padding: 0 12px">
+    <a href="#shelf" aria-label="Back to the shelf" style="width: 46px; height: 46px; display: grid; place-items: center">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" style="filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.45)); transform: rotate(-6deg)"><circle cx="20" cy="20" r="18" fill="#fbf4e2"></circle><circle cx="20" cy="20" r="14.5" fill="#9a5a32"></circle><path d="M23 13l-7 7 7 7" fill="none" stroke="#fbf4e2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </a>
+    <div style="text-align: center">
+      <h1 style="margin: 0; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 22px; line-height: 1.1">New case</h1>
+      <p style="margin: 2px 0 0; font-size: 13px; color: #eadfc4">Lift 3 to 7 puzzles</p>
+    </div>
+    <span aria-hidden="true"></span>
+  </header>
+
+  <div class="{{tinClass}}" style="position: relative; margin: 30px 12px 0; display: flex; flex-direction: column">
+    <div aria-hidden="true" style="position: absolute; left: 18px; right: 18px; top: -26px; height: 30px; border-radius: 10px 10px 4px 4px; background: linear-gradient(#5e1f1b, #7a2a24); box-shadow: 0 -2px 4px rgba(0,0,0,.3); transform: perspective(300px) rotateX(38deg); transform-origin: bottom; display: grid; place-items: center; font-family: 'EB Garamond', Georgia, serif; font-weight: 700; font-size: 12px; letter-spacing: .28em; color: #e8c66a">PUZZLE STICKERS</div>
+    <section aria-label="Tin of puzzle stickers" style="position: relative; background: linear-gradient(#8a3029, #6e231e); border-radius: 12px; padding: 10px; box-shadow: inset 0 0 0 2px #c8a24c, inset 0 0 0 5px #7a2a24, inset 0 0 0 6px #c8a24c, 0 14px 24px rgba(0,0,0,.45)">
+      <div style="background-color: #e6ecee; background-image: repeating-linear-gradient(135deg, rgba(120,140,150,.08) 0 2px, transparent 2px 8px); border-radius: 6px; padding: 12px 10px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 12px; box-shadow: inset 0 2px 5px rgba(0,0,0,.25)">
+        <sc-for list="{{stickers}}" as="s" hint-placeholder-count="9">
+          <button class="stk" style="{{s.style}}" aria-pressed="{{s.pressed}}" aria-label="{{s.label}}" onClick="{{s.pick}}">
+            <sc-if value="{{s.i.wordle}}" hint-placeholder-val="{{false}}"><svg width="26" height="26"viewBox="0 0 34 34" aria-hidden="true" fill="none" stroke="#1e2a2f" stroke-width="1"><rect x="1" y="10" width="5.6" height="5.6"></rect><rect x="7.6" y="10" width="5.6" height="5.6" fill="#e9d9a8"></rect><rect x="14.2" y="10" width="5.6" height="5.6"></rect><rect x="20.8" y="10" width="5.6" height="5.6" fill="#b9c9a0"></rect><rect x="27.4" y="10" width="5.6" height="5.6"></rect><rect x="1" y="18" width="5.6" height="5.6"></rect><rect x="7.6" y="18" width="5.6" height="5.6"></rect><rect x="14.2" y="18" width="5.6" height="5.6"></rect><rect x="20.8" y="18" width="5.6" height="5.6"></rect><rect x="27.4" y="18" width="5.6" height="5.6"></rect></svg></sc-if>
+            <sc-if value="{{s.i.crossword}}" hint-placeholder-val="{{false}}"><svg width="26" height="26"viewBox="0 0 34 34" aria-hidden="true"><g fill="none" stroke="#1e2a2f" stroke-width="1"><rect x="1" y="5" width="8" height="8"></rect><rect x="9" y="5" width="8" height="8"></rect><rect x="17" y="5" width="8" height="8"></rect><rect x="25" y="5" width="8" height="8" fill="#1e2a2f"></rect><rect x="1" y="13" width="8" height="8"></rect><rect x="9" y="13" width="8" height="8" fill="#1e2a2f"></rect><rect x="17" y="13" width="8" height="8"></rect><rect x="25" y="13" width="8" height="8"></rect><rect x="1" y="21" width="8" height="8"></rect><rect x="9" y="21" width="8" height="8"></rect><rect x="17" y="21" width="8" height="8"></rect><rect x="25" y="21" width="8" height="8"></rect></g></svg></sc-if>
+            <sc-if value="{{s.i.wordsearch}}" hint-placeholder-val="{{false}}"><svg width="26" height="26"viewBox="0 0 34 34" aria-hidden="true"><g font-family="Georgia, serif" font-size="8.5" fill="#1e2a2f" text-anchor="middle"><text x="6" y="10">K</text><text x="17" y="10">E</text><text x="28" y="10">Y</text><text x="6" y="21">R</text><text x="17" y="21">O</text><text x="28" y="21">P</text><text x="6" y="32">T</text><text x="17" y="32">A</text><text x="28" y="32">N</text></g><rect x="1.5" y="1.8" width="31" height="11" rx="5.5" fill="none" stroke="#a8322d" stroke-width="1.3"></rect></svg></sc-if>
+            <sc-if value="{{s.i.cats}}" hint-placeholder-val="{{false}}"><svg width="26" height="26"viewBox="0 0 34 34" aria-hidden="true" fill="none" stroke="#1e2a2f" stroke-width="1.3" stroke-linejoin="round"><path d="M5 30V16a4 4 0 0 1 8 0v4h8v-4a4 4 0 0 1 8 0v14"></path><path d="M5 24h24"></path><path d="M13 9l2-5 2 3 2-3 2 5" stroke-linecap="round"></path></svg></sc-if>
+            <sc-if value="{{s.i.sudoku}}" hint-placeholder-val="{{false}}"><svg width="26" height="26"viewBox="0 0 34 34" aria-hidden="true"><g fill="none" stroke="#1e2a2f"><rect x="1.5" y="1.5" width="31" height="31" stroke-width="1.6"></rect><path d="M11.8 1.5v31M22.2 1.5v31M1.5 11.8h31M1.5 22.2h31" stroke-width=".8"></path></g><g font-family="Georgia, serif" font-size="8" fill="#1e2a2f" text-anchor="middle"><text x="6.6" y="9.6">4</text><text x="27.4" y="9.6">7</text><text x="17" y="20">1</text><text x="6.6" y="30.4">9</text><text x="27.4" y="30.4">2</text></g></svg></sc-if>
+            <sc-if value="{{s.i.interrogation}}" hint-placeholder-val="{{false}}"><svg width="26" height="26"viewBox="0 0 34 34" aria-hidden="true" fill="none" stroke="#1e2a2f" stroke-width="1.4" stroke-linejoin="round"><path d="M3 5h28v18H15l-7 6v-6H3z"></path><path d="M14 11c0-2.4 1.6-3.4 3-3.4s3 1 3 2.8c0 2.2-3 2.2-3 4.6" stroke-linecap="round"></path><circle cx="17" cy="19" r=".9" fill="#1e2a2f"></circle></svg></sc-if>
+            <sc-if value="{{s.i.board}}" hint-placeholder-val="{{false}}"><svg width="26" height="26"viewBox="0 0 34 34" aria-hidden="true"><g fill="none" stroke="#1e2a2f" stroke-width="1.3"><rect x="2" y="2" width="30" height="30"></rect><path d="M14 2v14H2M14 16h18M22 16v16"></path></g><circle cx="8" cy="9" r="3" fill="#34436a"></circle><circle cx="27" cy="24" r="3" fill="#4f7a54"></circle></svg></sc-if>
+            <sc-if value="{{s.i.tarot}}" hint-placeholder-val="{{false}}"><svg width="26" height="26"viewBox="0 0 34 34" aria-hidden="true"><rect x="5" y="2" width="17" height="27" rx="2" fill="#fffdf6" stroke="#1e2a2f" stroke-width="1.2" transform="rotate(-10 13 16)"></rect><rect x="12" y="4" width="17" height="27" rx="2" fill="#fffdf6" stroke="#1e2a2f" stroke-width="1.2" transform="rotate(8 20 17)"></rect><path d="M21 11l1.6 3.4 3.7.4-2.8 2.5.8 3.7-3.3-1.9-3.3 1.9.8-3.7-2.8-2.5 3.7-.4z" fill="#d2a548" stroke="#9a7426" stroke-width=".6" transform="rotate(8 20 17)"></path></svg></sc-if>
+            <sc-if value="{{s.i.nosing}}" hint-placeholder-val="{{false}}"><svg width="26" height="26"viewBox="0 0 34 34" aria-hidden="true" fill="none" stroke="#1e2a2f" stroke-width="1.6" stroke-linecap="round"><circle cx="14" cy="14" r="9"></circle><path d="M21 21l9 9" stroke-width="3"></path><path d="M9.5 11a5 5 0 0 1 4-3.4" stroke-width="1.2"></path></svg></sc-if>
+            <span class="tx"><span class="nm">{{s.name}}</span><span class="st" aria-hidden="true">{{s.stars}}</span></span>
+            <sc-if value="{{s.lifted}}" hint-placeholder-val="{{false}}"><span class="tick" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" fill="none" stroke="#2a1d0f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></sc-if>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+  </div>
+
+  <div style="margin: 16px 16px 0; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; color: #f6eedb">
+      <span><b style="font-family: 'EB Garamond', Georgia, serif; font-size: 18px">{{count}}</b> of 7 lifted</span>
+      <span>Logic <span style="color: #e8c66a; letter-spacing: 2px">{{logicStars}}</span> · {{guests}} guests</span>
+    </div>
+    <p style="margin: 0; min-height: 24px; font-family: 'Caveat', cursive; font-weight: 700; font-size: 20px; line-height: 24px; color: #fbe7a8">{{note}}</p>
+    <button class="btn" onClick="{{shake}}" style="border: 2px solid #c8a24c; background: rgba(0,0,0,.12); color: #fbf3e0">
+      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="#e8c66a" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="7" width="12" height="11" rx="2"></rect><path d="M4 7h14M2 5l-1 3M20 5l1 3M2 14l-1 3M20 14l1 3"></path></svg>
+      Shake the tin
+    </button>
+    <sc-if value="{{enough}}" hint-placeholder-val="{{true}}">
+      <a class="btn" href="ContentsLabels.dc.html" style="background: #d2a548; box-shadow: 0 3px 0 #9a7426; color: #2a1d0f">Stick them in</a>
+    </sc-if>
+    <sc-if value="{{short}}" hint-placeholder-val="{{false}}">
+      <button class="btn" disabled="{{yes}}" style="border: 0; background: #b8a477; box-shadow: 0 3px 0 #8a7a50; color: #4a3d22; cursor: default">Lift {{need}} more</button>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":360,"height":780}}'>
+var GAMES = [
+  { id: 'wordle', name: 'Wordle', c: '#34436a' },
+  { id: 'crossword', name: 'Mini crossword', c: '#34436a' },
+  { id: 'wordsearch', name: 'Word search', c: '#34436a' },
+  { id: 'cats', name: 'Cat puzzle', c: '#4f7a54' },
+  { id: 'sudoku', name: 'Sudoku', c: '#4f7a54' },
+  { id: 'interrogation', name: 'Questioning', c: '#7b5a78' },
+  { id: 'board', name: 'Case board', c: '#4f7a54' },
+  { id: 'tarot', name: 'Tarot match', c: '#7b5a78' },
+  { id: 'nosing', name: 'Nosing around', c: '#7b5a78' }
+];
+var CAP = 7;
+var MIN = 3;
+var STARS = ['', '★☆☆', '★★☆', '★★★'];
+var LEVEL = ['', 'easy', 'medium', 'hard'];
+function rnd(a, b) { return a + Math.random() * (b - a); }
+function jitter(w) {
+  var o = {};
+  GAMES.forEach(function (g) { o[g.id] = { r: rnd(-w, w), x: rnd(-w / 2, w / 2), y: rnd(-w / 2, w / 2) }; });
+  return o;
+}
+function roll() {
+  var lv = {};
+  GAMES.forEach(function (g) { lv[g.id] = 1 + Math.floor(Math.random() * 3); });
+  return { lv: lv, logic: 1 + Math.floor(Math.random() * 3), guests: Math.random() < 0.7 ? 5 : 7 };
+}
+function deal() {
+  var ids = GAMES.map(function (g) { return g.id; });
+  for (var i = ids.length - 1; i > 0; i--) { var k = Math.floor(Math.random() * (i + 1)); var t = ids[i]; ids[i] = ids[k]; ids[k] = t; }
+  return ids.slice(0, 3 + Math.floor(Math.random() * 3));
+}
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var r = roll();
+    this.state = { picked: ['wordle', 'crossword', 'sudoku', 'interrogation'], lv: r.lv, logic: r.logic, guests: r.guests, j: jitter(2.4), shaking: false, note: 'Your last picks are lifted.' };
+  }
+  componentWillUnmount() { clearInterval(this.iv); }
+  renderVals() {
+    var s = this.state;
+    var self = this;
+    var toggle = function (id) {
+      if (self.state.shaking) return;
+      var picked = self.state.picked;
+      if (picked.indexOf(id) >= 0) self.setState({ picked: picked.filter(function (x) { return x !== id; }), note: '' });
+      else if (picked.length >= CAP) self.setState({ note: "That's 7. Press one down to swap." });
+      else self.setState({ picked: picked.concat([id]), note: '' });
+    };
+    var shake = function () {
+      if (self.state.shaking) return;
+      var ticks = 0;
+      self.setState({ shaking: true, note: '', j: jitter(10) });
+      clearInterval(self.iv);
+      self.iv = setInterval(function () {
+        ticks++;
+        if (ticks < 4) { self.setState({ j: jitter(10) }); return; }
+        clearInterval(self.iv);
+        var r = roll();
+        var hand = deal();
+        self.setState({ shaking: false, picked: hand, lv: r.lv, logic: r.logic, guests: r.guests, j: jitter(2.4), note: 'A new hand of ' + hand.length + '.' });
+      }, 105);
+    };
+    var stickers = GAMES.map(function (g) {
+      var t = s.j[g.id];
+      var lifted = s.picked.indexOf(g.id) >= 0;
+      var i = {};
+      i[g.id] = true;
+      var shadow = lifted ? '0 7px 12px rgba(0,0,0,.35), 0 2px 3px rgba(0,0,0,.25)' : '0 1px 1px rgba(0,0,0,.25)';
+      var move = s.shaking ? 'transform .1s ease-in-out' : 'transform .38s cubic-bezier(.3,1.5,.5,1), box-shadow .2s';
+      return {
+        name: g.name,
+        i: i,
+        lifted: lifted,
+        pressed: lifted ? 'true' : 'false',
+        label: g.name + ', ' + LEVEL[s.lv[g.id]],
+        stars: s.shaking ? '· · ·' : STARS[s.lv[g.id]],
+        pick: function () { toggle(g.id); },
+        style: 'transform: translate(' + t.x.toFixed(1) + 'px, ' + (t.y + (lifted ? -5 : 0)).toFixed(1) + 'px) rotate(' + t.r.toFixed(1) + 'deg) scale(' + (lifted ? 1.05 : 1) + '); box-shadow: inset 0 0 0 2.5px #fffdf6, inset 0 0 0 4px ' + g.c + ', ' + shadow + '; z-index: ' + (lifted ? 2 : 1) + '; transition: ' + move
+      };
+    });
+    var count = s.picked.length;
+    return {
+      stickers: stickers,
+      tinClass: s.shaking ? 'rattle' : '',
+      count: count,
+      logicStars: s.shaking ? '· · ·' : STARS[s.logic],
+      guests: s.guests,
+      note: s.note,
+      shake: shake,
+      enough: count >= MIN,
+      short: count < MIN,
+      need: MIN - count,
+      yes: true
+    };
+  }
+}
+</script>
+</body>
+</html>

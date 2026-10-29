@@ -213,9 +213,11 @@
 :global(body.shelf) .gone {
   visibility: hidden;
 }
-/* The current book is pulled forward off the shelf, with a brass ribbon. */
+/* The current book is pulled forward off the shelf, with a brass ribbon: a little bigger, its foot
+   still on the shelf (lifting it left it floating). */
 :global(body.shelf) .out {
-  transform: translateY(-8px);
+  transform: scale(1.05);
+  transform-origin: bottom center;
   box-shadow: inset -4px 0 0 rgba(0, 0, 0, 0.22), 0 8px 12px rgba(0, 0, 0, 0.5);
 }
 :global(body.shelf) .ribbon {

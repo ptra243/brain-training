@@ -38,7 +38,7 @@ test('the Map: a tap raises the notebook to half on that guest, with a ring; pla
   // A short tap on a counter: half-height page for that guest, the counter ringed.
   await touchTap(page, await centre(plate.locator(`[data-suspect="${a}"]`)));
   await expect(notebook.getByRole('heading', { name: nameA, level: 2 })).toBeVisible();
-  await expect(notebook.getByRole('heading', { name: 'Place in a room' })).toBeVisible();
+  await expect(notebook.getByRole('heading', { name: 'Move their counter' })).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(plate.locator('[data-ringed]')).toHaveAttribute('data-suspect', a);
   const panel = (await notebook.boundingBox())!;
@@ -59,7 +59,7 @@ test('the Map: a tap raises the notebook to half on that guest, with a ring; pla
 
   // Place in a room: the same move as a drag.
   const room = c.rooms[0];
-  await notebook.getByRole('list', { name: 'Place in a room' }).getByRole('button', { name: roomName(room), exact: true }).click();
+  await notebook.getByRole('list', { name: 'Move their counter' }).getByRole('button', { name: roomName(room), exact: true }).click();
   await expect(notebook.getByText(`You've placed them in the ${roomName(room)}`)).toBeVisible();
   await expect(plate.locator(`.floorplan [data-suspect="${b}"]`)).toHaveCount(1);
   await expect(plate.locator('[data-ringed]')).toHaveAttribute('data-suspect', b);

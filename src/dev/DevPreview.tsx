@@ -330,9 +330,9 @@ function ShelfRibbonsPreview() {
 
 /**
  * The #shelf notebook over the sample case: a few games won (so there are clues), one guest placed, one
- * cross. `view` picks how it starts: peeking on Case, open on You, open on Grid, or open on a guest's page.
+ * cross. `view` picks how it starts: peeking on Case, open on Grid, or open on a guest's page.
  */
-function ShelfNotebookPreview({ view }: { view: 'peek' | 'you' | 'grid' | 'subject' }) {
+function ShelfNotebookPreview({ view }: { view: 'peek' | 'grid' | 'subject' }) {
   useLayoutEffect(() => {
     document.body.classList.add('shelf');
     return () => document.body.classList.remove('shelf');
@@ -347,9 +347,11 @@ function ShelfNotebookPreview({ view }: { view: 'peek' | 'you' | 'grid' | 'subje
     // The guest with the most clues about them, so the subject page has some.
     const count = (id: string) => found.filter((cl) => mentions(cl, { kind: 'suspect', id })).length;
     const guest = [...c.suspects].sort((a, b) => count(b) - count(a))[0];
+    // She has given this guest a weapon, so the page shows "Accuse the ... with the ...".
+    const cell = { kind: 'suspect-item' as const, row: guest, col: c.items[0] };
+    progress = reduce(c, reduce(c, progress, { type: 'cycle', ...cell }), { type: 'cycle', ...cell });
     const notebook = {
       peek: {},
-      you: { open: true, tab: 'you' as const },
       grid: { open: true, tab: 'grid' as const },
       subject: { open: true, tab: 'guests' as const, subject: { kind: 'suspect' as const, id: guest } },
     }[view];
@@ -399,7 +401,7 @@ function ShelfAnswerPreview({ solved }: { solved: boolean }) {
     const wrong = c.suspects.find((s) => s !== c.murderer)!;
     progress = reduce(c, progress, { type: 'accuse', suspect: wrong, item: c.weapon });
     if (solved) progress = reduce(c, progress, { type: 'accuse', suspect: c.murderer, item: c.weapon });
-    return { c, progress, ref: caseCode(ref), seen: true, section: 3 };
+    return { c, progress, ref: caseCode(ref), seen: true, section: 2 };
   }, [solved]);
   return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen sample={sample} />;
 }
@@ -421,6 +423,8 @@ function ShelfMapPreview({ subject }: { subject: boolean }) {
       progress = reduce(c, progress, { type: 'place', suspect: s, room: c.rooms[i % c.rooms.length] });
     });
     progress = reduce(c, progress, { type: 'place-item', item: c.items[0], room: c.rooms[1] });
+    const cell = { kind: 'suspect-item' as const, row: c.suspects[1], col: c.items[1] };
+    progress = reduce(c, reduce(c, progress, { type: 'cycle', ...cell }), { type: 'cycle', ...cell });
     const notebook = subject ? { half: true, tab: 'guests' as const, subject: { kind: 'suspect' as const, id: c.suspects[1] } } : undefined;
     return { c, progress, ref: caseCode(ref), seen: true, section: 1, notebook };
   }, [subject]);
@@ -451,7 +455,6 @@ const SCREENS: Record<string, () => ReactNode> = {
   'shelf-new-case': () => <ShelfNewCasePreview />,
   'shelf-find-a-clue': () => <ShelfFindACluePreview />,
   'shelf-notebook': () => <ShelfNotebookPreview view="peek" />,
-  'shelf-notebook-you': () => <ShelfNotebookPreview view="you" />,
   'shelf-notebook-grid': () => <ShelfNotebookPreview view="grid" />,
   'shelf-notebook-subject': () => <ShelfNotebookPreview view="subject" />,
   'shelf-notebook-jigsaw': () => <ShelfJigsawPreview />,

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Find a clue: labels in the contents</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,500&amp;family=Caveat:wght@600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#3a7058}
+a{color:#8a2620}a:hover{color:#5a1426}
+.row{display:flex;align-items:center;gap:10px;width:100%;min-height:76px;padding:0;border:0;background:none;text-align:left;cursor:pointer;font:inherit;color:#1e2a2f}
+.lbl{flex:none;position:relative;box-sizing:border-box;width:140px;height:60px;padding:6px 8px 6px 10px;border-radius:9px;background:#fffdf6;box-shadow:inset 0 0 0 2.5px #fffdf6,inset 0 0 0 4px var(--c),0 1px 1.5px rgba(0,0,0,.3),0 2px 5px rgba(0,0,0,.08);display:flex;align-items:center;gap:8px}
+.tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.nm{font-family:'EB Garamond',Georgia,serif;font-weight:600;font-size:14px;font-variant:small-caps;letter-spacing:.02em;line-height:1.05}
+.ft{display:flex;align-items:center;justify-content:space-between}
+.st{font-size:11.5px;letter-spacing:1.5px;color:#8a2e3b;line-height:1}
+.pg{width:20px;height:20px;box-sizing:border-box;border:1.5px solid var(--c);border-radius:50%;display:grid;place-items:center;font-family:'EB Garamond',Georgia,serif;font-weight:700;font-size:10.5px;color:var(--c)}
+.story{font-family:'EB Garamond',Georgia,serif;font-size:14.5px;line-height:1.22}
+.done .story{color:#5e584d}
+.seal{position:absolute;right:-12px;top:-13px;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.35))}
+.hint{position:absolute;left:-10px;bottom:-10px;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.35));transform:rotate(-6deg)}
+.row:disabled{cursor:default}
+.locked .lbl,.locked .story{opacity:.6}
+.found{display:block;margin-top:2px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:12px;color:#3f6b47}
+</style>
+</helmet>
+<div style="position: relative; width: 360px; height: 780px; box-sizing: border-box; padding: 18px 0 0; display: flex; flex-direction: column; overflow: hidden; background-color: #3a7058; background-image: radial-gradient(rgba(255,255,255,.045) 1px, transparent 1px); background-size: 5px 5px; border-top: 10px solid #b37a44; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #f6eedb">
+
+  <header style="display: grid; grid-template-columns: 46px 1fr 46px; align-items: center; gap: 6px; padding: 0 12px">
+    <a href="#shelf" aria-label="Back to the shelf" style="width: 46px; height: 46px; display: grid; place-items: center">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" style="filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.45)); transform: rotate(-6deg)"><circle cx="20" cy="20" r="18" fill="#fbf4e2"></circle><circle cx="20" cy="20" r="14.5" fill="#9a5a32"></circle><path d="M23 13l-7 7 7 7" fill="none" stroke="#fbf4e2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </a>
+    <div style="text-align: center">
+      <h1 style="margin: 0; font-family: 'EB Garamond', Georgia, serif; font-weight: 600; font-size: 22px; line-height: 1.1">The Orchid Room</h1>
+      <p style="margin: 2px 0 0; font-size: 13px; color: #eadfc4">Quick play · 3 of 5 clues found</p>
+    </div>
+    <span aria-hidden="true"></span>
+  </header>
+
+  <div style="position: relative; margin: 30px 6px 0 0; height: 650px">
+    <span aria-hidden="true" style="position: absolute; left: 150px; top: -17px; width: 24px; height: 22px; background: linear-gradient(90deg, #355e40, #4f7a54 35%, #6d9670 50%, #4f7a54 65%, #355e40); border-radius: 2px 2px 0 0; box-shadow: 0 1px 2px rgba(0,0,0,.35)"></span>
+    <span aria-hidden="true" style="position: absolute; left: 200px; top: -17px; width: 24px; height: 22px; background: linear-gradient(90deg, #6a2018, #8a3a1a 35%, #a9573a 50%, #8a3a1a 65%, #6a2018); border-radius: 2px 2px 0 0; box-shadow: 0 1px 2px rgba(0,0,0,.35)"></span>
+
+    <div style="position: absolute; inset: 0; display: flex; border-radius: 0 4px 4px 0; box-shadow: 0 14px 26px rgba(0,0,0,.45)">
+      <div aria-hidden="true" style="width: 20px; background: linear-gradient(90deg, #efe4c8, #f3ead3 60%, #d9cba8)"></div>
+      <div aria-hidden="true" style="width: 12px; background: linear-gradient(90deg, #cbbd9c, #f8f1df 45%, #e9e0c8)"></div>
+      <article style="flex: 1; min-width: 0; box-sizing: border-box; background: #fbf7ec; border-radius: 0 4px 4px 0; padding: 14px 12px 12px 10px; display: flex; flex-direction: column; gap: 8px; color: #1e2a2f">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1.5px solid #1e2a2f; padding-bottom: 5px">
+          <h2 style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .2em; color: #8a3a1a">FIND A CLUE</h2>
+          <span style="font-family: 'EB Garamond', Georgia, serif; font-weight: 700; font-size: 18px; color: #8a2e3b">3</span>
+        </div>
+
+        <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px">
+          <li><button class="row" aria-label="Wordle, easy, page 14">
+            <span class="lbl" style="--c: #34436a; transform: rotate(-2deg)">
+              <svg width="26" height="26" viewBox="0 0 34 34" aria-hidden="true" fill="none" stroke="#1e2a2f" stroke-width="1"><rect x="1" y="10" width="5.6" height="5.6"></rect><rect x="7.6" y="10" width="5.6" height="5.6" fill="#e9d9a8"></rect><rect x="14.2" y="10" width="5.6" height="5.6"></rect><rect x="20.8" y="10" width="5.6" height="5.6" fill="#b9c9a0"></rect><rect x="27.4" y="10" width="5.6" height="5.6"></rect><rect x="1" y="18" width="5.6" height="5.6"></rect><rect x="7.6" y="18" width="5.6" height="5.6"></rect><rect x="14.2" y="18" width="5.6" height="5.6"></rect><rect x="20.8" y="18" width="5.6" height="5.6"></rect><rect x="27.4" y="18" width="5.6" height="5.6"></rect></svg>
+              <span class="tx"><span class="nm">Wordle</span><span class="ft"><span class="st">★☆☆</span><span class="pg">14</span></span></span>
+            </span>
+            <span class="story">A five-letter word has been traced in the frost on a window pane.</span>
+          </button></li>
+
+          <li class="done"><button class="row" aria-label="Mini crossword, medium, page 24: won with 2 hints from the cat, 2 clues found">
+            <span class="lbl" style="--c: #34436a; transform: rotate(1deg)">
+              <svg width="26" height="26" viewBox="0 0 34 34" aria-hidden="true"><g fill="none" stroke="#1e2a2f" stroke-width="1"><rect x="1" y="5" width="8" height="8"></rect><rect x="9" y="5" width="8" height="8"></rect><rect x="17" y="5" width="8" height="8"></rect><rect x="25" y="5" width="8" height="8" fill="#1e2a2f"></rect><rect x="1" y="13" width="8" height="8"></rect><rect x="9" y="13" width="8" height="8" fill="#1e2a2f"></rect><rect x="17" y="13" width="8" height="8"></rect><rect x="25" y="13" width="8" height="8"></rect><rect x="1" y="21" width="8" height="8"></rect><rect x="9" y="21" width="8" height="8"></rect><rect x="17" y="21" width="8" height="8"></rect><rect x="25" y="21" width="8" height="8"></rect></g></svg>
+              <span class="tx"><span class="nm">Mini crossword</span><span class="ft"><span class="st">★★☆</span><span class="pg">24</span></span></span>
+              <svg class="seal" width="32" height="32" viewBox="0 0 34 34" aria-hidden="true" style="transform: rotate(-12deg)"><circle cx="17" cy="17" r="15.5" fill="#fffdf6"></circle><circle cx="17" cy="17" r="13" fill="#3f7a4a"></circle><circle cx="17" cy="17" r="13" fill="none" stroke="#6fa577" stroke-width="1" stroke-dasharray="2 2"></circle><path d="M10.5 17.5l4.2 4.2 8.8-9" fill="none" stroke="#fffdf6" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              <svg class="hint" width="38" height="22" viewBox="0 0 38 22" aria-hidden="true"><rect x="0.5" y="0.5" width="37" height="21" rx="10.5" fill="#fffdf6"></rect><rect x="2.5" y="2.5" width="33" height="17" rx="8.5" fill="#8a6a48"></rect><g fill="#fffdf6"><ellipse cx="12" cy="13.6" rx="3.2" ry="2.7"></ellipse><circle cx="7.6" cy="10" r="1.4"></circle><circle cx="10.4" cy="7.4" r="1.4"></circle><circle cx="13.6" cy="7.4" r="1.4"></circle><circle cx="16.4" cy="10" r="1.4"></circle></g><text x="26.5" y="15.4" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="11.5" fill="#fffdf6">2</text></svg>
+            </span>
+            <span class="story">The evening paper is wedged under a teacup, a pencil still tucked in the fold.<span class="found">2 clues found · 2 hints</span></span>
+          </button></li>
+
+          <li><button class="row" aria-label="Sudoku, hard, page 31">
+            <span class="lbl" style="--c: #4f7a54; transform: rotate(1.5deg)">
+              <svg width="26" height="26" viewBox="0 0 34 34" aria-hidden="true"><g fill="none" stroke="#1e2a2f"><rect x="1.5" y="1.5" width="31" height="31" stroke-width="1.6"></rect><path d="M11.8 1.5v31M22.2 1.5v31M1.5 11.8h31M1.5 22.2h31" stroke-width=".8"></path></g><g font-family="Georgia, serif" font-size="8" fill="#1e2a2f" text-anchor="middle"><text x="6.6" y="9.6">4</text><text x="27.4" y="9.6">7</text><text x="17" y="20">1</text><text x="6.6" y="30.4">9</text><text x="27.4" y="30.4">2</text></g></svg>
+              <span class="tx"><span class="nm">Sudoku</span><span class="ft"><span class="st">★★★</span><span class="pg">31</span></span></span>
+            </span>
+            <span class="story">The mantel clock has stopped, and someone has left the key beside it.</span>
+          </button></li>
+
+          <li class="done"><button class="row" aria-label="Cat puzzle, medium, page 38: solved by the cat, 1 clue found">
+            <span class="lbl" style="--c: #4f7a54; transform: rotate(-1.4deg)">
+              <svg width="26" height="26" viewBox="0 0 34 34" aria-hidden="true" fill="none" stroke="#1e2a2f" stroke-width="1.3" stroke-linejoin="round"><path d="M5 30V16a4 4 0 0 1 8 0v4h8v-4a4 4 0 0 1 8 0v14"></path><path d="M5 24h24"></path><path d="M13 9l2-5 2 3 2-3 2 5" stroke-linecap="round"></path></svg>
+              <span class="tx"><span class="nm">Cat puzzle</span><span class="ft"><span class="st">★★☆</span><span class="pg">38</span></span></span>
+              <svg class="seal" width="32" height="32" viewBox="0 0 34 34" aria-hidden="true" style="transform: rotate(10deg)"><circle cx="17" cy="17" r="15.5" fill="#fffdf6"></circle><circle cx="17" cy="17" r="13" fill="#d2a548"></circle><circle cx="17" cy="17" r="13" fill="none" stroke="#9a7426" stroke-width="1"></circle><circle cx="17" cy="17" r="10.5" fill="none" stroke="#f3dc9a" stroke-width="1" stroke-dasharray="2 2"></circle><g fill="#5a3e10" transform="translate(5 6)"><ellipse cx="12" cy="15" rx="5" ry="4.2"></ellipse><circle cx="5" cy="9.2" r="2.1"></circle><circle cx="9.2" cy="5.2" r="2.1"></circle><circle cx="14.8" cy="5.2" r="2.1"></circle><circle cx="19" cy="9.2" r="2.1"></circle></g></svg>
+            </span>
+            <span class="story">The house cats have each claimed a different chair by the fire.<span class="found">The cat solved it · 1 clue</span></span>
+          </button></li>
+
+          <li><button class="row" aria-label="Questioning, medium, page 45">
+            <span class="lbl" style="--c: #7b5a78; transform: rotate(-1deg)">
+              <svg width="26" height="26" viewBox="0 0 34 34" aria-hidden="true" fill="none" stroke="#1e2a2f" stroke-width="1.4" stroke-linejoin="round"><path d="M3 5h28v18H15l-7 6v-6H3z"></path><path d="M14 11c0-2.4 1.6-3.4 3-3.4s3 1 3 2.8c0 2.2-3 2.2-3 4.6" stroke-linecap="round"></path><circle cx="17" cy="19" r=".9" fill="#1e2a2f"></circle></svg>
+              <span class="tx"><span class="nm">Questioning</span><span class="ft"><span class="st">★★☆</span><span class="pg">45</span></span></span>
+            </span>
+            <span class="story">A chair has been pushed back from the table, still warm.</span>
+          </button></li>
+
+          <li><button class="row" aria-label="Word search, easy, page 52">
+            <span class="lbl" style="--c: #34436a; transform: rotate(2deg)">
+              <svg width="26" height="26" viewBox="0 0 34 34" aria-hidden="true"><g font-family="Georgia, serif" font-size="8.5" fill="#1e2a2f" text-anchor="middle"><text x="6" y="10">K</text><text x="17" y="10">E</text><text x="28" y="10">Y</text><text x="6" y="21">R</text><text x="17" y="21">O</text><text x="28" y="21">P</text><text x="6" y="32">T</text><text x="17" y="32">A</text><text x="28" y="32">N</text></g><rect x="1.5" y="1.8" width="31" height="11" rx="5.5" fill="none" stroke="#a8322d" stroke-width="1.3"></rect></svg>
+              <span class="tx"><span class="nm">Word search</span><span class="ft"><span class="st">★☆☆</span><span class="pg">52</span></span></span>
+            </span>
+            <span class="story">A child's puzzle book has fallen open behind the sofa cushions.</span>
+          </button></li>
+
+          <li class="locked"><button class="row" disabled="" aria-label="Final puzzle, page 60: opens when the others are done">
+            <span class="lbl" style="--c: #b8902f; background: #fff8e6; transform: rotate(-.6deg)">
+              <svg width="26" height="26" viewBox="0 0 34 34" aria-hidden="true" fill="none" stroke="#1e2a2f" stroke-width="1.5" stroke-linejoin="round"><rect x="7" y="15" width="20" height="16" rx="2.5" fill="#e9d9a8"></rect><path d="M11 15v-4a6 6 0 0 1 12 0v4"></path><circle cx="17" cy="22" r="2" fill="#1e2a2f"></circle><path d="M17 23.5v3" stroke-linecap="round"></path></svg>
+              <span class="tx"><span class="nm">Final puzzle</span><span class="ft"><span class="st" style="color: #6b5a3a; letter-spacing: 0; font-size: 11px">Locked</span><span class="pg">60</span></span></span>
+            </span>
+            <span class="story">Opens when every other page is done.</span>
+          </button></li>
+        </ul>
+
+        <p style="margin: auto 0 0; text-align: center; font-family: 'EB Garamond', Georgia, serif; font-size: 14px; color: #8a7a5c">— 3 —</p>
+      </article>
+    </div>
+
+    <span aria-hidden="true" style="position: absolute; left: 21px; top: -26px; width: 16px; height: 712px; background: linear-gradient(90deg, #9a7426, #d2a548 35%, #ecc979 50%, #d2a548 65%, #9a7426); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 9px), 0 100%); box-shadow: 0 2px 4px rgba(0,0,0,.3)"></span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":360,"height":780}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

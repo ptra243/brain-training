@@ -60,7 +60,7 @@
 :global(body.shelf) .head {
   position: relative;
   flex: none;
-  height: calc(80px + env(safe-area-inset-top, 0px));
+  height: calc(74px + env(safe-area-inset-top, 0px));
   padding-top: env(safe-area-inset-top, 0px);
   z-index: 1;
   background: #f4ecd8;
@@ -90,7 +90,7 @@
   position: absolute;
   left: 66px;
   right: 92px;
-  top: calc(38px + env(safe-area-inset-top, 0px));
+  top: calc(35px + env(safe-area-inset-top, 0px));
   margin: 0;
   font-family: var(--display);
   font-weight: 600;
@@ -104,7 +104,7 @@
 :global(body.shelf) .solve {
   position: absolute;
   right: 14px;
-  top: calc(32px + env(safe-area-inset-top, 0px));
+  top: calc(29px + env(safe-area-inset-top, 0px));
   min-height: 44px;
   min-width: 72px;
   padding: 0 14px;
@@ -144,21 +144,33 @@
   scrollbar-width: none;
   padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 }
+/* Level and clue count ride on the running head, after the page number, to save a line. */
 :global(body.shelf) .level {
-  margin: 4px 18px 2px 30px;
-  font-size: 14px;
+  margin-left: 0.6em;
+  font-style: italic;
   color: #55615f;
 }
+:global(body.shelf) .level::before {
+  content: '· ';
+}
 :global(body.shelf) .rule {
-  margin: 0 18px 12px 30px;
+  margin: 6px 18px 8px 30px;
   font-size: 15px;
   line-height: 1.4;
   color: #3b4649;
 }
+/* The rule line says it once: a game's own opening instructions would repeat it. */
+:global(body.shelf) .main :global(.game-body p.hint.dark:first-child) {
+  display: none;
+}
+/* The page has its own bottom padding; the classic game's 2rem would add an empty strip. */
+:global(body.shelf) .main :global(.game-body) {
+  padding-bottom: 0;
+}
 
 /* The pencilled note over a half-heard clue. */
 :global(body.shelf) .halfHeard {
-  margin: 0 18px 12px 30px;
+  margin: 0 18px 8px 30px;
   display: grid;
   gap: 4px;
 }

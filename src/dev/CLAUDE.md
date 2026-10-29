@@ -68,7 +68,7 @@ What a look check judges on each:
 - `motives`: a talk simulator (Guest, Card, Reading, Thread, Victim, Mood, Games finished, Case solved, Start over,
   Hear all, Reset), each control 44px+ and fitting 360px; the greeting changes with Mood; beats appear one per tap
   up to the ready count; {victim} shows the chosen name; the source line names the thread in use; no sideways scroll.
-- `shelf-ribbons`: the #shelf puzzle book open on Case, ribbons dropped (three ribbons in a row of four, a gap
+- `shelf-ribbons`: the #shelf puzzle book open on Case, ribbons dropped (two ribbons in a row of three, a gap
   where Case lies in the crease): book runs to the left edge with a 20px left page, 6px felt right, header 16/10px
   inset; satin ribbons readable and 44px+; no sideways scroll.
 - `shelf-new-case`: the New case book on a fresh sample Play case (fixed seed, nothing saved), opening not yet seen: the
@@ -83,13 +83,13 @@ What a look check judges on each:
   "level · N clues", one rule line, then the game; the won and revealed pages keep the board and add the clue
   heading, "Solved by <cat>" (revealed only), the clue cards and "Turn back to page 3". Wrapped help is two lines at
   most; no sideways scroll; buttons 44px+.
-- `shelf-notebook`, `shelf-notebook-you`, `shelf-notebook-grid`, `shelf-notebook-subject`: the #shelf notebook over
+- `shelf-notebook`, `shelf-notebook-grid`, `shelf-notebook-subject`: the #shelf notebook over
   the sample case (three games won, one guest placed, one cross). Closed: a 52px kraft strip at the foot with spiral
   rings and one hand-written line ("Notebook · N of M to use"), the book above it not hidden behind it. Open
   (header and a sliver of the book stay under a scrim): kraft cover with rings, "Pull down to put away", the page on
-  squared paper, four 48px tabs along the bottom (You, Clues, Grid, Guests; the current one underlined in red);
-  You: portrait and three lines; Grid: Hint button and the whole grid readable (weapons as line icons, rooms as vertical words, 30px cells); subject: back link, counter and
-  name, placement line, clue cards, "What they said"; no sideways scroll at 360px. A sample never saves the tab.
+  squared paper, three 48px tabs along the bottom (Clues, Grid, Guests; a Play case also has Jigsaw; no You tab in Quick cases; the current one underlined in red);
+  Grid: Hint button and the whole grid readable (weapons as line icons, rooms as vertical words, 30px cells); subject: back link, counter and
+  name, placement line, clue cards, "What they said", "Move their counter" with the rooms, then a red-outlined 48px "Accuse the X with the Y" button (the guest is given a weapon); no sideways scroll at 360px. A sample never saves the tab.
 - `shelf-notebook-jigsaw`: the notebook open on a Jigsaw-finish Quick sample (two games won, three stickers placed at
   their true spots). Tabs You, Clues, Jigsaw, Guests (no Grid); the sticker page on squared paper: board, Hint/Undo/Check
   /Restart, and the sticker sheet pinned as a drawer just above the tabs (2 rows of 44px, scrolls sideways); no sideways
@@ -97,8 +97,8 @@ What a look check judges on each:
 - `shelf-map`, `shelf-map-subject`: the #shelf book turned to Map on the sample case (three guests and a weapon placed,
   nothing saved). Map: "Plate II" head, the floor plan with counters and weapons on it, the tray, the legend; no
   Accuse bar; notebook strip at the foot. Subject: a placed guest ringed in brass on the plan, still fully visible
-  above the notebook, which covers the lower half on that guest's page (back link, placement line, clues, "Place in
-  a room" with a 44px button per room, the current one marked); no talk; no sideways scroll.
+  above the notebook, which covers the lower half on that guest's page (back link, placement line, clues, "Move their
+  counter" with a 44px button per room, the current one marked, then a red-outlined "Accuse ... with the ..." button); no talk; no sideways scroll.
 - `shelf-answer`, `shelf-answer-solved`: the #shelf book turned to Answer on the sample case (nothing saved). Form:
   "THE ANSWER / Fill in the blanks", a yellow slip ("1 of 2 right. Keep digging."), the wrong try struck through in red,
   a fresh "It was ___ in the <room>, with the ___." with 44px blanks, a disabled "Fill both blanks first" button; tapping a

@@ -21,26 +21,38 @@ export function parseTab(raw: unknown): NotebookTab {
   return raw === 'jigsaw' ? 'jigsaw' : (NOTEBOOK_TABS.find((t) => t.id === raw)?.id ?? DEFAULT_TAB);
 }
 
+/** Which of Grid and Jigsaw a case's notebook shows. */
+export type Finish = 'grid' | 'jigsaw' | 'both';
+
 /**
- * Does this case's notebook show Jigsaw (the end board) where it would show Grid? One place to change
- * the rule. Only a Quick start case that chose the Jigsaw finish: Play cases keep Grid and no Jigsaw
- * (the classic Casebook shows both there; the owner wants never both on the shelf). `sampleEndBoard` is
- * the dev previews' stand-in for a ref.
+ * Which finish tabs this case's notebook shows; one place to change the rule, like the classic Casebook.
+ * A Play case (scene given) shows both. A Quick start case shows Jigsaw in place of Grid when it chose the
+ * Jigsaw finish, else Grid only. `sampleEndBoard` is the dev previews' stand-in for a ref.
  */
-export function hasJigsaw(c: Case, ref: CaseRef | null, sampleEndBoard?: boolean): boolean {
-  if (c.sceneGiven) return false;
-  return ref ? ref.mode === 'quick' && !!ref.endBoard : !!sampleEndBoard;
+export function finishFor(c: Case, ref: CaseRef | null, sampleEndBoard?: boolean): Finish {
+  if (c.sceneGiven) return 'both';
+  const jigsaw = ref ? ref.mode === 'quick' && !!ref.endBoard : !!sampleEndBoard;
+  return jigsaw ? 'jigsaw' : 'grid';
 }
 
-/** The notebook's tabs for a case: Grid, or Jigsaw in its place, never both. */
-export function tabsFor(jigsaw: boolean): readonly { id: NotebookTab; label: string }[] {
-  return NOTEBOOK_TABS.map((t) => (t.id === 'grid' && jigsaw ? JIGSAW_TAB : t));
+/**
+ * The notebook's tabs for a case: Clues, Grid and/or Jigsaw, Guests. No You tab in Quick cases (`YouTab`
+ * and the 'you' id stay for the campaign).
+ */
+export function tabsFor(finish: Finish): readonly { id: NotebookTab; label: string }[] {
+  const [, clues, grid, guests] = NOTEBOOK_TABS;
+  if (finish === 'both') return [clues, grid, JIGSAW_TAB, guests];
+  return [clues, finish === 'jigsaw' ? JIGSAW_TAB : grid, guests];
 }
 
-/** A saved or requested tab as this case has it: Grid in a Jigsaw case opens Jigsaw, and the other way round. */
-export function tabForCase(tab: NotebookTab, jigsaw: boolean): NotebookTab {
-  if (tab === 'grid' && jigsaw) return 'jigsaw';
-  if (tab === 'jigsaw' && !jigsaw) return 'grid';
+/**
+ * A saved or requested tab as this case has it: You opens Clues; Grid in a Jigsaw case opens Jigsaw, and
+ * the other way round; with both finishes each opens as itself.
+ */
+export function tabForCase(tab: NotebookTab, finish: Finish): NotebookTab {
+  if (tab === 'you') return DEFAULT_TAB;
+  if (tab === 'grid' && finish === 'jigsaw') return 'jigsaw';
+  if (tab === 'jigsaw' && finish === 'grid') return 'grid';
   return tab;
 }
 
@@ -108,4 +120,31 @@ export function placeAction(s: Subject, room: string): Action | null {
   if (s.kind === 'suspect') return { type: 'place', suspect: s.id, room };
   if (s.kind === 'item') return { type: 'place-item', item: s.id, room };
   return null;
+}
+
+/** What the Accuse button on a guest's page does: the words on it, and what goes in the Answer form. */
+export interface AccuseRequest {
+  suspect: string;
+  /** The weapon she has given this guest, if any. */
+  item?: string;
+  /** With a weapon given it is handed in at once; without, the Answer page opens for her to pick one. */
+  submit: boolean;
+}
+
+/** A guest's page offers an Accuse button until the case is solved; weapons and rooms never do. */
+export function accuseRequest(c: Case, p: Progress, s: Subject): AccuseRequest | null {
+  if (s.kind !== 'suspect' || p.solved) return null;
+  const item = c.items.find((i) => holderOf(c, p, i) === s.id);
+  return item ? { suspect: s.id, item, submit: true } : { suspect: s.id, submit: false };
+}
+
+/** The Accuse button's label: "Accuse the Heir with the rope", or "Accuse them…" when no weapon is given. */
+export function accuseLabel(c: Case, req: AccuseRequest): string {
+  if (!req.item) return 'Accuse them…';
+  return `Accuse ${suspectName(req.suspect, c.guests).replace(/^The /, 'the ')} with the ${itemName(req.item)}`;
+}
+
+/** The action the Answer page's own button sends for a request that submits. */
+export function accuseAction(req: AccuseRequest): Action | null {
+  return req.submit && req.item ? { type: 'accuse', suspect: req.suspect, item: req.item } : null;
 }

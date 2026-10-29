@@ -135,13 +135,10 @@ test('shelf-notebook previews', async ({ page }) => {
   await page.goto('/#dev/shelf-notebook');
   await expect(page.getByRole('button', { name: /^Notebook · (\d+ of \d+ to use|all clues used)$/ })).toBeVisible();
   await checkScreen(page, 'preview shelf-notebook');
-  await page.goto('/#dev/shelf-notebook-you');
-  await expect(page.getByRole('heading', { name: 'You', exact: true })).toBeVisible();
-  await expect(page.getByRole('link', { name: /Notebook/ })).toHaveCount(0);
-  await checkScreen(page, 'preview shelf-notebook-you');
   await page.goto('/#dev/shelf-notebook-subject');
   await expect(page.getByRole('button', { name: /^‹ Guests$/ })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Place in a room' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Move their counter' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Accuse / })).toBeVisible();
   await checkScreen(page, 'preview shelf-notebook-subject');
 });
 
@@ -163,7 +160,8 @@ test('shelf-map previews', async ({ page }) => {
   await expect(page.getByRole('button', { name: /^Notebook · / })).toBeVisible();
   await noSideways(page, 'preview shelf-map');
   await page.goto('/#dev/shelf-map-subject');
-  await expect(page.getByRole('heading', { name: 'Place in a room' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Move their counter' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Accuse / })).toBeVisible();
   await expect(page.locator('[data-ringed]')).toHaveCount(1);
   await noSideways(page, 'preview shelf-map-subject');
   // The notebook's own buttons keep the 44px rule (the map's counters and weapons are 35px by design; the plate adds touch area).

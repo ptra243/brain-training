@@ -47,7 +47,7 @@ export function Home({ current, onContinue, onStart, onChoose, onRecord, campaig
         className="secondary"
         aria-label="Options"
         onClick={() => setOptions(true)}
-        style={{ position: 'absolute', top: 'calc(0.5rem + env(safe-area-inset-top))', right: '0.5rem', width: 44, height: 44, minHeight: 44, padding: 0 }}
+        style={{ position: 'absolute', top: 'calc(0.5rem + env(safe-area-inset-top))', right: '0.5rem', width: 44, height: 44, minHeight: 44, padding: 0, color: 'var(--on-baize)', borderColor: 'var(--baize-line)' }}
       >
         <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <circle cx="12" cy="12" r="3" />

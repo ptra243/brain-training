@@ -103,7 +103,10 @@ export function PuzzlePage({ c, spec, progress, dispatch, page, level, turn, tur
         <span className={styles.edge} aria-hidden="true" />
         <header className={styles.head}>
           <div className={styles.running}>
-            <span className={styles.num}>p. {page}</span>
+            <span>
+              <span className={styles.num}>p. {page}</span>
+              <span className={styles.level}>{[level ? DIFFICULTY_LABEL[level] : null, plural(spec.clues.length, 'clue')].filter(Boolean).join(' · ')}</span>
+            </span>
             <span className={styles.aside}>Find a clue</span>
           </div>
           <h1 className={styles.name}>{entry.name}</h1>
@@ -120,7 +123,6 @@ export function PuzzlePage({ c, spec, progress, dispatch, page, level, turn, tur
         </header>
 
         <main className={styles.main}>
-          <p className={styles.level}>{[level ? DIFFICULTY_LABEL[level] : null, plural(spec.clues.length, 'clue')].filter(Boolean).join(' · ')}</p>
           <p className={styles.rule}>{entry.rule}</p>
 
           {halfHeard?.blank && !finished ? (

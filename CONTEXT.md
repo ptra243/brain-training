@@ -17,11 +17,12 @@ folder `CLAUDE.md` files.
 
 - **Puzzle book**: the case's printed text, in sections: Case, Map, Puzzles, then Answer. The same
   four in every Quick case.
-- **Notebook**: her working, kept apart from the puzzle book: "You", found clues, the finish, and the
-  subject pages. It peeks up from the bottom of the screen.
+- **Notebook**: her working, kept apart from the puzzle book: found clues, the finish, and the
+  subject pages ("You", the clock and where she is, only in the campaign). It peeks up from the bottom of the screen.
 - **Finish**: the last puzzle before she answers, in the notebook tab where her working comes
   together: the logic **Grid**, or the **Jigsaw** (her clues as pieces to fit) in a Jigsaw-finish
-  case. Alternatives: a case has one or the other, never both.
+  case. A Quick start case has one or the other; a Play case (Quick play) has both, as the classic
+  Casebook does.
 - **Subject page**: the notebook page for one guest or one weapon: where she placed it, the clues
   naming it, and (in a campaign) what they said. Quick play has no talk: a questioning is a puzzle,
   reached from the Find a clue page like any other. Tapping it on the map opens it.

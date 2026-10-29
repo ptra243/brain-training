@@ -7,7 +7,7 @@ import type { Action, Progress } from '../game/state.ts';
 import { loadQuick, saveQuick } from '../game/storage.ts';
 import { advance, planNewCase, startNewQuick, withEndBoard, type SaveKey } from './quickProgress.ts';
 import type { Subject } from '../game/state.ts';
-import { hasJigsaw, type NotebookTab } from './notebook.ts';
+import { finishFor, type Finish, type NotebookTab } from './notebook.ts';
 
 /** A case to show without loading her save (the dev preview). */
 export interface SampleCase {
@@ -34,8 +34,8 @@ export interface QuickBook {
   dispatch: (a: Action) => void;
   /** The save's own ref, for the title; none for a sample. */
   fullRef: CaseRef | null;
-  /** The notebook shows Jigsaw in place of Grid (`hasJigsaw`). */
-  jigsaw: boolean;
+  /** Which of Grid and Jigsaw the notebook shows (`finishFor`). */
+  finish: Finish;
 }
 
 interface Loaded {
@@ -108,5 +108,5 @@ export function useQuickBook(sample: SampleCase | undefined, mode: BookMode): Qu
     latest.current = next;
     setMoves(next);
   };
-  return { c, ref, progress: moves ?? loaded.progress, dispatch, fullRef: key?.ref ?? null, jigsaw: hasJigsaw(c, key?.ref ?? null, sample?.endBoard) };
+  return { c, ref, progress: moves ?? loaded.progress, dispatch, fullRef: key?.ref ?? null, finish: finishFor(c, key?.ref ?? null, sample?.endBoard) };
 }

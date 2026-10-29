@@ -27,12 +27,21 @@ open questions go in a linked `docs/<slug>.md`, and the entry points to it. An e
 settled design may stay as a short stub; give it a doc when someone starts it.
 
 ## Session: Shelf UI, beside the current game
-Last touched: 2026-10-29 (Milestone 1 pieces 1–5 built: fonts, grid 44px, last settings, map plate, answer page, Jigsaw tab, look option)
+Last touched: 2026-10-29 (Milestone 1 pieces 1–5 built: fonts, grid 44px, last settings, map plate, answer page, Jigsaw tab, look option; puzzle labels and the sticker tin are their own entry below)
 Reads first: `docs/visual-theme.md` ("Milestone 1" and its Status), `CONTEXT.md`.
-Goal: finish Milestone 1: the owner judges the open calls in its Status (Play cases keep Grid with no Jigsaw; the sticker drawer), then she plays one real Quick case on her phone at `#shelf` (step 6). Fix what that turns up; then campaign (Screen plan step 8).
+Goal: finish Milestone 1: the owner judges the open calls in its Status (Play cases now show Grid and Jigsaw, decided 2026-10-29; the sticker drawer still open), then she plays one real Quick case on her phone at `#shelf` (step 6). Fix what that turns up; then campaign (Screen plan step 8).
 Starting prompt:
 ```
 Read docs/visual-theme.md "Milestone 1" Status. Ask me how her phone test went and about the open calls listed there, then brief an implementer with the fixes. #shelf only.
+```
+
+## Session: Puzzle labels and the sticker tin, build
+Last touched: 2026-10-29 (designed with the owner; nothing built)
+Reads first: `docs/visual-theme.md` "Puzzle labels and the sticker tin" (the spec and its Build order), the mockups in `docs/mockups/puzzle-labels/`.
+Goal: page 3's rows become stick-on labels with tick, hint and cat stickers and a gold finale label; a sticker tin beside Quick play picks 3 to 7 games and shakes for a new hand. #shelf only; Quick play, the New case book and the classic Choose games stay as they are.
+Starting prompt:
+```
+Read docs/visual-theme.md "Puzzle labels and the sticker tin", then brief an implementer with Build order step 1 (label drawings, PuzzleLabel, preview).
 ```
 
 ## Session: Theme content, land the lines

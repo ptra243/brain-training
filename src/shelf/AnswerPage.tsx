@@ -14,10 +14,17 @@ type Open = 'suspect' | 'item' | null;
  * the scene), so the room is printed once she knows it and is not a blank. Wrong tries stay above,
  * crossed out in red; the list of tries is her saved accusations, so the Casebook agrees.
  */
-export function AnswerPage({ book, onBack }: { book: QuickBook; onBack: () => void }) {
+export function AnswerPage({ book, onBack, prefill }: { book: QuickBook; onBack: () => void; prefill?: { suspect: string; seq: number } | null }) {
   const { c, progress, dispatch } = book;
   const [blanks, setBlanks] = useState<Blanks>(emptyBlanks);
   const [open, setOpen] = useState<Open>(null);
+  const [seenPrefill, setSeenPrefill] = useState(prefill?.seq ?? 0);
+  // A guest page's "Accuse them…": that guest is written in, the weapon left for her to pick (adjusting state while rendering).
+  if (prefill && prefill.seq !== seenPrefill) {
+    setSeenPrefill(prefill.seq);
+    setBlanks({ suspect: prefill.suspect, item: '' });
+    setOpen(null);
+  }
   const tries = triesList(progress);
   const last = progress.accusations.at(-1);
   const room = sceneUnlocked(c, progress) ? roomName(c.sceneRoom) : null;

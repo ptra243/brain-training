@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { MOTION, SECTIONS, dropOrder, flickCount, tuckStep, turnDirection } from './ribbonPlan.ts';
 
 test('sections run in book order', () => {
-  assert.deepEqual([...SECTIONS], ['Case', 'Map', 'Puzzles', 'Answer']);
+  assert.deepEqual([...SECTIONS], ['Case', 'Map', 'Answer']);
 });
 
 test('turn direction follows book order', () => {

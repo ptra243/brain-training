@@ -180,7 +180,7 @@ owner switches that default, this work must not change the current shell.
     never turns a page; a ribbon turns the page only when the tap starts on it while they are down
     (the late click from the opening tap would otherwise land on one). Swipe up or tap the page to
     tuck them.
-  - Colours: Case gold, Map green, Puzzles blue, Answer rust. No brass "current" ribbon any more;
+  - Colours: Case gold, Map green, Answer rust (Puzzles blue was dropped with its ribbon). No brass "current" ribbon any more;
     the crease shows where she is.
   - An unbuilt section's page says "This page isn't drawn yet."
 
@@ -196,7 +196,8 @@ owner switches that default, this work must not change the current shell.
 - **The puzzle page is a full-width paper page** (the mockup), not inside the book: ribbons hidden,
   chevron "Turn back to page 3". A line opens it with a forward page turn (same numbers) and it turns
   back the same way; the Case ribbon stays in the crease.
-- **The Puzzles ribbon stays undrawn** for now.
+- **No Puzzles ribbon (owner, 2026-10-29).** Every puzzle is a row on page 3, so Quick play has three
+  ribbons: Case, Map, Answer.
 - **Rule line** is the registry's `rule`: one line of at most about 47 characters, so it fits on
   one line at 360px (`help` ran 3–4 lines).
 - **Won / revealed**: the finished board, then the `titles` heading, "Solved by {cat}" on a reveal,
@@ -252,8 +253,11 @@ Decisions:
 - **New case settings**: the New case book uses her last-used difficulty, length and cast from the
   save. No picker until the deck (step 9).
 - **Finish: Grid or Jigsaw, in the same place.** They are alternatives, so the Jigsaw is a notebook
-  tab in place of Grid (You · Clues · Jigsaw · Guests) in a Jigsaw-finish case, never both. Ribbons
-  stay Case · Map · Puzzles · Answer in every Quick case. Built as the sticker version from
+  tab in place of Grid (Clues · Jigsaw · Guests) in a Jigsaw-finish Quick start case. Play
+  cases have both (Clues · Grid · Jigsaw · Guests; owner, 2026-10-29), as classic Quick play.
+  **No You tab in Quick play** (owner, 2026-10-29): its clock and "You are in" lines only mean
+  something in the campaign, which keeps it; the clue count is already in the header. Ribbons
+  stay Case · Map · Answer in every Quick case. Built as the sticker version from
   `docs/mockups/sticker-page.html` redrawn as a notebook page: the board on the page, the sticker
   sheet (2 × 44px rows, scrolls sideways) just above the tabs. The owner judges it once built. This
   replaces the Stickers section and step 7's "notebook becomes a header icon".
@@ -286,7 +290,8 @@ reuses `MapPanel` (one optional `onSubject` prop) and drops accusing from the ma
 Answer page prints the room (accusations are who + weapon) and ends with "Back to the shelf". The
 Jigsaw tab runs `EndBoardPanel` unchanged inside the notebook. The look is `src/game/look.ts`
 (`brain-training-look` key), the sheet `OptionsSheet.tsx`. For the owner to judge:
-- **Play cases keep Grid, no Jigsaw** (the classic Casebook shows both). One rule, `hasJigsaw` in
+- **Play cases show Grid and Jigsaw** (owner, 2026-10-29, after testing Milestone 1; was Grid only),
+  as the classic Casebook does. One rule, `hasJigsaw` in
   `src/shelf/notebook.ts`.
 - The sticker drawer: captions hidden and mini grids at 14px so two rows fit; a sideways drag on a
   sticker scrolls the drawer. Each sticker is its mini piece with the classic caption; the intro
@@ -308,13 +313,115 @@ Jigsaw tab runs `EndBoardPanel` unchanged inside the notebook. The look is `src/
 - **Accusations left are candles** in the room page header; a wrong one blows one out. Face to face
   after an accusation is a spread on the table. A new body ends the chapter; the next chapter's first
   page says "later that night". Rules unchanged; only the drawing.
-- **The deck**: tapping it fans the game cards on the table; a tap turns a card face up (picked) or
-  down; "Deal" starts the case. Same choice and save as today's Pick games.
+- **The sticker tin** (owner, 2026-10-29; replaces the deck): see "Puzzle labels and the sticker
+  tin" below.
 - **The guest book**: running totals in ink on the front page, then one handwritten entry per
   finished run (today's history rows): date, case title, "Solved on the first accusation", the
   killer's name signed at the end. An unsolved run has no signature and "left before dessert".
 - **Not in this plan**: the secret lever book, spine colours from the case code, solved cases
-  arriving as books, sticker rewards. They stay under Unexplored ideas.
+  arriving as books, sticker rewards (beyond the tick and paw stickers on page 3's labels). They
+  stay under Unexplored ideas.
+
+## Puzzle labels and the sticker tin (owner, 2026-10-29)
+
+Settled with the owner; ready to build. Mockups: `docs/mockups/puzzle-labels/ContentsLabels.dc.html`
+(page 3) and `Tin.dc.html` (the tin, interactive: its script is the behaviour spec), also on the
+"Puzzle labels" canvas, https://claude.ai/artifact/SSCXdaHW3jog1WgpBun5Rt (boards marked "Not
+taken" are ideas turned down). Copy sizes and colours from the mockups.
+
+### The label
+
+- **One label, the same in the tin and the book**: 140 × 60px, landscape, cream `#fffdf6`, 9px
+  corners, a coloured border inset 4px. On the left a 26px ink drawing of the puzzle; on the right
+  the game name (EB Garamond 600, 14px, small caps; long names wrap to two lines) and its level as
+  printed stars (★☆☆ easy, ★★☆ medium, ★★★ hard, rust `#8a2e3b`). No stars when the game has no
+  level. Border colour by kind of game: words navy `#34436a` (Wordle, Mini crossword, Word search),
+  numbers and logic green `#4f7a54` (Cat puzzle, Sudoku, Case board), people plum `#7b5a78`
+  (Questioning, Tarot match, Nosing around). In the book it also has its page number in a 20px ring
+  beside the stars; in the tin there is no book yet, so no ring.
+- **Each label sits at its own slight angle** (−2° to 2°), from the case ref through the shelf UI's
+  small hash like the story line and page number (never the engine `Rng`, so cases don't change).
+- **Every game needs its label drawing**, kept in its registry entry (a small SVG component, with
+  the kind's border colour) beside `rule`. Draw the 9 from the mockups. Add a line to "Adding a
+  minigame" in `src/game/CLAUDE.md`: a new game needs a label drawing. Style: a 34 × 34 viewBox
+  drawn at 26px, ink `#1e2a2f` strokes 1–1.6px (or Georgia letters and numbers), only the paper's
+  muted fills (`#e9d9a8`, `#b9c9a0`) or a red-pencil or gold touch, a miniature of the puzzle itself
+  (never a room, guest or weapon), `aria-hidden`.
+
+### Page 3 (Find a clue)
+
+- **Each row is a label beside its story line**: the label at its angle, then the story (EB
+  Garamond 14.5px, about 150px wide, 3–4 lines), rows about 76px. The whole row is one button whose
+  `aria-label` says the game, level, page and state. This replaces the "game · level · clue count"
+  line in `src/shelf/FindAClue.tsx`; `ClueRow` (`src/shelf/findAClue.ts`) already has `level`,
+  `clues` and `page`.
+- **Stickers on a finished label** (the row stays tappable, "Hide finished" unchanged):
+  - **Won**: a green tick sticker (`#3f7a4a`, cream die-cut edge, 32px) on the top-right corner;
+    under the story "2 clues found".
+  - **Won with the cat's hints**: the green tick, plus a small paw-print sticker with the number of
+    hints (38 × 22 pill, brown `#8a6a48`) on the bottom-left corner; under the story "2 clues found
+    · 2 hints". Only when the count is 1 or more.
+  - **Solved by the cat** (`revealed`): a gold sticker (`#d2a548`) with a dark paw print, instead of
+    the green tick; under the story "The cat solved it · 1 clue".
+- **Hint counts**: `GameRecord` has no hint count today. Some games keep one in their own data (the
+  Case board's `hintCount`; `hints` fields in `src/games/`, e.g. the dog fight; check each game).
+  Add an optional "hints used" reader to the registry for the games that have one; a game without one
+  shows no paw-print sticker. Counting hints in the other games is later work, not part of this.
+- **The finale row gets a gold "Final puzzle" label**: border `#b8902f`, background `#fff8e6`, a
+  padlock drawing, "Locked" in place of stars while it is locked (the row is disabled and faded), its
+  page ring, and a story line. It is never in the tin. Only cases with a finale have it (Quick start
+  at hard logic); Play and picked cases have none.
+- **Clues stay as they are**: the won page and the notebook do not change.
+
+### The sticker tin
+
+- **Quick play and the New case book are unchanged.** The tin is a separate box on the bookcase
+  next to them, for choosing her own games (the shelf's version of Choose games, `PickGames.tsx`).
+  Its own shelf screen, plus a dev preview `shelf-tin` (see `src/dev/CLAUDE.md`).
+- **Tapping it**: the tin comes down to the table and the lid lifts. Every game is a label (no page
+  ring) on a blue-grey backing sheet inside the red-and-gold tin, 2 across: 9 games are 5 rows, about
+  370px; 12 still fit with the buttons. Tapping a sticker lifts it (bigger shadow, a brass tick,
+  `aria-pressed`) or presses it back down.
+- **She lifts 3 to 7.** An eighth tap says "That's 7. Press one down to swap." (all 9 build, but the
+  clues run thin: about 6 games of 9 give one clue, and about 3 in 100 codes fail). Under the tin:
+  "4 of 7 lifted" and the case line "Logic ★★☆ · 5 guests", from `playLevels(code)`.
+- **It opens on her last picks** (`loadPicks`), lifted; the first time, a dealt hand.
+- **Shake the tin** replaces Roll again: a new code (`codeFor` with the UI's crypto random), the tin
+  rattles (about 420ms), the stickers jostle and resettle at new angles, the stars and the case line
+  are stamped afresh, and a new random hand of 3 to 5 lifts (any game equally likely, the UI's
+  random, not the engine). Reduced motion: no rattle, a short crossfade.
+- **Stick them in** (disabled as "Lift 2 more" below 3) saves her picks (`savePicks`, only now),
+  builds the case with `generate({ kind: 'pick', code, games })` behind the `Shuffling` overlay, and
+  opens the book on page 3 with those labels. An unsolved saved Quick case is asked about first, as
+  the New case book does. A game the case adds for her says "The cat added this one" under its story.
+- **If the case won't build**, see "A mix that won't build" below; it never shows "That mix wouldn't
+  come together".
+- Unchanged: the 3-game minimum, the code format and the classic Choose games screen. The 7 cap is
+  the tin's alone.
+
+### A mix that won't build (owner, 2026-10-29: handle it quietly)
+
+- The engine already retries quietly: a picked case tries 30 seeds with the same code
+  (`PICK_TRIES` in `src/engine/caseRef.ts`), so the stars she saw stay. Measured: 0 of 400 random
+  sets of 3 to 7 games failed; only all 9 at once failed (4 of 150), and the tin's cap rules that
+  out.
+- If it ever still fails, the tin quietly rerolls: a new code, the same games, until one builds, all
+  behind the `Shuffling` overlay, then opens that case; she never sees an error.
+- After 5 codes with the same games (never expected: every set of 3 or more games is tested to
+  build, so 5 failures means the set is the problem), it quietly changes the games: a new hand dealt as a shake does, and tries again. The case
+  opens with a pencilled note on page 3, "The cat picked these puzzles instead." Only if 10 new
+  hands also fail (a real bug, since nothing automatic can fix that) does it say "The cat couldn't
+  make a case. Try again later." No engine change.
+
+### Build order
+
+1. Label drawings in the registry, the shared `PuzzleLabel` component and its CSS module (#shelf
+   only), with a dev preview of all labels and stickers.
+2. Page 3 rows, the stickers, the hints reader and the finale label; update `shelf-find-a-clue`.
+3. The tin screen and its spot on the bookcase; `shelf-tin` preview; e2e for lift, the cap, shake
+   and Stick them in.
+
+Each needs a look check at 360 × 780.
 
 ## Screen plan (owner, 2026-10-28)
 
@@ -342,7 +449,7 @@ Quick case is asked about first (`#dev/shelf-new-case`).
 | done | Answer page | Accuse panel (face to face is campaign, step 8) | `puzzle-book-answer.html` |
 | done | Jigsaw tab in the notebook, sticker version (Milestone 1) | Jigsaw end board | `StickerPage` |
 | 8 | Campaign: title page, room page, chapters | Campaign setup, view, next murder | `CampaignRoom` |
-| 9 | The deck | Pick games | none |
+| 9 | The sticker tin (beside Quick play, which stays) | Pick games | `docs/mockups/puzzle-labels/Tin.dc.html` |
 | 10 | Guest book | Record | none |
 
 Each new screen needs a look check at 360 × 780. Sticker rewards and sticker branches stay later,

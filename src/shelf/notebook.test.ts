@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { content } from '../content/index.ts';
 import { newPlayCase } from '../engine/caseRef.ts';
 import { emptyProgress, reduce, visibleClues } from '../game/state.ts';
-import { DEFAULT_TAB, hasJigsaw, tabForCase, tabsFor, afterMapTap, afterSwipe, parseTab, peekLine, placeAction, placementLine, ringedSubject, subjectClues, subjectTitle } from './notebook.ts';
+import { DEFAULT_TAB, finishFor, tabForCase, tabsFor, afterMapTap, afterSwipe, parseTab, peekLine, placeAction, placementLine, ringedSubject, subjectClues, subjectTitle } from './notebook.ts';
 
 const { c } = newPlayCase(content, () => 0.5);
 
@@ -81,21 +81,46 @@ test('choosing a room on a subject page does what dragging onto the room does', 
 const quickCase = { ...c, sceneGiven: undefined };
 const quickRef = { mode: 'quick' as const, code: 'K7QF2', difficulty: 'medium' as const, length: 'normal' as const };
 
-test('Jigsaw takes the place of Grid in a Jigsaw-finish Quick case, and Play cases keep Grid', () => {
-  assert.equal(hasJigsaw(quickCase, { ...quickRef, endBoard: true }), true);
-  assert.equal(hasJigsaw(quickCase, quickRef), false);
-  assert.equal(hasJigsaw(c, { ...quickRef, endBoard: true }), false); // a Play case (scene given)
-  assert.equal(hasJigsaw(c, { mode: 'play', code: 'K7QF2' }), false);
-  assert.equal(hasJigsaw(quickCase, null, true), true);
-  assert.equal(hasJigsaw(quickCase, null), false);
-  assert.deepEqual(tabsFor(true).map((t) => t.id), ['you', 'clues', 'jigsaw', 'guests']);
-  assert.deepEqual(tabsFor(false).map((t) => t.id), ['you', 'clues', 'grid', 'guests']);
+test('Jigsaw takes the place of Grid in a Jigsaw-finish Quick case, and Play cases show both', () => {
+  assert.equal(finishFor(quickCase, { ...quickRef, endBoard: true }), 'jigsaw');
+  assert.equal(finishFor(quickCase, quickRef), 'grid');
+  assert.equal(finishFor(c, { ...quickRef, endBoard: true }), 'both'); // a Play case (scene given)
+  assert.equal(finishFor(c, { mode: 'play', code: 'K7QF2' }), 'both');
+  assert.equal(finishFor(quickCase, null, true), 'jigsaw');
+  assert.equal(finishFor(quickCase, null), 'grid');
+  assert.deepEqual(tabsFor('jigsaw').map((t) => t.id), ['clues', 'jigsaw', 'guests']);
+  assert.deepEqual(tabsFor('grid').map((t) => t.id), ['clues', 'grid', 'guests']);
+  assert.deepEqual(tabsFor('both').map((t) => t.id), ['clues', 'grid', 'jigsaw', 'guests']);
 });
 
 test('a saved Grid or Jigsaw tab opens the one this case has', () => {
-  assert.equal(tabForCase('grid', true), 'jigsaw');
-  assert.equal(tabForCase('jigsaw', false), 'grid');
-  assert.equal(tabForCase('jigsaw', true), 'jigsaw');
-  assert.equal(tabForCase('guests', true), 'guests');
+  assert.equal(tabForCase('grid', 'jigsaw'), 'jigsaw');
+  assert.equal(tabForCase('jigsaw', 'grid'), 'grid');
+  assert.equal(tabForCase('jigsaw', 'jigsaw'), 'jigsaw');
+  assert.equal(tabForCase('grid', 'both'), 'grid');
+  assert.equal(tabForCase('jigsaw', 'both'), 'jigsaw');
+  assert.equal(tabForCase('guests', 'jigsaw'), 'guests');
+  assert.equal(tabForCase('you', 'both'), 'clues'); // no You tab in Quick cases
+  assert.equal(tabForCase('you', 'grid'), 'clues');
   assert.equal(parseTab('jigsaw'), 'jigsaw');
+});
+
+test('the Accuse button on a guest page: label, weapon and whether it submits', async () => {
+  const { accuseAction, accuseLabel, accuseRequest } = await import('./notebook.ts');
+  const guest = { kind: 'suspect' as const, id: c.suspects[0] };
+  let p = emptyProgress();
+  const none = accuseRequest(c, p, guest)!;
+  assert.deepEqual(none, { suspect: guest.id, submit: false });
+  assert.equal(accuseLabel(c, none), 'Accuse them…');
+  assert.equal(accuseAction(none), null);
+  const cell = { kind: 'suspect-item' as const, row: guest.id, col: c.items[1] };
+  p = reduce(c, reduce(c, p, { type: 'cycle', ...cell }), { type: 'cycle', ...cell });
+  const given = accuseRequest(c, p, guest)!;
+  assert.deepEqual(given, { suspect: guest.id, item: c.items[1], submit: true });
+  assert.match(accuseLabel(c, given), /^Accuse .+ with the .+$/);
+  assert.deepEqual(accuseAction(given), { type: 'accuse', suspect: guest.id, item: c.items[1] });
+  // Not on weapons or rooms, and not once solved.
+  assert.equal(accuseRequest(c, p, { kind: 'item', id: c.items[0] }), null);
+  assert.equal(accuseRequest(c, p, { kind: 'room', id: c.rooms[0] }), null);
+  assert.equal(accuseRequest(c, { ...p, solved: true }, guest), null);
 });

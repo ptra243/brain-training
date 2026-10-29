@@ -5,7 +5,7 @@ import { caseTitle } from '../game/names.ts';
 import { AnswerPage } from './AnswerPage.tsx';
 import { MapPlate } from './MapPlate.tsx';
 import { Notebook } from './Notebook.tsx';
-import { afterMapTap, ringedSubject, type Height } from './notebook.ts';
+import { accuseAction, afterMapTap, ringedSubject, type AccuseRequest, type Height } from './notebook.ts';
 import type { Subject } from '../game/state.ts';
 import { useQuickBook, type SampleCase } from './useQuickBook.ts';
 import { attachRibbons } from './ribbonMotion.ts';
@@ -33,10 +33,6 @@ const ICONS: ReactNode[] = [
     <rect x="3.5" y="4" width="17" height="16" />
     <path d="M12 4v7M3.5 11h5M12 11h8.5M15 11v9" />
   </svg>,
-  <svg key="puzzles" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-    <rect x="4" y="4" width="16" height="16" />
-    <path d="M9.3 4v16M14.7 4v16M4 9.3h16M4 14.7h16" />
-  </svg>,
   <svg key="answer" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
     <circle cx="12" cy="12" r="5" />
@@ -55,7 +51,7 @@ interface OpenBookProps {
 }
 
 /**
- * The book she took down, open on a puzzle book's pages: ribbons for Case, Map, Puzzles and Answer.
+ * The book she took down, open on a puzzle book's pages: ribbons for Case, Map and Answer.
  * It is mounted when she takes the book, so the CSS animation plays once. The section is state
  * here, not the address, and nothing touches her save. The ribbon and page-turn motion is
  * `ribbonMotion.ts`, which owns the pages' `hidden` and the ribbons' transforms after the first render.
@@ -75,6 +71,8 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   // Her case, shared by the Case page and the notebook. The New case book builds one and saves it.
   const book = useQuickBook(sample, tone === 'quick' ? 'saved' : 'new');
   const title = book && book.fullRef ? caseTitle(book.fullRef) : coverTitle;
+  // A guest page's Accuse without a weapon: the Answer form gets the guest written in. A new `seq` is a new request.
+  const [prefill, setPrefill] = useState<{ suspect: string; seq: number } | null>(null);
   const [puzzleOpen, setPuzzleOpen] = useState(false);
   const sampleSection = sample?.section;
   // How far the notebook is up, which page it shows (a map tap sets `focus`), and so which piece is ringed.
@@ -93,6 +91,17 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
       '--sy': from.height / window.innerHeight,
     } as CSSProperties;
   });
+
+  const accuseGuest = (req: AccuseRequest) => {
+    if (!book) return;
+    setHeight('peek');
+    // With a weapon given the try is handed in as the Answer page's own button does; the page then shows it.
+    const action = accuseAction(req);
+    if (action) book.dispatch(action);
+    // A handed-in try leaves the form blank again, as the Answer page's own button does.
+    setPrefill((p) => ({ suspect: action ? '' : req.suspect, seq: (p?.seq ?? 0) + 1 }));
+    turnRef.current?.(SECTIONS.indexOf('Answer'));
+  };
 
   useEffect(() => {
     backRef.current?.focus({ preventScroll: true });
@@ -164,7 +173,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                       <span>{name}</span>
                     </div>
                     {name === 'Answer' && book ? (
-                      <AnswerPage book={book} onBack={onBack} />
+                      <AnswerPage book={book} onBack={onBack} prefill={prefill} />
                     ) : name === 'Map' && book ? (
                       <MapPlate
                         book={book}
@@ -202,7 +211,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
               ))}
             </nav>
           </div>
-          {book ? <Notebook book={book} sample={sample} hidden={puzzleOpen} height={height} onHeight={setHeight} focus={focus} onPage={setPageSubject} onAccuse={() => { setHeight('peek'); turnRef.current?.(SECTIONS.indexOf('Answer')); }} /> : null}
+          {book ? <Notebook book={book} sample={sample} hidden={puzzleOpen} height={height} onHeight={setHeight} focus={focus} onPage={setPageSubject} onAccuse={() => { setHeight('peek'); turnRef.current?.(SECTIONS.indexOf('Answer')); }} onAccuseGuest={accuseGuest} /> : null}
         </section>
 
         <div aria-hidden="true" className={`${styles.cover} ${tone === 'quick' ? styles.quick : styles.fresh}`}>
