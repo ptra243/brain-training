@@ -77,7 +77,7 @@ made the company, was theirs; the Host's name went on the box. Has never said th
 - Versions (the card she meets them on):
   - **Empress (home)**
     - Upright: Wants the credit for the recipe at last, and plans to say so at the party.
-    - Reversed: Wants the company sold, so the family is free of it, and of the Host.
+    - Reversed: Wants the company sold. It has the family fighting at every meal, and has for fifty years. Sell it, and they might just be a family.
   - **Star**
     - Upright: Has a plan of their own: a shop under their own name, with their own recipes. Needs a share of the money.
     - Reversed: Has quietly given up. This is the last weekend they will put up with.
