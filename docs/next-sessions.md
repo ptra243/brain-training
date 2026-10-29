@@ -37,14 +37,17 @@ Read docs/visual-theme.md "Milestone 1" Status. Ask me how her phone test at #sh
 
 ## Session: Theme content, land the lines
 Last touched: 2026-10-29
-Reads first: `docs/motive-outlines.xlsx`, `docs/theme-threads.md` (Direction).
-Steps 1 to 3 are done. All 60 outlines are drafted in `docs/motive-outlines.xlsx`, and the Notes
-column marks each row keep or rework, with suggested rewrites. Pilot built: threads keyed by guest and
-card (`src/content/talk/motives.ts`, `{victim}` filled in on show; `#dev/motives` shows them all). Only the Financier's six are written.
-Goal: the owner edits the outlines and judges the pilot, then the other nine guests get motive threads. Talk can make a guest look guilty, and it is never a clue.
+Reads first: `docs/story.md` (frame, the people, how they fit, "Still to do"), `docs/relationships.md` (feelings grid), `docs/theme-draft.md` (Language rule).
+2026-10-29: story settled (the chocolate company's 50th; heir, the Fixer, or a sale to the Investor),
+with each guest's sketch, fixed history, and a feelings grid shaded by the card (owner to review).
+All 60 versions (guest x card x reading) are mapped, each with a real motive (money, exposure,
+protecting someone, revenge, freedom) and checked to fit together. Talk is plain modern English.
+The xlsx outlines and the Financier pilot are superseded by the versions in `docs/story.md`.
+Threads are guarded questioning: her line before each of three beats, the motive shown, never confessed. The Fixer's six are written ("Threads written"), not yet in the game.
+Goal: write the other guests' threads the same way; brief the implementer to add her per-beat lines to motive threads and swap in the written ones; then "Still to do" (renames, reaction line).
 Starting prompt:
 ```
-Read docs/motive-outlines.xlsx (Notes column) and src/content/talk/motives.ts. Ask me how the Financier pilot reads on #dev/motives, then write the next guest's six threads from the rows I have approved.
+Read docs/story.md ("How a thread reads", the Fixer under "Threads written"). Write the next guest's six threads the same way, giving feedback on each before I approve.
 ```
 
 ## Session: Tarot card faces
@@ -80,17 +83,6 @@ openings, endings, the new guests' lines), then put chapters in the campaign thr
 Starting prompt:
 ```
 Read docs/confidant-arcs.md and the Guest pool and Confidants sections of docs/theme-draft.md, then help me write the 5-chapter arcs, victim openings and endings.
-```
-
-## Session: Summation ending, how it happened
-Last touched: 2026-10-29
-Reads first: `.claude/handoff/summation-ending.md` (the brief), `docs/story-layer.md` (the summation ending).
-Goal: after she solves a case (or the killer gets away), replay the night on the map, one guest at a time,
-citing the clue that proved each step. Fully generated from the solved case; no engine or case change.
-Done: Quick play, the 7-guest length, and Skip are settled, and the brief is written. Left: build it.
-Starting prompt:
-```
-Implement `.claude/handoff/summation-ending.md`. The decisions are also in the summation section of docs/story-layer.md. Don't reopen Quick play, the 7-guest length, or Skip.
 ```
 
 ## Session: Everyone has a secret (design)

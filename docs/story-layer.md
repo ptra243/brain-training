@@ -17,7 +17,7 @@ like a whodunnit film, with the puzzles as the detective work.
 
 ## Gaps, in priority order
 1. **Campaign opening** (`docs/campaign-opening.md`, settled) plus a dinner prologue (below).
-2. **The summation ending** (below). No engine change.
+2. **The summation ending** (below). Built 2026-10-29.
 3. **Everyone has a secret** (`docs/secrets.md`): the "aha" at the reveal.
 4. **Act breaks between rounds** (below). No engine change.
 5. **Weapons that matter** (`docs/weapons.md`, for "Hunting the weapon" in `docs/next-sessions.md`): one
@@ -30,7 +30,9 @@ Poirot walks through how it happened; today the ending is a rotating confession 
   counter slides to the room they were really in, one line per guest ("The Housekeeper was in the
   pantry with nothing in hand"), the killer last, in the scene room with the weapon.
 - Each step cites the clue that proved it when she had one ("You knew this: the cat found..."), else
-  "You never found this out". The truth is all in the `Case` (`Solution`), so it is fully generated.
+  "You worked this out from your clues" after a win, or "You never found this out" for a round she got
+  wrong and when the killer got away (decided 2026-10-29: only about 1 step in 4 has a clue that states it
+  outright). The truth is all in the `Case` (`Solution`), so it is fully generated.
 - In a campaign, one short summation per round she played, the final round in full.
 - With secrets built, each innocent's step adds their clearing line and the killer's adds the motive.
 - "Got away" gets the same replay, so she learns how she could have solved it. Reduced motion: still
@@ -38,7 +40,10 @@ Poirot walks through how it happened; today the ending is a rotating confession 
 - Settled 2026-10-27. Every solved case gets it (Quick play, Play, presets, and the campaign). A full
   replay is one step per guest, killer last, so a campaign round is 7 steps. Earlier campaign rounds are
   one step each, for the person she accused, and only once the night is over. Skip asks "Are you sure?"
-  and then jumps to the closing card. The brief is `.claude/handoff/summation-ending.md`.
+  and then jumps to the closing card.
+- Built 2026-10-29: `src/game/summation.ts` (steps and cite pick), `Summation.tsx`, wired in `Casebook.tsx`
+  and `CampaignView.tsx`; previews `#dev/summation` and `#dev/summation-skip`. Escape or the backdrop
+  on the "got away" dialog also starts the replay.
 
 ## Act breaks between rounds
 The next-murder scene is the same every time. Add a short scene after it, before the next round:

@@ -18,6 +18,8 @@ import { cats } from '../content/index.ts';
 import { playerPortrait } from '../content/portraits.ts';
 import { DIFFICULTY_LABEL } from './labels.ts';
 import { Portrait } from './Portrait.tsx';
+import { Summation } from './Summation.tsx';
+import { fullSteps, roundInput, type SumStep } from './summation.ts';
 import type { Case, GameKind } from '../engine/types.ts';
 
 type Tab = 'clues' | 'map' | 'grid' | 'board' | 'accuse';
@@ -113,6 +115,37 @@ export function Casebook({ c, progress, onProgress, onHome, onNewCase, title, su
     if (t !== 'clues') setFresh([]);
     window.scrollTo(0, 0);
   };
+
+  // The summation plays once, in the visit that solves the case (not for a campaign round or a save opened already solved).
+  const [wasSolved, setWasSolved] = useState(progress.solved);
+  const [replay, setReplay] = useState<{ steps: SumStep[]; at: number } | null>(null);
+  if (progress.solved !== wasSolved) {
+    setWasSolved(progress.solved);
+    if (progress.solved && !exploring && !readOnly) {
+      setReplay({ steps: fullSteps(roundInput(c, unlockedClueIds(c, progress))), at: 0 });
+    }
+  }
+  if (replay) {
+    const done = () => {
+      setReplay(null);
+      setTab('accuse');
+      window.scrollTo(0, 0);
+    };
+    const step = replay.steps[replay.at];
+    return (
+      <div className="casebook">
+        <main>
+          <Summation
+            c={c}
+            step={step}
+            last={replay.at === replay.steps.length - 1}
+            onNext={() => (replay.at === replay.steps.length - 1 ? done() : setReplay({ ...replay, at: replay.at + 1 }))}
+            onSkip={done}
+          />
+        </main>
+      </div>
+    );
+  }
 
   const game = playing ? c.games.find((g) => g.kind === playing) : undefined;
   if (game) {

@@ -16,6 +16,8 @@ export const PREVIEWS: readonly PreviewInfo[] = [
   { id: 'opening-midway', about: 'The opening part-way: some guests spoken to, one guest sheet open with the victim line and a clue', look: 'game' },
   { id: 'opening-cat', about: 'The opening after every guest: the cat sheet before and its clue (or the goodbye dialog)', look: 'game' },
   { id: 'opening-skip', about: 'The skip summary: clues in the casebook and the guests not spoken to', look: 'game' },
+  { id: 'summation', about: 'The summation, a full-replay step in the middle: floor plan with guests placed so far, the placement line, what she knew, 3 of 7, Next and Skip', look: 'game' },
+  { id: 'summation-skip', about: 'The same step with the "Are you sure?" skip dialog open', look: 'game' },
   { id: 'escaped', about: 'The killer got away dialog', look: 'game' },
   { id: 'guess-now', about: 'The Guess now? warning', look: 'game' },
   { id: 'time-card', about: 'The time card after a puzzle', look: 'game' },

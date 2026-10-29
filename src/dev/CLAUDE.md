@@ -47,6 +47,10 @@ What a look check judges on each:
   and a clue card; nothing clipped.
 - `opening-cat`: every guest spoken to, the cat's sheet open (cat portrait, intro, the "See what ... found" button).
 - `opening-skip`: the skip summary dialog: clue count, the guests not spoken to, one button.
+- `summation`: the summation at "3 of 7": floor plan with three counters placed (the newest ringed in its room, counters
+  44px+ and not overlapping), the placement line ("X was in the Y with the Z."), the "You knew this", "You worked this out
+  from your clues." or "You never found this out." line, Skip and Next side by side, 44px+; no sideways scroll.
+- `summation-skip`: the same step with the "Are you sure?" dialog centred: "Keep watching" and "Skip" side by side.
 - `escaped`: "The killer got away" dialog, centred, one "See the case" button.
 - `guess-now`: the Guess now? dialog, with "Not yet" and "Guess now" side by
   side and easy to tell apart.

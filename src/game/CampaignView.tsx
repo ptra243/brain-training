@@ -15,6 +15,8 @@ import { currentRound, pick, puzzlesLeft, stillPossible, type CampaignSave, type
 import { generate } from './caseClient.ts';
 import { roundsKey } from './caseJobs.ts';
 import { OpeningScene } from './OpeningScene.tsx';
+import { Summation } from './Summation.tsx';
+import { nightSteps, roundInput, type EarlierRound, type SumStep } from './summation.ts';
 import { NextMurderScene } from './NextMurderScene.tsx';
 import { Shuffling } from './Shuffling.tsx';
 import { campaignRow, effortLines } from './runRecord.ts';
@@ -63,6 +65,19 @@ export function CampaignView({ save, onSave, onHome }: Props) {
     const { save: next, verdict } = resolveHeld(save, cases[now]);
     onSave(next);
     if (verdict === 'next-body' || verdict === 'wrong-weapon' || verdict === 'escaped') setNotice(verdict);
+    if (verdict === 'caught') setNight({ steps: nightFor(next, cases), at: 0, escaped: false });
+  };
+  // The summation plays once, when the night ends in this visit; a save opened already finished goes straight to the card.
+  const [night, setNight] = useState<{ steps: SumStep[]; at: number; escaped: boolean } | null>(null);
+  const [replayed, setReplayed] = useState(false);
+  const endNight = () => {
+    setNight(null);
+    setReplayed(true);
+    window.scrollTo(0, 0);
+  };
+  const seeTheCase = () => {
+    setNotice(null);
+    if (ready) setNight({ steps: nightFor(save, ready), at: 0, escaped: true });
   };
   useEffect(() => {
     if (!ready || !pending || !faceKey) return;
@@ -93,7 +108,20 @@ export function CampaignView({ save, onSave, onHome }: Props) {
 
   return (
     <>
-      {ready && pending && activeFace ? (
+      {night && ready ? (
+        <div className="casebook">
+          <main>
+            <Summation
+              c={ready[night.steps[night.at].round]}
+              step={night.steps[night.at]}
+              last={night.at === night.steps.length - 1}
+              escaped={night.escaped}
+              onNext={() => (night.at === night.steps.length - 1 ? endNight() : setNight({ ...night, at: night.at + 1 }))}
+              onSkip={endNight}
+            />
+          </main>
+        </div>
+      ) : ready && pending && activeFace ? (
         <FaceToFace
           key={faceKey}
           c={ready[now]}
@@ -109,7 +137,7 @@ export function CampaignView({ save, onSave, onHome }: Props) {
       ) : ready && !pending && now === 0 && save.rounds[0].opening && !save.rounds[0].opening.done ? (
         <OpeningRound save={save} c={ready[0]} onSave={onSave} onHome={onHome} />
       ) : ready && !pending ? (
-        <CampaignRounds save={save} cases={ready} onSave={onSave} onHome={onHome} />
+        <CampaignRounds save={save} cases={ready} onSave={onSave} onHome={onHome} startTab={replayed ? 'accuse' : undefined} />
       ) : (
         <Shuffling />
       )}
@@ -129,14 +157,14 @@ export function CampaignView({ save, onSave, onHome }: Props) {
         </NextMurderScene>
       )}
       {notice === 'escaped' && victim && lastCase && guests && (
-        <Dialog placement="center" labelId="escaped-title" onClose={() => setNotice(null)}>
+        <Dialog placement="center" labelId="escaped-title" onClose={seeTheCase}>
           <h2 id="escaped-title">The killer got away</h2>
           <p className="dialog-text">
             {suspectName(victim, guests)} was the third body. By dawn, {midSentence(suspectName(killer, guests))} was gone, with the{' '}
             {itemName(lastCase.weapon)}.
           </p>
           <div className="dialog-actions single">
-            <button data-autofocus className="primary" onClick={() => setNotice(null)}>
+            <button data-autofocus className="primary" onClick={seeTheCase}>
               See the case
             </button>
           </div>
@@ -161,9 +189,23 @@ function OpeningRound({ save, c: built, onSave, onHome }: { save: CampaignSave; 
 
 interface RoundsProps extends Props {
   cases: Case[];
+  /** Open the round on this tab (the closing card after the summation). */
+  startTab?: 'accuse';
 }
 
-function CampaignRounds({ save, cases: built, onSave, onHome }: RoundsProps) {
+/** The night's summation: a short step for each earlier round's accusation, then the last round in full. */
+function nightFor(save: CampaignSave, cases: readonly Case[]): SumStep[] {
+  const last = save.rounds.length - 1;
+  const input = (i: number) => roundInput(cases[i], unlockedClueIds(cases[i], save.rounds[i]));
+  const earlier: EarlierRound[] = [];
+  for (let i = 0; i < last; i++) {
+    const accused = save.rounds[i].accusations.at(-1)?.suspect;
+    if (accused) earlier.push({ input: input(i), accused, time: ROUND_TIMES[i] });
+  }
+  return nightSteps(earlier, input(last));
+}
+
+function CampaignRounds({ save, cases: built, onSave, onHome, startTab }: RoundsProps) {
   // Every campaign round is explored: the scene is known from the start (a flag on the copy, not the engine's case).
   const cases = useMemo(() => built.map((rc): Case => ({ ...rc, explore: true })), [built]);
   const now = currentRound(save);
@@ -294,6 +336,7 @@ function CampaignRounds({ save, cases: built, onSave, onHome }: RoundsProps) {
       }
       accuse={accuse}
       readOnly={readOnly}
+      startTab={startTab}
     />
   );
 }

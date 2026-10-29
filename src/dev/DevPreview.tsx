@@ -24,6 +24,8 @@ import { NosingBoardView } from '../game/games/NosingBoardView.tsx';
 import { buildNosing, nosingInitial, nosingView } from '../games/nosing.ts';
 import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
 import { NextMurderScene } from '../game/NextMurderScene.tsx';
+import { Summation } from '../game/Summation.tsx';
+import { fullSteps, roundInput } from '../game/summation.ts';
 import { OpeningScene } from '../game/OpeningScene.tsx';
 import { campaignRound } from '../engine/campaign.ts';
 import { openingScript } from '../game/opening.ts';
@@ -132,6 +134,18 @@ function EscapedPreview() {
       </div>
     </Dialog>
   );
+}
+
+/** A middle step of a full replay on a built case, with every clue found: the first from step 3 on that cites one. */
+function SummationPreview({ skip }: { skip: boolean }) {
+  // A campaign round has seven guests.
+  const c = openingCase();
+  const step = useMemo(() => {
+    const found = c.clues.map((cl) => cl.id);
+    const steps = fullSteps(roundInput(c, found));
+    return steps.slice(2).find((s) => s.clueText) ?? steps[2];
+  }, [c]);
+  return <div className="casebook"><main><Summation c={c} step={step} last={false} onNext={noop} onSkip={noop} initialSkip={skip} /></main></div>;
 }
 
 function GuessNowPreview() {
@@ -521,6 +535,8 @@ const SCREENS: Record<string, () => ReactNode> = {
   'opening-midway': () => <OpeningPreview kind="midway" />,
   'opening-cat': () => <OpeningPreview kind="cat" />,
   'opening-skip': () => <OpeningPreview kind="skip" />,
+  summation: () => <SummationPreview skip={false} />,
+  'summation-skip': () => <SummationPreview skip />,
   escaped: () => <EscapedPreview />,
   'guess-now': () => <GuessNowPreview />,
   'time-card': () => <TimeCardPreview />,

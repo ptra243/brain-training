@@ -23,6 +23,22 @@ test('escaped preview', async ({ page }) => {
   await checkScreen(page, 'preview escaped');
 });
 
+test('summation preview', async ({ page }) => {
+  await page.goto('/#dev/summation');
+  await expect(page.getByTestId('summation-count')).toHaveText('3 of 7');
+  await expect(page.getByRole('button', { name: 'Next' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Skip' })).toBeVisible();
+  await expect(page.getByText(/^You knew this|^You never found this out|^You worked this out/)).toBeVisible();
+  await checkScreen(page, 'preview summation');
+});
+
+test('summation-skip preview', async ({ page }) => {
+  await page.goto('/#dev/summation-skip');
+  await expect(page.getByRole('heading', { name: 'Are you sure?' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Keep watching' })).toBeVisible();
+  await checkScreen(page, 'preview summation-skip');
+});
+
 test('guess-now preview', async ({ page }) => {
   await page.goto('/#dev/guess-now');
   await expect(page.getByText('Guess now?', { exact: true })).toBeVisible();
