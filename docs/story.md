@@ -284,6 +284,13 @@ reversed). Chocolate gives the jokes: the secret recipe, tasting, the rival bran
 Still true from `docs/theme-draft.md`: a motive is never a clue, never says where anyone was or what
 they held, and never depends on who the killer is. Nobody lies.
 
+**How a thread reads (decided 2026-10-29): one question, then a flashback.** Like a murder film: she
+asks one pointed line, written for that guest's version, and the guest tells the story as a flashback in
+three beats: past tense, one real scene with specific details, ending on `{victim}` and the motive.
+Between beats the button stays small ("Go on…"). Past dates and places are fine ("twelve years ago",
+"at the factory"); only tonight's whereabouts, times and objects are banned. Beat 3 never mentions the
+boss separately from `{victim}`, since the victim may be the Host.
+
 ## Still to do
 
 1. Rewrite the 60 motive outlines (`docs/motive-outlines.xlsx`) to hang off this frame.
