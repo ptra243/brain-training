@@ -337,6 +337,17 @@ from `{victim}`, since the victim may be the Host.
 sounds like poison in a motive: poison is a weapon, so it would read as a clue to how someone died.
 Pollution is factory waste, never a chemical.
 
+## Refining a guest (owner, 2026-10-29)
+
+Each guest gets a session like the Fixer's, in this order:
+1. **The cards first.** For each of the guest's three cards, say what it means in tarot, upright and
+   reversed, and whether it fits this character in this story. Where one doesn't (the Lawyer's Hanged
+   Man, the Elder heir's Emperor), suggest cards that fit better, with who else holds them.
+2. **The sketch and six versions**, against the motive rule (money, exposure, protecting someone,
+   revenge, freedom) and the links to other guests.
+3. **The six threads** ("How a thread reads"), feedback on each before the owner approves.
+4. Then content: card swaps (`mayAlsoRoll`), threads into `src/content/talk/motives.ts`, this doc.
+
 ## Threads written
 
 Guarded questioning, her line before each beat (see "How a thread reads"). Settled with the owner
