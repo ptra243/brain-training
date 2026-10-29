@@ -107,6 +107,13 @@ better at the job than anyone and knows it. Has been "nearly ready" for eight ye
 think it was never about being ready. Has already made plans, and maybe promises, on the strength of it.
 - Plots: has borrowed against an inheritance she doesn't have yet; is quietly talking to the Investor
   in case it all goes wrong; thinks the Fixer is in the way; is tired of hearing her brother's name.
+- Her six versions, each aiming the bitterness somewhere:
+
+  | Card | Upright | Reversed |
+  |---|---|---|
+  | Chariot (home) | Will win it on merit; the Fixer is the rival to beat | Done waiting; ready to force the Host's hand |
+  | Emperor | Already runs it in all but name; the Host's delay is the insult | Bitter at the Hostess: "You of all people let this happen" |
+  | Devil | Quietly talking to the Investor: if they won't give it to her, she'll help sell it | Borrowed against an inheritance she may never get, and her brother is why |
 
 ### The Younger heir: Sun (borrows Lovers, Star)
 The son, and everyone's favourite. Left the company to do something of his own in the city and is
@@ -199,8 +206,10 @@ they held, and never depends on who the killer is. Nobody lies.
 
 ## Reaction to the death (draft)
 
-Shown under the greeting before she asks anything; warm or cold pool by the guest's current mood,
-picked once per guest on its own seeded stream, avoiding lines another guest already has.
+Shown under the greeting before she asks anything. The pool is picked by how the guest feels about
+the victim (`docs/relationships.md`, after the card shift): fond → Warm, fine → Polite (still to
+write), wary or resent → Cold. Picked once per guest on its own seeded stream, avoiding lines another
+guest already has.
 
 Warm:
 - {victim} is gone, and the whole house has gone quiet.

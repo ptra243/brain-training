@@ -5,6 +5,60 @@ Design notes for making characters react to each other, without anything dependi
 beyond `Case.victim`. Related: `docs/theme-draft.md` (Follow-up threads, Model, the cast and the
 who-knows-whom map), `docs/talk-threads.md` (trigger list, settled).
 
+The feelings grid below is new (2026-10-29) and built on `docs/story.md` (the chocolate company, the
+new cast). The sections after it predate that cast; redo them from the grid when they are picked up.
+
+## How they feel about each other (draft for the owner)
+
+Each guest has one feeling about each other guest. Feelings can be one-sided.
+
+- **F** fond, **·** fine, **W** wary, **R** resent.
+- **The card shades it**: upright, the guest feels what the grid says; reversed, one step colder
+  (F→·, ·→W, W→R; R stays R). The same Uncle is wary of someone in one case and resents them in the next.
+- **Nothing here depends on the killer.** The killer is drawn separately, so a guest who resented the
+  victim is no likelier to be guilty than one who loved them. A feeling sets the tone of a line, never a clue.
+
+Read across: how the guest on the left feels about each guest along the top.
+
+| | Host | Hostess | Fixer | Investor | Housekpr | Acctnt | Uncle | Elder h. | Younger h. | Detective |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **Host** | | F | F | W | · | · | R | · | F | F |
+| **Hostess** | W | | · | · | F | · | F | F | F | · |
+| **Fixer** | F | · | | W | W | W | · | F | F | · |
+| **Investor** | · | · | W | | · | W | · | · | · | W |
+| **Housekeeper** | W | F | W | W | | · | F | F | F | · |
+| **Accountant** | · | · | W | W | · | | · | · | · | W |
+| **Uncle** | R | F | W | · | F | · | | · | F | W |
+| **Elder heir** | W | W | R | · | F | · | W | | W | · |
+| **Younger heir** | W | F | F | · | F | · | F | F | | · |
+| **Detective** | F | · | W | W | · | W | · | · | · | |
+
+Why the strong ones:
+- **Host**: fond of the son despite the row, only "fine" with the daughter who does the work (that is
+  the prejudice, unspoken). Resents the Uncle; wary of the Investor's offer.
+- **Hostess**: wary of the Host over the credit, after thirty years. Fond of the Uncle: something old.
+- **Fixer**: fond of both heirs, who grew up around them, though the Elder heir resents the Fixer back.
+  Wary of everyone else who knows things (Housekeeper, Accountant, Investor).
+- **Investor**: charming to everyone, wary only of those who could spoil the deal.
+- **Housekeeper**: raised the heirs; kept in touch with the Uncle; wary of the Host and the Fixer.
+- **Accountant**: close to nobody. Wary of anyone who might look at the numbers.
+- **Uncle**: resents the Host; fond of the Hostess, the Housekeeper and the son who also walked away.
+  Wary of the Fixer, who got the place that might have been the Uncle's.
+- **Elder heir**: resents the Fixer; wary of the Host, the Hostess ("be patient"), the Uncle (the
+  "eldest son" remarks) and her brother (not his fault). Fond of the Housekeeper, who raised her.
+- **Younger heir**: fond of nearly everyone; wary of the Host since the row.
+- **Detective**: fond of the Host, an old friend; wary of anyone the Host might be worried about.
+
+### What it drives
+- **The reaction to the death**: picked by how the guest feels about the victim (after the card
+  shift): F from a fond pool, · from a polite pool, W or R from a cold pool. Pools in `docs/story.md`;
+  the polite pool is still to write.
+- **Whether a guest starts warm with her** is unchanged: reversed guests start cold. She is the
+  stranger, so the grid is not about her.
+- **Later**: pair threads, and what guests say about each other, lean on the same grid.
+- **To check when built**: talk sets are built from a seed, never from a `Case`; the victim's id comes
+  from the seating shuffle, not the killer, so passing it in keeps that rule.
+
 ## Card pairs
 
 Tarot pairs (Emperor and Empress, Magician and High Priestess, Devil and Lovers) open a thread between
