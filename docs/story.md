@@ -339,6 +339,10 @@ Pollution is factory waste, never a chemical.
 
 ## Refining a guest (owner, 2026-10-29)
 
+The owner's ideas are often bouncing around, not decisions. Don't just apply them: say what works, what
+doesn't (clashes with other versions, the motive rule, tone, clue risk), and offer a better version
+where there is one. Apply only once the owner settles it.
+
 Each guest gets a session like the Fixer's, in this order:
 1. **The cards first.** For each of the guest's three cards, say what it means in tarot, upright and
    reversed, and whether it fits this character in this story. Where one doesn't (the Lawyer's Hanged
