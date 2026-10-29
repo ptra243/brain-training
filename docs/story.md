@@ -298,10 +298,18 @@ they held, and never depends on who the killer is. Nobody lies.
 stranger, and later beats only open as she finishes games about the guest, so a thread is built like a
 real questioning:
 1. Her opening line, then **the public story**: what they would tell anyone. Nothing incriminating.
-2. **She brings something she found** ("I found the orchard's contract…", "I've been going through the
-   old files…"). They half-admit, defensively.
-3. **She asks about `{victim}`.** The motive comes out as how it looks, never as a confession. She
-   works out the rest herself ("I'd be the one in court. You can see why I wasn't keen on this sale.").
+2. **She brings something she learned.** Vary the source across a guest's six and across guests:
+   something she found, overheard, was told ("someone said…", never naming the guest), or noticed.
+   A stranger finding five documents in one evening strains belief. They half-admit, defensively.
+3. **The death and what it changes for them.** Beat 3 is about what this guest gains or loses now that
+   someone has died, never about what the victim did to them. It must hold for any victim and in any
+   campaign round, because a guest's thread stays the same while `{victim}` changes. The shared lever:
+   any death this weekend puts the sale and the announcement on hold. The motive shows as how it looks,
+   never as a confession; she works out the rest.
+
+Vary the motive kinds across a guest's six (exposure, money, protecting someone, revenge, freedom), so
+"the victim was about to expose me" is not everyone's story. A thread may break the shape (openly hostile
+from beat 1, or volunteering the motive because they think it clears them).
 
 Each beat is 2 to 4 sentences, enough to state the key facts plainly; each of her lines is written for
 that thread and becomes the button. Her lines say what she found, never where or when tonight. The test:
