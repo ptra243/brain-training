@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { caseCode } from '../engine/caseRef.ts';
-import type { CaseRef } from '../engine/caseRef.ts';
+import type { CaseRef, PickedGame } from '../engine/caseRef.ts';
 import type { Case, GameKind } from '../engine/types.ts';
 import { generate } from '../game/caseClient.ts';
 import type { Action, Progress } from '../game/state.ts';
@@ -8,6 +8,8 @@ import { loadQuick, saveQuick } from '../game/storage.ts';
 import { advance, planNewCase, startNewQuick, withEndBoard, type SaveKey } from './quickProgress.ts';
 import type { Subject } from '../game/state.ts';
 import { finishFor, type Finish, type NotebookTab } from './notebook.ts';
+import { buildPick } from './tin.ts';
+import { randomUnit } from './uiRandom.ts';
 
 /** A case to show without loading her save (the dev preview). */
 export interface SampleCase {
@@ -36,6 +38,14 @@ export interface QuickBook {
   fullRef: CaseRef | null;
   /** Which of Grid and Jigsaw the notebook shows (`finishFor`). */
   finish: Finish;
+  /** The tin changed her games because the mix would not build (this session only). */
+  swapped: boolean;
+}
+
+/** The games she lifted in the tin and the code she saw, to build as a picked case. */
+export interface PickRequest {
+  code: string;
+  games: PickedGame[];
 }
 
 interface Loaded {
@@ -44,6 +54,7 @@ interface Loaded {
   ref: string;
   /** Her save's own ref and history id, to write back; none for a sample. */
   key: SaveKey | null;
+  swapped?: boolean;
 }
 
 /** Where the case comes from: her Quick save, or a new Play case built now and saved at once. */
@@ -54,14 +65,30 @@ export type BookMode = 'saved' | 'new';
  * Null while it builds, false when there is none or it failed. The effect's `live` flag drops a build
  * that StrictMode's first run started: only the surviving run saves, so one save is written.
  */
-function useQuickCase(sample: SampleCase | undefined, mode: BookMode): Loaded | null | false {
+function useQuickCase(sample: SampleCase | undefined, mode: BookMode, pick: PickRequest | undefined): Loaded | null | false {
   // Her save is read once; with none, there is nothing to build.
   const [saved] = useState(() => (sample || mode === 'new' ? null : loadQuick()));
   const [built, setBuilt] = useState<Loaded | false | null>(null);
   useEffect(() => {
     if (sample) return;
     let live = true;
-    if (mode === 'new') {
+    if (mode === 'new' && pick) {
+      // The tin's mix: quietly rerolled, then dealt anew, if it will not build (`buildPick`).
+      buildPick(pick, (code, games) => generate({ kind: 'pick', code, games }), randomUnit).then(
+        (out) => {
+          if (!live) return;
+          if (!out.ok) return setBuilt(false);
+          const made = { c: out.built.c, ref: out.built.ref };
+          const save = startNewQuick(made);
+          saveQuick(save);
+          setBuilt({ c: made.c, progress: save.progress, ref: caseCode(made.ref), key: { ref: made.ref, historyId: undefined }, swapped: out.swapped });
+        },
+        (err) => {
+          console.error(err);
+          if (live) setBuilt(false);
+        },
+      );
+    } else if (mode === 'new') {
       // Her last settings, as the Casebook's New case does.
       const plan = planNewCase(loadQuick());
       (plan.job.kind === 'quick' ? generate(plan.job) : generate({ kind: 'play' })).then(
@@ -86,7 +113,7 @@ function useQuickCase(sample: SampleCase | undefined, mode: BookMode): Loaded | 
     return () => {
       live = false;
     };
-  }, [saved, mode, sample]);
+  }, [saved, mode, sample, pick]);
   if (sample) return { ...sample, key: null };
   return mode === 'new' || saved ? built : false;
 }
@@ -96,8 +123,8 @@ function useQuickCase(sample: SampleCase | undefined, mode: BookMode): Loaded | 
  * false when there is none (or it failed to build, in the New case book). Her moves are written
  * to the Quick save (the Casebook sees them); a sample case never writes.
  */
-export function useQuickBook(sample: SampleCase | undefined, mode: BookMode): QuickBook | null | false {
-  const loaded = useQuickCase(sample, mode);
+export function useQuickBook(sample: SampleCase | undefined, mode: BookMode, pick?: PickRequest): QuickBook | null | false {
+  const loaded = useQuickCase(sample, mode, pick);
   // Her latest progress, so two actions in one tick (a save, then a finish) both land.
   const [moves, setMoves] = useState<Progress | null>(null);
   const latest = useRef<Progress | null>(null);
@@ -108,5 +135,5 @@ export function useQuickBook(sample: SampleCase | undefined, mode: BookMode): Qu
     latest.current = next;
     setMoves(next);
   };
-  return { c, ref, progress: moves ?? loaded.progress, dispatch, fullRef: key?.ref ?? null, finish: finishFor(c, key?.ref ?? null, sample?.endBoard) };
+  return { c, ref, progress: moves ?? loaded.progress, dispatch, fullRef: key?.ref ?? null, finish: finishFor(c, key?.ref ?? null, sample?.endBoard), swapped: loaded.swapped ?? false };
 }

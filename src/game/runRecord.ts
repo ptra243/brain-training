@@ -17,6 +17,14 @@ const count = (v: unknown): number => (typeof v === 'number' && Number.isFinite(
 /** Games whose data keeps one Hint-button counter in `data.hints`. */
 const HINTS_IN_DATA = ['cats', 'crossword', 'sudoku', 'tarot', 'nosing'];
 
+/** Hint presses recorded in one game's saved data (0 for games that count none). */
+export function gameHints(kind: string, data: unknown): number {
+  if (!isObj(data)) return 0;
+  if (HINTS_IN_DATA.includes(kind)) return count(data.hints);
+  if (kind === 'board') return count(data.hintCount);
+  return 0;
+}
+
 /**
  * Presses of the Hint button in one case: map and grid, each game's own
  * counter, the case board puzzle and the end board. Wordle, word search,
@@ -24,11 +32,7 @@ const HINTS_IN_DATA = ['cats', 'crossword', 'sudoku', 'tarot', 'nosing'];
  */
 export function hintTotal(p: Progress): number {
   let total = count(p.gridHints?.count);
-  for (const [kind, rec] of Object.entries(p.games)) {
-    if (!rec || !isObj(rec.data)) continue;
-    if (HINTS_IN_DATA.includes(kind)) total += count(rec.data.hints);
-    else if (kind === 'board') total += count(rec.data.hintCount);
-  }
+  for (const [kind, rec] of Object.entries(p.games)) total += gameHints(kind, rec?.data);
   if (isObj(p.endBoard?.save)) total += count(p.endBoard.save.hintCount);
   return total;
 }

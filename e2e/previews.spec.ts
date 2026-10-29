@@ -96,8 +96,26 @@ test('shelf-ribbons preview', async ({ page }) => {
 test('shelf-find-a-clue preview', async ({ page }) => {
   await page.goto('/#dev/shelf-find-a-clue');
   await expect(page.getByRole('heading', { name: 'Find a clue' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Hide finished (1)' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Hide finished (3)' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /, won, 2 hints$/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /, solved by the cat$/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Final puzzle, page \d+, locked/ })).toBeDisabled();
   await checkScreen(page, 'preview shelf-find-a-clue');
+});
+
+test('shelf-labels preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-labels');
+  await expect(page.getByRole('heading', { name: 'Puzzle labels' })).toBeVisible();
+  await expect(page.getByTestId('label-finale').first()).toContainText('Locked');
+  await expect(page.getByTestId('label-wordle').first()).toBeVisible();
+  await checkScreen(page, 'preview shelf-labels');
+});
+
+test('shelf-tin preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-tin');
+  await expect(page.getByRole('button', { name: 'Stick them in' })).toBeEnabled();
+  await expect(page.getByTestId('tin-count')).toHaveText('4 of 7 lifted');
+  await checkScreen(page, 'preview shelf-tin');
 });
 
 test('an unknown preview lists the real ones', async ({ page }) => {

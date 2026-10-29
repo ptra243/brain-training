@@ -23,10 +23,9 @@ test('a puzzle page: Solve, the clues, turn back, and the shared save says revea
   await page.getByRole('link', { name: /Your case, .*: continue/ }).click();
   // The opening comes first the first time.
   await page.getByRole('button', { name: 'Find a clue' }).click();
-  const rows = page.getByRole('button', { name: /clues?\s*p\. \d+$/ });
+  const rows = page.getByRole('button', { name: /, page \d+$/ });
   await expect(rows.first()).toBeVisible();
   const first = rows.first();
-  const clueCount = c.games[0].clues.length;
   await first.click();
 
   const paper = page.getByTestId('puzzle-page');
@@ -41,7 +40,7 @@ test('a puzzle page: Solve, the clues, turn back, and the shared save says revea
 
   await paper.getByRole('button', { name: 'Turn back to page 3' }).last().click();
   await expect(paper).toHaveCount(0);
-  await expect(page.getByRole('button', { name: new RegExp(`Solved · ${clueCount} clues? found`) })).toBeVisible();
+  await expect(page.getByRole('button', { name: /, solved by the cat$/ })).toBeVisible();
 
   const saved = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!), KEY);
   expect(saved.progress.games[c.games[0].kind].status).toBe('revealed');

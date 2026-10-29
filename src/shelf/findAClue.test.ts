@@ -5,7 +5,7 @@ import { storyLines } from '../content/storyLines.ts';
 import { generateCase } from '../engine/generate.ts';
 import type { GameKind } from '../engine/types.ts';
 import { emptyProgress } from '../game/state.ts';
-import { clueRows, hideLabel, openingText, pageNumbers, storyFor, visibleRows } from './findAClue.ts';
+import { addedGames, clueRows, hideLabel, openingText, pageNumbers, rowAriaLabel, rowStateText, storyFor, visibleRows } from './findAClue.ts';
 
 const KINDS: GameKind[] = ['wordle', 'crossword', 'wordsearch', 'cats', 'sudoku', 'interrogation', 'board', 'tarot', 'nosing', 'finale'];
 
@@ -49,4 +49,42 @@ test('rows follow the case, with finished and locked lines', () => {
 test('the opening is filled in', () => {
   const c = generateCase(content, 1, 'medium');
   assert.ok(!openingText(c).includes('{count}'));
+});
+
+test('row status, hints and the words under the story', () => {
+  const c = generateCase(content, 1, 'medium');
+  const p = emptyProgress();
+  const [a, b] = c.games;
+  p.games[a.kind] = { status: 'won', data: { hints: 2, hintCount: 5 } } as never;
+  p.games[b.kind] = { status: 'revealed', data: { hints: 3 } } as never;
+  const rows = clueRows(c, p, 'case-1');
+  assert.equal(rows[0].status, 'won');
+  assert.equal(rows[1].status, 'revealed');
+  assert.equal(rows[2].status, undefined);
+  assert.equal(rows[2].hints, 0);
+  assert.equal(rows[0].hints, a.kind === 'board' ? 5 : ['cats', 'crossword', 'sudoku', 'tarot', 'nosing'].includes(a.kind) ? 2 : 0);
+  const base = { status: 'won' as const, hints: 0, clues: 2, locked: false };
+  assert.equal(rowStateText(base), '2 clues found');
+  assert.equal(rowStateText({ ...base, clues: 1 }), '1 clue found');
+  assert.equal(rowStateText({ ...base, clues: 0 }), 'No new clues');
+  assert.equal(rowStateText({ ...base, clues: 0, hints: 1 }), 'No new clues · 1 hint');
+  assert.equal(rowStateText({ ...base, clues: 0, status: 'revealed' }), 'The cat solved it · no new clues');
+  assert.equal(rowStateText({ ...base, hints: 1 }), '2 clues found · 1 hint');
+  assert.equal(rowStateText({ ...base, hints: 2 }), '2 clues found · 2 hints');
+  assert.equal(rowStateText({ ...base, status: 'revealed', hints: 4 }), 'The cat solved it · 2 clues');
+  assert.equal(rowStateText({ ...base, status: undefined }), null);
+  assert.equal(rowStateText({ ...base, status: undefined, locked: true }), 'Opens when every other page is done');
+  const row = { ...rows[0], page: 34, status: 'won' as const, hints: 2 };
+  assert.equal(rowAriaLabel(row, 'Sudoku', 'Medium'), 'Sudoku, medium, page 34, won, 2 hints');
+  assert.equal(rowAriaLabel({ ...row, status: undefined, hints: 0 }, 'Sudoku', 'Hard'), 'Sudoku, hard, page 34');
+  assert.equal(rowAriaLabel({ ...row, status: 'revealed' }, 'Sudoku', undefined), 'Sudoku, page 34, solved by the cat');
+});
+
+test('addedGames: only a picked case has games she did not pick', () => {
+  const games = [{ kind: 'wordle' as const }, { kind: 'cats' as const }, { kind: 'sudoku' as const }];
+  assert.deepEqual(addedGames(games, { mode: 'play', games: ['wordle', 'cats'] }), ['sudoku']);
+  assert.deepEqual(addedGames(games, { mode: 'play', games: ['wordle', 'cats', 'sudoku'] }), []);
+  assert.deepEqual(addedGames(games, { mode: 'play' }), []);
+  assert.deepEqual(addedGames(games, { mode: 'quick' }), []);
+  assert.deepEqual(addedGames(games, null), []);
 });

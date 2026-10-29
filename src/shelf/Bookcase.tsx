@@ -4,14 +4,18 @@ import { caseTitle } from '../game/names.ts';
 import { OptionsSheet } from '../game/OptionsSheet.tsx';
 import { loadCampaign, loadQuick } from '../game/storage.ts';
 import { OpenBook, type Box, type Tone } from './OpenBook.tsx';
+import { StickerTin } from './StickerTin.tsx';
+import type { PickRequest } from './useQuickBook.ts';
 import styles from './Shelf.module.css';
 
 /** The book she has taken down: which one, what it says, and where it stood. */
 interface Taken {
-  id: 'quick' | 'new';
+  id: 'quick' | 'new' | 'pick';
   title: string;
   tone: Tone;
   from: Box;
+  /** The tin's games, for a case built from them. */
+  pick?: PickRequest;
 }
 
 // Nothing on this screen is drawn yet beyond the shelf itself, so every control goes here.
@@ -96,13 +100,16 @@ const MoonSeal = () => (
   </svg>
 );
 
-const CardsSeal = () => (
-  <svg width="36" height="36" viewBox="0 0 34 34" aria-hidden="true" className={cx(styles.seal, styles.cardsSeal)}>
-    <circle cx="17" cy="17" r="15.5" fill="#fbf4e2" />
-    <circle cx="17" cy="17" r="12.5" fill="#b04a5a" />
-    <rect x="9" y="11" width="7" height="11" rx="1" fill="#fbf4e2" transform="rotate(-14 12 16)" />
-    <rect x="13.5" y="10" width="7" height="11" rx="1" fill="#f3d68c" />
-    <rect x="18" y="11" width="7" height="11" rx="1" fill="#fbf4e2" transform="rotate(14 21 16)" />
+/** The sticker tin lying on the shelf: red and gold, lid ajar, three stickers peeking out. */
+const TinArt = () => (
+  <svg width="86" height="70" viewBox="0 0 86 70" aria-hidden="true" className={styles.tinArt}>
+    <rect x="9" y="22" width="16" height="12" rx="2" fill="#fffdf6" stroke="#34436a" strokeWidth="1.5" transform="rotate(-8 17 28)" />
+    <rect x="34" y="19" width="16" height="12" rx="2" fill="#fffdf6" stroke="#4f7a54" strokeWidth="1.5" transform="rotate(5 42 25)" />
+    <rect x="58" y="22" width="16" height="12" rx="2" fill="#fffdf6" stroke="#7b5a78" strokeWidth="1.5" transform="rotate(-4 66 28)" />
+    <rect x="4" y="30" width="78" height="36" rx="5" fill="#8a3029" stroke="#c8a24c" strokeWidth="2" />
+    <rect x="9" y="35" width="68" height="26" rx="3" fill="none" stroke="#c8a24c" strokeWidth="1" />
+    <path d="M2 24l8-8h66l8 8v6H2z" fill="#6e231e" stroke="#c8a24c" strokeWidth="1.5" strokeLinejoin="round" />
+    <path d="M43 40l2.6 5.2 5.7.8-4.1 4 1 5.7-5.2-2.7-5.2 2.7 1-5.7-4.1-4 5.7-.8z" fill="#e8c66a" />
   </svg>
 );
 
@@ -172,6 +179,8 @@ export function Bookcase() {
   // Opening a book is React state, never a hash change: `main.tsx` reloads on every hashchange.
   const [taken, setTaken] = useState<Taken | null>(null);
   const [options, setOptions] = useState(false);
+  // The sticker tin screen, and where the tin stood so the book can open from there.
+  const [tin, setTin] = useState<Box | null>(null);
   // Asks first when she has an unsolved Quick case that a new one would replace.
   const [confirming, setConfirming] = useState<HTMLAnchorElement | null>(null);
   // Read again whenever a book is taken down or put back: the New case book saves a case while open.
@@ -188,12 +197,12 @@ export function Bookcase() {
 
   // Back on the shelf: put focus on the book she took down.
   useEffect(() => {
-    if (taken === null) trigger.current?.focus({ preventScroll: true });
-  }, [taken]);
+    if (taken === null && tin === null) trigger.current?.focus({ preventScroll: true });
+  }, [taken, tin]);
 
   return (
     <>
-      <main className={styles.page} inert={taken !== null}>
+      <main className={styles.page} inert={taken !== null || tin !== null}>
         <span aria-hidden="true" className={styles.glow} />
 
         <header className={styles.header}>
@@ -243,11 +252,18 @@ export function Bookcase() {
                 }}
                 gone={taken?.id === 'new'}
               />
-              <a href={SOON} aria-label="Choose your games" className={styles.deckStack}>
-                <span aria-hidden="true" className={cx(styles.deck, styles.deck1)} />
-                <span aria-hidden="true" className={cx(styles.deck, styles.deck2)} />
-                <span aria-hidden="true" className={cx(styles.deck, styles.deck3)} />
-                <CardsSeal />
+              <a
+                href={SOON}
+                aria-label="Choose your games"
+                className={styles.tinStack}
+                onClick={(e) => {
+                  e.preventDefault();
+                  trigger.current = e.currentTarget;
+                  const r = e.currentTarget.getBoundingClientRect();
+                  setTin({ left: r.left, top: r.top, width: r.width, height: r.height });
+                }}
+              >
+                <TinArt />
               </a>
               {thin(styles.q1)}
               {thin(styles.q2)}
@@ -308,6 +324,16 @@ export function Bookcase() {
           </div>
         </div>
       </main>
+      {tin && !taken ? (
+        <StickerTin
+          unsolved={quick && !quick.progress.solved ? quickTitle : null}
+          onBack={() => setTin(null)}
+          onStick={(code, games) => {
+            setTaken({ id: 'pick', title: 'New case', tone: 'fresh', from: tin, pick: { code, games } });
+            setTin(null);
+          }}
+        />
+      ) : null}
       {options ? <OptionsSheet current="shelf" onClose={() => setOptions(false)} /> : null}
       {confirming && quick ? (
         <Dialog placement="center" labelId="new-case-title" onClose={() => setConfirming(null)}>
@@ -330,7 +356,7 @@ export function Bookcase() {
           </div>
         </Dialog>
       ) : null}
-      {taken ? <OpenBook key={taken.id} title={taken.title} tone={taken.tone} from={taken.from} onBack={() => setTaken(null)} /> : null}
+      {taken ? <OpenBook key={taken.id} title={taken.title} tone={taken.tone} from={taken.from} onBack={() => setTaken(null)} pick={taken.pick} /> : null}
     </>
   );
 }

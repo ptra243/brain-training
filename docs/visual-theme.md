@@ -423,6 +423,18 @@ taken" are ideas turned down). Copy sizes and colours from the mockups.
 
 Each needs a look check at 360 × 780.
 
+**Status (2026-10-29):** all three steps are built and look-checked at 360 × 780 (`#dev/shelf-labels`,
+`shelf-find-a-clue`, `shelf-tin`). Drawings are in `src/game/games/labelArt.tsx` (Case board, Tarot
+and Nosing taken from `Tin.dc.html`); hints come from `gameHints` in `src/game/runRecord.ts` (the
+counter `hintTotal` already read), not a new registry reader. For the owner to judge:
+- **A won game with no clues** (the word games of a hard Quick start share one scene clue) reads
+  "No new clues", or "The cat solved it · no new clues".
+- **The locked finale** reads "Opens when every other page is done" under its story.
+- **Stick them in opens the book on its opening**, as the New case book does, so page 3 comes after
+  "Find a clue". "The cat picked these puzzles instead." lasts the session only.
+- **While the tin shakes** the stars go blank and the case line reads "Logic · · ·"; stickers jostle
+  by angle only. As the tin comes down, the "Lift 3 to 7" line briefly crosses the lid.
+
 ## Screen plan (owner, 2026-10-28)
 
 Quick play end to end first, then campaign, then the deck and the guest book, each its own screen on

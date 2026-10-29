@@ -31,7 +31,11 @@ import { emptyProgress, gameDone, mentions, reduce, sceneUnlocked, unlockedClueI
 import { DogFightStates } from './DogFightStates.tsx';
 import { MotivesPreview } from './MotivesPreview.tsx';
 import { PortraitGallery } from './PortraitGallery.tsx';
+import { StickerTin } from '../shelf/StickerTin.tsx';
 import { OpenBook } from '../shelf/OpenBook.tsx';
+import { PuzzleLabel } from '../shelf/PuzzleLabel.tsx';
+import { labelAngle } from '../shelf/labels.ts';
+import type { Difficulty, GameKind } from '../engine/types.ts';
 import { DevList } from './DevList.tsx';
 import { PREVIEWS } from './previews.ts';
 
@@ -282,7 +286,20 @@ function ShelfFindACluePreview() {
     document.body.classList.add('shelf');
     return () => document.body.classList.remove('shelf');
   }, []);
-  const sample = useShelfSample();
+  // A hard Quick start case, the one kind with a finale: one game won, one won with 2 hints, one solved by
+  // the cat, the rest open and the finale locked.
+  const sample = useMemo(() => {
+    const { ref, c } = newQuickCase(content, 'hard', 'normal', 'classic', () => 0.5);
+    const progress = emptyProgress();
+    // The hinted win is a game with clues of its own; the plain win is a word game (the case's scene clue is
+    // shared, so it reads "No new clues"). The cat's other game stays open so the finale stays locked.
+    const words = c.games.filter((g) => g.kind !== 'finale' && g.clues.length === 0);
+    const clued = c.games.filter((g) => g.kind !== 'finale' && g.clues.length > 0);
+    progress.games[clued[0].kind] = { status: 'won', data: clued[0].kind === 'board' ? { hintCount: 2 } : { hints: 2 } };
+    progress.games[words[0].kind] = { status: 'revealed' };
+    progress.games[words[1].kind] = { status: 'won' };
+    return { c, progress, ref: caseCode(ref), seen: true };
+  }, []);
   return (
     <OpenBook
       title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })}
@@ -303,6 +320,66 @@ function ShelfPuzzlePreview({ page }: { page: 'unplayed' | 'won' | 'revealed' })
   }, []);
   const sample = useShelfSample(page);
   return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} sample={sample} />;
+}
+
+/** Every #shelf puzzle label on the felt: each game at each level, then the sticker states and the finale. */
+/** The #shelf sticker tin open with four stickers lifted (a fixed code; nothing is read or saved). */
+function ShelfTinPreview() {
+  useLayoutEffect(() => {
+    document.body.classList.add('shelf');
+    return () => document.body.classList.remove('shelf');
+  }, []);
+  return <StickerTin unsolved={null} onBack={noop} onStick={noop} sample={{ code: 'K7QF2', lifted: ['wordle', 'crossword', 'sudoku', 'interrogation'] }} />;
+}
+
+function ShelfLabelsPreview() {
+  useLayoutEffect(() => {
+    document.body.classList.add('shelf');
+    return () => document.body.classList.remove('shelf');
+  }, []);
+  const games: GameKind[] = ['wordle', 'crossword', 'wordsearch', 'cats', 'sudoku', 'board', 'interrogation', 'tarot', 'nosing'];
+  const levels: (Difficulty | undefined)[] = ['easy', 'medium', 'hard'];
+  const ref = 'K7QF2';
+  const angle = (key: string) => labelAngle(ref, key);
+  const cell = (note: string, label: ReactNode) => (
+    <li style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start', padding: '6px 14px 10px' }}>
+      <span style={{ fontSize: 12, color: '#eadfc4' }}>{note}</span>
+      {label}
+    </li>
+  );
+  const heading = (text: string) => <h2 style={{ margin: '14px 14px 0', fontFamily: 'Georgia, serif', fontSize: 16 }}>{text}</h2>;
+  return (
+    <main style={{ boxSizing: 'border-box', width: '100%', maxWidth: 360, minHeight: '100vh', margin: 0, padding: '18px 0 24px', overflowX: 'hidden', background: '#3a7058', color: '#f6eedb', fontFamily: 'system-ui, sans-serif' }}>
+      <h1 style={{ margin: '0 14px', fontFamily: 'Georgia, serif', fontSize: 22 }}>Puzzle labels</h1>
+      {heading('Every game, at each level')}
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+        {games.map((g) => (
+          <li key={g} style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: '8px 0 4px 14px' }}>
+            {levels.map((l) => (
+              <PuzzleLabel key={l} game={g} level={l} angle={angle(g + l)} />
+            ))}
+          </li>
+        ))}
+      </ul>
+      {heading('No level, and a page ring')}
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexWrap: 'wrap' }}>
+        {cell('No level', <PuzzleLabel game="cats" angle={angle('nolevel')} />)}
+        {cell('Page ring', <PuzzleLabel game="wordle" level="easy" page={14} angle={angle('ring')} />)}
+      </ul>
+      {heading('Finished and lifted')}
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexWrap: 'wrap' }}>
+        {cell('Won', <PuzzleLabel game="crossword" level="medium" page={24} sticker="won" angle={angle('won')} />)}
+        {cell('Won, 2 hints', <PuzzleLabel game="sudoku" level="hard" page={31} sticker="won" hints={2} angle={angle('hints')} />)}
+        {cell('Solved by the cat', <PuzzleLabel game="cats" level="medium" page={38} sticker="revealed" angle={angle('revealed')} />)}
+        {cell('Lifted (tin)', <PuzzleLabel game="tarot" level="easy" lifted angle={angle('lifted')} />)}
+      </ul>
+      {heading('Final puzzle')}
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexWrap: 'wrap' }}>
+        {cell('Locked', <PuzzleLabel game="finale" page={60} locked angle={angle('final')} />)}
+        {cell('Open', <PuzzleLabel game="finale" level="hard" page={60} angle={angle('final')} />)}
+      </ul>
+    </main>
+  );
 }
 
 /** The New case book over a case built from a fixed seed: the opening not yet seen, nothing saved. */
@@ -452,6 +529,8 @@ const SCREENS: Record<string, () => ReactNode> = {
   'you-sheet': () => <YouSheetPreview />,
   motives: () => <MotivesPreview />,
   'shelf-ribbons': () => <ShelfRibbonsPreview />,
+  'shelf-labels': () => <ShelfLabelsPreview />,
+  'shelf-tin': () => <ShelfTinPreview />,
   'shelf-new-case': () => <ShelfNewCasePreview />,
   'shelf-find-a-clue': () => <ShelfFindACluePreview />,
   'shelf-notebook': () => <ShelfNotebookPreview view="peek" />,

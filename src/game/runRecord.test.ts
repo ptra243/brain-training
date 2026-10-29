@@ -16,6 +16,7 @@ import {
   emptyCampaignTotals,
   emptyQuickTotals,
   hintSentence,
+  gameHints,
   hintTotal,
   localDate,
   puzzleCounts,
@@ -252,4 +253,12 @@ test('campaign totals add up from rows', () => {
   t = addCampaignRow(t, { ...r, ending: 'caught', round: 3 });
   t = addCampaignRow(t, { ...r, ending: 'escaped', round: 3, wrongPeople: 3 });
   assert.deepEqual(t, { campaigns: 3, caught: 2, escaped: 1, caughtAt9: 1, hints: 6, solvedForHer: 3, solvedYourself: 3, puzzles: 18 });
+});
+
+test('gameHints reads each game its own counter', () => {
+  assert.equal(gameHints('sudoku', { hints: 3 }), 3);
+  assert.equal(gameHints('board', { hintCount: 2, hints: 9 }), 2);
+  assert.equal(gameHints('wordle', { hints: 4 }), 0);
+  assert.equal(gameHints('cats', null), 0);
+  assert.equal(gameHints('cats', { hints: -1 }), 0);
 });

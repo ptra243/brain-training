@@ -30,7 +30,7 @@ export const PREVIEWS: readonly PreviewInfo[] = [
   { id: 'shelf-puzzle-won', about: 'The #shelf puzzle page after a win: the finished board, then the clues', look: 'plain' },
   { id: 'shelf-puzzle-revealed', about: 'The #shelf puzzle page after Solve: "Solved by" the cat, then the clues', look: 'plain' },
   { id: 'shelf-new-case', about: 'The #shelf New case book on a fresh case: the opening (who died, the story) before Find a clue', look: 'plain' },
-  { id: 'shelf-find-a-clue', about: 'The #shelf Find a clue page: a sample case with one game finished and the finale locked', look: 'plain' },
+  { id: 'shelf-find-a-clue', about: 'The #shelf Find a clue page: a hard sample case: one game won, one won with hints, one solved by the cat, the finale locked', look: 'plain' },
   { id: 'shelf-map', about: 'The #shelf book turned to Map: the plate with some guests and a weapon placed, notebook peeking', look: 'plain' },
   { id: 'shelf-map-subject', about: 'The #shelf Map with a guest ringed in brass and the notebook at half height on their page', look: 'plain' },
   { id: 'shelf-answer', about: 'The #shelf book turned to Answer: the form with one wrong try crossed out and a fresh blank line', look: 'plain' },
@@ -39,6 +39,8 @@ export const PREVIEWS: readonly PreviewInfo[] = [
   { id: 'shelf-notebook-grid', about: 'The #shelf notebook open on the Grid tab, with the cat hint and a few marks', look: 'plain' },
   { id: 'shelf-notebook-jigsaw', about: 'The #shelf notebook open on the Jigsaw tab (a Jigsaw-finish case): the board on the page, three stickers placed, the sticker sheet drawer above the tabs', look: 'plain' },
   { id: 'shelf-notebook-subject', about: 'The #shelf notebook on a guest page: placement, clues that name them, what they said', look: 'plain' },
+  { id: 'shelf-tin', about: 'The #shelf sticker tin open on a fixed code: 4 of 7 stickers lifted, the case line, Shake the tin and Stick them in', look: 'plain' },
+  { id: 'shelf-labels', about: 'The #shelf puzzle labels: every game at each level, a page ring, the finished stickers, a lifted label and the finale', look: 'plain' },
   { id: 'portraits', about: 'The portrait gallery', look: 'plain' },
   { id: 'dogfight', about: 'The dog fight board in each state, with any cat helper', look: 'plain' },
 ];

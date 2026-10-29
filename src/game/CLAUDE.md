@@ -7,6 +7,10 @@
   and its role in `src/engine/gameKinds.ts`, then an entry in
   `games/registry.tsx` (name, how its puzzle is built, its screen, and a
   `rule` of at most about 47 characters for the #shelf puzzle page header).
+  A new game also needs a label drawing for the #shelf puzzle label: a small SVG in `games/labelArt.tsx`
+  (34 × 34 viewBox drawn at 26px, ink `#1e2a2f` strokes 1 to 1.6px or Georgia letters and numbers, only the
+  paper's muted fills `#e9d9a8` / `#b9c9a0` or a red-pencil or gold touch, a miniature of the puzzle itself and
+  never a room, guest or weapon, `aria-hidden`), plus its `label.kind` (words, logic or people) in the registry.
   `GameScreen` and `CluesPanel` read everything from the registry; don't
   switch on the kind of game anywhere else. Use `isSceneGame` /
   `isInterrogation` to narrow a `GameSpec`, not optional fields.

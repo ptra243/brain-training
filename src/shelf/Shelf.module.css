@@ -235,8 +235,8 @@
 :global(body.shelf) .campaignBook { width: 58px; height: 140px; background: var(--camp); }
 :global(body.shelf) .newCampaign { width: 48px; height: 130px; background: var(--ncamp); }
 
-/* "Choose your games": a stack of three decks with the tarot sticker on top. */
-:global(body.shelf) .deckStack {
+/* "Choose your games": the sticker tin lying on the shelf. */
+:global(body.shelf) .tinStack {
   position: relative;
   flex: none;
   display: block;
@@ -244,24 +244,11 @@
   height: 70px;
   text-decoration: none;
 }
-:global(body.shelf) .deck {
-  position: absolute;
-  width: 78px;
-  height: 13px;
-  box-sizing: content-box;
-  background: var(--deck);
-  border: 1px solid var(--brass);
-  border-radius: 2px;
+:global(body.shelf) .tinArt {
+  display: block;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.4));
 }
-:global(body.shelf) .deck1 { left: 4px; bottom: 0; }
-:global(body.shelf) .deck2 { left: 1px; bottom: 12px; }
-:global(body.shelf) .deck3 { left: 6px; bottom: 24px; transform: rotate(-3deg); }
-:global(body.shelf) .cardsSeal {
-  position: absolute;
-  left: 25px;
-  bottom: 34px;
-  transform: rotate(-4deg);
-}
+
 
 /* The odd-looking book: tilted, drawn 26px wide inside a 44px-wide link (9px of hit area each side). */
 :global(body.shelf) .secret {

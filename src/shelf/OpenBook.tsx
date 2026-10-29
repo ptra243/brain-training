@@ -7,7 +7,8 @@ import { MapPlate } from './MapPlate.tsx';
 import { Notebook } from './Notebook.tsx';
 import { accuseAction, afterMapTap, ringedSubject, type AccuseRequest, type Height } from './notebook.ts';
 import type { Subject } from '../game/state.ts';
-import { useQuickBook, type SampleCase } from './useQuickBook.ts';
+import { Shuffling } from '../game/Shuffling.tsx';
+import { useQuickBook, type PickRequest, type SampleCase } from './useQuickBook.ts';
 import { attachRibbons } from './ribbonMotion.ts';
 import { SECTIONS } from './ribbonPlan.ts';
 
@@ -48,6 +49,8 @@ interface OpenBookProps {
   startOpen?: boolean;
   /** A case to show instead of her saved one (the dev preview). */
   sample?: SampleCase;
+  /** Build the case from the sticker tin's games (a picked case) instead of a plain Play case. */
+  pick?: PickRequest;
 }
 
 /**
@@ -57,7 +60,7 @@ interface OpenBookProps {
  * `ribbonMotion.ts`, which owns the pages' `hidden` and the ribbons' transforms after the first render.
  * The cover is hidden by `prefers-reduced-motion`, which leaves only the page.
  */
-export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sample }: OpenBookProps) {
+export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sample, pick }: OpenBookProps) {
   const backRef = useRef<HTMLButtonElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
   const underRef = useRef<HTMLDivElement>(null);
@@ -69,7 +72,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   // The ribbons' page turn, for the Jigsaw's Accuse button.
   const turnRef = useRef<((i: number) => void) | null>(null);
   // Her case, shared by the Case page and the notebook. The New case book builds one and saves it.
-  const book = useQuickBook(sample, tone === 'quick' ? 'saved' : 'new');
+  const book = useQuickBook(sample, tone === 'quick' ? 'saved' : 'new', pick);
   const title = book && book.fullRef ? caseTitle(book.fullRef) : coverTitle;
   // A guest page's Accuse without a weapon: the Answer form gets the guest written in. A new `seq` is a new request.
   const [prefill, setPrefill] = useState<{ suspect: string; seq: number } | null>(null);
@@ -162,7 +165,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                   {tone === 'fresh' && book === null ? (
                     <p className={styles.lede}>Laying out the cards…</p>
                   ) : tone === 'fresh' && book === false ? (
-                    <p className={styles.lede}>That case wouldn&apos;t deal. Go back and try again.</p>
+                    <p className={styles.lede}>{pick ? "The cat couldn't make a case. Try again later." : "That case wouldn't deal. Go back and try again."}</p>
                   ) : (
                     <FindAClue book={book} sample={sample} onPuzzleOpen={setPuzzleOpen} />
                   )}
@@ -220,6 +223,8 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
           <span className={styles.coverSeal} />
         </div>
       </div>
+      {/* Outside the flyer: its page-turn transform would otherwise hold this "fixed" overlay inside the book. */}
+      {pick && book === null ? <Shuffling /> : null}
     </div>
   );
 }

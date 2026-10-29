@@ -20,6 +20,7 @@ import { buildTarot, tarotInitial, tarotRevealAll } from '../../games/tarot.ts';
 import type { CrosswordPuzzle } from '../../games/crossword.ts';
 import { foundLocations, generateSudoku, locationSquares, type LocationSquares, type SudokuPuzzle } from '../../games/sudoku.ts';
 import type { WordSearchPuzzle } from '../../games/wordsearch.ts';
+import type { LabelKind } from '../../shelf/labels.ts';
 import { CaseBoard } from '../board/CaseBoard.tsx';
 import { boardInitial, boardSolvedSave } from '../board/boardSave.ts';
 import { sceneCrossword, sceneWordSearch } from '../sceneGames.ts';
@@ -38,6 +39,7 @@ import {
 import type { Action, Progress } from '../state.ts';
 import { CatsGame } from './CatsGame.tsx';
 import { CrosswordGame } from './CrosswordGame.tsx';
+import { BoardArt, CatsArt, CrosswordArt, NosingArt, PadlockArt, QuestioningArt, SudokuArt, TarotArt, WordleArt, WordSearchArt } from './labelArt.tsx';
 import { InterrogationGame } from './InterrogationGame.tsx';
 import { SudokuGame } from './SudokuGame.tsx';
 import { NosingGame } from './NosingGame.tsx';
@@ -94,6 +96,8 @@ interface Game<S extends GameSpec, P> {
   help: string;
   /** The same in one short line, under its name on the #shelf puzzle page. */
   rule: string;
+  /** The drawing and kind of its #shelf puzzle label (`src/shelf/PuzzleLabel.tsx`). */
+  label: { kind: LabelKind; Art: () => ReactNode };
   /** Heading over the unlocked clues once it's won or solved for her. */
   titles?: { won: string; revealed: string };
   /** Builds the puzzle from the spec's seed. Called once per game screen. */
@@ -118,12 +122,13 @@ const common = ({ finished, helper, onChange, onFinish }: PlayArgs) => ({ finish
 const DEFAULT_TITLES = { won: 'Clues unlocked', revealed: 'Puzzle solved for you. Clues unlocked' };
 export const titlesOf = (entry: GameEntry) => entry.titles ?? DEFAULT_TITLES;
 
-const questioning = (name: string, blurb: string, help: string, rule: string) =>
+const questioning = (name: string, blurb: string, help: string, rule: string, label: Game<GameSpec, unknown>['label']) =>
   game<InterrogationSpec, Interrogation>({
     name,
     blurb,
     help,
     rule,
+    label,
     titles: { won: 'The confession', revealed: 'They told you anyway' },
     build: (_c, spec) => spec.interrogation,
     play(puzzle, a) {
@@ -154,6 +159,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
     blurb: 'Guess a five-letter word in six tries.',
     help: 'Type a five-letter word each try. Green letters are in the right place, yellow ones are in the word but somewhere else, grey ones are not in it.',
     rule: 'Guess the word; colours show how close.',
+    label: { kind: 'words', Art: WordleArt },
     // Play cases hide the game's own word and show its half-heard clue above the board instead of a teaser.
     build: (c, spec) =>
       c.sceneGiven ? { answer: spec.scene.answer } : { answer: c.sceneClue.wordle.answer, teaser: c.sceneClue.wordle.teaser },
@@ -167,6 +173,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
     blurb: 'Answer clues until the shaded squares spell the word.',
     help: 'Tap a square and type the answer to its clue. Once the grid is full, the shaded squares spell the hidden word.',
     rule: 'Fill the grid to spell the hidden word.',
+    label: { kind: 'words', Art: CrosswordArt },
     build: (_c, spec) => sceneCrossword(spec),
     play: (puzzle, a) => ({
       solved: () => crosswordSolved(puzzle),
@@ -178,6 +185,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
     blurb: 'Find the words; the leftover letters spell it.',
     help: 'Drag across the letters to mark each word on the list. When every word is found, the letters left over spell the hidden word.',
     rule: 'Find every word; the rest spell a hidden word.',
+    label: { kind: 'words', Art: WordSearchArt },
     build: (c, spec) => sceneWordSearch(c, spec),
     play: (puzzle, a) => ({
       solved: () => wordSearchSolved(puzzle),
@@ -189,6 +197,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
     blurb: 'Place the cats where the clues allow.',
     help: 'Put the cats on the grid so every clue is true. Rule squares out as you work; the clues are all you need.',
     rule: 'Put each cat on the grid so every clue is true.',
+    label: { kind: 'logic', Art: CatsArt },
     build: (_c, spec) => generateCats(spec.size, new Rng(spec.seed), spec.easy),
     play: (puzzle, a) => ({
       solved: () => catsSolvedData(puzzle),
@@ -200,6 +209,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
     blurb: 'Fill the grid; some squares point to rooms.',
     help: 'Fill every square so no number repeats in any row, column or box. Statements that name two squares unlock a clue as soon as both are right.',
     rule: 'No number repeats in a row, column or box.',
+    label: { kind: 'logic', Art: SudokuArt },
     build(c, spec) {
       const puzzle = generateSudoku(spec.size, spec.givens, new Rng(spec.seed));
       const targets = c.clues.filter((cl) => cl.location && spec.located.includes(cl.id)).map((cl) => ({ id: cl.id, target: cl.location!.target }));
@@ -251,18 +261,21 @@ export const GAMES: Record<GameKind, GameEntry> = {
     'Question a guest and catch the lie.',
     'Ask the guest questions and pick the answer your evidence contradicts. Catch the lie and they confess.',
     'Pick the answer your evidence contradicts.',
+    { kind: 'people', Art: QuestioningArt },
   ),
   finale: questioning(
     'Final questioning',
     'One last round of questions.',
     'The last round of questions. Use everything you have found to catch the lie.',
     'Use everything you have found to catch the lie.',
+    { kind: 'final', Art: PadlockArt },
   ),
   board: game<BoardSpec, Board>({
     name: 'Case board',
     blurb: 'Fit the clues together as a jigsaw.',
     help: 'Drag the clue pieces onto the board so they all fit. Pieces that break a rule get a red outline; the only way everything fits proves what they say.',
     rule: 'Fit every clue piece with no red outlines.',
+    label: { kind: 'logic', Art: BoardArt },
     titles: { won: 'What the pieces proved', revealed: 'Solved for you. What the pieces proved' },
     build(c, spec) {
       const board = boardPuzzle({ ...content, house: houseOf(c) }, c, spec);
@@ -302,6 +315,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
     blurb: 'Turn the cards over and find the pairs.',
     help: 'Turn over two cards at a time. Matching pairs stay face up; clear the board to unlock the clues.',
     rule: 'Turn two cards at a time and match every pair.',
+    label: { kind: 'people', Art: TarotArt },
     build(c, spec) {
       const mine = c.clues.filter((cl) => spec.clues.includes(cl.id)).map((cl) => cl.fact);
       const others = c.clues.filter((cl) => !spec.clues.includes(cl.id)).map((cl) => cl.fact);
@@ -321,6 +335,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
     blurb: 'Follow the cat round the house, with sums on the way.',
     help: 'Follow the cat from room to room. Solve the sum at each stop to open the way on to the next room.',
     rule: 'Follow the cat; each sum opens the next room.',
+    label: { kind: 'people', Art: NosingArt },
     build: (c, spec) =>
       buildNosing({
         house: houseOf(c),

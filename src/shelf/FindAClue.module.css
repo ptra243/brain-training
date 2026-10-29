@@ -57,6 +57,11 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* The ribbons hang to about 170px below the page top: start the list under them. The scroll box
+     reaches 10px left of the text column so overhanging stickers are not clipped, and 14px of
+     room below keeps the last button clear of the notebook peek. */
+  margin-left: -10px;
+  padding: 46px 0 14px 10px;
 }
 :global(body.shelf) .choices {
   list-style: none;
@@ -64,53 +69,48 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
 }
-:global(body.shelf) .choice {
+:global(body.shelf) .row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
+  min-height: 76px;
   box-sizing: border-box;
+  padding: 8px 4px 8px 10px;
+  border: 0;
+  background: none;
   text-align: left;
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-height: 44px;
-  padding: 10px;
   font: inherit;
-  color: inherit;
-  background: #fffaf0;
-  border: 1px solid #e4d8bb;
-  border-radius: 6px;
+  color: #1e2a2f;
 }
-:global(body.shelf) .choice:disabled {
+:global(body.shelf) .row:disabled {
   cursor: default;
-  opacity: 0.55;
 }
-:global(body.shelf) .choice.done {
-  background: #efe8d6;
-  color: #7a6d55;
+:global(body.shelf) .locked > :global(span) {
+  opacity: 0.6;
 }
 :global(body.shelf) .story {
-  font-size: 16px;
-  line-height: 1.3;
-}
-:global(body.shelf) .meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  font-size: 13px;
-  color: #6b5a3a;
-}
-:global(body.shelf) .done .meta {
-  color: #7a6d55;
-}
-:global(body.shelf) .meta b {
+  flex: 1;
+  min-width: 0;
   font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
-  font-style: italic;
-  font-weight: 500;
-  font-size: 15px;
-  white-space: nowrap;
+  font-size: 14.5px;
+  line-height: 1.22;
+}
+:global(body.shelf) .done .story {
+  color: #5e584d;
+}
+:global(body.shelf) .found {
+  display: block;
+  margin-top: 2px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  color: #3f6b47;
+}
+:global(body.shelf) .locked .found {
+  color: #6b5a3a;
 }
 :global(body.shelf) .hide {
   align-self: center;
@@ -118,4 +118,23 @@
   color: #6b5a3a;
   background: transparent;
   border: 1px solid #e4d8bb;
+}
+:global(body.shelf) .added {
+  display: block;
+  margin-top: 2px;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.05;
+  color: #8a2e3b;
+}
+/* A pencilled note at the top of the list. */
+:global(body.shelf) .pencil {
+  margin: 0;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.1;
+  color: #4d4a44;
+  transform: rotate(-1deg);
 }

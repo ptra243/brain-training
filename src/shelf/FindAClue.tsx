@@ -4,24 +4,39 @@ import { DIFFICULTY_LABEL } from '../game/labels.ts';
 import { victimLine } from '../game/names.ts';
 import { GAMES } from '../game/games/registry.tsx';
 import styles from './FindAClue.module.css';
-import { clueRows, hideLabel, openingText, plural, visibleRows, type ClueRow } from './findAClue.ts';
+import { addedGames, clueRows, hideLabel, openingText, rowAriaLabel, rowStateText, visibleRows, type ClueRow } from './findAClue.ts';
+import { labelAngle, labelName } from './labels.ts';
+import { PuzzleLabel } from './PuzzleLabel.tsx';
 import { PuzzlePage } from './PuzzlePage.tsx';
 import type { QuickBook, SampleCase } from './useQuickBook.ts';
 import { loadHideFinished, markOpeningSeen, openingSeen, saveHideFinished } from './shelfStore.ts';
 
-function Line({ row, onPick }: { row: ClueRow; onPick: (row: ClueRow) => void }) {
-  const meta = row.locked
-    ? 'Opens when the other games are done'
-    : row.done
-      ? `Solved · ${plural(row.clues, 'clue')} found`
-      : [GAMES[row.kind].name, row.level ? DIFFICULTY_LABEL[row.level] : null, plural(row.clues, 'clue')].filter(Boolean).join(' · ');
+function Line({ row, caseRef, added, onPick }: { row: ClueRow; caseRef: string; added: boolean; onPick: (row: ClueRow) => void }) {
+  const entry = GAMES[row.kind];
+  const name = labelName(entry.label.kind, entry.name);
+  const state = rowStateText(row);
   return (
     <li>
-      <button type="button" className={`${styles.choice} ${row.done ? styles.done : ''}`} disabled={row.locked} onClick={() => onPick(row)}>
-        <span className={styles.story}>{row.story}</span>
-        <span className={styles.meta}>
-          <span>{meta}</span>
-          {row.locked ? null : <b>p. {row.page}</b>}
+      <button
+        type="button"
+        className={`${styles.row} ${row.done ? styles.done : ''} ${row.locked ? styles.locked : ''}`}
+        disabled={row.locked}
+        aria-label={rowAriaLabel(row, name, row.level ? DIFFICULTY_LABEL[row.level] : undefined)}
+        onClick={() => onPick(row)}
+      >
+        <PuzzleLabel
+          game={row.kind}
+          level={row.level}
+          page={row.page}
+          angle={labelAngle(caseRef, row.kind)}
+          sticker={row.status}
+          hints={row.hints}
+          locked={row.locked}
+        />
+        <span className={styles.story}>
+          {row.story}
+          {added ? <span className={styles.added}>The cat added this one</span> : null}
+          {state ? <span className={styles.found}>{state}</span> : null}
         </span>
       </button>
     </li>
@@ -70,15 +85,17 @@ export function FindAClue({ book, sample, onPuzzleOpen }: { book: QuickBook | nu
 
   const rows = clueRows(c, progress, ref);
   const label = hideLabel(rows, hide);
+  const added = addedGames(c.games, loaded.fullRef);
   const open = picked ? rows.find((r) => r.kind === picked.kind) : undefined;
   const spec = open ? c.games.find((g) => g.kind === open.kind) : undefined;
   return (
     <>
       <h2 className={styles.find}>Find a clue</h2>
       <div className={styles.scroll} ref={listRef}>
+        {loaded.swapped ? <p className={styles.pencil}>The cat picked these puzzles instead.</p> : null}
         <ul className={styles.choices}>
           {visibleRows(rows, hide).map((row) => (
-            <Line key={row.kind} row={row} onPick={(row) => setPicked({ kind: row.kind, turn: true })} />
+            <Line key={row.kind} row={row} caseRef={ref} added={added.includes(row.kind)} onPick={(row) => setPicked({ kind: row.kind, turn: true })} />
           ))}
         </ul>
         {label ? (

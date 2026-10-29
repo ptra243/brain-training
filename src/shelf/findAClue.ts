@@ -5,6 +5,7 @@ import { caseOpenings } from '../content/index.ts';
 import { storyLines } from '../content/storyLines.ts';
 import { hashSeed, Rng } from '../engine/rng.ts';
 import type { Case, Difficulty, GameKind } from '../engine/types.ts';
+import { gameHints } from '../game/runRecord.ts';
 import { finaleOpen, gameDone, type Progress } from '../game/state.ts';
 
 export interface ClueRow {
@@ -15,6 +16,10 @@ export interface ClueRow {
   /** The page number printed on the line, 10 to 99, distinct within a case. */
   page: number;
   done: boolean;
+  /** How she finished it: on her own or with the cat's Solve; undefined while open. */
+  status: 'won' | 'revealed' | undefined;
+  /** Hint presses in this game (0 for games that count none). */
+  hints: number;
   /** The finale before every other game is finished. */
   locked: boolean;
 }
@@ -48,15 +53,37 @@ export function clueRows(c: Case, progress: Progress, ref: string): ClueRow[] {
     c.games.map((g) => g.kind),
   );
   const open = finaleOpen(c, progress);
-  return c.games.map((g) => ({
-    kind: g.kind,
-    story: storyFor(ref, g.kind),
-    level: g.level,
-    clues: g.clues.length,
-    page: pages[g.kind],
-    done: gameDone(progress, g.kind),
-    locked: g.kind === 'finale' && !open && !gameDone(progress, g.kind),
-  }));
+  return c.games.map((g) => {
+    const rec = progress.games[g.kind];
+    const done = gameDone(progress, g.kind);
+    return {
+      kind: g.kind,
+      story: storyFor(ref, g.kind),
+      level: g.level,
+      clues: g.clues.length,
+      page: pages[g.kind],
+      done,
+      status: done ? (rec?.status === 'revealed' ? 'revealed' : 'won') : undefined,
+      hints: gameHints(g.kind, rec?.data),
+      locked: g.kind === 'finale' && !open && !done,
+    };
+  });
+}
+
+/** What the line says under the story: clues found (and hints), or that the cat solved it. Null while open. */
+export function rowStateText(row: Pick<ClueRow, 'status' | 'hints' | 'clues' | 'locked'>): string | null {
+  if (row.locked) return 'Opens when every other page is done';
+  if (row.status === 'revealed') return row.clues > 0 ? `The cat solved it · ${plural(row.clues, 'clue')}` : 'The cat solved it · no new clues';
+  if (row.status !== 'won') return null;
+  // A scene word game shares one scene clue, so a won game can have none of its own.
+  const found = row.clues > 0 ? `${plural(row.clues, 'clue')} found` : 'No new clues';
+  return row.hints >= 1 ? `${found} · ${plural(row.hints, 'hint')}` : found;
+}
+
+/** The button's spoken label: game, level, page and state. */
+export function rowAriaLabel(row: ClueRow, gameName: string, levelName: string | undefined): string {
+  const state = row.locked ? 'locked, opens when the others are done' : row.status === 'won' ? `won${row.hints >= 1 ? `, ${plural(row.hints, 'hint')}` : ''}` : row.status === 'revealed' ? 'solved by the cat' : null;
+  return [gameName, levelName?.toLowerCase(), `page ${row.page}`].filter(Boolean).join(', ') + (state ? `, ${state}` : '');
 }
 
 export const finishedCount = (rows: readonly ClueRow[]) => rows.filter((r) => r.done).length;
@@ -84,3 +111,10 @@ export function openingText(c: Case): string {
 }
 
 export const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+/** Games a picked case added that she did not pick ("The cat added this one"); none for other cases. */
+export function addedGames(games: readonly { kind: GameKind }[], ref: { mode: string; games?: readonly string[] } | null): GameKind[] {
+  if (!ref || ref.mode !== 'play' || !ref.games) return [];
+  const picked = ref.games;
+  return games.map((g) => g.kind).filter((k) => !picked.includes(k));
+}

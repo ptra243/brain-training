@@ -74,10 +74,14 @@ What a look check judges on each:
 - `shelf-new-case`: the New case book on a fresh sample Play case (fixed seed, nothing saved), opening not yet seen: the
   body line, the story paragraph and the button that goes on to Find a clue; notebook strip at the foot; no sideways
   scroll. The real book builds its case when opened ("Laying out the cards…" until it arrives).
-- `shelf-find-a-clue`: the same book on a sample Play case (no finale; Play cases have none) with one game
-  finished: story lines (not game names) lead each line, then "game · level · N clues" and "p. NN"; the finished
-  line greyed ("Solved · N clues found"), "Hide finished (1)" at the foot; lines 44px+; no sideways scroll. The
-  ribbons start dropped, so the first tap on the page only tucks them.
+- `shelf-find-a-clue`: the same book on a sample hard Quick start case (it has a finale) with one game won (a word
+  game: "No new clues"), one won with 2 hints (5 clues), one solved by the cat, the rest open. Each line is a puzzle label (140x60, at its own slight
+  tilt, page ring) beside its story line (3-4 lines, no clipping): green tick top-right on the won ones, a brown
+  paw pill "2" bottom-left on the hinted one, a gold paw sticker on the cat's; under the story "N clues found" (or "No new clues"),
+  "N clues found · 2 hints" or "The cat solved it · N clues"; the finale a gold padlock label, "Locked", faded,
+  with its page ring; lines 76px, 44px+; stickers not cut off at the page edge; "Hide finished (3)" at the foot;
+  no sideways scroll; the list starts below the dropped ribbons and its last button clears the notebook strip.
+  The ribbons start dropped, so the first tap on the page only tucks them.
 - `shelf-puzzle`, `shelf-puzzle-won`, `shelf-puzzle-revealed`: a puzzle page (full-width paper, 360px) open over the
   book on the sample case (nothing is saved): header with a ribbon chevron, the game name, Solve (not once finished),
   "level · N clues", one rule line, then the game; the won and revealed pages keep the board and add the clue
@@ -104,6 +108,16 @@ What a look check judges on each:
   a fresh "It was ___ in the <room>, with the ___." with 44px blanks, a disabled "Fill both blanks first" button; tapping a
   blank opens a list of 44px names. Solved: pencil verdict, "Solved in 2 accusations", effort line, "Back to the shelf".
   No sideways scroll; the notebook strip stays at the foot.
+- `shelf-labels`: the #shelf puzzle labels on the felt: all nine games at easy, medium and hard (140 x 60 cream cards, border
+  navy for words, green for logic, plum for people, the 26px drawing at left, the name in small caps at right, wrapping to two
+  lines, rust stars); a label with no level (no stars) and one with a page ring; won (green tick), won with 2 hints (tick and
+  brown paw pill), solved by the cat (gold paw sticker), lifted (brass tick, bigger shadow); the finale gold with a padlock,
+  "Locked" and open. Stickers hang over the corners without being clipped; slight different tilts; no sideways scroll at 360px.
+- `shelf-tin`: the #shelf sticker tin screen open on a fixed code (nothing read or saved): green felt, brass-edged red
+  tin with its lid tipped back, nine stickers 2 across on a blue-grey sheet (5 rows, labels 140 x 60 at slight tilts, the
+  game's level in stars); four lifted (raised, bigger shadow, brass tick); under it "4 of 7 lifted" and "Logic ★★☆ · N guests",
+  then Shake the tin and the gold Stick them in, both 50px; the whole screen fits 360 x 780 with no scrolling and no
+  sideways scroll; sticker overhang (brass ticks) is not cut off at the sheet's edge.
 - `portraits`: the portrait gallery on its own (light dev page).
 - `dogfight`: the dog fight board in each state, with a cat helper picker
   (light dev page).
