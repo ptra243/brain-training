@@ -84,7 +84,7 @@ What a look check judges on each:
   paw pill "2" bottom-left on the hinted one, a gold paw sticker on the cat's; under the story "N clues found" (or "No new clues"),
   "N clues found · 2 hints" or "The cat solved it · N clues"; the finale a gold padlock label, "Locked", faded,
   with its page ring; lines 76px, 44px+; stickers not cut off at the page edge; "Hide finished (3)" at the foot;
-  no sideways scroll; the list starts below the dropped ribbons and its last button clears the notebook strip.
+  no sideways scroll; the list starts right under the heading (dropped ribbons overlap its first card) and its last button clears the notebook strip.
   The ribbons start dropped, so the first tap on the page only tucks them.
 - `shelf-puzzle`, `shelf-puzzle-won`, `shelf-puzzle-revealed`: a puzzle page (full-width paper, 360px) open over the
   book on the sample case (nothing is saved): header with a ribbon chevron, the game name, Solve (not once finished),

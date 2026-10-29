@@ -144,6 +144,8 @@
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: max(6px, env(safe-area-inset-right, 0px));
   overflow: clip;
+  /* Everything inside (ribbons, crease, notebook: z-index up to 40) stays under the cover while it swings. */
+  isolation: isolate;
   background: radial-gradient(120% 80% at 50% 30%, var(--felt), var(--felt-deep));
   color: var(--ivory);
   -webkit-tap-highlight-color: transparent;

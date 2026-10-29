@@ -57,11 +57,11 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  /* The ribbons hang to about 170px below the page top: start the list under them. The scroll box
-     reaches 10px left of the text column so overhanging stickers are not clipped, and 14px of
-     room below keeps the last button clear of the notebook peek. */
+  /* No room is kept for the ribbons: when dropped they overlap the first card, under their scrim.
+     The scroll box reaches 10px left of the text column so overhanging stickers are not clipped, and
+     14px of room below keeps the last button clear of the notebook peek. */
   margin-left: -10px;
-  padding: 46px 0 14px 10px;
+  padding: 0 0 14px 10px;
 }
 :global(body.shelf) .choices {
   list-style: none;

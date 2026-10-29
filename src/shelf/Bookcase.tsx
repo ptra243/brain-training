@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { Dialog } from '../game/Dialog.tsx';
 import { caseTitle } from '../game/names.ts';
 import { OptionsSheet } from '../game/OptionsSheet.tsx';
 import { loadCampaign, loadQuick } from '../game/storage.ts';
 import { OpenBook, type Box, type Tone } from './OpenBook.tsx';
+import { fitScale } from './fitScale.ts';
 import { StickerTin } from './StickerTin.tsx';
 import type { PickRequest } from './useQuickBook.ts';
 import styles from './Shelf.module.css';
@@ -188,6 +189,32 @@ export function Bookcase() {
   const quick = useMemo(() => loadQuick(), [taken]);
   const quickTitle = quick ? caseTitle(quick.ref) : '';
   const trigger = useRef<HTMLAnchorElement | null>(null);
+  const caseRef = useRef<HTMLDivElement>(null);
+  const rugRef = useRef<HTMLDivElement>(null);
+
+  // One screen, no scroll: scale the bookcase (cat included) down with CSS zoom just enough for the
+  // page to fit the visible height. Measured at zoom 1, so it is redone on every resize.
+  useLayoutEffect(() => {
+    const shelf = caseRef.current;
+    const rug = rugRef.current;
+    if (!shelf || !rug) return;
+    const fit = () => {
+      shelf.style.zoom = '';
+      const margin = parseFloat(getComputedStyle(shelf).marginTop) || 0;
+      const scalable = margin + shelf.offsetHeight;
+      const fixed = shelf.offsetTop - margin + rug.offsetHeight + 12; // above the case, plus the rug's strip
+      const viewport = window.visualViewport?.height ?? window.innerHeight;
+      const factor = fitScale(viewport, fixed, scalable);
+      if (factor < 1) shelf.style.zoom = String(factor);
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    window.visualViewport?.addEventListener('resize', fit);
+    return () => {
+      window.removeEventListener('resize', fit);
+      window.visualViewport?.removeEventListener('resize', fit);
+    };
+  }, []);
 
   const take = (el: HTMLAnchorElement, id: Taken['id'], title: string, tone: Tone) => {
     trigger.current = el;
@@ -219,7 +246,7 @@ export function Bookcase() {
           <Window />
         </header>
 
-        <div className={styles.case}>
+        <div ref={caseRef} className={styles.case}>
           <Cat />
 
           <section aria-labelledby="shelf-quick">
@@ -319,7 +346,7 @@ export function Bookcase() {
         </div>
 
         <div className={styles.floor}>
-          <div className={styles.rug}>
+          <div ref={rugRef} className={styles.rug}>
             <p className={styles.rugText}>Tap a book to take it to the table</p>
           </div>
         </div>
