@@ -46,7 +46,7 @@ Who each guest is, before working out how they fit together (`docs/relationships
 cast and gets redone from here). Cards are listed because they decide which version of the guest she
 meets: home card, then the two borrowed ones; upright is the lighter side, reversed the darker.
 Gender (decided 2026-10-29): the Elder heir is the daughter and the Younger heir the son; the Host,
-Hostess and Uncle are gendered by their titles. Everyone else is never given a gender. Lines shared
+Hostess and Uncle are gendered by their titles, and the Fixer is a man. Everyone else is never given a gender. Lines shared
 by a card (neutral lines, card threads) never use he or she, because they must fit every guest who rolls
 that card. A guest's own lines (motive threads, bound and borrowed lines, bio) may.
 
@@ -87,18 +87,18 @@ made the company, was theirs; the Host's name went on the box. Has never said th
 
 ### The Fixer: Hierophant (borrows Emperor, High Priestess)
 Started on the factory floor at seventeen and worked up to the person who sorts out every problem
-the Host has. Calm, capable, knows how everything works. The family's kids grew up with them around
-and never decided whether they're staff or family.
+the Host has. Calm, capable, knows how everything works. The family's kids grew up with him around
+and never decided whether he's staff or family.
 - Versions (the card she meets them on):
   - **Hierophant (home)**
-    - Upright: Keeper of the old ways. Twenty-five years of loyalty to the hazelnut orchard's family; dropping the orchard would finish them and change the bar.
+    - Upright: Married to the hazelnut grower's daughter (this version only). The company pays the orchard nearly double, and dropping it would finish his wife's family.
     - Reversed: Makes problems go away. The police case that was dropped twelve years ago was one of them.
   - **Emperor**
-    - Upright: Runs the place day to day, kept the orchard paid when prices doubled, and has earned the top job.
-    - Reversed: Has made themselves impossible to replace, and thinks the heirs are not up to it (the Fixer's bias, not the truth).
+    - Upright: Runs the place day to day; the plan that saved the company when prices doubled was his, and the Host presented it.
+    - Reversed: Has made himself impossible to replace, and thinks the heirs are not up to it (his bias, not the truth).
   - **High Priestess**
-    - Upright: Brought the fuel the night the old factory burned. The family's names are on nothing from that year; the Fixer's is on everything, and the sale checks would find it.
-    - Reversed: Holds the factory's river-pollution reports over the family, and the job has been safe ever since.
+    - Upright: Every form from the year the old factory burned has only his signature on it. The sale checks would find them, and it would all land on him.
+    - Reversed: Holds the factory's river-pollution reports over the family, and his job has been safe ever since.
   - Threads: written, see "Threads written".
 
 ### The Investor: Magician (borrows Star, Devil)
@@ -294,12 +294,21 @@ reversed). Chocolate gives the jokes: the secret recipe, tasting, the rival bran
 Still true from `docs/theme-draft.md`: a motive is never a clue, never says where anyone was or what
 they held, and never depends on who the killer is. Nobody lies.
 
-**How a thread reads (decided 2026-10-29): one question, then a flashback.** Like a murder film: she
-asks one pointed line, written for that guest's version, and the guest tells the story as a flashback in
-three beats: past tense, one real scene with specific details, ending on `{victim}` and the motive.
-Between beats the button stays small ("Go on…"). Past dates and places are fine ("twelve years ago",
-"at the factory"); only tonight's whereabouts, times and objects are banned. Beat 3 never mentions the
-boss separately from `{victim}`, since the victim may be the Host.
+**How a thread reads (decided 2026-10-29): guarded questioning, three beats.** Nobody confesses to a
+stranger, and later beats only open as she finishes games about the guest, so a thread is built like a
+real questioning:
+1. Her opening line, then **the public story**: what they would tell anyone. Nothing incriminating.
+2. **She brings something she found** ("I found the orchard's contract…", "I've been going through the
+   old files…"). They half-admit, defensively.
+3. **She asks about `{victim}`.** The motive comes out as how it looks, never as a confession. She
+   works out the rest herself ("I'd be the one in court. You can see why I wasn't keen on this sale.").
+
+Each beat is 2 to 4 sentences, enough to state the key facts plainly; each of her lines is written for
+that thread and becomes the button. Her lines say what she found, never where or when tonight. The test:
+after reading, she can explain the motive in one sentence, and every line is something a real person
+would say to a stranger at that point. Past dates and places are fine ("twelve years ago", "at the
+factory"); tonight's whereabouts, times and objects are not. Beat 3 never mentions the boss separately
+from `{victim}`, since the victim may be the Host.
 
 **Nothing that hints at a weapon.** No nut allergies, and no chemicals, sprays or anything that
 sounds like poison in a motive: poison is a weapon, so it would read as a clue to how someone died.
@@ -307,46 +316,58 @@ Pollution is factory waste, never a chemical.
 
 ## Threads written
 
-One line from her, then the flashback. Settled with the owner 2026-10-29; not in the game yet (threads
-need a field for her line first).
+Guarded questioning, her line before each beat (see "How a thread reads"). Settled with the owner
+2026-10-29; not in the game yet (threads need a field for her lines first).
 
 ### The Fixer
 
-**Hierophant upright**
+**Hierophant upright (the orchard)**
 - **You:** You've been here longer than most of the family.
-- Every autumn for twenty-five years I've driven out to the same hazelnut orchard for the harvest. Same family, same handshake. Their nuts are in every bar we've ever made.
-- I was at the grower's wedding. I'm godparent to their eldest. That's how this company used to do business, and it's why the bar tastes the way it does.
-- {victim} had found a cheaper supplier and wanted the orchard dropped by Christmas. It would have finished them, and the bar would never have tasted the same.
+- **Fixer:** Thirty years. I started on the wrapping line at seventeen. These days I look after the suppliers, which mostly means one hazelnut orchard. Every bar we've ever made has their nuts in it.
+- **You:** I found the orchard's contract. The company pays them nearly double what anyone else would. And the grower's surname is your wife's maiden name.
+- **Fixer:** We met at my first harvest. I've gone back every autumn since. Yes, we pay them well. Their nuts are why the bar tastes the way it does, and nobody complained while it sold.
+- **You:** {victim} complained, didn't they?
+- **Fixer:** {victim} called it a conflict of interest, found cheaper nuts and wanted the orchard dropped by Christmas. It would have finished my wife's family. I said so. Loudly.
 
-**Hierophant reversed**
+**Hierophant reversed (the dropped police case)**
 - **You:** Everyone says you're the one who makes problems go away.
-- Twelve years ago a detective came to the factory asking about the books. The boss rang me that night.
-- I spent a week making sure there was nothing to find. The case was dropped, and nobody ever asked how.
-- {victim} asked how. At the last board meeting, in front of everyone.
+- **Fixer:** That's a nice way of putting it. Someone has a problem, they bring it to me, and after a while they don't have it any more. It's mostly paperwork. Most things are.
+- **You:** I found a letter from the police, twelve years old, closing an investigation into the company's books after a week.
+- **Fixer:** I remember it. The boss rang me the night it started. I spent a week making sure there was nothing for them to find, and there wasn't. Nobody asked how. That's the job.
+- **You:** {victim} asked, though.
+- **Fixer:** {victim} asked how. At the last board meeting, in front of everyone, with the buyer's people in the room. Nobody answered. I could feel the whole table deciding whose fault it was going to be.
 
-**Emperor upright**
+**Emperor upright (earned the top job)**
 - **You:** Who actually runs this company?
-- The boss's name is on the box. But when hazelnut prices doubled, I was the one who found the money to keep paying the orchard.
-- The boss took the applause at the Christmas party. I clapped too. I'm good at clapping.
-- {victim} told me the top job would never go to staff. I've been staff for thirty years. I'd like to stop.
+- **Fixer:** The boss's name is on the box. I just make sure there's something in it. Suppliers, staff, the machines, the bank. If it breaks, I fix it.
+- **You:** I read the minutes from the year hazelnut prices doubled. The plan that saved the company was yours, but the boss presented it.
+- **Fixer:** It usually is mine. The boss took the applause at the Christmas party, and I clapped along. I'm good at clapping. But thirty years is a long time to clap.
+- **You:** {victim} didn't think you should get the top job.
+- **Fixer:** {victim} told me to my face that it would never go to staff, not while there was family to give it to. I'd hoped the boss saw it differently. I still don't know.
 
-**Emperor reversed**
+**Emperor reversed (impossible to replace)**
 - **You:** What happens to this place without you?
-- Five years ago the boss brought in a new manager. Very smart. Lasted six weeks.
-- The boss's kids? One left, and the other has spent eight years being "nearly ready". I hold every password, every supplier, every key. Not on purpose. Nobody else ever bothered to learn.
-- {victim} wanted me gone by the end of the year, and everything written down first. I hadn't started writing.
+- **Fixer:** Five years ago the boss tried to find out. Brought in a new manager, very clever, lovely suit. Lasted six weeks.
+- **You:** I noticed nobody else can open the safe or log into the supplier accounts. Only you.
+- **Fixer:** Not on purpose. Nobody else ever bothered to learn. The boss's kids? One left, and the other has spent eight years being "nearly ready". Someone has to hold the keys.
+- **You:** {victim} wanted you out.
+- **Fixer:** {victim} wanted me gone by the end of the year, and every password written down first. I hadn't started writing. Funny how that sounds now.
 
-**High Priestess upright**
+**High Priestess upright (the fire)**
 - **You:** You don't seem surprised by much.
-- Twenty years ago the old factory burned down. The insurance paid for the new one. I was told the place would be empty, and to bring the fuel.
-- The family's names aren't on anything from that year. Mine is on everything. That's what being trusted means here.
-- {victim} said the sale checks would turn it up, and that it would all land on me. The family would look shocked. I'd be the one in court.
+- **Fixer:** Twenty years here does that. I've seen this company nearly go under twice. The second time, the old factory burned down and the insurance paid for the new one. Lucky, everyone said.
+- **You:** I've been going through the old files. Every form from the year of the fire has your signature on it. Only yours.
+- **Fixer:** I was twenty-two, and proud to be trusted with it. The delivery notes, the night log, the insurance claim. Nobody asked me to sign anything else that year. I've only lately wondered why.
+- **You:** {victim} had seen those files too, hadn't they?
+- **Fixer:** {victim} said the buyer's lawyers would find them, and that nobody else's name would be on them. I'd be the one in court. You can see why I wasn't keen on this sale.
 
-**High Priestess reversed**
+**High Priestess reversed (the pollution)**
 - **You:** Does anyone here have a reason to be scared of you?
-- Three years ago I found the factory's waste reports. The river below it hasn't had a fish in it for ten years.
-- I never reported it. I just mentioned once to the boss that I'd kept copies. My job has been very safe since.
-- {victim} found my copies, and was going to give them to a newspaper. That would have finished the factory, and me with it.
+- **Fixer:** Scared is a strong word. Careful, maybe. I've been here a long time, and I read everything that crosses my desk. People forget that.
+- **You:** I found copies of the factory's waste reports, with your initials on every one. The river below the factory has been dead for ten years.
+- **Fixer:** I never reported it. I just mentioned once to the boss that I'd kept copies. My job has been very safe since. You'd be amazed how patient people become.
+- **You:** {victim} had found them too.
+- **Fixer:** {victim} had found them, and had a reporter's number. That would have finished the factory, the sale, and me. I'm not the only one at this table who'd have lost everything.
 
 ## Still to do
 
