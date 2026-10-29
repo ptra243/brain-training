@@ -40,3 +40,21 @@ folder `CLAUDE.md` files.
 - **Deck**: the game cards she picks from before a case is dealt.
 - **Guest book**: her record; one entry per finished run, signed by the killer when she solved it.
 - **Won page**: the puzzle page once won or solved, with the clue written in.
+
+## Card Capture
+
+A solo card game she can lose (`docs/card-capture.md`).
+
+- **Parlour games**: the Shelf book of games that stand on their own, outside the cases. Not the
+  puzzle book.
+- **Deal**: one game of Card Capture, from one deal code. Not a run (a run is a campaign).
+- **Hand**: the cards she holds; kept between turns.
+- **House**: the enemy's face-down cards, left of the hall.
+- **Hall**: the 4 face-up cards she can capture or bury. Cards enter on the left and move right
+  toward the door. Not the shop, not a room.
+- **Door**: the enemy's discard pile, right of the hall. A face card at the door loses the game.
+- **Discard**: putting cards from her hand on her own discard pile. Free and safe.
+- **Sacrifice**: putting her cards at the door. Unsafe: a face card there loses.
+- **Capture**: taking a hall card with same-suit cards that add up to its value or more. Not "buy".
+- **Bury**: sacrificing 2 cards to put a hall card back under the house.
+- **Give way**: letting the rightmost hall card take a card from her hand; both go to the door.

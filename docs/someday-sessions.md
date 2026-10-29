@@ -24,16 +24,6 @@ Starting prompt:
 Read docs/dog-deck-builder.md and "Next build: the dog" in docs/nosing-around.md, and help me design the dog card game as a real deck builder: one-suit start deck, suit effects, rewards, run length, losing without getting stuck.
 ```
 
-## Session: Card Capture (card game)
-Last touched: 2026-10-29
-Reads first: `docs/card-capture.md` (the owner's full rules, what to settle), `src/games/CLAUDE.md`.
-Goal: the rules are settled. Check with a seed sweep how often a deal can be won or hits a dead end,
-then decide where it lives: a standalone game for fun, or a hard-mode campaign where she can lose.
-Starting prompt:
-```
-Read docs/card-capture.md and src/games/CLAUDE.md, then sketch a seeded solver to measure how often a deal can be won and how often it hits a dead end.
-```
-
 ## Session: Portrait expressions
 Last touched: 2026-10-26
 Reads first: `docs/portraits.md` (facial expressions are a later layer, not part of the portrait build).
