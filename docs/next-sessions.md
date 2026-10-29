@@ -39,10 +39,10 @@ Read docs/visual-theme.md "Milestone 1" Status. Ask me how her phone test at #sh
 Last touched: 2026-10-29
 Reads first: `docs/story.md` ("How a thread reads", the people and their versions, the Fixer under "Threads written"), `docs/talk-threads.md` ("Two topics").
 Done: the story (the chocolate company's 50th), all 60 versions with real motives, the feelings grid, and guarded threads with her line before each beat, built and in the game for the Fixer (`src/content/talk/motives.ts`).
-Next: the Accountant's six, which replace the old Financier pilot still in the game. Then the other guests, the "About the others" pools, and "Still to do" in `docs/story.md` (renames, reaction line).
+Next: the Lawyer (was the Financier, then the Accountant): refine the draft sketch and versions, then write the six threads, which replace the old Financier pilot still in the game. Then the other guests, the "About the others" pools, and "Still to do" in `docs/story.md` (renames, reaction line).
 Starting prompt:
 ```
-Read docs/story.md ("How a thread reads", the Accountant's versions, the Fixer's threads as the model). Draft the Accountant's six threads with feedback on each; once I approve, replace the Financier pilot in motives.ts and docs/story.md.
+Read docs/story.md ("How a thread reads", the Lawyer's draft sketch and versions, the Fixer's threads as the model). Refine the Lawyer with me as we did the Fixer, then draft the six threads with feedback on each; once I approve, replace the Financier pilot in motives.ts and docs/story.md.
 ```
 
 ## Session: Tarot card faces
