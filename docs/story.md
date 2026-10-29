@@ -91,14 +91,15 @@ the Host has. Calm, capable, knows how everything works. The family's kids grew 
 and never decided whether they're staff or family.
 - Versions (the card she meets them on):
   - **Hierophant (home)**
-    - Upright: The one everyone relies on. Knows how everything works, and the Host may pick them.
-    - Reversed: Makes problems go away. The case the Detective dropped years ago was one of them.
+    - Upright: Keeper of the old ways. Twenty-five years of loyalty to the hazelnut orchard's family; dropping the orchard would finish them and change the bar.
+    - Reversed: Makes problems go away. The police case that was dropped twelve years ago was one of them.
   - **Emperor**
-    - Upright: Runs the place day to day, and has earned the top job.
-    - Reversed: Has made themselves impossible to replace: every password, every supplier, every key.
+    - Upright: Runs the place day to day, kept the orchard paid when prices doubled, and has earned the top job.
+    - Reversed: Has made themselves impossible to replace, and thinks the heirs are not up to it (the Fixer's bias, not the truth).
   - **High Priestess**
-    - Upright: Knows a secret about every guest and has never told. One of those secrets would put the Fixer in prison too.
-    - Reversed: Has never used what they know, but makes sure people remember they could. Has just decided to stop covering for someone.
+    - Upright: Brought the fuel the night the old factory burned. The family's names are on nothing from that year; the Fixer's is on everything, and the sale checks would find it.
+    - Reversed: Holds the factory's river-pollution reports over the family, and the job has been safe ever since.
+  - Threads: written, see "Threads written".
 
 ### The Investor: Magician (borrows Star, Devil)
 Runs the fund that made the offer. Charming, quick, very good at making people feel clever. Came in
@@ -228,6 +229,10 @@ Any guest can be the victim or the killer, and any seven are seated, so the back
 - **The Accountant** was brought in by the Host ten years ago, from outside the family.
 - **The Elder heir** joined the company straight from university and has been told it will be hers.
   **The Younger heir**, her brother, left after a row with the Host and built a life in the city.
+- **For fifty years** every bar has been made with hazelnuts from one family orchard, a couple of
+  hours' drive away. The Fixer goes out for every harvest. Cheaper nuts would change the taste.
+- **Twenty years ago** the old factory burned down, and the insurance paid for the new one. How it
+  started differs by version; no version says it was an accident or that it wasn't.
 - **This spring** the Investor's fund made an offer. The Host called the weekend to give the answer.
 
 ### Three questions everyone has an answer to
@@ -272,6 +277,11 @@ Any two guests' versions can be heard in the same case, so these were checked to
 - **The Host's affair** (Hostess, Star reversed) never names the other person. The Investor's Devil
   reversed ("met someone here before, under another name … more than business") can be the other half;
   when both come up, she can connect them herself. Neither version says it outright.
+- **The fire** (Fixer, High Priestess upright) was the same year the Uncle was pushed out. The Uncle's
+  Hanged Man upright ("took the blame for something the Host did") can be read as the fire; neither says so.
+  "I was told the place would be empty" hints someone was inside. Kept on purpose (owner, 2026-10-29).
+- **The pollution** (Fixer, High Priestess reversed) would sink the sale and the inheritance, so it
+  gives several guests a reason to want it buried, as background only.
 - **Watch when writing lines**: the Housekeeper knowing "the Younger heir's secret" must stay vague, since
   his secret differs by version.
 
@@ -290,6 +300,53 @@ three beats: past tense, one real scene with specific details, ending on `{victi
 Between beats the button stays small ("Go on…"). Past dates and places are fine ("twelve years ago",
 "at the factory"); only tonight's whereabouts, times and objects are banned. Beat 3 never mentions the
 boss separately from `{victim}`, since the victim may be the Host.
+
+**Nothing that hints at a weapon.** No nut allergies, and no chemicals, sprays or anything that
+sounds like poison in a motive: poison is a weapon, so it would read as a clue to how someone died.
+Pollution is factory waste, never a chemical.
+
+## Threads written
+
+One line from her, then the flashback. Settled with the owner 2026-10-29; not in the game yet (threads
+need a field for her line first).
+
+### The Fixer
+
+**Hierophant upright**
+- **You:** You've been here longer than most of the family.
+- Every autumn for twenty-five years I've driven out to the same hazelnut orchard for the harvest. Same family, same handshake. Their nuts are in every bar we've ever made.
+- I was at the grower's wedding. I'm godparent to their eldest. That's how this company used to do business, and it's why the bar tastes the way it does.
+- {victim} had found a cheaper supplier and wanted the orchard dropped by Christmas. It would have finished them, and the bar would never have tasted the same.
+
+**Hierophant reversed**
+- **You:** Everyone says you're the one who makes problems go away.
+- Twelve years ago a detective came to the factory asking about the books. The boss rang me that night.
+- I spent a week making sure there was nothing to find. The case was dropped, and nobody ever asked how.
+- {victim} asked how. At the last board meeting, in front of everyone.
+
+**Emperor upright**
+- **You:** Who actually runs this company?
+- The boss's name is on the box. But when hazelnut prices doubled, I was the one who found the money to keep paying the orchard.
+- The boss took the applause at the Christmas party. I clapped too. I'm good at clapping.
+- {victim} told me the top job would never go to staff. I've been staff for thirty years. I'd like to stop.
+
+**Emperor reversed**
+- **You:** What happens to this place without you?
+- Five years ago the boss brought in a new manager. Very smart. Lasted six weeks.
+- The boss's kids? One left, and the other has spent eight years being "nearly ready". I hold every password, every supplier, every key. Not on purpose. Nobody else ever bothered to learn.
+- {victim} wanted me gone by the end of the year, and everything written down first. I hadn't started writing.
+
+**High Priestess upright**
+- **You:** You don't seem surprised by much.
+- Twenty years ago the old factory burned down. The insurance paid for the new one. I was told the place would be empty, and to bring the fuel.
+- The family's names aren't on anything from that year. Mine is on everything. That's what being trusted means here.
+- {victim} said the sale checks would turn it up, and that it would all land on me. The family would look shocked. I'd be the one in court.
+
+**High Priestess reversed**
+- **You:** Does anyone here have a reason to be scared of you?
+- Three years ago I found the factory's waste reports. The river below it hasn't had a fish in it for ten years.
+- I never reported it. I just mentioned once to the boss that I'd kept copies. My job has been very safe since.
+- {victim} found my copies, and was going to give them to a newspaper. That would have finished the factory, and me with it.
 
 ## Still to do
 
