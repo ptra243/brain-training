@@ -22,8 +22,8 @@ Read across: how the guest on the left feels about each guest along the top.
 
 | | Host | Hostess | Fixer | Investor | Housekpr | Acctnt | Uncle | Elder h. | Younger h. | Detective |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **Host** | | F | F | W | · | · | R | · | F | F |
-| **Hostess** | W | | · | · | F | · | F | F | F | · |
+| **Host** | | F | F | W | · | · | R | · | F | R |
+| **Hostess** | W | | · | · | F | · | F | F | F | F |
 | **Fixer** | F | · | | W | W | W | · | F | F | · |
 | **Investor** | · | · | W | | · | W | · | · | · | W |
 | **Housekeeper** | W | F | W | W | | · | F | F | F | · |
@@ -31,12 +31,12 @@ Read across: how the guest on the left feels about each guest along the top.
 | **Uncle** | R | F | W | · | F | · | | · | F | W |
 | **Elder heir** | W | W | R | · | F | · | W | | W | · |
 | **Younger heir** | W | F | F | · | F | · | F | F | | · |
-| **Detective** | F | · | W | W | · | W | · | · | · | |
+| **Detective** | W | F | W | W | · | W | · | · | · | |
 
 Why the strong ones:
 - **Host**: fond of the son despite the row, only "fine" with the daughter who does the work (that is
-  the prejudice, unspoken). Resents the Uncle; wary of the Investor's offer.
-- **Hostess**: wary of the Host over the credit, after thirty years. Fond of the Uncle: something old.
+  the prejudice, unspoken). Resents the Uncle, and the Detective the Hostess invited; wary of the Investor's offer.
+- **Hostess**: wary of the Host over the credit, after thirty years. Fond of the Uncle: something old. Fond of the Detective, and invited them knowing the Host would hate it.
 - **Fixer**: fond of both heirs, who grew up around them, though the Elder heir resents the Fixer back.
   Wary of everyone else who knows things (Housekeeper, Accountant, Investor).
 - **Investor**: charming to everyone, wary only of those who could spoil the deal.
@@ -47,7 +47,7 @@ Why the strong ones:
 - **Elder heir**: resents the Fixer; wary of the Host, the Hostess ("be patient"), the Uncle (the
   "eldest son" remarks) and her brother (not his fault). Fond of the Housekeeper, who raised her.
 - **Younger heir**: fond of nearly everyone; wary of the Host since the row.
-- **Detective**: fond of the Host, an old friend; wary of anyone the Host might be worried about.
+- **Detective**: wary of the Host, whose company they once investigated; fond of the Hostess, the old friend who invited them. Wary of anyone who might know what happened back then.
 
 ### What it drives
 - **The reaction to the death**: picked by how the guest feels about the victim (after the card

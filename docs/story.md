@@ -37,7 +37,7 @@ Ids stay as they are (saves and seeds use them); only display names and bios cha
 | Elder heir (`elder-heir`) | Works at the company and expects to run it | Everything |
 | Younger heir (`younger-heir`) | Left to do something else | Everyone assumes they'll come back for the money |
 | Investor (`conjurer`, was the Conjurer) | Runs the fund that made the offer; came to close the deal in person | The deal, and whatever they know about the books |
-| Detective (`detective`) | A family friend, invited as a guest | Wants to solve it before you |
+| Detective (`detective`) | Once investigated the company; the Hostess's old friend, invited by the Hostess | The case that was dropped, and solving this one before you |
 | You (the Fool) | Knocked on the door in the storm with your dog, and they let you in | Nothing, which is why you can be trusted |
 
 ## The people (draft for the owner)
@@ -60,95 +60,148 @@ is a grievance and a motive.
 Built the company from one shop into a brand everyone knows. Generous, loud, used to being right.
 Runs the family like the company: decisions come down, not up. Has put off naming a successor for
 years; this weekend they finally have to.
-- Possible plots:
-  - Why decide now: bad news from a doctor, the company in trouble, or just tired?
-  - Has the decision already been made and written down?
-  - Is someone being set up to lose?
+- Versions (the card she meets them on):
+  - **Emperor (home)**
+    - Upright: Has already decided, and it is written down and sealed. Everyone wants to know what it says.
+    - Reversed: Has kept everyone waiting on purpose for years and enjoys being needed. The decision is a test, and someone is being set up to lose.
+  - **Hierophant**
+    - Upright: The company goes to family, as it always has. Will never sell, which infuriates everyone who wants the money.
+    - Reversed: Afraid the true founding story (whose recipe it was) gets out at the 50th, now the Investor wants it in the sale.
+  - **Hanged Man**
+    - Upright: Bad news from a doctor. Deciding now because there may not be much time.
+    - Reversed: The company is in trouble and the Host has hidden it. The sale is a rescue, not a choice.
 
 ### The Hostess: Empress (borrows Star, Lovers)
 Married to the Host for thirty years. Warm, funny, feeds everyone. The first recipe, the one that
 made the company, was theirs; the Host's name went on the box. Has never said this out loud in public.
-- Possible plots:
-  - Wants the credit at last.
-  - Wants the company sold so the family is free of it.
-  - An old flame (Lovers) who is closer to home than anyone thinks.
+- Versions (the card she meets them on):
+  - **Empress (home)**
+    - Upright: Wants the credit for the recipe at last, and plans to say so at the party.
+    - Reversed: Wants the company sold, so the family is free of it, and of the Host.
+  - **Star**
+    - Upright: Has a plan of their own: a shop under their own name, with their own recipes. Needs a share of the money.
+    - Reversed: Has quietly given up. This is the last weekend they will put up with.
+  - **Lovers**
+    - Upright: An old flame: the Uncle. The fight twenty years ago was partly about them.
+    - Reversed: Has privately promised support to both heirs, and can only keep one promise.
 
 ### The Fixer: Hierophant (borrows Emperor, High Priestess)
 Started on the factory floor at seventeen and worked up to the person who sorts out every problem
 the Host has. Calm, capable, knows how everything works. The family's kids grew up with them around
 and never decided whether they're staff or family.
-- Possible plots:
-  - The Host might hand them the company.
-  - They've covered up something big for the Host.
-  - They know a secret about every guest and have never used one.
+- Versions (the card she meets them on):
+  - **Hierophant (home)**
+    - Upright: The one everyone relies on. Knows how everything works, and the Host may pick them.
+    - Reversed: Makes problems go away. The case the Detective dropped years ago was one of them.
+  - **Emperor**
+    - Upright: Runs the place day to day, and has earned the top job.
+    - Reversed: Has made themselves impossible to replace: every password, every supplier, every key.
+  - **High Priestess**
+    - Upright: People confide in them. Knows a secret about every guest and has never told.
+    - Reversed: Has never used what they know, but makes sure people remember they could. Has just decided to stop covering for someone.
 
 ### The Investor: Magician (borrows Star, Devil)
 Runs the fund that made the offer. Charming, quick, very good at making people feel clever. Came in
 person to close the deal and brought expensive wine. Nobody knows how much they actually know about
 the company.
-- Possible plots:
-  - The offer is a bluff to buy cheap and close the factory.
-  - They've been talking privately to one of the family.
-  - They met someone here before, under another name.
+- Versions (the card she meets them on):
+  - **Magician (home)**
+    - Upright: Genuinely loves the brand and wants to make it huge. Has half the table convinced already.
+    - Reversed: The offer is a bluff: buy cheap, close the factory, keep the name.
+  - **Star**
+    - Upright: Grew up on these bars. The deal is personal, a childhood dream.
+    - Reversed: The fund is in trouble. This deal has to happen, or they are finished.
+  - **Devil**
+    - Upright: Has been talking privately to one of the family, promising them a role after the sale.
+    - Reversed: Met someone here before, under another name, and hopes it does not come up.
 
 ### The Housekeeper: High Priestess (borrows Hermit, Death)
 Has run the family house for longer than the kids have been alive. Quiet, dry, misses nothing.
 Treated as part of the furniture, which suits them. Sees what the family leaves lying around.
-- Possible plots:
-  - Knows who changed what in the Host's papers.
-  - Promised something in a will years ago.
-  - Has been quietly looking after the Uncle's interests all along.
+- Versions (the card she meets them on):
+  - **High Priestess (home)**
+    - Upright: Sees everything in the house, and knows who has been reading the Host's papers this year.
+    - Reversed: Reads what the family leaves lying around, and knows the Younger heir's secret.
+  - **Hermit**
+    - Upright: Has kept in touch with the Uncle all these years, and is quietly on the Uncle's side.
+    - Reversed: Was promised a home for life by the Host years ago. A sale would end it.
+  - **Death**
+    - Upright: Has handed in their notice for after the weekend. Nothing to lose.
+    - Reversed: Was left something in a will years ago, and is afraid it has been changed.
 
 ### The Accountant: Devil (borrows Emperor, Hanged Man)
 Keeps the company's books, and a few people's private ones. Precise, dry, a little too pleased to
 know what everyone is worth. Lends money on the side to people who can't ask their family.
-- Possible plots:
-  - The numbers don't add up and they know why.
-  - Half the table owes them.
-  - They lost money on a sure thing and covered it with company money.
+- Versions (the card she meets them on):
+  - **Devil (home)**
+    - Upright: Lends money on the side to people who cannot ask their families. Half the table owes them.
+    - Reversed: Made a handshake deal years ago with someone at this table. It falls due this year, and nobody wrote down the terms.
+  - **Emperor**
+    - Upright: Insists on opening the books properly before any sale. Nobody wants that.
+    - Reversed: Keeps two sets of books, and has the true one.
+  - **Hanged Man**
+    - Upright: Lost a lot on a sure thing, and is being very calm about it.
+    - Reversed: Covered the loss with company money. It all goes back, unless the sale checks find it first.
 
 ### The Uncle: Hermit (borrows Death, Hanged Man)
 The Host's brother-in-arms from the first shop, and family by marriage. Pushed out of the company
 twenty years ago after a fight nobody explains. Still owns shares, so still has a vote. Came back for
 the first time in years and keeps to the edges of the room.
-- Possible plots:
-  - Wants revenge, or wants peace.
-  - The fight was about the recipe.
-  - Their vote decides a sale.
+- Versions (the card she meets them on):
+  - **Hermit (home)**
+    - Upright: Came back to make peace with the Host before it is too late.
+    - Reversed: Has been alone so long they have stopped caring. Came to vote and leave.
+  - **Death**
+    - Upright: The fight was partly about the recipe: the Uncle wanted the Hostess's name on the box, and still does.
+    - Reversed: Wants revenge, and will vote for the sale just to see the Host lose the company.
+  - **Hanged Man**
+    - Upright: Took the blame for something the Host did, so the company could survive. That was part of the fight.
+    - Reversed: Has already promised their shares to the Investor and taken the money.
 
 ### The Elder heir: Chariot (borrows Emperor, Devil)
 The daughter. Works at the company and has been told for years it will be hers. Driven, impatient,
 better at the job than anyone and knows it. Has been "nearly ready" for eight years and is starting to
 think it was never about being ready. Has already made plans, and maybe promises, on the strength of it.
-- Possible plots:
-  - Has borrowed against an inheritance she doesn't have yet.
-  - Is quietly talking to the Investor in case it all goes wrong.
-  - Thinks the Fixer is in the way.
-  - Is tired of hearing her brother's name.
-- Her six versions, each aiming the bitterness somewhere:
-
-  | Card | Upright | Reversed |
-  |---|---|---|
-  | Chariot (home) | Will win it on merit; the Fixer is the rival to beat | Done waiting; ready to force the Host's hand |
-  | Emperor | Already runs it in all but name; the Host's delay is the insult | Bitter at the Hostess: "You of all people let this happen" |
-  | Devil | Quietly talking to the Investor: if they won't give it to her, she'll help sell it | Borrowed against an inheritance she may never get, and her brother is why |
+- Versions (the card she meets them on):
+  - **Chariot (home)**
+    - Upright: Will win it on merit. The Fixer is the rival to beat.
+    - Reversed: Done waiting, and ready to force the Host's hand.
+  - **Emperor**
+    - Upright: Already runs it in all but name, and the Host's delay is the insult.
+    - Reversed: Bitter at the Hostess: "You of all people let this happen."
+  - **Devil**
+    - Upright: Quietly talking to the Investor: if they won't give it to her, she'll help sell it.
+    - Reversed: Borrowed against an inheritance she may never get, and her brother is why.
 
 ### The Younger heir: Sun (borrows Lovers, Star)
 The son, and everyone's favourite. Left the company to do something of his own in the city and is
 happy there, or says so. Easy-going, funny, the one people tell things to at parties. Knows people
 assume he'll take over, and knows his sister hears it every time.
-- Possible plots:
-  - Has secretly been asked to take over instead.
-  - Is in love with someone the family would hate.
-  - Needs money for his own business, and the sale would give it.
+- Versions (the card she meets them on):
+  - **Sun (home)**
+    - Upright: Happy in the city, and truly does not want it. Nobody believes him.
+    - Reversed: Has been asked by the Host to take over instead of his sister, and has not told her.
+  - **Lovers**
+    - Upright: In love with someone the family would hate.
+    - Reversed: The Host made it a condition: the job, or the person. He has to choose.
+  - **Star**
+    - Upright: His own business needs money, and the sale would give it.
+    - Reversed: His business has failed and nobody knows. He came home broke.
 
 ### The Detective: Justice (borrows High Priestess, Hermit)
-A retired police detective and the Host's oldest friend. Fair, stubborn, a little smug. Treats you as
+A retired police detective who once investigated the company; the case was dropped. The Hostess's
+old friend, invited by the Hostess over the Host's objection. Fair, stubborn, a little smug. Treats you as
 a rival from the moment the body is found.
-- Possible plots:
-  - The Host invited them because something is wrong at the company.
-  - They once let something slide for the Host and have regretted it since.
-  - They're sure who did it, and sometimes they're wrong.
+- Versions (the card she meets them on):
+  - **Justice (home)**
+    - Upright: Investigated the company years ago. The case was dropped, and they want the truth at last.
+    - Reversed: Let something slide back then, for the Hostess's sake, and has regretted it since.
+  - **High Priestess**
+    - Upright: The Hostess invited them for a reason nobody has said yet: something is wrong, and the Hostess wants a witness.
+    - Reversed: Kept the old case file, and has been reading it again.
+  - **Hermit**
+    - Upright: Retired and lonely. It was the only invitation this year.
+    - Reversed: Decides who did it before anyone speaks. Often wrong, never admits it.
 
 ## How they fit together (draft for the owner)
 
@@ -167,8 +220,8 @@ Any guest can be the victim or the killer, and any seven are seated, so the back
   the Host's right hand ever since. The children grew up with them around.
 - **Twenty years ago** the Uncle was pushed out after a fight nobody will explain. The Uncle kept
   their shares. The Housekeeper is the only one who stayed in touch.
-- **The Detective** and the Host have been friends since school. The Detective retired from the police
-  last year.
+- **Years ago the Detective** investigated the company. The case was dropped. The Detective, now retired,
+  is the Hostess's old friend; the Hostess invited them to the 50th over the Host's objection.
 - **The Accountant** was brought in by the Host ten years ago, from outside the family.
 - **The Elder heir** joined the company straight from university and has been told it will be hers.
   **The Younger heir**, her brother, left after a row with the Host and built a life in the city.
@@ -178,7 +231,7 @@ Any guest can be the victim or the killer, and any seven are seated, so the back
 1. **Whose company is it, really?** The Hostess's recipe, the Uncle's shares, the Fixer's work, the
    heirs' birthright, the Host's name on the box.
 2. **Is it as healthy as it looks?** The Accountant's numbers, the Investor's offer, whatever the
-   Fixer has made go away, why the Host invited a retired detective.
+   Fixer has made go away, why the Hostess invited the detective who once investigated it.
 3. **Who will the Host pick?** Elder heir, Younger heir, the Fixer, or a sale. The Uncle's vote and the
    Hostess's opinion both count.
 
@@ -189,8 +242,8 @@ Fixed feelings, so talk and pair threads have something to lean on. Close (+), t
 
 | Guest | Close to | Tension with |
 |---|---|---|
-| Host | Detective, Fixer | Uncle, Hostess (the credit), Elder heir (the promise) |
-| Hostess | Housekeeper, Younger heir | Host (the credit); something old with the Uncle |
+| Host | Fixer, Younger heir | Uncle, Detective (the old case), Hostess (the credit), Elder heir (the promise) |
+| Hostess | Housekeeper, Younger heir, Detective | Host (the credit); something old with the Uncle |
 | Fixer | Host, Younger heir | Elder heir (the job), Accountant (both know the numbers) |
 | Investor | (courts) Uncle, Hostess | Accountant (wants the real numbers), Fixer (in the way) |
 | Housekeeper | Hostess, Uncle | Fixer (one knows the house, one the company) |
@@ -198,15 +251,23 @@ Fixed feelings, so talk and pair threads have something to lean on. Close (+), t
 | Uncle | Housekeeper; something old with the Hostess | Host |
 | Elder heir | Host (wants to be) | Fixer, Younger heir |
 | Younger heir | Fixer, Hostess | Elder heir; Host (the row) |
-| Detective | Host | Accountant; and you |
+| Detective | Hostess | Host (the old case), Accountant; and you |
 
-### Answers the versions can give (examples, not final)
-- Why the Uncle was pushed out: the recipe (Uncle wanted the Hostess's name on the box); money
-  (the Accountant's predecessor found something); the Hostess (the old flame).
-- Why the Host invited the Detective: money is missing; an anonymous letter; just an old friend.
-- Why the Younger heir left: refused to be the heir; the row was about the Fixer; the Host found out
-  about someone they loved.
-- What the Fixer made go away: a bad batch, a lawsuit, someone's debt.
+### Versions that touch each other (checked 2026-10-29)
+Any two guests' versions can be heard in the same case, so these were checked to fit together:
+- **The Uncle's fight** has three partial reasons: the recipe (Uncle, Death upright), taking the blame
+  for the Host (Uncle, Hanged Man upright) and the Hostess (Hostess, Lovers upright). Each says
+  "partly", so any two can be true at once.
+- **Someone in the family talking to the Investor** (Investor, Devil upright) is unnamed, so it fits the
+  Elder heir's Devil upright, the Uncle's promised shares, or nobody else's version at all.
+- **The company in trouble** (Host, Hanged Man reversed) fits the Accountant's two sets of books and the
+  Investor's struggling fund; none of them says the company is fine.
+- **The dropped case** (Detective) fits the Fixer making it go away and the Detective letting something
+  slide for the Hostess: both can be part of why it was dropped.
+- **Who the Host picks**: the sealed decision (Host), the son asked to take over (Younger heir) and the
+  Fixer's hopes are all rumours of a decision nobody has seen, so they never cancel out.
+- **Watch when writing lines**: the Housekeeper knowing "the Younger heir's secret" must stay vague, since
+  his secret differs by version.
 
 ## How motives use it
 
