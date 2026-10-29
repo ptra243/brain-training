@@ -50,6 +50,8 @@ Why the strong ones:
 - **Detective**: wary of the Host, whose company they once investigated; fond of the Hostess, the old friend who invited them. Wary of anyone who might know what happened back then.
 
 ### What it drives
+- **"About the others"**, the second talk topic (`docs/talk-threads.md`, "Two topics"): what a guest
+  says about each other seated guest comes from this grid, after the card shift.
 - **The reaction to the death**: picked by how the guest feels about the victim (after the card
   shift): F from a fond pool, · from a polite pool, W or R from a cold pool. Pools in `docs/story.md`;
   the polite pool is still to write.

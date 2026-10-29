@@ -85,7 +85,25 @@ Settled in the "Relationships between characters" session. Everything here is **
 one card thread per guest and loose lines. Content goes in `src/content/talk.ts` (never `Case` or `Content`), sets
 stay seeded from the campaign, the round and the guest id, so nothing depends on the killer (rule 5).
 
-### One chain per guest
+### Two topics, side by side (decided 2026-10-29; replaces the one chain below)
+She chooses what to ask about, in any order, instead of tapping through one chain:
+
+| Topic | What it covers | Source |
+|---|---|---|
+| **About you** | The guest's motive thread: guarded questioning, her line before each beat | Card version (`docs/story.md`, "How a thread reads") |
+| **About the others** | What they think of the other seated guests, a line or two each; pair threads join here when both guests are seated | Feelings grid (`docs/relationships.md`), after the card shift |
+| (no button) | How they feel about the victim | The reaction line under the greeting |
+
+- Both topics share one ready count from her finished games (`readyBeats`), so the pacing is unchanged.
+- "About the others" may point her at a version she has not heard ("Ask him about the old factory"):
+  hearsay only, never a clue, never where anyone was.
+- "About the others" lines are short pools per feeling (fond, fine, wary, resent) with the other guest's
+  name filled in, plus a few hand-written ones for strong pairs. Not 90 hand-written lines.
+- Order of work: finish the motive threads guest by guest, then write the "About the others" pools,
+  then build the two topics together. The victim threads below are replaced by the reaction line and
+  the motive's beat 3.
+
+### One chain per guest (superseded 2026-10-29)
 A guest's `thread` becomes an ordered chain, so `readyBeats` and the pips keep working unchanged:
 
 | Order | Thread | Beats | Source |
