@@ -146,6 +146,11 @@ will that would only be true because of who the killer is.
   - **Hanged Man**
     - Upright: Executor of every will in this family, paid from each estate, and badly needs the money after a sure thing went wrong.
     - Reversed: Covered a loss with money from the family's trust. The buyer's checks would find it.
+- **Card swap to make when refining** (owner, 2026-10-29): the Hanged Man was inherited from the old
+  Financier. Swap it for **Justice** (the law; shared with the Detective, two people who think they are
+  the law): `mayAlsoRoll` in `src/content/`, and check the Justice neutral lines and card threads still
+  fit a lawyer (they were written for the Detective alone). Talk sets are not in a `Case`, so cases stay
+  the same. The Hanged Man keeps the Host and the Uncle, like Lovers and Death with two holders each.
 - Links: the Elder heir's borrowing against her inheritance (the lawyer knows how much); the
   Housekeeper's fear that a will was changed (Emperor reversed); the Uncle's shares; the Hostess's prenup.
 
