@@ -37,17 +37,12 @@ Read docs/visual-theme.md "Milestone 1" Status. Ask me how her phone test at #sh
 
 ## Session: Theme content, land the lines
 Last touched: 2026-10-29
-Reads first: `docs/story.md` (frame, the people, how they fit, "Still to do"), `docs/relationships.md` (feelings grid), `docs/theme-draft.md` (Language rule).
-2026-10-29: story settled (the chocolate company's 50th; heir, the Fixer, or a sale to the Investor),
-with each guest's sketch, fixed history, and a feelings grid shaded by the card (owner to review).
-All 60 versions (guest x card x reading) are mapped, each with a real motive (money, exposure,
-protecting someone, revenge, freedom) and checked to fit together. Talk is plain modern English.
-The xlsx outlines and the Financier pilot are superseded by the versions in `docs/story.md`.
-Threads are guarded questioning: her line before each of three beats, the motive shown, never confessed. The Fixer's six are written ("Threads written"), not yet in the game.
-Goal: write the other guests' threads the same way; brief the implementer to add her per-beat lines to motive threads and swap in the written ones; then "Still to do" (renames, reaction line).
+Reads first: `docs/story.md` ("How a thread reads", the people and their versions, the Fixer under "Threads written"), `docs/talk-threads.md` ("Two topics").
+Done: the story (the chocolate company's 50th), all 60 versions with real motives, the feelings grid, and guarded threads with her line before each beat, built and in the game for the Fixer (`src/content/talk/motives.ts`).
+Next: the Accountant's six, which replace the old Financier pilot still in the game. Then the other guests, the "About the others" pools, and "Still to do" in `docs/story.md` (renames, reaction line).
 Starting prompt:
 ```
-Read docs/story.md ("How a thread reads", the Fixer under "Threads written"). Write the next guest's six threads the same way, giving feedback on each before I approve.
+Read docs/story.md ("How a thread reads", the Accountant's versions, the Fixer's threads as the model). Draft the Accountant's six threads with feedback on each; once I approve, replace the Financier pilot in motives.ts and docs/story.md.
 ```
 
 ## Session: Tarot card faces
