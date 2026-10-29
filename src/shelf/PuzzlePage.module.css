@@ -26,6 +26,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transform-origin: 0 0;
   background: #f4ecd8;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
@@ -60,7 +61,7 @@
 :global(body.shelf) .head {
   position: relative;
   flex: none;
-  height: calc(74px + env(safe-area-inset-top, 0px));
+  height: calc(80px + env(safe-area-inset-top, 0px));
   padding-top: env(safe-area-inset-top, 0px);
   z-index: 1;
   background: #f4ecd8;
@@ -90,7 +91,7 @@
   position: absolute;
   left: 66px;
   right: 92px;
-  top: calc(35px + env(safe-area-inset-top, 0px));
+  top: calc(39px + env(safe-area-inset-top, 0px));
   margin: 0;
   font-family: var(--display);
   font-weight: 600;
@@ -104,7 +105,7 @@
 :global(body.shelf) .solve {
   position: absolute;
   right: 14px;
-  top: calc(29px + env(safe-area-inset-top, 0px));
+  top: calc(35px + env(safe-area-inset-top, 0px));
   min-height: 44px;
   min-width: 72px;
   padding: 0 14px;
@@ -123,7 +124,7 @@
   left: 14px;
   top: 0;
   width: 44px;
-  height: calc(66px + env(safe-area-inset-top, 0px));
+  height: calc(72px + env(safe-area-inset-top, 0px));
   z-index: 3;
   display: grid;
   place-items: start center;
