@@ -67,7 +67,7 @@ test('Stick them in builds the case and page 3 lists the lifted puzzles', async 
   await openTin(page);
   const lifted = await stickers(page).evaluateAll((els) => els.filter((e) => e.getAttribute('aria-pressed') === 'true').map((e) => (e.getAttribute('aria-label') ?? '').split(',')[0]));
   await page.getByRole('button', { name: 'Stick them in' }).click();
-  await page.getByRole('button', { name: 'Find a clue' }).click();
+  // No opening: a tin case lands straight on the list.
   await expect(page.getByRole('heading', { name: 'Find a clue' })).toBeVisible();
   for (const name of lifted) await expect(page.getByRole('button', { name: new RegExp(`^${name}, `) })).toBeVisible();
   const saved = await page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? 'null'), `${PREFIX}picks`);

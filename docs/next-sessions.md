@@ -27,16 +27,16 @@ open questions go in a linked `docs/<slug>.md`, and the entry points to it. An e
 settled design may stay as a short stub; give it a doc when someone starts it.
 
 ## Session: Shelf UI, beside the current game
-Last touched: 2026-10-29 (Milestone 1 pieces 1–5 built: fonts, grid 44px, last settings, map plate, answer page, Jigsaw tab, look option; puzzle labels and the sticker tin built too, see "Puzzle labels and the sticker tin" Status)
+Last touched: 2026-10-29 (all open calls settled: everything kept as built, except that Stick them in now opens straight on the Find a clue list)
 Reads first: `docs/visual-theme.md` ("Milestone 1" and "Puzzle labels and the sticker tin", each with its Status), `CONTEXT.md`.
-Goal: finish Milestone 1: the owner judges the open calls in both Statuses (Play cases now show Grid and Jigsaw, decided 2026-10-29; the sticker drawer and the tin's calls still open), then she plays one real Quick case on her phone at `#shelf` (step 6). Fix what that turns up; then campaign (Screen plan step 8).
+Goal: finish Milestone 1: she plays one real Quick case on her phone at `#shelf` (step 6), from the bookcase to the answer. Fix what that turns up; then campaign (Screen plan step 8).
 Starting prompt:
 ```
-Read docs/visual-theme.md "Milestone 1" Status. Ask me how her phone test went and about the open calls listed there, then brief an implementer with the fixes. #shelf only.
+Read docs/visual-theme.md "Milestone 1" Status. Ask me how her phone test at #shelf went, then brief an implementer with the fixes. #shelf only.
 ```
 
 ## Session: Theme content, land the lines
-Last touched: 2026-10-26
+Last touched: 2026-10-29
 Reads first: `docs/motive-outlines.xlsx`, `docs/theme-threads.md` (Direction).
 Steps 1 to 3 are done. All 60 outlines are drafted in `docs/motive-outlines.xlsx`, and the Notes
 column marks each row keep or rework, with suggested rewrites. Pilot built: threads keyed by guest and
@@ -83,7 +83,7 @@ Read docs/confidant-arcs.md and the Guest pool and Confidants sections of docs/t
 ```
 
 ## Session: Summation ending, how it happened
-Last touched: 2026-10-27
+Last touched: 2026-10-29
 Reads first: `.claude/handoff/summation-ending.md` (the brief), `docs/story-layer.md` (the summation ending).
 Goal: after she solves a case (or the killer gets away), replay the night on the map, one guest at a time,
 citing the clue that proved each step. Fully generated from the solved case; no engine or case change.

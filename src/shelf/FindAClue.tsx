@@ -48,7 +48,7 @@ function Line({ row, caseRef, added, onPick }: { row: ClueRow; caseRef: string; 
  * Her moves are written to the shared Quick save (the Casebook sees them); a sample case never writes.
  * Tapping a line turns to that game's puzzle page.
  */
-export function FindAClue({ book, sample, onPuzzleOpen }: { book: QuickBook | null | false; sample?: SampleCase; onPuzzleOpen?: (open: boolean) => void }) {
+export function FindAClue({ book, sample, onPuzzleOpen, skipOpening }: { book: QuickBook | null | false; sample?: SampleCase; onPuzzleOpen?: (open: boolean) => void; skipOpening?: boolean }) {
   const loaded = book;
   const [hide, setHide] = useState(loadHideFinished);
   const [opened, setOpened] = useState<boolean | null>(null);
@@ -62,7 +62,8 @@ export function FindAClue({ book, sample, onPuzzleOpen }: { book: QuickBook | nu
   if (loaded === null) return <p className={styles.lede}>Opening the case…</p>;
   if (loaded === false) return <p className={styles.lede}>There is no case saved on this shelf yet.</p>;
   const { c, ref, progress, dispatch } = loaded;
-  const seen = opened ?? sample?.seen ?? openingSeen(ref);
+  // A case from the sticker tin opens straight on the list: she has just picked its puzzles.
+  const seen = opened ?? sample?.seen ?? (skipOpening || openingSeen(ref));
 
   if (!seen) {
     return (

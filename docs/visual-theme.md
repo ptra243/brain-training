@@ -289,7 +289,7 @@ shelf chunk and precached. New case repeats her last Quick settings (`planNewCas
 reuses `MapPanel` (one optional `onSubject` prop) and drops accusing from the map on the shelf. The
 Answer page prints the room (accusations are who + weapon) and ends with "Back to the shelf". The
 Jigsaw tab runs `EndBoardPanel` unchanged inside the notebook. The look is `src/game/look.ts`
-(`brain-training-look` key), the sheet `OptionsSheet.tsx`. For the owner to judge:
+(`brain-training-look` key), the sheet `OptionsSheet.tsx`. Settled as built (owner, 2026-10-29):
 - **Play cases show Grid and Jigsaw** (owner, 2026-10-29, after testing Milestone 1; was Grid only),
   as the classic Casebook does. One rule, `hasJigsaw` in
   `src/shelf/notebook.ts`.
@@ -426,12 +426,14 @@ Each needs a look check at 360 × 780.
 **Status (2026-10-29):** all three steps are built and look-checked at 360 × 780 (`#dev/shelf-labels`,
 `shelf-find-a-clue`, `shelf-tin`). Drawings are in `src/game/games/labelArt.tsx` (Case board, Tarot
 and Nosing taken from `Tin.dc.html`); hints come from `gameHints` in `src/game/runRecord.ts` (the
-counter `hintTotal` already read), not a new registry reader. For the owner to judge:
+counter `hintTotal` already read), not a new registry reader. Settled (owner, 2026-10-29), all as
+built except that Stick them in now skips the opening:
 - **A won game with no clues** (the word games of a hard Quick start share one scene clue) reads
   "No new clues", or "The cat solved it · no new clues".
 - **The locked finale** reads "Opens when every other page is done" under its story.
-- **Stick them in opens the book on its opening**, as the New case book does, so page 3 comes after
-  "Find a clue". "The cat picked these puzzles instead." lasts the session only.
+- **Stick them in opens the book straight on page 3** (the list), skipping the opening, since she
+  has just picked its puzzles (`skipOpening` on `FindAClue`). The opening is not marked seen, so
+  the Quick book shows it once later. "The cat picked these puzzles instead." lasts the session only.
 - **While the tin shakes** the stars go blank and the case line reads "Logic · · ·"; stickers jostle
   by angle only. As the tin comes down, the "Lift 3 to 7" line briefly crosses the lid.
 

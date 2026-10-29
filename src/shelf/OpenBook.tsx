@@ -167,7 +167,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                   ) : tone === 'fresh' && book === false ? (
                     <p className={styles.lede}>{pick ? "The cat couldn't make a case. Try again later." : "That case wouldn't deal. Go back and try again."}</p>
                   ) : (
-                    <FindAClue book={book} sample={sample} onPuzzleOpen={setPuzzleOpen} />
+                    <FindAClue book={book} sample={sample} onPuzzleOpen={setPuzzleOpen} skipOpening={!!pick} />
                   )}
                 </section>
                 {SECTIONS.slice(1).map((name) => (
