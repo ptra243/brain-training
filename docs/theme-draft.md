@@ -4,6 +4,8 @@ Status: draft, nothing built. Decided in a design chat; the cast and lines below
 Related: `docs/tell-me-again.md` (the minigame that uses the tangent lines).
 
 ## Premise
+Superseded in part by `docs/story.md` (2026-10-29): the weekend is the family chocolate company's 50th, and
+the Host announces at breakfast whether it goes to an heir or is sold. Each guest's reason to be there is there.
 A dinner party at a large estate. Time period agnostic: no phones, modern slang, dates or named events.
 The murder happens after dinner. Everyone is staying over because of the weather, so nobody came or went:
 one of the guests did it. After dinner the guests drift into different rooms, holding different things.
@@ -50,6 +52,12 @@ The Fool, the unnumbered tarot card: the innocent wanderer with a little dog. Th
 
 Marking: **N** = role-neutral (any suspect rolling this card may use it), **B** = role-bound (home suspect only).
 Six lines per card per reading. Tone (decided 2026-10-22): funnier. Cosy-mystery comedy with dry asides; still never lying, never naming a card.
+Language (decided 2026-10-29): plain, modern English that reads easily on a phone. The setting stays a manor dinner,
+but the guests talk like people today: "I'm not going to", not "I shan't"; "owe", not "falls due"; no "splendid",
+"dreadful", "one's", "I'd not". Short sentences, everyday words. Older lines are being reworded to match
+(`docs/story.md`, "Still to do").
+Reactions to the death are said minutes after the body is found: nothing that needs time to have passed
+("it's all anyone talks about", "everyone's saying", "since").
 
 ### Guest pool: 10 guests, 7 seated
 Decided 2026-10-21. The pool is 10 guests with unique home cards; each case seats 7.
