@@ -179,7 +179,7 @@ happy there, or says so. Easy-going, funny, the one people tell things to at par
 assume he'll take over, and knows his sister hears it every time.
 - Versions (the card she meets them on):
   - **Sun (home)**
-    - Upright: Happy in the city, and truly does not want it. Nobody believes him.
+    - Upright: Happy in the city, and truly does not want the company. But he would do anything for the people he loves, and the victim had been making one of them miserable for years.
     - Reversed: Has been asked by the Host to take over instead of his sister, and has not told her.
   - **Lovers**
     - Upright: In love with someone the family would hate.
@@ -210,7 +210,9 @@ Any guest can be the victim or the killer, and any seven are seated, so the back
 - **Fixed history**: true in every case, whoever is seated or dead. Nobody's version ever contradicts it.
 - **Rolled secrets**: each guest's six versions (3 cards x upright/reversed) are six answers to the
   questions below. Only the version she hears is true in that case. Two versions that can be heard in
-  the same case must not contradict each other.
+  the same case must not contradict each other. **Every version answers "why might they have done it?"**
+  The reason can be sympathetic (protecting someone, cornered, a lot to lose), but it has to be there,
+  because the killer is drawn separately and any version may turn out guilty.
 
 ### Fixed history
 - **Fifty years ago** the Host and the Uncle opened one small shop. The bar that made it famous was
