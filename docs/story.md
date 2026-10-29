@@ -12,6 +12,11 @@ goes to one of the heirs or is sold to the Investor, whose fund has made an offe
 The Investor is one of the 10 guests (the Conjurer's slot and Magician card: the pitch and the charm),
 so they can be a suspect or the victim. If the Investor dies, the offer dies with them.
 
+The Fixer (the Butler's slot and Hierophant card: knows how things are done here, and keeps quiet
+about it) is the third way it could go: the Host might hand the company to them instead of the family.
+So the decision has four outcomes, each with people for and against it: the elder heir, the younger
+heir, the Fixer, or a sale to the Investor.
+
 A storm cuts the road, so nobody comes or goes. After dinner someone is killed. One of the guests did it.
 
 It works whoever dies. If the Host is the victim, the decision never gets made, and that hangs over
@@ -25,7 +30,7 @@ Ids stay as they are (saves and seeds use them); only display names and bios cha
 |---|---|---|
 | Host (`host`) | Founded the company and called the weekend | The decision |
 | Hostess (`hostess`) | Helped build the company and never got the credit | Wasn't asked |
-| Assistant (`butler`, was the Butler) | The Host's assistant for twenty years; knows everyone's diary and secrets | A job, if it's sold |
+| Fixer (`butler`, was the Butler) | The outsider who worked their way up: started on the factory floor, now sorts out every problem the Host has, quietly | The Host might pick them over the heirs, and the heirs know it |
 | Housekeeper (`housekeeper`) | Runs the family house | Hears everything said in it |
 | Accountant (`financier`, was the Financier) | Keeps the company's books | Knows what it is really worth |
 | Uncle (`uncle`) | Co-founded it and was pushed out years ago; still owns shares | An old grudge, and a vote |
