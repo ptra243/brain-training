@@ -134,8 +134,8 @@ export interface TalkContent {
   greetings: GreetingPools;
   /** A line said only by that guest, and only when they borrow that card in that reading. */
   borrowed: { suspect: string; card: string; reversed: boolean; line: string }[];
-  /** A thread said only by that guest on that card and reading; replaces the rolled thread. `{victim}` is filled in when shown. */
-  motives: readonly { suspect: string; card: string; reversed: boolean; thread: readonly string[] }[];
+  /** A thread said only by that guest on that card and reading; replaces the rolled thread. `{victim}` is filled in when shown. `asks` (same length as `thread`) are her lines before each beat. */
+  motives: readonly { suspect: string; card: string; reversed: boolean; thread: readonly string[]; asks?: readonly string[] }[];
 }
 
 // ---------- Generated per case ----------

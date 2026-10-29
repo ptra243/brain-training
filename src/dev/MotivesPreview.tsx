@@ -62,14 +62,14 @@ export function MotivesPreview() {
   const cards = [homeOf(s.guest), ...talk.suspects[s.guest].mayAlsoRoll];
   const reading = talk.cards[s.card][s.reversed ? 'reversed' : 'upright'];
   const motive = talk.motives.find((e) => e.suspect === s.guest && e.card === s.card && e.reversed === s.reversed);
-  const threads: { key: string; label: string; beats: readonly string[] }[] = [
-    ...(motive ? [{ key: 'motive', label: 'Motive thread', beats: motive.thread }] : []),
+  const threads: { key: string; label: string; beats: readonly string[]; asks?: readonly string[] }[] = [
+    ...(motive ? [{ key: 'motive', label: 'Motive thread', beats: motive.thread, asks: motive.asks }] : []),
     ...reading.threads.map((beats, i) => ({ key: `card-${i}`, label: `Card thread ${i + 1}`, beats })),
   ];
   const chosen = threads.find((t) => t.key === s.thread) ?? threads[0];
   const beats = chosen.beats;
   const ready = s.solved ? beats.length : Math.min(beats.length, 1 + s.games);
-  const set = { mood: s.mood, greetings: greetingsFor(talk, 'dev-motives', s.guest), thread: [...beats] };
+  const set = { mood: s.mood, greetings: greetingsFor(talk, 'dev-motives', s.guest), thread: [...beats], asks: chosen.asks ?? null };
   const patch = (p: Partial<State>) => setS({ ...s, ...p });
 
   return (

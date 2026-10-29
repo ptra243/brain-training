@@ -77,6 +77,7 @@ function spoken(): Said[] {
   }
   talk.borrowed.forEach((e, i) => add(e.line, `borrowed ${e.suspect} ${e.card} ${e.reversed} ${i}`));
   talk.motives.forEach((e, i) => e.thread.forEach((text, bi) => add(text, `motive ${e.suspect} ${e.card} ${e.reversed} ${i}.${bi}`)));
+  talk.motives.forEach((e, i) => e.asks?.forEach((text, bi) => add(text, `motive ask ${e.suspect} ${e.card} ${e.reversed} ${i}.${bi}`)));
   for (const [pool, lines] of Object.entries(faceLines)) lines.forEach((text, i) => add(text, `face ${pool} ${i}`));
   for (const [key, lines] of Object.entries(victimLines)) lines.forEach((text, i) => add(text, `victim ${key} ${i}`));
   const walk = (value: unknown, where: string) => {
@@ -161,6 +162,7 @@ test('motive threads are for a card the guest can roll, 2 to 3 beats, one per gu
     assert.ok(me, e.suspect);
     assert.ok(e.card === me.card || me.mayAlsoRoll.includes(e.card), `${e.suspect} ${e.card}`);
     assert.ok(e.thread.length >= 2 && e.thread.length <= 3, `${e.suspect} ${e.card}`);
+    if (e.asks) assert.equal(e.asks.length, e.thread.length, `${e.suspect} ${e.card} asks`);
     const key = `${e.suspect}|${e.card}|${e.reversed}`;
     assert.equal(seen.has(key), false, key);
     seen.add(key);

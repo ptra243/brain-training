@@ -41,7 +41,7 @@ export function TalkSection({ c, progress, dispatch, suspect, onQuestion, idleLi
 }
 
 interface ViewProps {
-  set: Pick<CharacterSet, 'mood' | 'greetings' | 'thread'>;
+  set: Pick<CharacterSet, 'mood' | 'greetings' | 'thread'> & { asks?: readonly string[] | null };
   heard: number;
   ready: number;
   victimName: string;
@@ -55,6 +55,7 @@ interface ViewProps {
 /** The talk panel from plain props (the dev preview drives it by hand). */
 export function TalkView({ set, heard, ready, victimName, onHear, soFar = [], idleLine, onQuestion }: ViewProps) {
   const more = heard < set.thread.length;
+  const asks = set.asks && set.asks.length === set.thread.length ? set.asks : null;
   return (
     <section className="talk" aria-labelledby="talk-title">
       <h3 id="talk-title">Talk</h3>
@@ -71,14 +72,21 @@ export function TalkView({ set, heard, ready, victimName, onHear, soFar = [], id
       </div>
       {heard > 0 && (
         <ol className="talk-log">
-          {set.thread.slice(0, heard).map((beat) => (
-            <li key={beat}>{beatText(beat, victimName)}</li>
+          {set.thread.slice(0, heard).map((beat, i) => (
+            <li key={beat}>
+              {asks && (
+                <em className="muted" style={{ display: 'block', marginBottom: 4 }} data-testid="talk-ask">
+                  You: {beatText(asks[i], victimName)}
+                </em>
+              )}
+              {beatText(beat, victimName)}
+            </li>
           ))}
         </ol>
       )}
       {more && ready > heard && (
         <button className="secondary" onClick={onHear}>
-          {heard === 0 ? 'Tell me about yourself' : 'Go on…'}
+          {asks ? beatText(asks[heard], victimName) : heard === 0 ? 'Tell me about yourself' : 'Go on…'}
         </button>
       )}
       {(!more || ready <= heard) && (idleLine ?? (more ? 'Nothing more to say yet.' : '')) && (

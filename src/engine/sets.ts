@@ -28,6 +28,8 @@ export interface CharacterSet {
   lines: string[];
   /** Follow-up beats, in order (2 or 3). */
   thread: string[];
+  /** Her line before each beat (same length as `thread`), or null when the thread has none. */
+  asks: string[] | null;
   /** Two cold lines, then one warm line. Rolled per guest, off the sets stream, and not put in `usedLines`. */
   greetings: GreetingLadder;
 }
@@ -114,6 +116,7 @@ export function characterSets(content: TalkContent, seed: string, suspects: read
     // The draw above still happens, so every other guest's rolls stay the same.
     const motive = content.motives.find((e) => e.suspect === id && e.card === source && e.reversed === reversed);
     if (motive) thread = [...motive.thread];
+    const asks = motive?.asks ? [...motive.asks] : null;
 
     // Loose lines: neutral from the cards in use, bound from the home card only.
     const neutralPool = [...new Set([...readingOf(me.card, reversed).lines.neutral, ...readingOf(source, reversed).lines.neutral])];
@@ -148,6 +151,7 @@ export function characterSets(content: TalkContent, seed: string, suspects: read
       cold: reversed,
       lines,
       thread,
+      asks,
       greetings: rollGreetings(id),
     };
   }

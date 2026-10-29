@@ -332,50 +332,50 @@ Guarded questioning, her line before each beat (see "How a thread reads"). Settl
 **Hierophant upright (the orchard)**
 - **You:** You've been here longer than most of the family.
 - **Fixer:** Thirty years. I started on the wrapping line at seventeen. These days I look after the suppliers, which mostly means one hazelnut orchard. Every bar we've ever made has their nuts in it.
-- **You:** I found the orchard's contract. The company pays them nearly double what anyone else would. And the grower's surname is your wife's maiden name.
-- **Fixer:** We met at my first harvest. I've gone back every autumn since. Yes, we pay them well. Their nuts are why the bar tastes the way it does, and nobody complained while it sold.
-- **You:** {victim} complained, didn't they?
-- **Fixer:** {victim} called it a conflict of interest, found cheaper nuts and wanted the orchard dropped by Christmas. It would have finished my wife's family. I said so. Loudly.
+- **You:** I overheard someone say the company pays your wife's family double for those nuts.
+- **Fixer:** Whoever said it is right. I met my wife at my first harvest, and I've gone back every autumn since. We pay well because their nuts are why the bar tastes the way it does. The buyer's people have already said they'll switch to cheaper ones.
+- **You:** And now {victim} is dead.
+- **Fixer:** {victim} is dead, and nobody's selling anything this weekend. Every month the sale waits is another harvest for my wife's family. I know exactly how that sounds.
 
-**Hierophant reversed (the dropped police case)**
+**Hierophant reversed (makes problems go away)**
 - **You:** Everyone says you're the one who makes problems go away.
 - **Fixer:** That's a nice way of putting it. Someone has a problem, they bring it to me, and after a while they don't have it any more. It's mostly paperwork. Most things are.
-- **You:** I found a letter from the police, twelve years old, closing an investigation into the company's books after a week.
-- **Fixer:** I remember it. The boss rang me the night it started. I spent a week making sure there was nothing for them to find, and there wasn't. Nobody asked how. That's the job.
-- **You:** {victim} asked, though.
-- **Fixer:** {victim} asked how. At the last board meeting, in front of everyone, with the buyer's people in the room. Nobody answered. I could feel the whole table deciding whose fault it was going to be.
+- **You:** Someone told me the police looked into the company's books once, and the case vanished in a week.
+- **Fixer:** It didn't vanish. The boss rang me the night it started, and I spent a week making sure there was nothing to find. There wasn't. Nobody has asked me how since. That's the job.
+- **You:** {victim} is dead. Was that one of your problems?
+- **Fixer:** If {victim} had become a problem for this family, everyone at this table knows who'd have been asked to deal with it. I'm aware of that. So is everyone else.
 
-**Emperor upright (earned the top job)**
+**Emperor upright (the top job)**
 - **You:** Who actually runs this company?
 - **Fixer:** The boss's name is on the box. I just make sure there's something in it. Suppliers, staff, the machines, the bank. If it breaks, I fix it.
-- **You:** I read the minutes from the year hazelnut prices doubled. The plan that saved the company was yours, but the boss presented it.
-- **Fixer:** It usually is mine. The boss took the applause at the Christmas party, and I clapped along. I'm good at clapping. But thirty years is a long time to clap.
-- **You:** {victim} didn't think you should get the top job.
-- **Fixer:** {victim} told me to my face that it would never go to staff, not while there was family to give it to. I'd hoped the boss saw it differently. I still don't know.
+- **You:** I noticed the boss checks with you before answering anything about the company.
+- **Fixer:** Thirty years will do that. When hazelnut prices doubled, the plan that saved us was mine. The boss presented it and took the applause at the Christmas party. I clapped along. I'm good at clapping.
+- **You:** {victim} is dead. Does that change who gets the top job?
+- **Fixer:** Any death in this family moves the pieces around. Fewer voices at the table, and the boss with more on their mind than tradition. I'd be a fool not to see who that might help.
 
 **Emperor reversed (impossible to replace)**
 - **You:** What happens to this place without you?
 - **Fixer:** Five years ago the boss tried to find out. Brought in a new manager, very clever, lovely suit. Lasted six weeks.
-- **You:** I noticed nobody else can open the safe or log into the supplier accounts. Only you.
+- **You:** Nobody else seems to know the supplier passwords, or how the safe opens. Only you.
 - **Fixer:** Not on purpose. Nobody else ever bothered to learn. The boss's kids? One left, and the other has spent eight years being "nearly ready". Someone has to hold the keys.
-- **You:** {victim} wanted you out.
-- **Fixer:** {victim} wanted me gone by the end of the year, and every password written down first. I hadn't started writing. Funny how that sounds now.
+- **You:** {victim} is dead. Does that change anything for you?
+- **Fixer:** There was talk of replacing me once the sale went through. A death puts every plan on hold, that one included. Funny how things work out.
 
 **High Priestess upright (the fire)**
 - **You:** You don't seem surprised by much.
 - **Fixer:** Twenty years here does that. I've seen this company nearly go under twice. The second time, the old factory burned down and the insurance paid for the new one. Lucky, everyone said.
 - **You:** I've been going through the old files. Every form from the year of the fire has your signature on it. Only yours.
 - **Fixer:** I was twenty-two, and proud to be trusted with it. The delivery notes, the night log, the insurance claim. Nobody asked me to sign anything else that year. I've only lately wondered why.
-- **You:** {victim} had seen those files too, hadn't they?
-- **Fixer:** {victim} said the buyer's lawyers would find them, and that nobody else's name would be on them. I'd be the one in court. You can see why I wasn't keen on this sale.
+- **You:** {victim} is dead, and there's a sale on the table.
+- **Fixer:** The buyer's lawyers were going to start on the old files next week. With a death in the house, nobody's buying anything for a while, and those files stay in their boxes. I can see what that looks like.
 
 **High Priestess reversed (the pollution)**
 - **You:** Does anyone here have a reason to be scared of you?
 - **Fixer:** Scared is a strong word. Careful, maybe. I've been here a long time, and I read everything that crosses my desk. People forget that.
-- **You:** I found copies of the factory's waste reports, with your initials on every one. The river below the factory has been dead for ten years.
-- **Fixer:** I never reported it. I just mentioned once to the boss that I'd kept copies. My job has been very safe since. You'd be amazed how patient people become.
-- **You:** {victim} had found them too.
-- **Fixer:** {victim} had found them, and had a reporter's number. That would have finished the factory, the sale, and me. I'm not the only one at this table who'd have lost everything.
+- **You:** Someone said you keep copies of everything. Including the factory's waste reports.
+- **Fixer:** Then someone has been in my desk. Yes. The river below the factory has been dead for ten years. I never reported it. I mentioned once to the boss that I'd kept copies, and my job has been very safe since.
+- **You:** {victim} is dead. What happens to your copies now?
+- **Fixer:** There are two kinds of people at this table: the ones who'd pay to keep those reports quiet, and the ones who'd love them in a newspaper. {victim} was one or the other. Either way, my copies are worth more now.
 
 ## Still to do
 

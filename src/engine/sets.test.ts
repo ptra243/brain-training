@@ -123,13 +123,31 @@ test('a motive thread replaces the rolled one for that guest, card and reading o
       if (motive) {
         hits++;
         assert.deepEqual(set.thread, motive.thread, `${seed} ${s}`);
-        assert.deepEqual({ ...set, thread: [] }, { ...plain[s], thread: [] }, `${seed} ${s}`);
+        assert.deepEqual({ ...set, thread: [], asks: null }, { ...plain[s], thread: [], asks: null }, `${seed} ${s}`);
+        assert.deepEqual(set.asks, motive.asks ?? null, `${seed} ${s} asks`);
+        assert.equal(plain[s].asks, null);
       } else {
         assert.deepEqual(set, plain[s], `${seed} ${s}`);
       }
     }
   }
   assert.ok(hits > 0, 'no seed hit a motive');
+});
+
+test('only guests on a motive with asks carry asks, one per beat', () => {
+  let withAsks = 0;
+  for (const seed of seeds) {
+    const sets = characterSets(talk, seed, everyone);
+    for (const s of everyone) {
+      const set = sets[s];
+      if (set.asks) {
+        withAsks++;
+        assert.equal(set.asks.length, set.thread.length, `${seed} ${s}`);
+        assert.equal(s, 'butler');
+      }
+    }
+  }
+  assert.ok(withAsks > 0, 'no seed gave asks');
 });
 
 test('object-thread beats never appear in lines or thread', () => {
