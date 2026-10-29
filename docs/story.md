@@ -45,7 +45,16 @@ Ids stay as they are (saves and seeds use them); only display names and bios cha
 Who each guest is, before working out how they fit together (`docs/relationships.md` predates this
 cast and gets redone from here). Cards are listed because they decide which version of the guest she
 meets: home card, then the two borrowed ones; upright is the lighter side, reversed the darker.
-Guests are never given a gender in lines.
+Gender (decided 2026-10-29): the Elder heir is the daughter and the Younger heir the son; the Host,
+Hostess and Uncle are gendered by their titles. Everyone else is never given a gender. Lines shared
+by a card (neutral lines, card threads) never use he or she, because they must fit every guest who rolls
+that card. A guest's own lines (motive threads, bound and borrowed lines, bio) may.
+
+**The heirs and the old prejudice.** She is the better at the job and has been "nearly ready" for
+years; he left and wants none of it, yet half the table quietly assumes the son will come back and take
+over. It stays in the background: a backhanded remark in someone's own lines ("In my day the eldest son
+took over. Times change, I'm told."), never the narrator, and the game never agrees with it. For her it
+is a grievance and a motive.
 
 ### The Host: Emperor (borrows Hierophant, Hanged Man)
 Built the company from one shop into a brand everyone knows. Generous, loud, used to being right.
@@ -93,14 +102,16 @@ the first time in years and keeps to the edges of the room.
 - Plots: wants revenge, or wants peace; the fight was about the recipe; their vote decides a sale.
 
 ### The Elder heir: Chariot (borrows Emperor, Devil)
-Works at the company and has been told for years it will be theirs. Driven, impatient, good at the
-job and knows it. Has already made plans, and maybe promises, on the strength of it.
-- Plots: has borrowed against an inheritance they don't have yet; is quietly talking to the Investor
-  in case it all goes wrong; thinks the Fixer is in the way.
+The daughter. Works at the company and has been told for years it will be hers. Driven, impatient,
+better at the job than anyone and knows it. Has been "nearly ready" for eight years and is starting to
+think it was never about being ready. Has already made plans, and maybe promises, on the strength of it.
+- Plots: has borrowed against an inheritance she doesn't have yet; is quietly talking to the Investor
+  in case it all goes wrong; thinks the Fixer is in the way; is tired of hearing her brother's name.
 
 ### The Younger heir: Sun (borrows Lovers, Star)
-Everyone's favourite. Left the company to do something of their own in the city and is happy there,
-or says so. Easy-going, funny, the one people tell things to at parties.
+The son, and everyone's favourite. Left the company to do something of his own in the city and is
+happy there, or says so. Easy-going, funny, the one people tell things to at parties. Knows people
+assume he'll take over, and knows his sister hears it every time.
 - Plots: has secretly been asked to take over instead; is in love with someone the family would hate;
   needs money for their own business and the sale would give it.
 
@@ -130,8 +141,8 @@ Any guest can be the victim or the killer, and any seven are seated, so the back
 - **The Detective** and the Host have been friends since school. The Detective retired from the police
   last year.
 - **The Accountant** was brought in by the Host ten years ago, from outside the family.
-- **The Elder heir** joined the company straight from university and has been told it will be theirs.
-  **The Younger heir** left after a row with the Host and built a life in the city.
+- **The Elder heir** joined the company straight from university and has been told it will be hers.
+  **The Younger heir**, her brother, left after a row with the Host and built a life in the city.
 - **This spring** the Investor's fund made an offer. The Host called the weekend to give the answer.
 
 ### Three questions everyone has an answer to
