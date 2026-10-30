@@ -86,10 +86,12 @@ export function SudokuGame({
   const hintUnit = new Set(reason?.kind === 'only-place' ? reason.cells : []);
   const sel = selected ?? -1;
   const selDigit = sel >= 0 ? data.grid[sel] : 0;
-  const sameUnit = (i: number) => {
-    if (sel < 0) return false;
+  // The selected square's box, then its row and column outside the box: the box is shaded deeper, so it reads as one block.
+  const unitOf = (i: number): 'box' | 'line' | null => {
+    if (sel < 0) return null;
     const [r, c, sr, sc] = [Math.floor(i / size), i % size, Math.floor(sel / size), sel % size];
-    return r === sr || c === sc || (Math.floor(r / boxRows) === Math.floor(sr / boxRows) && Math.floor(c / boxCols) === Math.floor(sc / boxCols));
+    if (Math.floor(r / boxRows) === Math.floor(sr / boxRows) && Math.floor(c / boxCols) === Math.floor(sc / boxCols)) return 'box';
+    return r === sr || c === sc ? 'line' : null;
   };
 
   const commit = (grid: number[], extra: Partial<SudokuData> = {}) => {
@@ -171,7 +173,7 @@ export function SudokuGame({
           const classes = [
             styles.cell,
             givens[i] && styles.given,
-            i === sel ? styles.selected : sameUnit(i) && styles.peer,
+            i === sel ? styles.selected : unitOf(i) === 'box' ? styles.peerBox : unitOf(i) === 'line' && styles.peer,
             d && d === selDigit && i !== sel && styles.same,
             bad.has(i) && !givens[i] && styles.clash,
             tags.has(i) && styles.tagged,

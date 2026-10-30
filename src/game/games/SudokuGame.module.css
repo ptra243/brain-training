@@ -6,6 +6,7 @@
 .grid.size9 .cell { font-size: 1.15rem; }
 .cell.given { color: var(--ink); font-family: var(--serif); font-weight: 700; }
 .cell.peer { background: #ebe5d3; }
+.cell.peerBox { background: #ddd2b4; }
 .cell.same { background: #e5d6a6; }
 /* The row, column or box a hint is about, and the square the cat sits on. */
 .cell.hintUnit { background: #f2d785; }
