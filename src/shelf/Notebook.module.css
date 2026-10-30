@@ -335,9 +335,24 @@
   color: #9a7425;
 }
 
-:global(body.shelf) .hintBar {
-  display: flex;
-  justify-content: flex-end;
+/* A weapon's line icon in a round brass-edged badge, the size of a guest's counter. */
+:global(body.shelf) .badge {
+  flex: none;
+  box-sizing: border-box;
+  width: 35px;
+  height: 35px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 3px solid #d2a548;
+  background: #f8f1df;
+  box-shadow: 0 2px 0 #9a7425;
+  color: var(--ink-n);
+}
+:global(body.shelf) .badge :global(.item-icon) {
+  display: block;
+  width: 20px;
+  height: 20px;
 }
 :global(body.shelf) .grid {
   /* Use the paper's full width, starting on a paper line. */
@@ -357,6 +372,31 @@
   box-sizing: border-box;
   width: calc(100vw - 4 * var(--square));
   max-width: 100%;
+}
+
+/* Instructions with the Hint button to their right, then the cat's note; same sticky width as above. */
+:global(body.shelf) .grid :global(.grid-head) {
+  position: sticky;
+  left: var(--square);
+  box-sizing: border-box;
+  width: calc(100vw - 4 * var(--square));
+  max-width: 100%;
+  display: grid;
+  gap: 8px;
+}
+:global(body.shelf) .grid :global(.hint-row) {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+:global(body.shelf) .grid :global(.grid-head .hint) {
+  position: static;
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+:global(body.shelf) .grid :global(.hint-row .hint-button) {
+  flex: none;
 }
 
 /* Drawn straight on the squared paper: no card behind it, and every cell is three by three squares. */

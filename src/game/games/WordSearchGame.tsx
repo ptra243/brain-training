@@ -4,6 +4,7 @@ import { TypingInput } from './TypingInput.tsx';
 import { focusTyping } from './typing.ts';
 import type { WordSearchData } from './saveData.ts';
 import type { GameProps } from './types.ts';
+import { listedWords } from './wordSearchUi.ts';
 import styles from './WordSearchGame.module.css';
 
 const same = (a: Pos | null, b: Pos | null) => !!a && !!b && a[0] === b[0] && a[1] === b[1];
@@ -135,7 +136,7 @@ export function WordSearchGame({ puzzle, data, finished, onChange, onFinish }: G
         {finished ? `The leftover letters spell ${answer}.` : message || `Found ${found.size} of ${words.length}.`}
       </p>
       <ul className={styles.words}>
-        {words.map((w) => (
+        {listedWords(puzzle).map((w) => (
           <li key={w.word} className={found.has(w.word) ? styles.found : ''}>
             {w.word}
           </li>

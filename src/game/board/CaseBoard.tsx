@@ -331,7 +331,7 @@ export function CaseBoard(props: CaseBoardProps) {
   // ---------- Pieces ----------
   function square(pid: string, i: number, opts: { draggable: boolean; flat: boolean; shape?: boolean }) {
     const p = rules.piece[pid];
-    const cls = p.kind === 'guest' ? `cb-gp-${guestIdx(p.who as string) % 7}` : p.kind === 'weapon' ? `weapon cb-wp-${weaponIdx(p.who as string) % 6}` : p.kind;
+    const cls = p.kind === 'guest' ? `cb-gp-${guestIdx(p.who as string) % 7}` : p.kind === 'weapon' ? `cb-weapon cb-wp-${weaponIdx(p.who as string) % 6}` : p.kind;
     const bg = p.kind === 'guest' || p.kind === 'weapon' ? { backgroundColor: colourOf(pid) } : undefined;
     const all = tokensOf(rules, pid);
     const toks = i === p.shape.length - 1 ? all.slice(i) : all.slice(i, i + 1);

@@ -66,7 +66,7 @@
 
 /* Pieces: a guest's colour with hatching, light paper for a weapon, grey for a puzzle not played. */
 .cb-pc { position: absolute; inset: 0; display: grid; place-items: center; font: 700 0.7rem/1 var(--sans); color: #fbf7ea; border: 0 solid rgba(20, 16, 10, 0.75); touch-action: none; }
-.cb-pc.weapon { background-color: var(--paper); color: var(--ink); }
+.cb-pc.cb-weapon { background-color: var(--paper); color: var(--ink); }
 .cb-pc.grey { background: #8f918b; color: #f2f2ee; }
 .cb-pc.body { background: #3b2b2b; color: #f2d9d6; }
 .cb-pc.fog { background-color: #6d726e; background-image: radial-gradient(rgba(255, 255, 255, 0.18) 1.2px, transparent 1.4px); background-size: 6px 6px; }
@@ -95,11 +95,11 @@
 
 /* The only marks on a piece: touch and apart symbols. */
 .cb-tok { display: inline-grid; place-items: center; line-height: 1; font-size: 1.05rem; color: #ffe9a8; text-shadow: 0 0 2px #000; }
-.cb-pc.weapon .cb-tok { color: var(--brass-deep); text-shadow: none; }
+.cb-pc.cb-weapon .cb-tok { color: var(--brass-deep); text-shadow: none; }
 .cb-tok.met { color: #b9f2c5; }
-.cb-pc.weapon .cb-tok.met { color: var(--locked); }
+.cb-pc.cb-weapon .cb-tok.met { color: var(--locked); }
 .cb-tok.anti { position: relative; color: #ffd2cc; }
-.cb-pc.weapon .cb-tok.anti { color: var(--pencil); }
+.cb-pc.cb-weapon .cb-tok.anti { color: var(--pencil); }
 .cb-tok.anti::after { content: ''; position: absolute; left: -2px; right: -2px; top: 50%; border-top: 2px solid var(--pencil); transform: rotate(-35deg); }
 
 .cb-tray { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: flex-start; justify-content: center; padding: 8px 6px; border: 1px dashed var(--baize-line); border-radius: 0.35rem; min-height: 64px; }
