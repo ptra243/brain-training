@@ -11,6 +11,7 @@ import type { Action, Progress } from '../game/state.ts';
 import { plural } from './findAClue.ts';
 import book from './OpenBook.module.css';
 import styles from './PuzzlePage.module.css';
+import { FULL_FRAME, ZOOM_MS, fitFrame, type ZoomFrame } from './puzzleZoom.ts';
 import { turnLeaf } from './ribbonMotion.ts';
 
 interface Props {
@@ -29,6 +30,11 @@ interface Props {
   onClose: () => void;
 }
 
+const BACKDROP = 'rgb(58, 112, 88)';
+const BACKDROP_CLEAR = 'rgba(58, 112, 88, 0)';
+const EASE = 'ease-in-out';
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 const LEAF = { leaf: book.leaf, page: book.page, back: book.back, shade: book.shade };
 
 /**
@@ -45,12 +51,33 @@ export function PuzzlePage({ c, spec, progress, dispatch, page, level, turn, tur
   const cat = cats[c.number % cats.length];
   const cluesRef = useRef<HTMLElement>(null);
   const backRef = useRef<HTMLButtonElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const paperRef = useRef<HTMLDivElement>(null);
 
-  // The leaf lifts off the Case page onto this one. The page is already here, so it shows under the leaf.
+  // The page sits fitted to the Case page, the leaf lifts off the Case page over it, then the page
+  // zooms up to full screen. The page is already here, so it shows under the leaf.
   useLayoutEffect(() => {
     const source = turn ? turnSource() : null;
-    if (source) void turnLeaf({ source, dir: 'forward', classes: LEAF });
+    const page = pageRef.current;
+    const paper = paperRef.current;
+    let dead = false;
+    const held: Animation[] = [];
+    if (source && page && paper && !reducedMotion()) {
+      const fit = fitFrame(source.getBoundingClientRect(), paper.getBoundingClientRect());
+      // Held before the first paint, so the full-screen page never shows.
+      held.push(paper.animate([fit, fit], { duration: 1, fill: 'forwards' }));
+      held.push(page.animate([{ backgroundColor: BACKDROP_CLEAR }, { backgroundColor: BACKDROP_CLEAR }], { duration: 1, fill: 'forwards' }));
+      void turnLeaf({ source, dir: 'forward', classes: LEAF }).then(() => {
+        if (dead) return;
+        held.forEach((a) => a.cancel());
+        void zoom(paper, page, fit, FULL_FRAME, BACKDROP_CLEAR, BACKDROP, 'none');
+      });
+    } else if (source) void turnLeaf({ source, dir: 'forward', classes: LEAF });
     backRef.current?.focus({ preventScroll: true });
+    return () => {
+      dead = true;
+      held.forEach((a) => a.cancel());
+    };
     // Once, when the page opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -86,19 +113,24 @@ export function PuzzlePage({ c, spec, progress, dispatch, page, level, turn, tur
   const unlocked = c.clues.filter((cl) => spec.clues.includes(cl.id));
   const titles = titlesOf(entry);
 
-  // The page turns back to the Case page. This page stays under the leaf until it lands, then goes
-  // in the same frame the leaf is removed, so the Case page never shows twice.
+  // The page zooms out onto the Case page, then turns back to it. This page stays under the leaf
+  // until it lands, then goes in the same frame the leaf is removed, so the Case page never shows twice.
   const turnBack = () => {
     if (leaving) return;
-    setLeaving(true);
     const source = turnSource();
-    if (source) void turnLeaf({ source, dir: 'back', classes: LEAF, onLanded: () => flushSync(onClose) });
-    else onClose();
+    const page = pageRef.current;
+    const paper = paperRef.current;
+    if (!source) return onClose();
+    setLeaving(true);
+    const turn = () => void turnLeaf({ source, dir: 'back', classes: LEAF, onLanded: () => flushSync(onClose) });
+    if (!page || !paper || reducedMotion()) return turn();
+    const fit = fitFrame(source.getBoundingClientRect(), paper.getBoundingClientRect());
+    void zoom(paper, page, FULL_FRAME, fit, BACKDROP, BACKDROP_CLEAR, 'forwards').then(turn);
   };
 
   return createPortal(
-    <div className={styles.page} inert={leaving} data-testid="puzzle-page">
-      <div className={styles.paper} role="region" aria-label={entry.name}>
+    <div ref={pageRef} className={styles.page} inert={leaving} data-testid="puzzle-page">
+      <div ref={paperRef} className={styles.paper} role="region" aria-label={entry.name}>
         <span className={styles.spine} aria-hidden="true" />
         <span className={styles.edge} aria-hidden="true" />
         <header className={styles.head}>
@@ -182,4 +214,12 @@ export function PuzzlePage({ c, spec, progress, dispatch, page, level, turn, tur
     </div>,
     document.body,
   );
+}
+
+/** Zooms the paper from one frame to the other while the backdrop fades. Resolves when both are done. */
+function zoom(paper: HTMLElement, page: HTMLElement, from: ZoomFrame, to: ZoomFrame, bgFrom: string, bgTo: string, fill: FillMode): Promise<unknown> {
+  const options = { duration: ZOOM_MS, easing: EASE, fill };
+  const a = paper.animate([from, to], options);
+  const b = page.animate([{ backgroundColor: bgFrom }, { backgroundColor: bgTo }], options);
+  return Promise.all([a.finished, b.finished]).catch(() => {});
 }
