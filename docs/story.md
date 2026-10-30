@@ -32,7 +32,7 @@ Ids stay as they are (saves and seeds use them); only display names and bios cha
 | Hostess (`hostess`) | Helped build the company and never got the credit | Wasn't asked |
 | Fixer (`butler`, was the Butler) | The outsider who worked their way up: started on the factory floor, now sorts out every problem the Host has, quietly | The Host might pick them over the heirs, and the heirs know it |
 | Housekeeper (`housekeeper`) | Runs the family house | Hears everything said in it |
-| Accountant (`financier`, was the Financier) | Keeps the company's books | Knows what it is really worth |
+| Lawyer (`financier`, was the Financier) | The family's lawyer: holds the will, drafted the prenup and the shares agreement, runs the family's side of the sale | Knows who inherits what |
 | Uncle (`uncle`) | Co-founded it and was pushed out years ago; still owns shares | An old grudge, and a vote |
 | Elder heir (`elder-heir`) | Works at the company and expects to run it | Everything |
 | Younger heir (`younger-heir`) | Left to do something else | Everyone assumes they'll come back for the money |
@@ -130,19 +130,29 @@ Treated as part of the furniture, which suits them. Sees what the family leaves 
     - Upright: Leaving after the weekend. Their grandchild is ill and needs treatment abroad. The Host promised to help, then said the company could not spare it.
     - Reversed: Was left something in a will years ago, and is afraid it has been changed.
 
-### The Accountant: Devil (borrows Emperor, Hanged Man)
-Keeps the company's books, and a few people's private ones. Precise, dry, a little too pleased to
-know what everyone is worth. Lends money on the side to people who can't ask their family.
-- Versions (the card she meets them on):
+### The Lawyer: Devil (borrows Emperor, Hanged Man)
+The family's lawyer for twenty years (draft, to refine in its own session). Precise, dry, a little too
+pleased to know who gets what. Holds the will, drafted the Hostess's prenup and the shareholders'
+agreement that pushed the Uncle out, and is running the family's side of the sale. Can talk about
+inheritance, but never knows what the Host's sealed decision says, and never says anything about a
+will that would only be true because of who the killer is.
+- Versions (the card she meets them on; draft):
   - **Devil (home)**
-    - Upright: Lends money on the side to people who cannot ask their families. Half the table owes them.
-    - Reversed: Made a handshake deal years ago with someone at this table. It falls due this year, and nobody wrote down the terms.
+    - Upright: Holds the will. A guest paid for an early look at it, and the lawyer took the money.
+    - Reversed: Made a handshake deal years ago with someone at this table, with no paper. It falls due this year.
   - **Emperor**
-    - Upright: Insists on opening the books properly before any sale. Nobody wants that.
-    - Reversed: Keeps two sets of books, and has the true one.
+    - Upright: Spent twenty years setting the company up to pass to an heir. A sale tears it up, and loses the firm its biggest client.
+    - Reversed: Drafted two wills. The one in the safe is not the latest, and only the lawyer knows.
   - **Hanged Man**
-    - Upright: Lost a lot on a sure thing, and is being very calm about it.
-    - Reversed: Covered the loss with company money. It all goes back, unless the sale checks find it first.
+    - Upright: Executor of every will in this family, paid from each estate, and badly needs the money after a sure thing went wrong.
+    - Reversed: Covered a loss with money from the family's trust. The buyer's checks would find it.
+- **Card swap to make when refining** (owner, 2026-10-29): the Hanged Man was inherited from the old
+  Financier. Swap it for **Justice** (the law; shared with the Detective, two people who think they are
+  the law): `mayAlsoRoll` in `src/content/`, and check the Justice neutral lines and card threads still
+  fit a lawyer (they were written for the Detective alone). Talk sets are not in a `Case`, so cases stay
+  the same. The Hanged Man keeps the Host and the Uncle, like Lovers and Death with two holders each.
+- Links: the Elder heir's borrowing against her inheritance (the lawyer knows how much); the
+  Housekeeper's fear that a will was changed (Emperor reversed); the Uncle's shares; the Hostess's prenup.
 
 ### The Uncle: Hermit (borrows Death, Hanged Man)
 The Host's brother-in-arms from the first shop, and family by marriage. Pushed out of the company
@@ -159,7 +169,7 @@ the first time in years and keeps to the edges of the room.
     - Upright: Took the blame for something the Host did, so the company could survive. That was part of the fight.
     - Reversed: Has already promised their shares to the Investor and taken the money.
 
-### The Elder heir: Chariot (borrows Emperor, Devil)
+### The Elder heir: Chariot (borrows Empress, Devil; was Emperor)
 The daughter. Works at the company and has been told for years it will be hers. Driven, impatient,
 better at the job than anyone and knows it. Has been "nearly ready" for eight years and is starting to
 think it was never about being ready. Has already made plans, and maybe promises, on the strength of it.
@@ -167,12 +177,17 @@ think it was never about being ready. Has already made plans, and maybe promises
   - **Chariot (home)**
     - Upright: Will win it on merit. The Fixer is the rival to beat.
     - Reversed: Done waiting, and ready to force the Host's hand.
-  - **Emperor**
-    - Upright: Already runs it in all but name, and the Host's delay is the insult.
-    - Reversed: Bitter at the Hostess: "You of all people let this happen."
+  - **Empress** (replaces the Emperor; see the note below)
+    - Upright: The one who'd grow it. Has ideas the company never lets her try (new bars, the shops), the things her mother would have made if anyone had let her. Wants to create, not just inherit. (freedom)
+    - Reversed: Terrified of becoming her mother: watched her mother's recipe go out under her father's name, and her mother smile about it for thirty years. Won't let it happen to her. (freedom, revenge)
   - **Devil**
     - Upright: Quietly talking to the Investor: if they won't give it to her, she'll help sell it.
     - Reversed: Borrowed against an inheritance she may never get, and her brother is why.
+- **Card swap to make when her threads are written** (owner, 2026-10-29): she borrows the **Empress**
+  instead of the Emperor, sharing it with her mother; her bitterness lives with her mother, not her
+  father. "Already runs it in all but name" folds into the Chariot. Content change: `mayAlsoRoll` in
+  `src/content/`, and the Empress's neutral lines and card threads must fit both mother and daughter.
+  The Emperor drops to 3 holders. Cases stay the same (talk sets are not in a `Case`).
 
 ### The Younger heir: Sun (borrows Lovers, Star)
 The son, and everyone's favourite. Left the company to do something of his own in the city and is
@@ -226,7 +241,7 @@ Any guest can be the victim or the killer, and any seven are seated, so the back
   their shares. The Housekeeper is the only one who stayed in touch.
 - **Years ago the Detective** investigated the company. The case was dropped. The Detective, now retired,
   is the Hostess's old friend; the Hostess invited them to the 50th over the Host's objection.
-- **The Accountant** was brought in by the Host ten years ago, from outside the family.
+- **The Lawyer** has been the family's lawyer for twenty years, from outside the family.
 - **The Elder heir** joined the company straight from university and has been told it will be hers.
   **The Younger heir**, her brother, left after a row with the Host and built a life in the city.
 - **For fifty years** every bar has been made with hazelnuts from one family orchard, a couple of
@@ -238,7 +253,7 @@ Any guest can be the victim or the killer, and any seven are seated, so the back
 ### Three questions everyone has an answer to
 1. **Whose company is it, really?** The Hostess's recipe, the Uncle's shares, the Fixer's work, the
    heirs' birthright, the Host's name on the box.
-2. **Is it as healthy as it looks?** The Accountant's numbers, the Investor's offer, whatever the
+2. **Is it as healthy as it looks?** The Lawyer's two wills and the family trust, the Investor's offer, whatever the
    Fixer has made go away, why the Hostess invited the detective who once investigated it.
 3. **Who will the Host pick?** Elder heir, Younger heir, the Fixer, or a sale. The Uncle's vote and the
    Hostess's opinion both count.
@@ -252,14 +267,14 @@ Fixed feelings, so talk and pair threads have something to lean on. Close (+), t
 |---|---|---|
 | Host | Fixer, Younger heir | Uncle, Detective (the old case), Hostess (the credit), Elder heir (the promise) |
 | Hostess | Housekeeper, Younger heir, Detective | Host (the credit); something old with the Uncle |
-| Fixer | Host, Younger heir | Elder heir (the job), Accountant (both know the numbers) |
-| Investor | (courts) Uncle, Hostess | Accountant (wants the real numbers), Fixer (in the way) |
+| Fixer | Host, Younger heir | Elder heir (the job), Lawyer (both know where the bodies are buried, on paper) |
+| Investor | (courts) Uncle, Hostess | Lawyer (across the table in the sale), Fixer (in the way) |
 | Housekeeper | Hostess, Uncle | Fixer (one knows the house, one the company) |
-| Accountant | (nobody) | Fixer, Investor, Detective (asks too many questions) |
+| Lawyer | (nobody) | Fixer, Investor, Detective (asks too many questions) |
 | Uncle | Housekeeper; something old with the Hostess | Host |
 | Elder heir | Host (wants to be) | Fixer, Younger heir |
 | Younger heir | Fixer, Hostess | Elder heir; Host (the row) |
-| Detective | Hostess | Host (the old case), Accountant; and you |
+| Detective | Hostess | Host (the old case), Lawyer; and you |
 
 ### Versions that touch each other (checked 2026-10-29)
 Any two guests' versions can be heard in the same case, so these were checked to fit together:
@@ -268,7 +283,7 @@ Any two guests' versions can be heard in the same case, so these were checked to
   "partly", so any two can be true at once.
 - **Someone in the family talking to the Investor** (Investor, Devil upright) is unnamed, so it fits the
   Elder heir's Devil upright, the Uncle's promised shares, or nobody else's version at all.
-- **The company in trouble** (Host, Hanged Man reversed) fits the Accountant's two sets of books and the
+- **The company in trouble** (Host, Hanged Man reversed) fits the Lawyer's family-trust loss and the
   Investor's struggling fund; none of them says the company is fine.
 - **The dropped case** (Detective) fits the Fixer making it go away and the Detective letting something
   slide for the Hostess: both can be part of why it was dropped.
@@ -321,6 +336,21 @@ from `{victim}`, since the victim may be the Host.
 **Nothing that hints at a weapon.** No nut allergies, and no chemicals, sprays or anything that
 sounds like poison in a motive: poison is a weapon, so it would read as a clue to how someone died.
 Pollution is factory waste, never a chemical.
+
+## Refining a guest (owner, 2026-10-29)
+
+The owner's ideas are often bouncing around, not decisions. Don't just apply them: say what works, what
+doesn't (clashes with other versions, the motive rule, tone, clue risk), and offer a better version
+where there is one. Apply only once the owner settles it.
+
+Each guest gets a session like the Fixer's, in this order:
+1. **The cards first.** For each of the guest's three cards, say what it means in tarot, upright and
+   reversed, and whether it fits this character in this story. Where one doesn't (the Lawyer's Hanged
+   Man, the Elder heir's Emperor), suggest cards that fit better, with who else holds them.
+2. **The sketch and six versions**, against the motive rule (money, exposure, protecting someone,
+   revenge, freedom) and the links to other guests.
+3. **The six threads** ("How a thread reads"), feedback on each before the owner approves.
+4. Then content: card swaps (`mayAlsoRoll`), threads into `src/content/talk/motives.ts`, this doc.
 
 ## Threads written
 
@@ -380,7 +410,7 @@ Guarded questioning, her line before each beat (see "How a thread reads"). Settl
 ## Still to do
 
 1. Rewrite the 60 motive outlines (`docs/motive-outlines.xlsx`) to hang off this frame.
-2. Rename the Financier, the Butler and the Conjurer (display name and bio in `src/content/index.ts`): a content
+2. Rename the Financier (now the Lawyer), the Butler (the Fixer) and the Conjurer (the Investor) (display name and bio in `src/content/index.ts`): a content
    change, so `npm run update-golden` and a storage prefix bump.
 3. Reword the old-fashioned talk lines (about 54 found by a word search).
 4. Build the reaction-to-the-death line under the greeting (draft below, approved in tone).
