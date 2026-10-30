@@ -6,6 +6,8 @@ import { ClueCard } from '../game/ClueCard.tsx';
 import { EndBoardPanel } from '../game/EndBoardPanel.tsx';
 import { PortraitCard } from '../game/ExploreMap.tsx';
 import { GridPanel } from '../game/GridPanel.tsx';
+import { ItemIcon } from '../game/ItemIcon.tsx';
+import { itemIcons } from '../content/gridIcons.ts';
 import { HintButton, HintNote, Paw } from '../game/games/Hints.tsx';
 import { afterHint, gridHint, markActions } from '../game/gridHints.ts';
 import { gridHintText } from '../game/gridHintText.ts';
@@ -78,7 +80,15 @@ function Counter({ id, guests }: { id: string; guests: readonly string[] }) {
   );
 }
 
+/** A weapon: its line icon in a round brass-edged badge, or a word chip when it has no icon. */
 function Chip({ item }: { item: string }) {
+  if (itemIcons[item]) {
+    return (
+      <span className={styles.badge} aria-hidden="true">
+        <ItemIcon item={item} />
+      </span>
+    );
+  }
   return (
     <span className="weapon static" aria-hidden="true">
       {itemName(item)}
@@ -205,24 +215,34 @@ function GridTab({ book, onPick }: { book: QuickBook; onPick: (s: Subject) => vo
   const pawedClues = visibleClues(c, progress).filter((clue) => pawed.includes(clue.id));
   return (
     <>
-      <div className={styles.hintBar}>
-        <HintButton helper={helper} onAsk={askHint} />
-      </div>
-      {hintNote ? (
-        <HintNote
-          helper={helper}
-          text={hintNote}
-          onClose={() => {
-            setHintNote(null);
-            setPawed([]);
-          }}
-        />
-      ) : null}
-      {pawedClues.length ? <ClueList c={c} progress={progress} dispatch={dispatch} clues={pawedClues} pawed={pawed} /> : null}
       <div ref={gridRef} className={styles.grid}>
-        <GridPanel icons c={c} progress={progress} dispatch={dispatch} focus={null} onFocus={onPick} pawedSquare={hintNote ? progress.gridHints?.target : undefined} />
+        <GridPanel
+          icons
+          c={c}
+          progress={progress}
+          dispatch={dispatch}
+          focus={null}
+          onFocus={onPick}
+          pawedSquare={hintNote ? progress.gridHints?.target : undefined}
+          rule="Tap once to cross out, twice to tick. Tap a name to see its clues."
+          aside={<HintButton helper={helper} onAsk={askHint} />}
+          belowRule={
+            <>
+              {hintNote ? (
+                <HintNote
+                  helper={helper}
+                  text={hintNote}
+                  onClose={() => {
+                    setHintNote(null);
+                    setPawed([]);
+                  }}
+                />
+              ) : null}
+              {pawedClues.length ? <ClueList c={c} progress={progress} dispatch={dispatch} clues={pawedClues} pawed={pawed} /> : null}
+            </>
+          }
+        />
       </div>
-      <p className={styles.note}>Tap a name to read what you know about it.</p>
     </>
   );
 }

@@ -3,6 +3,7 @@ import type { Case } from '../engine/types.ts';
 import { itemName, roomName, suspectColour, suspectName, faceClass } from './names.ts';
 import { SuspectCounterFace } from './SuspectCounterFace.tsx';
 import { itemIcons } from '../content/gridIcons.ts';
+import { ItemIcon } from './ItemIcon.tsx';
 import { Paw } from './games/Hints.tsx';
 import { showsWrong } from './gridHints.ts';
 import { cellState, markKey, sharedRooms, type Action, type GridKind, type Progress, type Subject } from './state.ts';
@@ -18,6 +19,12 @@ interface Props {
   pawedSquare?: string;
   /** Draw the weapons as small line icons instead of words (the #shelf notebook). */
   icons?: boolean;
+  /** The #shelf notebook only: shown to the right of the instructions, on the same row. */
+  aside?: ReactNode;
+  /** The #shelf notebook only: replaces the instructions' wording. */
+  rule?: string;
+  /** The #shelf notebook only: shown under the instructions row (the cat's note), inside the grid's sticky head. */
+  belowRule?: ReactNode;
 }
 
 /**
@@ -36,17 +43,10 @@ const shortLabel = (name: string) => {
 
 const LABEL: Record<string, string> = { x: 'crossed out', o: 'ticked', 'auto-x': 'ruled out by a tick', none: 'blank' };
 
-export function GridPanel({ c, progress, dispatch, focus, onFocus, pawedSquare, icons = false }: Props) {
+export function GridPanel({ c, progress, dispatch, focus, onFocus, pawedSquare, icons = false, aside, rule, belowRule }: Props) {
   const itemLabel = (item: string, word: ReactNode) => {
-    const icon = icons ? itemIcons[item] : undefined;
-    if (!icon) return word;
-    return (
-      <svg className="item-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        {icon.paths.map((d) => (
-          <path key={d} d={d} />
-        ))}
-      </svg>
-    );
+    if (!icons || !itemIcons[item]) return word;
+    return <ItemIcon item={item} />;
   };
   /** A row or column label: tap it to see the clues about that person, room or weapon. */
   const label = (s: Subject, name: string, content: ReactNode, className = 'axis-label') => {
@@ -76,15 +76,31 @@ export function GridPanel({ c, progress, dispatch, focus, onFocus, pawedSquare, 
     );
   };
 
+  const instructions = rule ? (
+    <p className="hint">{rule}</p>
+  ) : (
+    <p className="hint">
+      Tap once to cross out, twice to tick.{' '}
+      {sharedRooms(c)
+        ? 'Rooms can hold several people, so a tick only rules out the rest of its row (and each weapon still has one holder).'
+        : 'A tick rules out the rest of its row and column.'}{' '}
+      Tap a name to see its clues.
+    </p>
+  );
+
   return (
     <section className="panel">
-      <p className="hint">
-        Tap once to cross out, twice to tick.{' '}
-        {sharedRooms(c)
-          ? 'Rooms can hold several people, so a tick only rules out the rest of its row (and each weapon still has one holder).'
-          : 'A tick rules out the rest of its row and column.'}{' '}
-        Tap a name to see its clues.
-      </p>
+      {aside || belowRule || rule ? (
+        <div className="grid-head">
+          <div className="hint-row">
+            {instructions}
+            {aside}
+          </div>
+          {belowRule}
+        </div>
+      ) : (
+        instructions
+      )}
       <article className="card logic-grid-card">
         <table className={icons ? 'logic-grid icons' : 'logic-grid'}>
           <thead>
