@@ -3,6 +3,10 @@
 - **The new look is not this folder.** Cosy library and puzzle-book screens live on `#shelf`
   (`docs/visual-theme.md`). Do not restyle `Home`, `Casebook`, `styles.css` or the other screens
   here to match them.
+- **Back on #shelf.** A new shelf layer (pop-up, page, panel) registers with `useBackLayer(open, close)`
+  (`src/shelf/backStack.ts`): Back closes the top one, closing on screen removes its history entry, and the
+  hash is never changed. `Dialog` does this itself under `body.shelf`. Swipes go through `src/shelf/swipe.ts`;
+  mark anything that drags or scrolls sideways `data-noswipe`.
 - **Adding a minigame**: give it a kind and spec in `src/engine/types.ts`
   and its role in `src/engine/gameKinds.ts`, then an entry in
   `games/registry.tsx` (name, how its puzzle is built, its screen, and a

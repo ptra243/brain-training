@@ -26,15 +26,6 @@ stands. A blocked entry keeps its rank and names its blocker in the heading.
 open questions go in a linked `docs/<slug>.md`, and the entry points to it. An exploratory idea with no
 settled design may stay as a short stub; give it a doc when someone starts it.
 
-## Session: Phone fixes batch, check and ship
-Last touched: 2026-10-30 (items 1–11 built on `phone-fixes` and `phone-fixes-notebook-wip`; Back button and swipes not started)
-Reads first: `docs/phone-fixes-handoff.md` (branches, every item, next steps, the Back and swipe spec).
-Goal: merge the notebook WIP into `phone-fixes`, check it all at 360 × 650 and 780, build Back and swipes, then run checks and e2e and push to `main`.
-Starting prompt:
-```
-Read docs/phone-fixes-handoff.md. Check out phone-fixes, merge phone-fixes-notebook-wip, and follow its Next steps. Ship to main when checks and e2e pass.
-```
-
 ## Session: Shelf UI, beside the current game
 Last touched: 2026-10-29 (all open calls settled: everything kept as built, except that Stick them in now opens straight on the Find a clue list)
 Reads first: `docs/visual-theme.md` ("Milestone 1" and "Puzzle labels and the sticker tin", each with its Status), `CONTEXT.md`.

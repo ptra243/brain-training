@@ -38,6 +38,8 @@ export interface RibbonClasses {
 export interface RibbonOptions {
   /** Called when a turn starts, with the section she is turning to. */
   onTurn?: (section: number) => void;
+  /** Called when the ribbons drop (true) or tuck away (false), for the Back button. */
+  onDropped?: (down: boolean) => void;
   /** Drop the ribbons straight away (the dev preview). */
   startOpen?: boolean;
   motion?: Motion;
@@ -46,6 +48,8 @@ export interface RibbonOptions {
 export interface RibbonControls {
   drop: () => void;
   tuck: () => void;
+  /** Are the ribbons down? */
+  isDown: () => boolean;
   turnTo: (section: number) => void;
   /** Removes the listeners and any leaf still in flight. */
   dispose: () => void;
@@ -157,6 +161,7 @@ export function attachRibbons(els: RibbonElements, cls: RibbonClasses, opts: Rib
   function drop() {
     if (open || busy) return;
     open = true;
+    opts.onDropped?.(true);
     nav.classList.add(cls.open);
     nav.inert = false;
     scrim.hidden = false;
@@ -182,6 +187,7 @@ export function attachRibbons(els: RibbonElements, cls: RibbonClasses, opts: Rib
   function tuck() {
     const wasOpen = open;
     open = false;
+    if (wasOpen) opts.onDropped?.(false);
     nav.classList.remove(cls.open);
     nav.inert = true;
     scrim.hidden = true;
@@ -406,6 +412,7 @@ export function attachRibbons(els: RibbonElements, cls: RibbonClasses, opts: Rib
   return {
     drop,
     tuck,
+    isDown: () => open,
     turnTo,
     dispose() {
       disposers.forEach((d) => d());

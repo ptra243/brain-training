@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import styles from './OpenBook.module.css';
 import { FindAClue } from './FindAClue.tsx';
 import { caseTitle } from '../game/names.ts';
@@ -11,6 +11,8 @@ import { Shuffling } from '../game/Shuffling.tsx';
 import { useQuickBook, type PickRequest, type SampleCase } from './useQuickBook.ts';
 import { attachRibbons } from './ribbonMotion.ts';
 import { SECTIONS } from './ribbonPlan.ts';
+import { stepIndex, watchSwipe, type SwipeDir } from './swipe.ts';
+import { useBackLayer } from './useBackLayer.ts';
 
 /** Where the book sat on the shelf, in viewport pixels. */
 export interface Box {
@@ -69,6 +71,10 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   const navRef = useRef<HTMLElement>(null);
   const creaseRef = useRef<HTMLSpanElement>(null);
   const [section, setSection] = useState(0);
+  const appRef = useRef<HTMLElement>(null);
+  // The ribbons are a Back layer while they hang down; Back tucks them.
+  const [ribbonsDown, setRibbonsDown] = useState(false);
+  const tuckRef = useRef<(() => void) | null>(null);
   // The ribbons' page turn, for the Jigsaw's Accuse button.
   const turnRef = useRef<((i: number) => void) | null>(null);
   // Her case, shared by the Case page and the notebook. The New case book builds one and saves it.
@@ -106,6 +112,23 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
     turnRef.current?.(SECTIONS.indexOf('Answer'));
   };
 
+  // Back puts the notebook away first, then the ribbons; the book and the puzzle page register themselves.
+  useBackLayer(height !== 'peek', () => setHeight('peek'));
+  useBackLayer(ribbonsDown, () => tuckRef.current?.());
+
+  // A sideways swipe on the page turns to the next or previous section (no wrap). Not while the notebook
+  // is up (it swipes its own tabs), a puzzle page or a pop-up is open.
+  const swipeSection = useEffectEvent((dir: SwipeDir) => {
+    const to = stepIndex(section, SECTIONS.length, dir);
+    if (to !== null) turnRef.current?.(to);
+  });
+  const canSwipe = useEffectEvent(() => height === 'peek' && !puzzleOpen && !document.querySelector('[role="dialog"]'));
+  useEffect(() => {
+    const app = appRef.current;
+    if (!app) return;
+    return watchSwipe(app, (dir) => swipeSection(dir), () => canSwipe());
+  }, []);
+
   useEffect(() => {
     backRef.current?.focus({ preventScroll: true });
   }, []);
@@ -130,13 +153,15 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
         crease,
       },
       { open: styles.open, empty: styles.empty, leaf: styles.leaf, page: styles.page, back: styles.back, blank: styles.blank, shade: styles.shade },
-      { onTurn: setSection, startOpen },
+      { onTurn: setSection, onDropped: setRibbonsDown, startOpen },
     );
     // A sample can open on another section (the dev previews); a real book always starts on Case.
     if (startOpen && sampleSection) controls.turnTo(sampleSection);
     turnRef.current = controls.turnTo;
+    tuckRef.current = controls.tuck;
     return () => {
       turnRef.current = null;
+      tuckRef.current = null;
       controls.dispose();
     };
   }, [startOpen, sampleSection]);
@@ -144,7 +169,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   return (
     <div className={styles.stage}>
       <div className={styles.flyer} style={start}>
-        <section className={styles.app} style={book ? ({ paddingBottom: 'calc(52px + env(safe-area-inset-bottom, 0px))' } as CSSProperties) : undefined} aria-label={`${title}: ${SECTIONS[section]}`} data-section={SECTIONS[section]}>
+        <section ref={appRef} className={styles.app} style={book ? ({ paddingBottom: 'calc(52px + env(safe-area-inset-bottom, 0px))' } as CSSProperties) : undefined} aria-label={`${title}: ${SECTIONS[section]}`} data-section={SECTIONS[section]}>
           <header className={styles.head}>
             <button ref={backRef} type="button" className={styles.round} aria-label="Back to the shelf" onClick={onBack}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

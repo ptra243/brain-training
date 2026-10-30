@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { cats } from '../content/index.ts';
 import { playerPortrait } from '../content/portraits.ts';
 import type { Case, Clue } from '../engine/types.ts';
@@ -18,6 +18,8 @@ import { youLines } from '../game/youSheet.ts';
 import styles from './Notebook.module.css';
 import { accuseLabel, accuseRequest, afterSwipe, peekLine, placeAction, placeRooms, placementLine, subjectClues, subjectTitle, tabForCase, tabsFor, type AccuseRequest, type Height, type NotebookTab } from './notebook.ts';
 import { saveNotebookTab, loadNotebookTab } from './shelfStore.ts';
+import { stepIndex, watchSwipe, type SwipeDir } from './swipe.ts';
+import { useBackLayer } from './useBackLayer.ts';
 import type { QuickBook, SampleCase } from './useQuickBook.ts';
 
 /** A page on top of a tab: a guest, a weapon or a room, with the tab to go back to. */
@@ -410,6 +412,21 @@ export function Notebook({ book, sample, hidden, height, onHeight, focus, onPage
     if (t === 'jigsaw' && height === 'half') onHeight('full');
     if (!sample) saveNotebookTab(t);
   };
+  // Back puts the pad away.
+  useBackLayer(open, () => onHeight('peek'));
+
+  // A sideways swipe on the raised pad changes tab (left = next, right = previous, no wrap).
+  const swipeTab = useEffectEvent((dir: SwipeDir) => {
+    const tabs = tabsFor(book.finish);
+    const to = stepIndex(tabs.findIndex((t) => t.id === tab), tabs.length, dir);
+    if (to !== null) choose(tabs[to].id);
+  });
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel || !open) return;
+    return watchSwipe(panel, (dir) => swipeTab(dir));
+  }, [open]);
+
   const pick = (from: NotebookTab) => (subject: Subject) => setPage({ subject, from });
 
   let content: ReactNode;

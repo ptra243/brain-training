@@ -1,4 +1,5 @@
 import { useEffect, useEffectEvent, useRef, type ReactNode } from 'react';
+import { onShelf, useBackLayer } from '../shelf/useBackLayer.ts';
 
 interface Props {
   children: ReactNode;
@@ -19,6 +20,8 @@ export function Dialog({ children, onClose, placement = 'sheet', labelId }: Prop
   const boxRef = useRef<HTMLDivElement>(null);
 
   const close = useEffectEvent(() => onClose());
+  // On #shelf the Back button closes it; the green table's pop-ups register nothing.
+  useBackLayer(true, onClose, onShelf());
 
   // Focus once on open (not on every re-render, or taps inside would jump focus).
   useEffect(() => {

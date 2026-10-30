@@ -13,6 +13,7 @@ import book from './OpenBook.module.css';
 import styles from './PuzzlePage.module.css';
 import { FULL_FRAME, ZOOM_MS, fitFrame, type ZoomFrame } from './puzzleZoom.ts';
 import { turnLeaf } from './ribbonMotion.ts';
+import { useBackLayer } from './useBackLayer.ts';
 
 interface Props {
   c: Case;
@@ -127,6 +128,9 @@ export function PuzzlePage({ c, spec, progress, dispatch, page, level, turn, tur
     const fit = fitFrame(source.getBoundingClientRect(), paper.getBoundingClientRect());
     void zoom(paper, page, FULL_FRAME, fit, BACKDROP, BACKDROP_CLEAR, 'forwards').then(turn);
   };
+
+  // Back does what the back ribbon does (zoom out, turn back to the Case page).
+  useBackLayer(true, turnBack);
 
   return createPortal(
     <div ref={pageRef} className={styles.page} inert={leaving} data-testid="puzzle-page">

@@ -6,6 +6,8 @@ import { loadCampaign, loadQuick } from '../game/storage.ts';
 import { OpenBook, type Box, type Tone } from './OpenBook.tsx';
 import { fitScale } from './fitScale.ts';
 import { StickerTin } from './StickerTin.tsx';
+import { startRootGuard } from './backStack.ts';
+import { useBackLayer } from './useBackLayer.ts';
 import type { PickRequest } from './useQuickBook.ts';
 import styles from './Shelf.module.css';
 
@@ -184,6 +186,10 @@ export function Bookcase() {
   const [tin, setTin] = useState<Box | null>(null);
   // Asks first when she has an unsolved Quick case that a new one would replace.
   const [confirming, setConfirming] = useState<HTMLAnchorElement | null>(null);
+  // Back puts the book (or the tin screen) away. The first tap arms the guard so Back at the bare shelf does nothing.
+  useBackLayer(tin !== null, () => setTin(null));
+  useBackLayer(taken !== null, () => setTaken(null));
+  useEffect(() => (['', '#', '#shelf'].includes(window.location.hash) ? startRootGuard() : undefined), []);
   // Read again whenever a book is taken down or put back: the New case book saves a case while open.
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `taken` is the trigger, not an input
   const quick = useMemo(() => loadQuick(), [taken]);
