@@ -71,7 +71,12 @@ export function createBackStack(env: BackEnv): BackStack {
     });
   };
 
+  // Every entry this stack pushes has this address.
+  const home = env.href();
+
   env.onPopState(() => {
+    // A different address is a link to another #shelf/... page, which reloads the app: not ours.
+    if (env.href() !== home) return;
     if (settling) {
       settling = false;
       const todo = queued;

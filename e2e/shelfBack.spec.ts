@@ -137,3 +137,11 @@ test('swipes: the book turns sections, the raised notebook changes tab, no wrap'
   await touchDrag(page, { x: 80, y }, { x: 280, y });
   await expect(tabs.getByRole('button', { name: 'Clues' })).toHaveAttribute('aria-current', 'page');
 });
+
+test('a hash route still goes back to the shelf', async ({ page }) => {
+  await page.goto('/#shelf');
+  await page.getByRole('link', { name: 'Your record: the guest book' }).click();
+  await expect(page.getByText("This page isn't drawn yet.")).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('link', { name: 'Your record: the guest book' })).toBeVisible();
+});
