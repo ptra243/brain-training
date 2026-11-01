@@ -45,9 +45,21 @@ test('the Answer page: a wrong try is crossed out, the right one solves it, and 
   await expect(answer.getByRole('list', { name: 'Your tries' }).getByRole('listitem')).toHaveCount(1);
   await expect(answer.getByRole('button', { name: 'Who: choose' })).toBeVisible();
 
+  await expect(answer.getByText('Right now: Sharp eye')).toBeVisible();
   await fill(murderer);
   await make.click();
+  // The night replay plays first; Skip (with its confirm) lands on the solved page.
+  const night = page.getByTestId('night-replay');
+  await expect(night.getByTestId('summation-count')).toContainText(/^1 of \d+$/);
+  await night.getByRole('button', { name: 'Skip' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Skip' }).click();
+  await expect(night).toHaveCount(0);
   await expect(answer.getByText('Case closed')).toBeVisible();
+  await expect(answer.getByTestId('rank')).toHaveText('Sharp eye');
+  await answer.getByRole('button', { name: 'Walk through the night' }).click();
+  await expect(night).toBeVisible();
+  await page.goBack();
+  await expect(night).toHaveCount(0);
   await expect(answer.getByText('Solved in 2 accusations.')).toBeVisible();
 
   // The classic Casebook reads the same save: two tries, solved.

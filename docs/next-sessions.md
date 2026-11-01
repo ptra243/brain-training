@@ -27,7 +27,7 @@ open questions go in a linked `docs/<slug>.md`, and the entry points to it. An e
 settled design may stay as a short stub; give it a doc when someone starts it.
 
 ## Session: Shelf UI, beside the current game
-Last touched: 2026-10-29 (all open calls settled: everything kept as built, except that Stick them in now opens straight on the Find a clue list)
+Last touched: 2026-11-02 (quick play ending built: the night replay, ranks by accusations, a paper slip into the notebook, a one-second hold on the finished board)
 Reads first: `docs/visual-theme.md` ("Milestone 1" and "Puzzle labels and the sticker tin", each with its Status), `CONTEXT.md`.
 Goal: finish Milestone 1: she plays one real Quick case on her phone at `#shelf` (step 6), from the bookcase to the answer. Fix what that turns up; then campaign (Screen plan step 8).
 Starting prompt:

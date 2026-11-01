@@ -19,12 +19,14 @@ interface Props {
   onSkip: () => void;
   /** The killer got away: a step with no cite says she never found it out, not that she worked it out. */
   escaped?: boolean;
+  /** The cite line, when the caller words it itself (#shelf); omitted, the live Casebook's wording is used. */
+  cite?: string;
   /** Dev previews: open with the skip confirm showing. */
   initialSkip?: boolean;
 }
 
 /** One step of the summation: the floor plan with the guests shown so far, what this guest was really doing, and what she knew. */
-export function Summation({ c, step, last, onNext, onSkip, escaped, initialSkip }: Props) {
+export function Summation({ c, step, last, onNext, onSkip, escaped, cite, initialSkip }: Props) {
   const house = useMemo(() => houseOf(c), [c]);
   const owner = useMemo(() => ownerMap(house), [house]);
   const [confirming, setConfirming] = useState(!!initialSkip);
@@ -68,11 +70,11 @@ export function Summation({ c, step, last, onNext, onSkip, escaped, initialSkip 
 
       <article className="card summation-card" aria-live="polite">
         <p className="verdict-line">{line}</p>
-        <p className="muted summation-cite">{step.clueText
+        <p className="muted summation-cite">{cite ?? (step.clueText
             ? `You knew this: ${step.clueText}`
             : step.earlier || escaped
               ? 'You never found this out.'
-              : 'You worked this out from your clues.'}</p>
+              : 'You worked this out from your clues.')}</p>
       </article>
 
       <div className="summation-actions">

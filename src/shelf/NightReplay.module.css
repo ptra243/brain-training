@@ -1,0 +1,69 @@
+/* The ending on #shelf: Summation's steps on a full-screen paper page over the open book. It is rendered on
+   document.body, so everything is scoped under body.shelf. The app's colour variables are set to paper
+   here, as on the puzzle page, so Summation's global classes read as printed. */
+:global(body.shelf) .root {
+  --baize: #f4ecd8;
+  --baize-deep: #e6dbc1;
+  --baize-line: #d3c6a6;
+  --on-baize: #1e2a2f;
+  --on-baize-soft: #55615f;
+  --card: #fffcf3;
+  --card-edge: #cbbd9c;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #3a7058;
+  color: #1e2a2f;
+  outline: none;
+}
+:global(body.shelf) .sheet {
+  position: relative;
+  box-sizing: border-box;
+  width: min(100vw, 480px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: calc(18px + env(safe-area-inset-top, 0px)) 0 calc(24px + env(safe-area-inset-bottom, 0px));
+  background: #f4ecd8;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+:global(body.shelf) .spine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 22px;
+  pointer-events: none;
+  background: linear-gradient(90deg, #8a2e3b 0 3px, rgba(60, 40, 20, 0.28) 3px, rgba(60, 40, 20, 0.08) 10px, transparent 22px);
+}
+:global(body.shelf) .running {
+  margin: 0 16px 10px 28px;
+  padding-bottom: 5px;
+  border-bottom: 1.5px solid #1e2a2f;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+:global(body.shelf) .sheet :global(.summation) {
+  padding: 0 16px 0 28px;
+}
+:global(body.shelf) .sheet :global(.summation-head) {
+  font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+}
+:global(body.shelf) .sheet :global(.summation-count) {
+  opacity: 1;
+  color: #55615f;
+}
+:global(body.shelf) .sheet :global(.summation-card) {
+  background: #fffcf3;
+  border-color: #cbbd9c;
+}
+:global(body.shelf) .sheet :global(.summation-actions button) {
+  min-height: 48px;
+}
+:global(body.shelf) .sheet button:focus-visible {
+  outline: 3px solid #8a2e3b;
+  outline-offset: 2px;
+}

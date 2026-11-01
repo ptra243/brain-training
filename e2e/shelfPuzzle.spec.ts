@@ -34,7 +34,11 @@ test('a puzzle page: Solve, the clues, turn back, and the shared save says revea
 
   await paper.getByRole('button', { name: 'Solve', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Solve it' }).click();
+  // The finished board is held for about a second before the clues appear.
+  const heldAt = Date.now();
+  await expect(paper.getByText(/^Solved by /)).toHaveCount(0);
   await expect(paper.getByText(/^Solved by /)).toBeVisible();
+  expect(Date.now() - heldAt).toBeGreaterThanOrEqual(700);
   await expect(paper.getByRole('button', { name: 'Solve', exact: true })).toHaveCount(0);
   await expect(paper.locator('li').first()).toBeVisible();
 

@@ -205,10 +205,31 @@ test('shelf-map previews', async ({ page }) => {
 test('shelf-answer previews', async ({ page }) => {
   await page.goto('/#dev/shelf-answer');
   await expect(page.getByText('1 of 2 right. Keep digging.')).toBeVisible();
+  await expect(page.getByText('Right now: Sharp eye')).toBeVisible();
   await checkScreen(page, 'preview shelf-answer');
   await page.goto('/#dev/shelf-answer-solved');
   await expect(page.getByText('Case closed')).toBeVisible();
+  await expect(page.getByTestId('rank')).toHaveText('Sharp eye');
+  await expect(page.getByRole('button', { name: 'Walk through the night' })).toBeVisible();
   await checkScreen(page, 'preview shelf-answer-solved');
+
+  await page.goto('/#dev/shelf-night');
+  await expect(page.getByTestId('summation-count')).toContainText(/^\d+ of \d+$/);
+  await expect(page.getByText(/^Your clue: /)).toBeVisible();
+  await checkScreen(page, 'preview shelf-night');
+});
+
+test.describe('shelf-clue-slip preview', () => {
+  // The slips are an animation: they are skipped under reduced motion (the line just changes).
+  test.use({ reducedMotion: 'no-preference' });
+  test('the line holds until the slips land, then changes', async ({ page }) => {
+    await page.goto('/#dev/shelf-clue-slip');
+    await expect(page.getByRole('button', { name: 'Notebook · no clues yet' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Notebook · \d+ of \d+ to use$/ })).toBeVisible({ timeout: 4000 });
+    await expect(page.getByRole('button', { name: 'Play again' })).toBeVisible();
+    await noSideways(page, 'preview shelf-clue-slip');
+    await expect(page.locator('body > span[aria-hidden="true"]')).toHaveCount(0);
+  });
 });
 
 test('shelf-new-case preview',async ({ page }) => {

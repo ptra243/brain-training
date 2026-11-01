@@ -16,7 +16,7 @@ import { SCENE_TEASER, holderOf, itemRoom, placedRoom, sceneText, sceneUnlocked,
 import { SuspectCounterFace } from '../game/SuspectCounterFace.tsx';
 import { youLines } from '../game/youSheet.ts';
 import styles from './Notebook.module.css';
-import { accuseLabel, accuseRequest, afterSwipe, peekLine, placeAction, placeRooms, placementLine, subjectClues, subjectTitle, tabForCase, tabsFor, type AccuseRequest, type Height, type NotebookTab } from './notebook.ts';
+import { accuseLabel, accuseRequest, afterSwipe, peekLine, placeAction, placeRooms, placementLine, slipCount, subjectClues, subjectTitle, tabForCase, tabsFor, type AccuseRequest, type Height, type NotebookTab } from './notebook.ts';
 import { saveNotebookTab, loadNotebookTab } from './shelfStore.ts';
 import { stepIndex, watchSwipe, type SwipeDir } from './swipe.ts';
 import { useBackLayer } from './useBackLayer.ts';
@@ -29,6 +29,61 @@ interface Page {
 }
 
 const SWIPE = 28;
+
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SLIP_MS = 600;
+const SLIP_STAGGER_MS = 120;
+
+/**
+ * `n` small paper slips fly from the upper middle of the screen to the strip, one after another, then the
+ * strip wiggles once and `done` is called. Returns the cleanup: it cancels the flight and removes the slips.
+ */
+function flySlips(n: number, strip: HTMLElement | null, done: () => void): () => void {
+  if (!strip) {
+    done();
+    return () => {};
+  }
+  const to = strip.getBoundingClientRect();
+  const endX = to.left + to.width / 2 - 17;
+  const endY = to.top + to.height / 2 - 11;
+  const startX = window.innerWidth / 2 - 17;
+  const startY = window.innerHeight * 0.22;
+  const made: { el: HTMLElement; anim: Animation }[] = [];
+  let dead = false;
+  for (let i = 0; i < n; i++) {
+    const el = document.createElement('span');
+    el.className = styles.slip;
+    el.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(el);
+    const drift = (i - (n - 1) / 2) * 26;
+    const anim = el.animate(
+      [
+        { transform: `translate(${startX + drift}px, ${startY}px) rotate(${-8 + i * 7}deg) scale(1.15)`, opacity: 0 },
+        { transform: `translate(${startX + drift}px, ${startY + 12}px) rotate(${-8 + i * 7}deg) scale(1.15)`, opacity: 1, offset: 0.15 },
+        { transform: `translate(${endX}px, ${endY}px) rotate(${4 - i * 3}deg) scale(0.7)`, opacity: 1 },
+      ],
+      { duration: SLIP_MS, delay: i * SLIP_STAGGER_MS, easing: 'ease-in', fill: 'both' },
+    );
+    made.push({ el, anim });
+  }
+  void Promise.all(made.map((m) => m.anim.finished)).then(
+    () => {
+      if (dead) return;
+      for (const m of made) m.el.remove();
+      // One short wiggle; it ends by itself, so it is not part of the cleanup (the line changing re-runs the effect).
+      strip.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(-1.2deg)' }, { transform: 'rotate(1deg)' }, { transform: 'rotate(0deg)' }], { duration: 320, easing: 'ease-in-out' });
+      done();
+    },
+    () => {},
+  );
+  return () => {
+    dead = true;
+    for (const m of made) {
+      m.anim.cancel();
+      m.el.remove();
+    }
+  };
+}
 
 /** Pointer handlers that call `onSwipe` when a finger moves up or down far enough. */
 function swipe(dir: 'up' | 'down', onSwipe: () => void) {
@@ -383,6 +438,27 @@ export function Notebook({ book, sample, hidden, height, onHeight, focus, onPage
     setSeenFocus(focus.seq);
     setPage({ subject: focus.subject, from: tab });
   }
+  // Coming back from a puzzle page with new clues: paper slips fly to the strip, and the line changes when
+  // the last one lands. `snap` is the clue count and line from when the strip was hidden (adjusting state
+  // while rendering, not in an effect). A sample plays it on load only when it asks.
+  const count = visibleClues(book.c, book.progress).length;
+  const line = peekLine(book.c, book.progress);
+  const [prevHidden, setPrevHidden] = useState(hidden);
+  const [snap, setSnap] = useState<{ count: number; line: string } | null>(null);
+  const [play, setPlay] = useState<{ n: number; line: string } | null>(() => (sample?.slips && !reducedMotion() ? sample.slips : null));
+  if (hidden !== prevHidden) {
+    setPrevHidden(hidden);
+    if (hidden) setSnap({ count, line });
+    else if (snap) {
+      setSnap(null);
+      const n = slipCount(snap.count, count);
+      if (n > 0 && !reducedMotion()) setPlay({ n, line: snap.line });
+    }
+  }
+  useEffect(() => {
+    if (!play) return;
+    return flySlips(play.n, peekRef.current, () => setPlay(null));
+  }, [play]);
   const pageSubject = page ? page.subject : null;
   useEffect(() => {
     onPage?.(pageSubject);
@@ -442,7 +518,7 @@ export function Notebook({ book, sample, hidden, height, onHeight, focus, onPage
     <div className={`${styles.root} ${open ? styles.isOpen : ''} ${height === 'half' ? styles.isHalf : ''}`} hidden={hidden}>
       <button ref={peekRef} type="button" className={styles.peek} inert={open} onClick={() => onHeight('full')} {...swipe('up', () => onHeight('full'))}>
         <Rings />
-        <span className={styles.peekLine}>{peekLine(book.c, book.progress)}</span>
+        <span className={styles.peekLine}>{play ? play.line : line}</span>
       </button>
       <div className={styles.scrim} aria-hidden="true" onClick={close} />
       <section ref={panelRef} tabIndex={-1} className={styles.panel} inert={!open} aria-label="Your notebook">

@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { content } from '../content/index.ts';
 import { newPlayCase } from '../engine/caseRef.ts';
 import { emptyProgress, reduce, visibleClues } from '../game/state.ts';
-import { DEFAULT_TAB, finishFor, tabForCase, tabsFor, afterMapTap, afterSwipe, parseTab, peekLine, placeAction, placementLine, ringedSubject, subjectClues, subjectTitle } from './notebook.ts';
+import { DEFAULT_TAB, finishFor, tabForCase, tabsFor, afterMapTap, afterSwipe, parseTab, peekLine, placeAction, placementLine, ringedSubject, subjectClues, subjectTitle, slipCount } from './notebook.ts';
 
 const { c } = newPlayCase(content, () => 0.5);
 
@@ -123,4 +123,12 @@ test('the Accuse button on a guest page: label, weapon and whether it submits', 
   assert.equal(accuseRequest(c, p, { kind: 'item', id: c.items[0] }), null);
   assert.equal(accuseRequest(c, p, { kind: 'room', id: c.rooms[0] }), null);
   assert.equal(accuseRequest(c, { ...p, solved: true }, guest), null);
+});
+
+test('one slip per new clue, at most three, none when nothing new', () => {
+  assert.equal(slipCount(2, 2), 0);
+  assert.equal(slipCount(2, 1), 0);
+  assert.equal(slipCount(0, 1), 1);
+  assert.equal(slipCount(0, 3), 3);
+  assert.equal(slipCount(1, 9), 3);
 });

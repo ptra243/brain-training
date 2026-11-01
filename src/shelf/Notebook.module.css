@@ -634,3 +634,22 @@
   order: 99;
   margin-top: auto;
 }
+
+/* ---------- A clue slip flying to the strip (made by flySlips; no text on it) ---------- */
+:global(body.shelf) .slip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 45;
+  width: 34px;
+  height: 22px;
+  box-sizing: border-box;
+  pointer-events: none;
+  background: #fff6d6;
+  border: 1px solid #cbbd9c;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  background-image: linear-gradient(#c9bd9f 1px, transparent 1px);
+  background-size: 100% 6px;
+  background-position: 0 5px;
+}

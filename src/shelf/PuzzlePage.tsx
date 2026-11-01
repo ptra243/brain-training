@@ -34,6 +34,8 @@ interface Props {
 const BACKDROP = 'rgb(58, 112, 88)';
 const BACKDROP_CLEAR = 'rgba(58, 112, 88, 0)';
 const EASE = 'ease-in-out';
+/** How long the finished board is left on screen before the clues appear. */
+const BOARD_HOLD_MS = 1000;
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const LEAF = { leaf: book.leaf, page: book.page, back: book.back, shade: book.shade };
@@ -86,15 +88,21 @@ export function PuzzlePage({ c, spec, progress, dispatch, page, level, turn, tur
   const save = (data: unknown) => dispatch({ type: 'game-save', kind: spec.kind, data });
   const finish = (status: 'won' | 'revealed', data: unknown) => dispatch({ type: 'game-finish', kind: spec.kind, status, data });
 
-  // When she finishes, scroll down to the clues once (not when it opens already finished).
-  const wasFinished = useRef(finished);
+  // When she finishes, the finished board stays on screen for a moment, then the clues appear and the page
+  // scrolls just enough to show them (not when it opens already finished: then they are simply there).
+  const [cluesShown, setCluesShown] = useState(Boolean(finished));
   useEffect(() => {
-    if (!wasFinished.current && finished) {
-      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      cluesRef.current?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    if (!finished || cluesShown) return;
+    const id = window.setTimeout(() => setCluesShown(true), BOARD_HOLD_MS);
+    return () => window.clearTimeout(id);
+  }, [finished, cluesShown]);
+  const wasShown = useRef(cluesShown);
+  useEffect(() => {
+    if (!wasShown.current && cluesShown) {
+      cluesRef.current?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'nearest' });
     }
-    wasFinished.current = finished;
-  }, [finished]);
+    wasShown.current = cluesShown;
+  }, [cluesShown]);
 
   // The puzzle is rebuilt from the seed once per game; only her moves are saved.
   const puzzle = useMemo(() => entry.build(c, spec), [entry, c, spec]);
@@ -170,7 +178,7 @@ export function PuzzlePage({ c, spec, progress, dispatch, page, level, turn, tur
 
           <div className="game-body">{view}</div>
 
-          {finished ? (
+          {finished && cluesShown ? (
             <section ref={cluesRef} className={styles.won} aria-live="polite">
               <h2 className={styles.wonTitle}>{titles[finished]}</h2>
               {finished === 'revealed' ? <p className={styles.by}>Solved by {cat}</p> : null}

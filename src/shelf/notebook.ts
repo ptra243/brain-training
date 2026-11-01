@@ -148,3 +148,11 @@ export function accuseLabel(c: Case, req: AccuseRequest): string {
 export function accuseAction(req: AccuseRequest): Action | null {
   return req.submit && req.item ? { type: 'accuse', suspect: req.suspect, item: req.item } : null;
 }
+
+/** The most paper slips that fly to the strip when she comes back from a puzzle. */
+export const SLIP_MAX = 3;
+
+/** How many slips fly to the strip when the count of found clues went from `before` to `after`: one per new clue, at most three. */
+export function slipCount(before: number, after: number): number {
+  return Math.max(0, Math.min(SLIP_MAX, after - before));
+}

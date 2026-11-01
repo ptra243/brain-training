@@ -26,6 +26,8 @@ export interface SampleCase {
   section?: number;
   /** Sample only: pretend the ref chose the Jigsaw finish (a sample has no ref). */
   endBoard?: boolean;
+  /** Sample only: the notebook strip plays its clue-slip moment on load, as if `n` clues had just been found (the old line shows until they land). */
+  slips?: { n: number; line: string };
 }
 
 /** Her Quick case, rebuilt, with her moves and a way to make one (saved to the shared Quick save). */

@@ -35,6 +35,9 @@ import { MotivesPreview } from './MotivesPreview.tsx';
 import { PortraitGallery } from './PortraitGallery.tsx';
 import { StickerTin } from '../shelf/StickerTin.tsx';
 import { OpenBook } from '../shelf/OpenBook.tsx';
+import { NightReplay } from '../shelf/NightReplay.tsx';
+import { shelfCite } from '../shelf/answer.ts';
+import { peekLine } from '../shelf/notebook.ts';
 import { PuzzleLabel } from '../shelf/PuzzleLabel.tsx';
 import { labelAngle } from '../shelf/labels.ts';
 import type { Difficulty, GameKind } from '../engine/types.ts';
@@ -522,7 +525,50 @@ function ShelfMapPreview({ subject }: { subject: boolean }) {
   return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen sample={sample} />;
 }
 
+/** The #shelf ending at "3 of N" on a sample case, a step that cites a clue she found ("Your clue"). */
+function ShelfNightPreview() {
+  useLayoutEffect(() => {
+    document.body.classList.add('shelf');
+    return () => document.body.classList.remove('shelf');
+  }, []);
+  const { c, progress, at } = useMemo(() => {
+    const { c } = newPlayCase(content, () => 0.5);
+    let progress = emptyProgress();
+    for (const g of c.games.slice(0, 3)) progress = reduce(c, progress, { type: 'game-finish', kind: g.kind, status: 'won', data: null });
+    const steps = fullSteps(roundInput(c, unlockedClueIds(c, progress)));
+    const found = steps.findIndex((s, i) => i >= 2 && shelfCite(c, progress, s).startsWith('Your clue'));
+    return { c, progress, at: found >= 0 ? found : 2 };
+  }, []);
+  return <NightReplay c={c} progress={progress} onClose={noop} startAt={at} />;
+}
+
+/** The notebook strip playing its clue-slip moment on load (three new clues), with a way to play it again. */
+function ShelfClueSlipPreview() {
+  useLayoutEffect(() => {
+    document.body.classList.add('shelf');
+    return () => document.body.classList.remove('shelf');
+  }, []);
+  const [play, setPlay] = useState(0);
+  const sample = useMemo(() => {
+    const { ref, c } = newPlayCase(content, () => 0.5);
+    let progress = emptyProgress();
+    const before = peekLine(c, progress);
+    for (const g of c.games.slice(0, 3)) progress = reduce(c, progress, { type: 'game-finish', kind: g.kind, status: 'won', data: null });
+    return { c, progress, ref: caseCode(ref), seen: true, slips: { n: 3, line: before } };
+  }, []);
+  return (
+    <>
+      <OpenBook key={play} title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen sample={sample} />
+      <button type="button" onClick={() => setPlay((n) => n + 1)} style={{ position: 'fixed', top: 64, right: 8, zIndex: 50, minHeight: 44, minWidth: 44, padding: '0 12px', font: 'inherit' }}>
+        Play again
+      </button>
+    </>
+  );
+}
+
 const SCREENS: Record<string, () => ReactNode> = {
+  'shelf-night': () => <ShelfNightPreview />,
+  'shelf-clue-slip': () => <ShelfClueSlipPreview />,
   'shelf-map': () => <ShelfMapPreview subject={false} />,
   'shelf-map-subject': () => <ShelfMapPreview subject />,
   'shelf-answer': () => <ShelfAnswerPreview solved={false} />,

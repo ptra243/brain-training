@@ -89,7 +89,7 @@ What a look check judges on each:
 - `shelf-puzzle`, `shelf-puzzle-won`, `shelf-puzzle-revealed`: a puzzle page (full-width paper, 360px) open over the
   book on the sample case (nothing is saved): header with a ribbon chevron, the game name, Solve (not once finished),
   "level · N clues", one rule line, then the game; the won and revealed pages keep the board and add the clue
-  heading, "Solved by <cat>" (revealed only), the clue cards and "Turn back to page 3". Wrapped help is two lines at
+  heading, "Solved by <cat>" (revealed only), the clue cards and "Turn back to page 3" (after a real win the board stays alone for one second first; these open already finished, so show everything at once). Wrapped help is two lines at
   most; no sideways scroll; buttons 44px+.
 - `shelf-notebook`, `shelf-notebook-grid`, `shelf-notebook-subject`: the #shelf notebook over
   the sample case (three games won, one guest placed, one cross). Closed: a 52px kraft strip at the foot with spiral
@@ -109,9 +109,17 @@ What a look check judges on each:
   counter" with a 44px button per room, the current one marked, then a red-outlined "Accuse ... with the ..." button); no talk; no sideways scroll.
 - `shelf-answer`, `shelf-answer-solved`: the #shelf book turned to Answer on the sample case (nothing saved). Form:
   "THE ANSWER / Fill in the blanks", a yellow slip ("1 of 2 right. Keep digging."), the wrong try struck through in red,
-  a fresh "It was ___ in the <room>, with the ___." with 44px blanks, a disabled "Fill both blanks first" button; tapping a
-  blank opens a list of 44px names. Solved: pencil verdict, "Solved in 2 accusations", effort line, "Back to the shelf".
-  No sideways scroll; the notebook strip stays at the foot.
+  a fresh "It was ___ in the <room>, with the ___." with 44px blanks, "Right now: Sharp eye" (the rank for the next try)
+  above a disabled "Fill both blanks first" button; tapping a blank opens a list of 44px names. Solved: pencil verdict,
+  the rank ("Sharp eye", big red pencil) under it, "Solved in 2 accusations", effort line, a secondary 48px "Walk through
+  the night" button (opens the replay) above "Back to the shelf". No sideways scroll; the notebook strip stays at the foot.
+- `shelf-night`: the #shelf ending on its own: a paper page (red spine edge, "The night, as it was") with the floor plan
+  and one step ("3 of N") that shows a "Your clue: ..." line, the placement line, Skip and Next side by side (48px). Text
+  readable on paper, counters 44px+, no sideways scroll; the page covers the whole screen.
+- `shelf-clue-slip`: the #shelf book with the notebook strip at the foot, which plays the clue-slip moment on load:
+  three small cream slips (no text) fly from the upper middle of the screen into the strip one after another, the strip
+  gives one short wiggle, and the line changes from "no clues yet" to "N of N to use" only when the last one lands. A
+  "Play again" button (44px) remounts the book to see it again. Slips must be gone afterwards; no sideways scroll.
 - `shelf-labels`: the #shelf puzzle labels on the felt: all nine games at easy, medium and hard (140 x 60 cream cards, border
   navy for words, green for logic, plum for people, the 26px drawing at left, the name in small caps at right, wrapping to two
   lines, rust stars); a label with no level (no stars) and one with a page ring; won (green tick), won with 2 hints (tick and

@@ -4,7 +4,8 @@ import { itemName, roomName, suspectName } from '../game/names.ts';
 import { effortLines, hintTotal, puzzleCounts } from '../game/runRecord.ts';
 import { sceneUnlocked } from '../game/state.ts';
 import type { QuickBook } from './useQuickBook.ts';
-import { blanksFilled, canSubmit, emptyBlanks, resultLine, triesList, type Blanks } from './answer.ts';
+import { blanksFilled, canSubmit, emptyBlanks, rankFor, resultLine, rightNowLine, triesList, type Blanks } from './answer.ts';
+import { NightReplay } from './NightReplay.tsx';
 
 type Open = 'suspect' | 'item' | null;
 
@@ -25,14 +26,24 @@ export function AnswerPage({ book, onBack, prefill }: { book: QuickBook; onBack:
     setBlanks({ suspect: prefill.suspect, item: '' });
     setOpen(null);
   }
+  // The night replay plays once, in the visit that solves the case (from this page or the notebook), never for
+  // a save opened already solved; the solved page can replay it any time (adjusting state while rendering).
+  const [wasSolved, setWasSolved] = useState(progress.solved);
+  const [replay, setReplay] = useState(false);
+  if (progress.solved !== wasSolved) {
+    setWasSolved(progress.solved);
+    if (progress.solved) setReplay(true);
+  }
   const tries = triesList(progress);
   const last = progress.accusations.at(-1);
   const room = sceneUnlocked(c, progress) ? roomName(c.sceneRoom) : null;
+  const night = replay ? <NightReplay c={c} progress={progress} onClose={() => setReplay(false)} /> : null;
 
   if (progress.solved) {
     const counts = puzzleCounts(c, progress);
     return (
       <div className={styles.scroll}>
+        {night}
         <p className={styles.head}>
           <span>The answer</span>
           <em>Case closed</em>
@@ -40,6 +51,9 @@ export function AnswerPage({ book, onBack, prefill }: { book: QuickBook; onBack:
         <p className={styles.verdict}>
           It was <span className={styles.pencil}>{suspectName(c.murderer, c.guests)}</span> in the <span className={styles.pencil}>{roomName(c.sceneRoom)}</span>, with the{' '}
           <span className={styles.pencil}>{itemName(c.weapon)}</span>.
+        </p>
+        <p className={styles.rank} data-testid="rank">
+          {rankFor(tries.length)}
         </p>
         <p className={styles.note}>Solved {tries.length === 1 ? 'on the first accusation' : `in ${tries.length} accusations`}.</p>
         <p className={styles.note}>{effortLines({ hints: hintTotal(progress), solvedForHer: counts.revealed, solvedYourself: counts.won, puzzles: counts.total })}</p>
@@ -52,6 +66,9 @@ export function AnswerPage({ book, onBack, prefill }: { book: QuickBook; onBack:
             ))}
           </ol>
         ) : null}
+        <button type="button" className={styles.secondary} onClick={() => setReplay(true)}>
+          Walk through the night
+        </button>
         <button type="button" className={styles.submit} onClick={onBack}>
           Back to the shelf
         </button>
@@ -73,6 +90,7 @@ export function AnswerPage({ book, onBack, prefill }: { book: QuickBook; onBack:
 
   return (
     <div className={styles.scroll}>
+      {night}
       <p className={styles.head}>
         <span>The answer</span>
         <em>Fill in the blanks</em>
@@ -131,6 +149,7 @@ export function AnswerPage({ book, onBack, prefill }: { book: QuickBook; onBack:
         </div>
       ) : null}
 
+      <p className={styles.rightNow}>{rightNowLine(tries.length)}</p>
       <button type="button" className={styles.submit} disabled={!canSubmit(blanks, progress.solved)} onClick={submit}>
         {blanksFilled(blanks) === 2 ? 'Make the accusation' : 'Fill both blanks first'}
       </button>
