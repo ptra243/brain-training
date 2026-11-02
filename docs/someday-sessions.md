@@ -94,3 +94,16 @@ Starting prompt:
 ```
 Read docs/killer-lies.md and src/engine/CLAUDE.md, then help me decide whether it's worth building and sketch the clue model and solver change.
 ```
+
+## Session: Two-storey houses, picked per case
+Last touched: 2026-11-02 (moved here by the owner: the new houses should already add variety)
+Reads first: `docs/two-storey-houses.md` (the proposal, what to settle, the brief's parts),
+`src/engine/CLAUDE.md`, `src/engine/house.ts`, `src/engine/caseFacts.ts`, `src/engine/clues.ts`
+(the adjacency clue types), the houses in `src/content/`, `src/game/MapPanel.tsx`.
+Goal: decide whether two-storey houses still add anything now the new houses exist. The proposal was
+to pick one per case so "next to" clues get sparse and useful. A content change: every case changes,
+storage prefix bump.
+Starting prompt:
+```
+Read docs/two-storey-houses.md and look at the houses we have now. Do "next to" clues still need two storeys to get sparse? If so, help me settle the open questions and write an implementer brief.
+```

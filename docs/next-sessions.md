@@ -135,18 +135,6 @@ Starting prompt:
 Read docs/visual-theme.md "Screens 8–10, settled" and the Screen plan row for step 8, then propose how to split the campaign book into pieces for implementers. #shelf only.
 ```
 
-## Session: Two-storey houses, picked per case
-Last touched: 2026-10-20
-Reads first: `docs/two-storey-houses.md` (the proposal, what to settle, the brief's parts),
-`src/engine/CLAUDE.md`, `src/engine/house.ts`, `src/engine/caseFacts.ts`, `src/engine/clues.ts`
-(the adjacency clue types), the house in `src/content/index.ts`, `src/game/MapPanel.tsx`.
-Goal: replace the single 6x6 manor with 3 to 5 two-storey houses, one picked per case, so "next to"
-clues get sparse and useful. A content change: every case changes, storage prefix bump.
-Starting prompt:
-```
-Read docs/two-storey-houses.md, help me settle the open questions, then write an implementer brief.
-```
-
 ## Session: Hunting the weapon (campaign)
 Last touched: 2026-10-25
 Reads first: `docs/weapons.md` (body signs as the shortlist, weapon stories, themed weapons, open calls),
