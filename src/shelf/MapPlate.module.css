@@ -40,6 +40,15 @@
   --card-edge: #cbbd9c;
   --ink-soft: #6b5a3a;
 }
+/* The shelf's --wall is the pale wallpaper, which vanishes on the room colours.
+   The paper chip keeps a long name readable where it runs past a narrow room. */
+:global(body.shelf) .plate :global(.room-name) {
+  right: auto;
+  padding: 0 3px;
+  border-radius: 2px;
+  background: rgba(248, 241, 223, 0.85);
+  color: var(--on-baize);
+}
 /* The panel's own side padding would shrink the plan inside the page's padding. */
 :global(body.shelf) .plate :global(.panel) {
   padding: 0;

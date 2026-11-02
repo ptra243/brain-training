@@ -40,6 +40,8 @@ export const PREVIEWS: readonly PreviewInfo[] = [
   { id: 'shelf-night', about: 'The #shelf ending: one step of the night replay ("3 of N") on paper over the book, with a "Your clue" line, Skip and Next', look: 'plain' },
   { id: 'shelf-clue-slip', about: 'The #shelf notebook strip playing the clue-slip moment on load (three slips fly in, then the line changes and the strip wiggles); Play again replays it', look: 'plain' },
   { id: 'shelf-notebook',about: 'The #shelf book on Case with the notebook closed to its strip at the foot', look: 'plain' },
+  { id: 'shelf-notebook-grid-clues', about: 'The #shelf notebook on the Grid tab with the pull-up sheet open on its Clues face', look: 'plain' },
+  { id: 'shelf-notebook-grid-house', about: 'The #shelf notebook on the Grid tab with the pull-up sheet open on its House face (the floor plan)', look: 'plain' },
   { id: 'shelf-notebook-grid', about: 'The #shelf notebook open on the Grid tab, with the cat hint and a few marks', look: 'plain' },
   { id: 'shelf-notebook-jigsaw', about: 'The #shelf notebook open on the Jigsaw tab (a Jigsaw-finish case): the board on the page, three stickers placed, the sticker sheet drawer above the tabs', look: 'plain' },
   { id: 'shelf-notebook-subject', about: 'The #shelf notebook on a guest page: placement, clues that name them, what they said', look: 'plain' },

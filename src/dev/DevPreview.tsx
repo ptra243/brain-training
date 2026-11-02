@@ -426,7 +426,7 @@ function ShelfRibbonsPreview() {
  * The #shelf notebook over the sample case: a few games won (so there are clues), one guest placed, one
  * cross. `view` picks how it starts: peeking on Case, open on Grid, or open on a guest's page.
  */
-function ShelfNotebookPreview({ view }: { view: 'peek' | 'grid' | 'subject' }) {
+function ShelfNotebookPreview({ view }: { view: 'peek' | 'grid' | 'grid-clues' | 'grid-house' | 'subject' }) {
   useLayoutEffect(() => {
     document.body.classList.add('shelf');
     return () => document.body.classList.remove('shelf');
@@ -447,6 +447,8 @@ function ShelfNotebookPreview({ view }: { view: 'peek' | 'grid' | 'subject' }) {
     const notebook = {
       peek: {},
       grid: { open: true, tab: 'grid' as const },
+      'grid-clues': { open: true, tab: 'grid' as const, sheet: 'clues' as const },
+      'grid-house': { open: true, tab: 'grid' as const, sheet: 'house' as const },
       subject: { open: true, tab: 'guests' as const, subject: { kind: 'suspect' as const, id: guest } },
     }[view];
     return { c, progress, ref: caseCode(ref), seen: true, notebook };
@@ -597,6 +599,8 @@ const SCREENS: Record<string, () => ReactNode> = {
   'shelf-find-a-clue': () => <ShelfFindACluePreview />,
   'shelf-notebook': () => <ShelfNotebookPreview view="peek" />,
   'shelf-notebook-grid': () => <ShelfNotebookPreview view="grid" />,
+  'shelf-notebook-grid-clues': () => <ShelfNotebookPreview view="grid-clues" />,
+  'shelf-notebook-grid-house': () => <ShelfNotebookPreview view="grid-house" />,
   'shelf-notebook-subject': () => <ShelfNotebookPreview view="subject" />,
   'shelf-notebook-jigsaw': () => <ShelfJigsawPreview />,
   'shelf-puzzle': () => <ShelfPuzzlePreview page="unplayed" />,

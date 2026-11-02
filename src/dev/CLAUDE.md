@@ -98,12 +98,16 @@ What a look check judges on each:
   squared paper, three 48px tabs along the bottom (Clues, Grid, Guests; a Play case also has Jigsaw; no You tab in Quick cases; the current one underlined in red);
   Grid: Hint button and the whole grid readable (weapons as line icons, rooms as vertical words, 30px cells); subject: back link, counter and
   name, placement line, clue cards, "What they said", "Move their counter" with the rooms, then a red-outlined 48px "Accuse the X with the Y" button (the guest is given a weapon); no sideways scroll at 360px. A sample never saves the tab.
+- `shelf-notebook-grid-clues`, `shelf-notebook-grid-house`: the notebook on Grid with the pull-up sheet open above the tabs
+  (about 240px on Clues, scrolls inside, a Clues / House / Close bar of 44px buttons; the grid's guest rows stay visible
+  above it). House: the sample case's floor plan, read-only, with the placed guest and weapons, room names in dark ink on
+  a paper chip, shaded empty rooms listed under it; the whole plan fits above the tabs; no sideways scroll; buttons 44px+.
 - `shelf-notebook-jigsaw`: the notebook open on a Jigsaw-finish Quick sample (two games won, three stickers placed at
   their true spots). Tabs You, Clues, Jigsaw, Guests (no Grid); the sticker page on squared paper: board, Hint/Undo/Check
   /Restart, and the sticker sheet pinned as a drawer just above the tabs (2 rows of 44px, scrolls sideways); no sideways
   page scroll at 360px.
 - `shelf-map`, `shelf-map-subject`: the #shelf book turned to Map on the sample case (three guests and a weapon placed,
-  nothing saved). Map: "Plate II" head, the floor plan with counters and weapons on it, the tray, the legend; no
+  nothing saved). Map: "Plate II" head, the floor plan with counters and weapons on it, room names in dark ink on a paper chip (readable where a long name runs past a narrow room), the tray, the legend; no
   Accuse bar; notebook strip at the foot. Subject: a placed guest ringed in brass on the plan, still fully visible
   above the notebook, which covers the lower half on that guest's page (back link, placement line, clues, "Move their
   counter" with a 44px button per room, the current one marked, then a red-outlined "Accuse ... with the ..." button); no talk; no sideways scroll.

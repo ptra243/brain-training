@@ -1,0 +1,151 @@
+/* The Grid tab's pull-up sheet, pinned above the notebook tabs (sticky at the foot of the scrolling page).
+   Everything is under body.shelf. */
+:global(body.shelf) .sheet {
+  position: sticky;
+  /* Past the page's 16px bottom padding, or the grid shows in a sliver under the sheet. */
+  bottom: -16px;
+  z-index: 6;
+  /* Full paper width, and flush with the foot of the page (the page has 16px of padding below). */
+  margin: 0 calc(-1 * var(--square)) -16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: #f1ead3;
+  border-top: 2px solid #c9bd9f;
+  box-shadow: 0 -6px 12px -6px rgba(0, 0, 0, 0.3);
+  color: var(--ink-n);
+}
+:global(body.shelf) .strip {
+  display: flex;
+  min-height: 44px;
+  touch-action: none;
+}
+:global(body.shelf) .strip button,
+:global(body.shelf) .bar button {
+  min-height: 44px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--ink-n);
+}
+:global(body.shelf) .stripClues {
+  flex: 1;
+  min-width: 0;
+  padding: 0 12px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+:global(body.shelf) .stripHouse {
+  flex: none;
+  min-width: 88px;
+  padding: 0 14px;
+  border-left: 1px solid rgba(42, 42, 58, 0.18) !important;
+}
+
+:global(body.shelf) .isOpen.cluesFace {
+  height: 240px;
+}
+:global(body.shelf) .isOpen.house {
+  max-height: 72vh;
+}
+:global(body.shelf) .bar {
+  flex: none;
+  display: flex;
+  border-bottom: 1px solid rgba(42, 42, 58, 0.18);
+}
+:global(body.shelf) .bar button {
+  flex: 1;
+  padding: 0 8px;
+}
+:global(body.shelf) .bar button[aria-pressed='true'] {
+  text-decoration: underline;
+  text-decoration-color: var(--pencil-n);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 5px;
+}
+:global(body.shelf) .bar .close {
+  color: #6b6458;
+}
+:global(body.shelf) .body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px var(--square) 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+:global(body.shelf) .body > * {
+  flex: none;
+}
+:global(body.shelf) .body :global(ul) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+:global(body.shelf) .body :global(.clue) {
+  background: #fffcf3;
+}
+:global(body.shelf) .filter {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  font-size: 14px;
+}
+:global(body.shelf) .filter > span {
+  flex: 1 1 100%;
+}
+:global(body.shelf) .filter button {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid #c9bd9f;
+  border-radius: 22px;
+  background: #fffcf3;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink-n);
+  cursor: pointer;
+}
+
+/* The plan on a light paper: the same variables and room-name chip as the Map section's plate. */
+:global(body.shelf) .plate {
+  --baize: #f8f1df;
+  --on-baize: #2a2118;
+  --on-baize-soft: #6b5a3a;
+  --card: #fffcf3;
+  --card-edge: #cbbd9c;
+  --ink-soft: #6b5a3a;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+:global(body.shelf) .plate :global(.room-name) {
+  right: auto;
+  padding: 0 3px;
+  border-radius: 2px;
+  background: rgba(248, 241, 223, 0.85);
+  color: var(--on-baize);
+}
+/* Read-only: a tap goes to the room under the counter. */
+:global(body.shelf) .plate :global(.on-map) {
+  pointer-events: none;
+}
+:global(body.shelf) .plate :global(.tile:not(.closed)) {
+  cursor: pointer;
+}
+:global(body.shelf) .tip {
+  margin: 0;
+  font-size: 13px;
+  color: #6b5a3a;
+}

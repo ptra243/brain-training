@@ -219,8 +219,12 @@ owner switches that default, this work must not change the current shell.
 - **Tapping on the map** (a short tap; a drag still moves it): the notebook rises to **half height**
   on that subject's page, the counter ringed in brass on the map above. Tapping another counter or
   weapon swaps the page in place. Swipe up for full height; swipe down or tap the map to tuck it
-  away. A row or column name in the notebook's grid opens the same page. This replaces today's
-  suspect sheet; there is no separate card on the table.
+  away. This replaces today's suspect sheet; there is no separate card on the table.
+- **Grid sheet** (`GridSheet`, Grid tab only): a 44px strip pinned above the tabs, "Clues · N of M to use" on the left
+  and House on the right (tap or swipe up to open; Back closes it before the notebook). Open it is a ~240px Clues
+  face (scrolls inside) or a House face (the read-only floor plan). A row or column name in the grid filters Clues to
+  that subject, with "Show all" and "Open their page"; a room tapped on the plan filters to that room. Local state,
+  never saved.
 - **Answer page**: Quick play rules unchanged (unlimited accusations, tries counted). A printed form,
   "It was ___ in the ___ with the ___"; tapping a blank opens a printed list and her pick is written
   in pencil. A wrong one is crossed out in red pencil and a fresh line appears below, so earlier
@@ -284,7 +288,8 @@ Order (1 and 4 don't depend on 2 and 3 and can run alongside):
 5. The look option.
 6. Her test on her phone.
 
-**Status (2026-10-29):** 1–5 are built; 6 is left. Fonts are `@fontsource` packages imported from the
+**Status (2026-11-02):** done. All six steps are finished: her phone test went fine, with no fixes
+asked for. Next is the campaign (Screen plan step 8). Fonts are `@fontsource` packages imported from the
 shelf chunk and precached. New case repeats her last Quick settings (`planNewCase`). The map plate
 reuses `MapPanel` (one optional `onSubject` prop) and drops accusing from the map on the shelf. The
 Answer page prints the room (accusations are who + weapon) and ends with "Back to the shelf". The

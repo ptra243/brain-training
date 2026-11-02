@@ -26,15 +26,6 @@ stands. A blocked entry keeps its rank and names its blocker in the heading.
 open questions go in a linked `docs/<slug>.md`, and the entry points to it. An exploratory idea with no
 settled design may stay as a short stub; give it a doc when someone starts it.
 
-## Session: Shelf UI, beside the current game
-Last touched: 2026-11-02 (quick play ending built: the night replay, ranks by accusations, a paper slip into the notebook, a one-second hold on the finished board)
-Reads first: `docs/visual-theme.md` ("Milestone 1" and "Puzzle labels and the sticker tin", each with its Status), `CONTEXT.md`.
-Goal: finish Milestone 1: she plays one real Quick case on her phone at `#shelf` (step 6), from the bookcase to the answer. Fix what that turns up; then campaign (Screen plan step 8).
-Starting prompt:
-```
-Read docs/visual-theme.md "Milestone 1" Status. Ask me how her phone test at #shelf went, then brief an implementer with the fixes. #shelf only.
-```
-
 ## Session: Theme content, land the lines
 Last touched: 2026-10-29
 Reads first: `docs/story.md` ("How a thread reads", the people and their versions, the Fixer under "Threads written"), `docs/talk-threads.md` ("Two topics").
@@ -135,6 +126,15 @@ Starting prompt:
 Read docs/case-check-split.md ("Quick sweep profile and crossword letters" and "After the split — builders that cannot fail"). Crosswords are done. Profile where the case and end boards still cost time inside the case files, and propose how a board can always build before briefing the implementer.
 ```
 
+## Session: Shelf UI, beside the current game
+Last touched: 2026-11-02 (Milestone 1 done: her phone test went fine, no fixes asked for; quick play ending, Grid tab's pull-up sheet, readable map room names and the Cat puzzle's real rule built)
+Reads first: `docs/visual-theme.md` ("Screens 8–10, settled" and "Screen plan"), `CONTEXT.md`.
+Goal: build the campaign on `#shelf` (Screen plan step 8): title page, room page, chapters. Quick play on the shelf is finished.
+Starting prompt:
+```
+Read docs/visual-theme.md "Screens 8–10, settled" and the Screen plan row for step 8, then propose how to split the campaign book into pieces for implementers. #shelf only.
+```
+
 ## Session: Two-storey houses, picked per case
 Last touched: 2026-10-20
 Reads first: `docs/two-storey-houses.md` (the proposal, what to settle, the brief's parts),
@@ -232,7 +232,7 @@ Read docs/visual-theme.md. This is paused. Do not change src/styles.css or repla
 ```
 
 ## Session: Session hygiene review (weekly)
-Last touched: 2026-10-22
+Last touched: 2026-11-02 (reviewed; findings and the rule changes under "Reviews" in `docs/session-log.md`)
 Reads first: `docs/session-log.md` (the checklist and "Why sessions ran long"), the "Token budget"
 section of `CLAUDE.md`, `docs/workflow.md`, `.claude/agents/implementer.md`, `.claude/hooks/session-length.mjs`.
 When: once a week at most, or once the log has three or more new lines since the last review. One short

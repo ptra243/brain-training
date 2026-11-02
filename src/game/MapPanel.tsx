@@ -2,7 +2,7 @@ import { houseOf } from '../content/houses.ts';
 import { useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import type { Case, GameKind, House, Room } from '../engine/types.ts';
 import { PlanFrame } from './PlanFrame.tsx';
-import { ownerMap } from './plan.ts';
+import { SPREAD, anchors, ownerMap } from './plan.ts';
 import { ClueCard } from './ClueCard.tsx';
 import { cellOf, showsWrong } from './gridHints.ts';
 import { Dialog } from './Dialog.tsx';
@@ -41,36 +41,6 @@ interface Props {
 }
 
 type Piece = { kind: 'suspect' | 'item'; id: string };
-
-const nearest = (room: Room, r: number, c: number) =>
-  room.cells.reduce((best, cell) =>
-    (cell[0] - r) ** 2 + (cell[1] - c) ** 2 < (best[0] - r) ** 2 + (best[1] - c) ** 2 ? cell : best,
-  );
-
-/** Counters gather at the room square nearest its centre; loose weapons at the square farthest from that. */
-function anchors(room: Room): { people: readonly [number, number]; things: readonly [number, number] } {
-  const cr = room.cells.reduce((s, [r]) => s + r, 0) / room.cells.length;
-  const cc = room.cells.reduce((s, [, col]) => s + col, 0) / room.cells.length;
-  const people = nearest(room, cr, cc);
-  const things =
-    room.cells.length === 1
-      ? people
-      : room.cells.reduce((best, cell) =>
-          (cell[0] - people[0]) ** 2 + (cell[1] - people[1]) ** 2 > (best[0] - people[0]) ** 2 + (best[1] - people[1]) ** 2
-            ? cell
-            : best,
-        );
-  return { people, things };
-}
-
-/** Offsets (in squares) so several counters in one room don't sit on top of each other. */
-const SPREAD: [number, number][][] = [
-  [[0, 0]],
-  [[0, -0.27], [0, 0.27]],
-  [[-0.22, -0.27], [-0.22, 0.27], [0.27, 0]],
-  [[-0.24, -0.27], [-0.24, 0.27], [0.24, -0.27], [0.24, 0.27]],
-  [[-0.27, -0.3], [-0.27, 0.3], [0.27, -0.3], [0.27, 0.3], [0, 0]],
-];
 
 export function MapPanel({ c, progress, dispatch, onAccused, pawedSquare, onQuestion, house = houseOf(c), onSubject }: Props) {
   // The cat's hint: the person or weapon and the room (or weapon) its square is about.

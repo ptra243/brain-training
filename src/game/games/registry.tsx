@@ -194,9 +194,9 @@ export const GAMES: Record<GameKind, GameEntry> = {
   }),
   cats: game<CatsSpec, CatPuzzle>({
     name: 'Cat puzzle',
-    blurb: 'Place the cats where the clues allow.',
-    help: 'Put the cats on the grid so every clue is true. Rule squares out as you work; the clues are all you need.',
-    rule: 'Put each cat on the grid so every clue is true.',
+    blurb: 'Give every row, column and colour one cat.',
+    help: 'Put one cat in every row, every column and every colour. No two cats may touch, not even at a corner. Rule squares out as you work.',
+    rule: 'One cat per row, column, colour; none touching.',
     label: { kind: 'logic', Art: CatsArt },
     build: (_c, spec) => generateCats(spec.size, new Rng(spec.seed), spec.easy),
     play: (puzzle, a) => ({

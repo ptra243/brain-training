@@ -17,6 +17,8 @@ import { SuspectCounterFace } from '../game/SuspectCounterFace.tsx';
 import { youLines } from '../game/youSheet.ts';
 import styles from './Notebook.module.css';
 import { accuseLabel, accuseRequest, afterSwipe, peekLine, placeAction, placeRooms, placementLine, slipCount, subjectClues, subjectTitle, tabForCase, tabsFor, type AccuseRequest, type Height, type NotebookTab } from './notebook.ts';
+import { GridSheet } from './GridSheet.tsx';
+import { sheetClues, sheetSubjectName, type SheetFace } from './gridSheet.ts';
 import { saveNotebookTab, loadNotebookTab } from './shelfStore.ts';
 import { stepIndex, watchSwipe, type SwipeDir } from './swipe.ts';
 import { useBackLayer } from './useBackLayer.ts';
@@ -229,8 +231,11 @@ function GuestsTab({ c, onPick }: { c: Case; onPick: (s: Subject) => void }) {
   );
 }
 
-function GridTab({ book, onPick }: { book: QuickBook; onPick: (s: Subject) => void }) {
+function GridTab({ book, onPick, startSheet }: { book: QuickBook; onPick: (s: Subject) => void; startSheet?: SheetFace }) {
   const { c, progress, dispatch } = book;
+  // The pull-up sheet: local, never saved. A label or room tap filters its Clues face.
+  const [face, setFace] = useState<SheetFace | null>(startSheet ?? null);
+  const [focus, setFocus] = useState<Subject | null>(null);
   // Hints on the grid come from the house cat, as in the Casebook.
   const helper = cats[c.number % cats.length];
   const [hintNote, setHintNote] = useState<string | null>(null);
@@ -265,11 +270,15 @@ function GridTab({ book, onPick }: { book: QuickBook; onPick: (s: Subject) => vo
     const unlocked = unlockedClueIds(c, progress);
     const h = gridHint(c, progress, clues, state, c.clues.every((cl) => unlocked.has(cl.id)));
     setHintNote(gridHintText(helper, h, clues, sceneUnlocked(c, progress), c.guests));
-    setPawed(h.kind === 'why' && h.reason.type === 'clues' ? h.reason.clues : []);
+    const paws = h.kind === 'why' && h.reason.type === 'clues' ? h.reason.clues : [];
+    setPawed(paws);
+    // The clues the cat points at open in the sheet; any other hint is on the grid, so clear the way.
+    if (paws.length) setFocus(null);
+    setFace(paws.length ? 'clues' : null);
     if (h.kind === 'fill') markActions(h.cell, h.value).forEach(dispatch);
     dispatch({ type: 'grid-hint', hints: afterHint(state, h) });
   };
-  const pawedClues = visibleClues(c, progress).filter((clue) => pawed.includes(clue.id));
+  const listed = pawed.length && !focus ? visibleClues(c, progress).filter((clue) => pawed.includes(clue.id)) : sheetClues(c, progress, focus);
   return (
     <>
       <div ref={gridRef} className={styles.grid}>
@@ -278,8 +287,12 @@ function GridTab({ book, onPick }: { book: QuickBook; onPick: (s: Subject) => vo
           c={c}
           progress={progress}
           dispatch={dispatch}
-          focus={null}
-          onFocus={onPick}
+          focus={focus}
+          onFocus={(s) => {
+            setPawed([]);
+            setFocus(s);
+            setFace('clues');
+          }}
           pawedSquare={hintNote ? progress.gridHints?.target : undefined}
           rule="Tap once to cross out, twice to tick. Tap a name to see its clues."
           aside={<HintButton helper={helper} onAsk={askHint} />}
@@ -295,11 +308,35 @@ function GridTab({ book, onPick }: { book: QuickBook; onPick: (s: Subject) => vo
                   }}
                 />
               ) : null}
-              {pawedClues.length ? <ClueList c={c} progress={progress} dispatch={dispatch} clues={pawedClues} pawed={pawed} /> : null}
             </>
           }
         />
       </div>
+      <GridSheet
+        c={c}
+        progress={progress}
+        face={face}
+        onFace={setFace}
+        focus={focus}
+        pawedNote={pawed.length > 0 && !focus}
+        onShowAll={() => {
+          setFocus(null);
+          setPawed([]);
+        }}
+        onRoom={(room) => {
+          setPawed([]);
+          setFocus({ kind: 'room', id: room });
+          setFace('clues');
+        }}
+        onOpenPage={onPick}
+        clues={
+          listed.length ? (
+            <ClueList c={c} progress={progress} dispatch={dispatch} clues={listed} pawed={pawed} />
+          ) : (
+            <p className={styles.note}>{focus ? `No clue you've found names ${sheetSubjectName(c, focus)} yet.` : 'Play a puzzle from page 3 to find some.'}</p>
+          )
+        }
+      />
     </>
   );
 }
@@ -509,7 +546,7 @@ export function Notebook({ book, sample, hidden, height, onHeight, focus, onPage
   if (page) content = <SubjectPage book={book} page={page} onBack={() => setPage(null)} onAccuseGuest={onAccuseGuest} />;
   else if (tab === 'you') content = <YouTab c={book.c} progress={book.progress} />;
   else if (tab === 'clues') content = <CluesTab c={book.c} progress={book.progress} dispatch={book.dispatch} />;
-  else if (tab === 'grid') content = <GridTab book={book} onPick={pick('grid')} />;
+  else if (tab === 'grid') content = <GridTab book={book} onPick={pick('grid')} startSheet={start?.sheet} />;
   else if (tab === 'jigsaw') content = <JigsawTab book={book} onAccuse={onAccuse} />;
   else content = <GuestsTab c={book.c} onPick={pick('guests')} />;
 

@@ -183,6 +183,15 @@ test('shelf-notebook-grid preview', async ({ page }) => {
   await checkScreen(page, 'preview shelf-notebook-grid');
 });
 
+test('shelf-notebook-grid sheet previews', async ({ page }) => {
+  await page.goto('/#dev/shelf-notebook-grid-clues');
+  await expect(page.getByRole('region', { name: 'Clues and house' }).getByRole('button', { name: 'Close' })).toBeVisible();
+  await checkScreen(page, 'preview shelf-notebook-grid-clues');
+  await page.goto('/#dev/shelf-notebook-grid-house');
+  await expect(page.getByText('Tap a room to see the clues about it.')).toBeVisible();
+  await checkScreen(page, 'preview shelf-notebook-grid-house');
+});
+
 async function noSideways(page: import('@playwright/test').Page, label: string) {
   const w = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
   expect(w[0], `${label}: sideways scroll`).toBeLessThanOrEqual(w[1]);

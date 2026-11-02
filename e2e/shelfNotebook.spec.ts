@@ -31,7 +31,9 @@ test('the notebook: peek, open on Grid, a guest page, tuck away, and it remember
   await expect(page.getByText('Play a puzzle from page 3 to find some.')).toBeVisible();
 
   await tabs.getByRole('button', { name: 'Grid' }).click();
+  // A name on the grid filters the pull-up sheet; its page is one tap further.
   await page.locator('th[scope="row"] button').first().click();
+  await page.getByRole('button', { name: 'Open their page' }).click();
   await expect(page.getByRole('button', { name: '‹ Grid' })).toBeVisible();
   await expect(page.getByText('Not placed yet')).toBeVisible();
   await expect(page.getByText("No clue you've found names them yet.")).toBeVisible();

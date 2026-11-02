@@ -21,7 +21,7 @@ export interface SampleCase {
   /** Open this game's puzzle page at once, with no page turn. */
   open?: GameKind;
   /** Start the notebook open on this tab, on a subject page, or just peeking. Never saved. */
-  notebook?: { open?: boolean; half?: boolean; tab?: NotebookTab; subject?: Subject };
+  notebook?: { open?: boolean; half?: boolean; tab?: NotebookTab; subject?: Subject; sheet?: 'clues' | 'house' };
   /** Turn the book to this section (an index into SECTIONS) once it is open. Sample only; with `startOpen`. */
   section?: number;
   /** Sample only: pretend the ref chose the Jigsaw finish (a sample has no ref). */
