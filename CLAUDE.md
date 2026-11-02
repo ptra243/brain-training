@@ -119,9 +119,11 @@ an agent or proposing a split.
   preview and give `browser-check` that URL only; to play from a state open
   `#dev/load/<id>`. Never solve puzzles or play earlier rounds to get there.
   When a task adds or changes a screen or state, add or update its preview or
-  scenario.
-- **Suggest a new session** after each commit, when context is large, or when
-  the topic changes. Suggest only; don't write handoff files or split unasked.
+  scenario. After about 5 images read here, hand a look-and-fix loop to
+  `browser-check`; keep images only for rounds where the owner picks a look.
+- **Suggest a new session** after each commit, when context is large, when the
+  topic changes, or after about 10 edits to one design doc or mockup here.
+  Suggest only; don't write handoff files or split unasked.
   Ideas worth starting fresh live in `docs/next-sessions.md`; the
   `SessionStart` hook shows them as a menu.
 - **Update `docs/next-sessions.md` before you finish** if the session worked

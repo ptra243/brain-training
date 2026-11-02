@@ -115,6 +115,12 @@ prompt (the implementer creates the file for its review notes).
 - After each commit, when context is large, or when the topic changes (say,
   from one minigame's rules to theme content), suggest starting a new session.
   Suggest only; don't write handoff files or split unasked.
+- After about 10 edits to one design doc or mockup in the main session, suggest
+  moving the remaining rounds to a new session. Each round re-reads the whole
+  context, and the doc holds the state a fresh session needs.
+- After about 5 images read in the main session, hand a look-and-fix loop to
+  `browser-check`. Keep images here only for rounds where the owner is choosing
+  between looks.
 - The suggestion names the handoff documents worth writing (file name and what
   goes in each; skip what's already in the repo) and the sessions to start
   (what each does, which docs it reads first, a one-line starting prompt).

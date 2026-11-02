@@ -14,14 +14,14 @@ is done, stop; don't audit the audit.
 3. Skim the new "Why sessions ran long" lines for a cause that appears twice or more.
 4. Change a rule only for a repeat cause; anything seen once stays a note.
 5. Note what you reviewed and the date, then close the session.
-Also check whether the 250k-token reminder fires at the right moment (it was a 1 MB transcript size
+Also check whether the 200k-token reminder (250k until 2026-11-02) fires at the right moment (it was a 1 MB transcript size
 until 2026-10-23; tune it with `SESSION_REMIND_TOKENS`). Compare the token totals and the minutes the dated lines quote, not just their causes: a session can be cheap in tokens and still slow (long agent runs, full checks), and the fixes differ. Use the `explain-usage` skill on a session only if a cause is unclear. Mark the
 lines you reviewed with the date.
 
 ## Why sessions ran long
 
-One dated line per long session, added when the split is written up (the session-length hook asks for
-it). Not a menu entry; the "Session hygiene review" entry in `docs/next-sessions.md` reads it.
+One dated line per long session, added at the first length reminder, split or not (the session-length
+hook asks for it). Not a menu entry; the "Session hygiene review" entry in `docs/next-sessions.md` reads it.
 Each line should also say where the minutes went: per agent run (the task notification gives its
 duration), each full check, and how many ran in order versus alongside. Older lines have tokens only.
 
@@ -75,3 +75,18 @@ duration), each full check, and how many ran in order versus alongside. Older li
   round read screenshots back into the main context (contact sheets, side-by-side shots), and design
   rounds ran here instead of handing the capture scripts to an agent. Totals: 140 replies, 25.2M read
   from cache, 547k written, 109k output, context 289k, transcript 21 MB.
+
+## Reviews
+
+- 2026-11-02: reviewed every line above, plus 43 transcripts from 26 Oct to 2 Nov, because no line had
+  been added since 26 Oct. Startup context 71-78k, no rise (tools 36k, MCP 21k, memory 3k). Weekly use
+  4% three days into the week, and the 5-hour window 15%; earlier weeks and past limit hits can't be read. Main sessions
+  read 309M from cache: 84% at 100k+ context, 53% at 150k+, 31% at 200k+, 17% at 250k+. Largest: Theme
+  content (239 replies, peak 334k, 51.4M), Minigame selection shelf UI (158, 334k, 36.5M), Visual theme
+  milestone 1 (153, 233k, 24.6M), npm run checks performance (121, 243k, 18.9M), Shelf UI (91, 268k,
+  17.0M), Quick play shelf UI (80, 239k, 12.6M). The reminder fired in all three sessions past 250k; they
+  ran on for 87, 76 and 5 more replies, and none added a line here. Repeat causes: (1) design written round
+  by round in the main session (`docs/story.md` 44 edits, `docs/visual-theme.md` 44, a prototype 57);
+  (2) screenshots read in the main session (55 images in Quick play, 16 in two others); (3) the line
+  here depends on a split being written up, so it never gets written. Open question on the tuner split
+  from 23 Oct: not checked in this review, so still open. Rules changed: reminder at 200k, log line at the first reminder, about 10 design edits or 5 images in the main session prompts a move.
