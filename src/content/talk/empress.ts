@@ -14,8 +14,8 @@ export const empress: TalkCard = {
     [
       'A house like this should feel like a home, not a museum. Museums don\'t do seconds.',
       "There's always a spare bed and a warm plate in this house. Usually a spare hot-water bottle too.",
-      "I've fed every face in this family at one time or another. A few still owe me a thank-you note.",
-      "I chose every curtain in this house. They've outlasted two arguments about the curtains.",
+      "I've cooked for most of the people at this table at one time or another. A few still owe me a thank-you note.",
+      "I can't leave a room the way I found it. I'm told that's not always a compliment.",
     ],
     [
       ['I heard a recipe was handed down in this family and never written out.', 'Rumour has it a cousin once tried to copy it and got it wrong on purpose.', 'The real one, I am told, is still perfectly safe.'],

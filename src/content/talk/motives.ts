@@ -190,4 +190,95 @@ export const motives: TalkContent['motives'] = [
       "There are two kinds of people at this table: the ones who'd pay to keep those reports quiet, and the ones who'd love them in a newspaper. {victim} was one or the other. Either way, my copies are worth more now.",
     ],
   },
+  // The Elder heir (id `elder-heir`): settled 2026-11-03.
+  {
+    suspect: 'elder-heir',
+    card: 'chariot',
+    reversed: false,
+    asks: [
+      "Everyone says this place will be yours one day.",
+      "I saw an order for a new production line. It's signed by you, not the company.",
+      "{victim} is dead. What happens to the announcement?",
+    ],
+    thread: [
+      "Everyone has said that for eight years. I've been \"nearly ready\" since I was twenty-four. In the meantime I do the job, and there's always someone standing between me and the title.",
+      "It's for the new range, and it's the right call. The bank wanted security, so I put up my own flat. The moment I'm named at breakfast, the company takes it over, and nobody will remember it was ever a risk.",
+      "Nothing happens, and that's my problem. Nobody hands over a company in a house full of police, and the bank won't wait as politely as I have. This is the worst week it could have happened.",
+    ],
+  },
+  {
+    suspect: 'elder-heir',
+    card: 'chariot',
+    reversed: true,
+    asks: [
+      "You don't look like you're celebrating.",
+      "I overheard someone say a doctor was asked whether your father is still fit to run things.",
+      "{victim} is dead. Where does that leave you?",
+    ],
+    thread: [
+      "Fifty years, and a speech about how he did it all himself. I've waited eight years for my father to step aside, and he keeps finding reasons not to. Someone has to move him.",
+      "Asked, not told. He forgets meetings, he repeats himself, and he's about to give a company away over breakfast. If I were the one who asked, I'd call it looking after the business. I imagine you'd call it pushing him out.",
+      "Everyone in this house is watching everyone else now. If it comes out what I've been asking for, they'll say I was clearing the way, one person at a time. I know how that sounds.",
+    ],
+  },
+  {
+    suspect: 'elder-heir',
+    card: 'empress',
+    reversed: false,
+    asks: [
+      "What would you change, if it were yours?",
+      "Someone told me people the company let go last year are still being paid.",
+      "{victim} is dead. What does that mean for your workshop?",
+    ],
+    thread: [
+      "Less sugar, more cocoa, smaller bars. It's what people buy now, and the numbers say so. My father tried one of mine and said it tasted like a tax.",
+      "Not by the company, as far as the company knows. Six of the best people we ever had are in a little workshop, making the bars my father won't. It comes out of my budget, if you squint. The buyer's accountants won't squint.",
+      "No sale this weekend, so nobody checks my budget. Six people keep their jobs a while longer. I'd never have wished for it, but I won't pretend it doesn't help.",
+    ],
+  },
+  {
+    suspect: 'elder-heir',
+    card: 'empress',
+    reversed: true,
+    asks: [
+      "Do you ever stop working?",
+      "You keep a hand on your back when you stand up.",
+      "{victim} is dead. What happens to the announcement now?",
+    ],
+    thread: [
+      "Not in eight years. If I slow down, I've lost interest. If I don't, I'm hard work. Nobody says either of those to the men in this family.",
+      "Eight years at a desk. Fine. If you've guessed, keep it to yourself. In this family a woman with a baby is \"stepping back\", and I'd never be allowed to step forward again.",
+      "It waits, and I can't. In a few months nobody will need to guess. I needed my name on that door before then.",
+    ],
+  },
+  {
+    suspect: 'elder-heir',
+    card: 'devil',
+    reversed: false,
+    asks: [
+      "The lawyer goes very quiet whenever you come near.",
+      "I found a loan statement with your name on it. The amount made me sit down.",
+      "{victim} is dead. Does that worry you?",
+    ],
+    thread: [
+      "Lawyers are paid to be quiet. That one knows what everyone here is worth on paper, me included, and enjoys it.",
+      "I needed a way out in case they never let me in, so I started something of my own. The lenders asked what I'd inherit, and I gave them a generous figure. I happen to know exactly how generous.",
+      "Now there'll be police and lawyers going through everybody's affairs, and mine won't stand up to much going through. I'd rather nobody looked closely at anything for a while.",
+    ],
+  },
+  {
+    suspect: 'elder-heir',
+    card: 'devil',
+    reversed: true,
+    asks: [
+      "What do you make of the buyer?",
+      "One of the guests told me the buyer has the real figures, not the published ones.",
+      "{victim} is dead. Is your deal off?",
+    ],
+    thread: [
+      "Clever, patient, and the only person this weekend who has asked what I think. That shouldn't be rare in my own family.",
+      "Then somebody in the family gave them. My father has had eight years to hand me this company. If he won't, I'll run it for whoever he sells it to, and they'll know exactly who made that possible.",
+      "It stops, and an inquiry reads everyone's messages. Mine with the buyer won't look much like family loyalty. I'd have liked the sale to go through first.",
+    ],
+  },
 ];

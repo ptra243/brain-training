@@ -169,21 +169,26 @@ the first time in years and keeps to the edges of the room.
 The daughter. Works at the company and has been told for years it will be hers. Driven, impatient,
 better at the job than anyone and knows it. Has been "nearly ready" for eight years and is starting to
 think it was never about being ready. Has already made plans, and maybe promises, on the strength of it.
+Sees everyone as an obstacle, and is often right: these people really have been in her way for eight
+years. Her lines sound accurate and tired, never ruthless, so the game doesn't agree with the old
+prejudice. The Fixer is the rival to beat. Wants to change how things are done (less sugar, more cocoa,
+smaller bars: food only, nothing that sounds like a lab) and has been told no for eight years. She is
+right about the market, never a fad, and it sets her against the Host, the Fixer's orchard and the bar
+her mother made.
 - Versions (the card she meets them on):
-  - **Chariot (home)**
-    - Upright: Will win it on merit. The Fixer is the rival to beat.
-    - Reversed: Done waiting, and ready to force the Host's hand.
+  - **Chariot (home; settled 2026-11-02)**
+    - Upright: So sure it would be hers that she has signed for a new production line on her own personal guarantee. If she isn't named at breakfast, she's ruined, and a death delays the announcement she needs. (money)
+    - Reversed: Done waiting. She is the "someone" trying to get her father declared unfit to decide (Host, Emperor upright). If it comes out before she wins, she's finished at the company. (freedom)
   - **Empress** (replaces the Emperor; see the note below)
-    - Upright: The one who'd grow it. Has ideas the company never lets her try (new bars, the shops), the things her mother would have made if anyone had let her. Wants to create, not just inherit. (freedom)
-    - Reversed: Terrified of becoming her mother: watched her mother's recipe go out under her father's name, and her mother smile about it for thirty years. Won't let it happen to her. (freedom, revenge)
+    - Upright: Built a lower-sugar range in a workshop off the books, staffed by people the company let go and paid with company money. The sale's checks would find it, so they'd lose their jobs and she'd be caught. (protecting someone; settled 2026-11-02)
+    - Reversed: Pregnant, and nobody knows. If it comes out before she's named, "nearly ready" becomes never, and any delay to the announcement means she's running out of time to hide it. The father is never mentioned or linked to any guest. (freedom; settled 2026-11-02)
   - **Devil**
-    - Upright: Quietly talking to the Investor: if they won't give it to her, she'll help sell it.
-    - Reversed: Borrowed against an inheritance she may never get, and her brother is why.
-- **Card swap to make when her threads are written** (owner, 2026-10-29): she borrows the **Empress**
-  instead of the Emperor, sharing it with her mother; her bitterness lives with her mother, not her
-  father. "Already runs it in all but name" folds into the Chariot. Content change: `mayAlsoRoll` in
-  `src/content/`, and the Empress's neutral lines and card threads must fit both mother and daughter.
-  The Emperor drops to 3 holders. Cases stay the same (talk sets are not in a `Case`).
+    - Upright: Borrowed against her inheritance to start a business of her own, a way out in case she's never named. Told the lenders it's far more than the will gives her, and she knows the real figure. (exposure; settled 2026-11-02)
+    - Reversed: Passing company figures to the Investor, in return for running it after the sale. If her father won't give it to her, she'll take it from whoever he sells it to. (revenge; settled 2026-11-02)
+- **Card swap, made 2026-11-03** (owner's idea, 2026-10-29): she borrows the **Empress** instead of
+  the Emperor, sharing it with her mother. The Emperor drops to 3 holders. Two Empress lines that were
+  only true of the Hostess were reworded; the rest still lean motherly (pudding, the nursery) and get
+  reworded with the old-fashioned lines. Cases stay the same (talk sets are not in a `Case`).
 
 ### The Younger heir: Sun (borrows Lovers, Star)
 The son, and everyone's favourite. Left the company to do something of his own in the city and is
@@ -278,7 +283,7 @@ Any two guests' versions can be heard in the same case, so these were checked to
   for the Host (Uncle, Hanged Man upright) and the Hostess (Hostess, Lovers upright). Each says
   "partly", so any two can be true at once.
 - **Someone in the family talking to the Investor** (Investor, Devil upright) is unnamed, so it fits the
-  Elder heir's Devil upright, the Uncle's promised shares, or nobody else's version at all.
+  Elder heir's Devil reversed, the Uncle's promised shares, or nobody else's version at all.
 - **The company in trouble** (Host, Hanged Man reversed) fits the Lawyer's family-trust loss and the
   Investor's struggling fund; none of them says the company is fine.
 - **The dropped case** (Detective) fits the Fixer making it go away and the Detective letting something
@@ -293,6 +298,10 @@ Any two guests' versions can be heard in the same case, so these were checked to
   "I was told the place would be empty" hints someone was inside. Kept on purpose (owner, 2026-10-29).
 - **The pollution** (Fixer, High Priestess reversed) would sink the sale and the inheritance, so it
   gives several guests a reason to want it buried, as background only.
+- **Someone wants the Host declared unfit** (Host, Emperor upright) is unnamed; the Elder heir's Chariot
+  reversed is that someone. Her version names herself only by half-admission.
+- **Three in the family want out**: the Hostess's shop (Star upright), the Younger heir's business (Star)
+  and the Elder heir's business (Devil upright) can all be true at once.
 - **Watch when writing lines**: the Housekeeper knowing "the Younger heir's secret" must stay vague, since
   his secret differs by version.
 
@@ -357,7 +366,7 @@ Each guest gets a session like the Fixer's, in this order:
 ## Threads written
 
 Guarded questioning, her line before each beat (see "How a thread reads"). Settled with the owner
-and in the game (`src/content/talk/motives.ts`): the Fixer 2026-10-29, the Lawyer 2026-11-02.
+and in the game (`src/content/talk/motives.ts`): the Fixer 2026-10-29, the Lawyer 2026-11-02, the Elder heir 2026-11-03.
 
 ### The Fixer
 
@@ -458,6 +467,56 @@ and in the game (`src/content/talk/motives.ts`): the Fixer 2026-10-29, the Lawye
 - **Lawyer:** Someone reads the business pages. It was a sure thing, I was told. It took everything I had. And every cent will be back in the trust before the buyer's accountants look, so you can stop staring.
 - **You:** {victim} is dead. What about the buyer's checks?
 - **Lawyer:** Postponed, naturally. A murder inquiry buys me a few months, and a few months is all I've ever needed. Things are going to turn. I said that last year as well.
+
+### The Elder heir
+
+**Chariot upright (the guarantee)**
+- **You:** Everyone says this place will be yours one day.
+- **Elder heir:** Everyone has said that for eight years. I've been "nearly ready" since I was twenty-four. In the meantime I do the job, and there's always someone standing between me and the title.
+- **You:** I saw an order for a new production line. It's signed by you, not the company.
+- **Elder heir:** It's for the new range, and it's the right call. The bank wanted security, so I put up my own flat. The moment I'm named at breakfast, the company takes it over, and nobody will remember it was ever a risk.
+- **You:** {victim} is dead. What happens to the announcement?
+- **Elder heir:** Nothing happens, and that's my problem. Nobody hands over a company in a house full of police, and the bank won't wait as politely as I have. This is the worst week it could have happened.
+
+**Chariot reversed (unfit to decide)**
+- **You:** You don't look like you're celebrating.
+- **Elder heir:** Fifty years, and a speech about how he did it all himself. I've waited eight years for my father to step aside, and he keeps finding reasons not to. Someone has to move him.
+- **You:** I overheard someone say a doctor was asked whether your father is still fit to run things.
+- **Elder heir:** Asked, not told. He forgets meetings, he repeats himself, and he's about to give a company away over breakfast. If I were the one who asked, I'd call it looking after the business. I imagine you'd call it pushing him out.
+- **You:** {victim} is dead. Where does that leave you?
+- **Elder heir:** Everyone in this house is watching everyone else now. If it comes out what I've been asking for, they'll say I was clearing the way, one person at a time. I know how that sounds.
+
+**Empress upright (the workshop)**
+- **You:** What would you change, if it were yours?
+- **Elder heir:** Less sugar, more cocoa, smaller bars. It's what people buy now, and the numbers say so. My father tried one of mine and said it tasted like a tax.
+- **You:** Someone told me people the company let go last year are still being paid.
+- **Elder heir:** Not by the company, as far as the company knows. Six of the best people we ever had are in a little workshop, making the bars my father won't. It comes out of my budget, if you squint. The buyer's accountants won't squint.
+- **You:** {victim} is dead. What does that mean for your workshop?
+- **Elder heir:** No sale this weekend, so nobody checks my budget. Six people keep their jobs a while longer. I'd never have wished for it, but I won't pretend it doesn't help.
+
+**Empress reversed (the pregnancy)**
+- **You:** Do you ever stop working?
+- **Elder heir:** Not in eight years. If I slow down, I've lost interest. If I don't, I'm hard work. Nobody says either of those to the men in this family.
+- **You:** You keep a hand on your back when you stand up.
+- **Elder heir:** Eight years at a desk. Fine. If you've guessed, keep it to yourself. In this family a woman with a baby is "stepping back", and I'd never be allowed to step forward again.
+- **You:** {victim} is dead. What happens to the announcement now?
+- **Elder heir:** It waits, and I can't. In a few months nobody will need to guess. I needed my name on that door before then.
+
+**Devil upright (the generous figure)**
+- **You:** The lawyer goes very quiet whenever you come near.
+- **Elder heir:** Lawyers are paid to be quiet. That one knows what everyone here is worth on paper, me included, and enjoys it.
+- **You:** I found a loan statement with your name on it. The amount made me sit down.
+- **Elder heir:** I needed a way out in case they never let me in, so I started something of my own. The lenders asked what I'd inherit, and I gave them a generous figure. I happen to know exactly how generous.
+- **You:** {victim} is dead. Does that worry you?
+- **Elder heir:** Now there'll be police and lawyers going through everybody's affairs, and mine won't stand up to much going through. I'd rather nobody looked closely at anything for a while.
+
+**Devil reversed (the real figures)**
+- **You:** What do you make of the buyer?
+- **Elder heir:** Clever, patient, and the only person this weekend who has asked what I think. That shouldn't be rare in my own family.
+- **You:** One of the guests told me the buyer has the real figures, not the published ones.
+- **Elder heir:** Then somebody in the family gave them. My father has had eight years to hand me this company. If he won't, I'll run it for whoever he sells it to, and they'll know exactly who made that possible.
+- **You:** {victim} is dead. Is your deal off?
+- **Elder heir:** It stops, and an inquiry reads everyone's messages. Mine with the buyer won't look much like family loyalty. I'd have liked the sale to go through first.
 
 ## Still to do
 

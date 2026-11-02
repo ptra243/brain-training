@@ -27,13 +27,13 @@ open questions go in a linked `docs/<slug>.md`, and the entry points to it. An e
 settled design may stay as a short stub; give it a doc when someone starts it.
 
 ## Session: Theme content, land the lines
-Last touched: 2026-11-02
-Reads first: `docs/story.md` ("How a thread reads", the people and their versions, the Fixer under "Threads written"), `docs/talk-threads.md` ("Two topics").
-Done: the story (the chocolate company's 50th), all 60 versions with real motives, the feelings grid, and guarded threads with her line before each beat, built and in the game for the Fixer and the Lawyer (`src/content/talk/motives.ts`; the Lawyer now borrows Justice, not the Hanged Man).
-Next: the Elder heir: cards first (her Emperor to Empress swap happens with her threads), then sketch, versions and six threads. Then the other guests, the "About the others" pools, and "Still to do" in `docs/story.md` (renames, reaction line).
+Last touched: 2026-11-03
+Reads first: `docs/story.md` ("How a thread reads", the people and their versions, "Threads written"), `docs/talk-threads.md` ("Two topics").
+Done: the story (the chocolate company's 50th), all 60 versions with real motives, the feelings grid, and guarded threads with her line before each beat, built and in the game for the Fixer, the Lawyer and the Elder heir (`src/content/talk/motives.ts`; the Elder heir now borrows the Empress). A new guest with asks also goes in the list in `src/engine/sets.test.ts`; the talk lint rejects room words and any line another thread already uses.
+Next: the Younger heir, the same way (his sister's threads are the nearest model). Then the other guests, the "About the others" pools, and "Still to do" in `docs/story.md` (renames, reaction line, the motherly Empress lines).
 Starting prompt:
 ```
-Read docs/story.md ("How a thread reads", including "Two questions for every line", the Elder heir's sketch and versions, the Fixer's and Lawyer's threads as the model). Follow "Refining a guest" (my ideas are often just bouncing around: give honest feedback and better options, don't just apply them): go over what each of the Elder heir's cards means and suggest better fits, refine the sketch and versions with me, then draft the six threads with feedback on each, testing every line yourself before I see it; once I approve, put them in motives.ts and docs/story.md and make the Empress swap.
+Read docs/story.md ("How a thread reads", including "Two questions for every line", the Younger heir's sketch and versions, the Elder heir's threads as the model). Follow "Refining a guest" (my ideas are often just bouncing around: give honest feedback and better options, don't just apply them): go over what each of the Younger heir's cards means and suggest better fits, refine the sketch and versions with me, then draft the six threads with feedback on each, testing every line yourself before I see it; once I approve, put them in motives.ts and docs/story.md.
 ```
 
 ## Session: Tarot card faces
