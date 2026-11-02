@@ -37,6 +37,8 @@ import { DogFightStates } from './DogFightStates.tsx';
 import { MotivesPreview } from './MotivesPreview.tsx';
 import { PortraitGallery } from './PortraitGallery.tsx';
 import { StickerTin } from '../shelf/StickerTin.tsx';
+import { campaignStart } from './scenarios.ts';
+import { roundCase } from '../game/campaignSave.ts';
 import { OpenBook } from '../shelf/OpenBook.tsx';
 import { NightReplay } from '../shelf/NightReplay.tsx';
 import { shelfCite } from '../shelf/answer.ts';
@@ -440,6 +442,19 @@ function ShelfRibbonsPreview() {
   return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen sample={sample} />;
 }
 
+/** The #shelf campaign book on Room, over a sample campaign in chapter one (nothing is read or saved). */
+function ShelfCampaignPreview() {
+  useLayoutEffect(() => {
+    document.body.classList.add('shelf');
+    return () => document.body.classList.remove('shelf');
+  }, []);
+  const campaignSample = useMemo(() => {
+    const save = campaignStart();
+    return { save, cases: [roundCase(content, save, 0)] };
+  }, []);
+  return <OpenBook title="Chapter one: 9pm" tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen campaign campaignSample={campaignSample} />;
+}
+
 /**
  * The #shelf notebook over the sample case: a few games won (so there are clues), one guest placed, one
  * cross. `view` picks how it starts: peeking on Case, open on Grid, or open on a guest's page.
@@ -612,6 +627,7 @@ const SCREENS: Record<string, () => ReactNode> = {
   'you-sheet': () => <YouSheetPreview />,
   motives: () => <MotivesPreview />,
   'shelf-ribbons': () => <ShelfRibbonsPreview />,
+  'shelf-campaign': () => <ShelfCampaignPreview />,
   'shelf-labels': () => <ShelfLabelsPreview />,
   'shelf-tin': () => <ShelfTinPreview />,
   'shelf-new-case': () => <ShelfNewCasePreview />,

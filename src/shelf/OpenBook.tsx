@@ -9,8 +9,12 @@ import { accuseAction, afterMapTap, ringedSubject, type AccuseRequest, type Heig
 import type { Subject } from '../game/state.ts';
 import { Shuffling } from '../game/Shuffling.tsx';
 import { useQuickBook, type PickRequest, type SampleCase } from './useQuickBook.ts';
+import { useCampaignBook, type SampleCampaign } from './useCampaignBook.ts';
+import { chapterTitle, roomLine } from './campaignBook.ts';
+import { roomName } from '../game/names.ts';
+import { whereAmI } from '../game/explore.ts';
 import { attachRibbons } from './ribbonMotion.ts';
-import { SECTIONS } from './ribbonPlan.ts';
+import { SECTIONS, sectionsFor } from './ribbonPlan.ts';
 import { stepIndex, watchSwipe, type SwipeDir } from './swipe.ts';
 import { useBackLayer } from './useBackLayer.ts';
 
@@ -53,6 +57,10 @@ interface OpenBookProps {
   sample?: SampleCase;
   /** Build the case from the sticker tin's games (a picked case) instead of a plain Play case. */
   pick?: PickRequest;
+  /** The campaign book: ribbons Room, Plan and Answer over her campaign save instead of a Quick case. */
+  campaign?: boolean;
+  /** A campaign to show instead of her saved one (the dev preview). */
+  campaignSample?: SampleCampaign;
 }
 
 /**
@@ -62,7 +70,8 @@ interface OpenBookProps {
  * `ribbonMotion.ts`, which owns the pages' `hidden` and the ribbons' transforms after the first render.
  * The cover is hidden by `prefers-reduced-motion`, which leaves only the page.
  */
-export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sample, pick }: OpenBookProps) {
+export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sample, pick, campaign, campaignSample }: OpenBookProps) {
+  const sections = sectionsFor(campaign ? 'campaign' : 'quick');
   const backRef = useRef<HTMLButtonElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
   const underRef = useRef<HTMLDivElement>(null);
@@ -78,8 +87,9 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   // The ribbons' page turn, for the Jigsaw's Accuse button.
   const turnRef = useRef<((i: number) => void) | null>(null);
   // Her case, shared by the Case page and the notebook. The New case book builds one and saves it.
-  const book = useQuickBook(sample, tone === 'quick' ? 'saved' : 'new', pick);
-  const title = book && book.fullRef ? caseTitle(book.fullRef) : coverTitle;
+  const book = useQuickBook(sample, campaign ? 'none' : tone === 'quick' ? 'saved' : 'new', pick);
+  const campaignBook = useCampaignBook(campaignSample, !!campaign);
+  const title = campaign ? (campaignBook ? chapterTitle(campaignBook.round) : coverTitle) : book && book.fullRef ? caseTitle(book.fullRef) : coverTitle;
   // A guest page's Accuse without a weapon: the Answer form gets the guest written in. A new `seq` is a new request.
   const [prefill, setPrefill] = useState<{ suspect: string; seq: number } | null>(null);
   const [puzzleOpen, setPuzzleOpen] = useState(false);
@@ -119,7 +129,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   // A sideways swipe on the page turns to the next or previous section (no wrap). Not while the notebook
   // is up (it swipes its own tabs), a puzzle page or a pop-up is open.
   const swipeSection = useEffectEvent((dir: SwipeDir) => {
-    const to = stepIndex(section, SECTIONS.length, dir);
+    const to = stepIndex(section, sections.length, dir);
     if (to !== null) turnRef.current?.(to);
   });
   const canSwipe = useEffectEvent(() => height === 'peek' && !puzzleOpen && !document.querySelector('[role="dialog"]'));
@@ -169,7 +179,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   return (
     <div className={styles.stage}>
       <div className={styles.flyer} style={start}>
-        <section ref={appRef} className={styles.app} style={book ? ({ paddingBottom: 'calc(52px + env(safe-area-inset-bottom, 0px))' } as CSSProperties) : undefined} aria-label={`${title}: ${SECTIONS[section]}`} data-section={SECTIONS[section]}>
+        <section ref={appRef} className={styles.app} style={book ? ({ paddingBottom: 'calc(52px + env(safe-area-inset-bottom, 0px))' } as CSSProperties) : undefined} aria-label={`${title}: ${sections[section]}`} data-section={sections[section]}>
           <header className={styles.head}>
             <button ref={backRef} type="button" className={styles.round} aria-label="Back to the shelf" onClick={onBack}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -183,11 +193,13 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
             <div className={styles.spread}>
               <div className={styles.verso} aria-hidden="true" />
               <div className={styles.pages} ref={pagesRef}>
-                <section className={styles.page} data-section="Case" aria-label="Case">
+                <section className={styles.page} data-section={sections[0]} aria-label={sections[0]}>
                   <div className={styles.running}>
-                    <span>Case</span>
+                    <span>{sections[0]}</span>
                   </div>
-                  {tone === 'fresh' && book === null ? (
+                  {campaign ? (
+                    <CampaignRoom book={campaignBook} />
+                  ) : tone === 'fresh' && book === null ? (
                     <p className={styles.lede}>Laying out the cards…</p>
                   ) : tone === 'fresh' && book === false ? (
                     <p className={styles.lede}>{pick ? "The cat couldn't make a case. Try again later." : "That case wouldn't deal. Go back and try again."}</p>
@@ -195,12 +207,14 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                     <FindAClue book={book} sample={sample} onPuzzleOpen={setPuzzleOpen} skipOpening={!!pick} />
                   )}
                 </section>
-                {SECTIONS.slice(1).map((name) => (
+                {sections.slice(1).map((name) => (
                   <section key={name} className={styles.page} data-section={name} aria-label={name} hidden>
                     <div className={styles.running}>
                       <span>{name}</span>
                     </div>
-                    {name === 'Answer' && book ? (
+                    {campaign ? (
+                      <p className={styles.lede}>This page isn&apos;t drawn yet.</p>
+                    ) : name === 'Answer' && book ? (
                       <AnswerPage book={book} onBack={onBack} prefill={prefill} />
                     ) : name === 'Map' && book ? (
                       <MapPlate
@@ -229,7 +243,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
             <button ref={pullRef} type="button" className={styles.pull} aria-label="Show the ribbons" />
             <div ref={scrimRef} className={styles.scrim} hidden />
             <nav ref={navRef} className={styles.ribbons} aria-label="Parts of the case">
-              {SECTIONS.map((name, i) => (
+              {sections.map((name, i) => (
                 <div key={name} className={styles.slot}>
                   <button type="button" className={styles.ribbon + ' ' + styles.satin} data-i={i}>
                     {ICONS[i]}
@@ -251,5 +265,18 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
       {/* Outside the flyer: its page-turn transform would otherwise hold this "fixed" overlay inside the book. */}
       {pick && book === null ? <Shuffling /> : null}
     </div>
+  );
+}
+
+/** The campaign book's first page for now: the chapter, the room she is in, and a note that the rest is not drawn. */
+function CampaignRoom({ book }: { book: ReturnType<typeof useCampaignBook> }) {
+  if (book === null) return <p className={styles.lede}>Laying out the cards…</p>;
+  if (book === false) return <p className={styles.lede}>That campaign wouldn&apos;t open. Go back and try again.</p>;
+  return (
+    <>
+      <p className={styles.lede}>{chapterTitle(book.round)}</p>
+      <p className={styles.lede}>{roomLine(roomName(whereAmI(book.c, book.progress)))}</p>
+      <p className={styles.lede}>This page isn&apos;t drawn yet.</p>
+    </>
   );
 }

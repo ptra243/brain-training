@@ -5,6 +5,16 @@
 export const SECTIONS = ['Case', 'Map', 'Answer'] as const;
 export type Section = (typeof SECTIONS)[number];
 
+/** The campaign book's sections: the room she is in, the house plan, the accusation. */
+export const CAMPAIGN_SECTIONS = ['Room', 'Plan', 'Answer'] as const;
+
+export type BookKind = 'quick' | 'campaign';
+
+/** The section names for a book kind. The Quick book's list is `SECTIONS`, unchanged. */
+export function sectionsFor(kind: BookKind): readonly string[] {
+  return kind === 'campaign' ? CAMPAIGN_SECTIONS : SECTIONS;
+}
+
 /** The prototype's tuned numbers (docs/visual-theme.md), in ms, px and degrees. */
 export const MOTION = {
   /** Gap between one ribbon starting to drop and the next. */

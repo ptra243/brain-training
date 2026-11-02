@@ -70,6 +70,9 @@ function loadCampaign(save: CampaignSave) {
   saveScreen('campaign');
 }
 
+/** A new campaign at the start of round 1 with the opening done, for the #shelf campaign book's preview. */
+export const campaignStart = (): CampaignSave => openingDone(newCampaign(campaignRef));
+
 export const SCENARIOS: readonly Scenario[] = [
   {
     id: 'campaign-opening',

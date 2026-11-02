@@ -127,12 +127,12 @@ Read docs/case-check-split.md ("Quick sweep profile and crossword letters" and "
 ```
 
 ## Session: Shelf UI, beside the current game
-Last touched: 2026-11-02 (Milestone 1 done: her phone test went fine, no fixes asked for; quick play ending, Grid tab's pull-up sheet, readable map room names and the Cat puzzle's real rule built)
-Reads first: `docs/visual-theme.md` ("Screens 8–10, settled" and "Screen plan"), `CONTEXT.md`.
-Goal: build the campaign on `#shelf` (Screen plan step 8): title page, room page, chapters. Quick play on the shelf is finished.
+Last touched: 2026-11-03 (campaign split into six pieces; piece 1, the book setup with Room · Plan · Answer placeholders and `#dev/shelf-campaign`, built)
+Reads first: `docs/visual-theme.md` ("Screens 8–10, settled", its six pieces), `.claude/handoff/shelf-campaign-1.md` if present, `CONTEXT.md`.
+Goal: build the campaign on `#shelf` (Screen plan step 8), pieces 2 to 6 in the order 2, 4, 3, 5, 6. Notebook in the campaign book is still to do (it reads a `QuickBook`); fold it into piece 2.
 Starting prompt:
 ```
-Read docs/visual-theme.md "Screens 8–10, settled" and the Screen plan row for step 8, then propose how to split the campaign book into pieces for implementers. #shelf only.
+Read docs/visual-theme.md "Screens 8–10, settled" (the six pieces) and src/shelf/useCampaignBook.ts, then brief an implementer for piece 2, the room page, including the notebook in the campaign book. #shelf only.
 ```
 
 ## Session: Hunting the weapon (campaign)

@@ -60,7 +60,7 @@ interface Loaded {
 }
 
 /** Where the case comes from: her Quick save, or a new Play case built now and saved at once. */
-export type BookMode = 'saved' | 'new';
+export type BookMode = 'saved' | 'new' | 'none';
 
 /**
  * Rebuilds her saved Quick case, or (mode 'new') builds a Play case and saves it as the Quick save.
@@ -69,10 +69,10 @@ export type BookMode = 'saved' | 'new';
  */
 function useQuickCase(sample: SampleCase | undefined, mode: BookMode, pick: PickRequest | undefined): Loaded | null | false {
   // Her save is read once; with none, there is nothing to build.
-  const [saved] = useState(() => (sample || mode === 'new' ? null : loadQuick()));
+  const [saved] = useState(() => (sample || mode !== 'saved' ? null : loadQuick()));
   const [built, setBuilt] = useState<Loaded | false | null>(null);
   useEffect(() => {
-    if (sample) return;
+    if (sample || mode === 'none') return;
     let live = true;
     if (mode === 'new' && pick) {
       // The tin's mix: quietly rerolled, then dealt anew, if it will not build (`buildPick`).
@@ -117,6 +117,7 @@ function useQuickCase(sample: SampleCase | undefined, mode: BookMode, pick: Pick
     };
   }, [saved, mode, sample, pick]);
   if (sample) return { ...sample, key: null };
+  if (mode === 'none') return false;
   return mode === 'new' || saved ? built : false;
 }
 

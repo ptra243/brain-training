@@ -109,6 +109,14 @@ test('shelf-ribbons preview', async ({ page }) => {
   await checkScreen(page, 'preview shelf-ribbons');
 });
 
+test('shelf-campaign preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-campaign');
+  await expect(page.getByRole('heading', { name: 'Chapter one: 9pm' })).toBeVisible();
+  await expect(page.getByText(/^You are in the /)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Plan' })).toBeVisible();
+  await checkScreen(page, 'preview shelf-campaign');
+});
+
 test('shelf-find-a-clue preview', async ({ page }) => {
   await page.goto('/#dev/shelf-find-a-clue');
   await expect(page.getByRole('heading', { name: 'Find a clue' })).toBeVisible();

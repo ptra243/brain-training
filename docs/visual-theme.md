@@ -323,6 +323,22 @@ Jigsaw tab runs `EndBoardPanel` unchanged inside the notebook. The look is `src/
 - **The guest book**: running totals in ink on the front page, then one handwritten entry per
   finished run (today's history rows): date, case title, "Solved on the first accusation", the
   killer's name signed at the end. An unsolved run has no signature and "left before dessert".
+- **Built in six pieces** (owner, 2026-11-03), one implementer at a time since all touch `OpenBook`,
+  in the order 1, 2, 4, 3, 5, 6. Today's `CampaignView` and the campaign save stay as they are, so
+  either shell can carry on the same campaign.
+  1. *Book setup*: a shelf campaign hook (load, build rounds in the worker, hold and resolve
+     accusations, as `CampaignView`), `OpenBook` in a campaign mode with ribbons **Room · Plan ·
+     Answer** (not the mockup's Chapter · Map · Accuse), the bookcase's continue book opens it.
+  2. *Room page*: chapter, clock and puzzles before midnight, candles; where she is, guests, object
+     rows (label, game · level · clue count, "until 10:20"), "Walk to · no time taken"; objects open
+     the puzzle page; midnight green from Midnight on.
+  3. *Plan*: the map plate in explore mode (rooms entered, guests seen; tap a room to walk there).
+  4. *Talk spread*: portraits face to face, Talk, Minigame, Clues (opens the subject page).
+  5. *Answer and chapter ends*: accuse (midnight lock, possible-only), the questioning as a spread,
+     a candle out and "later that night", escaped and caught endings with the night replay. Earlier
+     chapters open read-only from a contents list under the chapter heading on the room page.
+  6. *Title page and opening*: three ribbon bookmarks, setup options, "Break the seal"; the opening
+     meets each guest once on the talk spread.
 - **Not in this plan**: the secret lever book, spine colours from the case code, solved cases
   arriving as books, sticker rewards (beyond the tick and paw stickers on page 3's labels). They
   stay under Unexplored ideas.

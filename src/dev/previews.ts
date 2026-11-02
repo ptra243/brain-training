@@ -29,6 +29,7 @@ export const PREVIEWS: readonly PreviewInfo[] = [
   { id: 'houses', about: 'The lodge, courtyard house and steps on the floor plan', look: 'game' },
   { id: 'motives', about: 'Talk to any guest on any card, thread and mood, one beat at a time or all at once', look: 'game' },
   { id: 'shelf-ribbons', about: 'The #shelf puzzle book open on Case with the ribbons dropped', look: 'plain' },
+  { id: 'shelf-campaign', about: 'The #shelf campaign book open on Room for a sample campaign in chapter one (Room, Plan and Answer ribbons; pages not drawn yet)', look: 'plain' },
   { id: 'shelf-puzzle', about: 'The #shelf puzzle page: a sample game still to play, open over the book', look: 'plain' },
   { id: 'shelf-puzzle-won', about: 'The #shelf puzzle page after a win: the finished board, then the clues', look: 'plain' },
   { id: 'shelf-puzzle-revealed', about: 'The #shelf puzzle page after Solve: "Solved by" the cat, then the clues', look: 'plain' },

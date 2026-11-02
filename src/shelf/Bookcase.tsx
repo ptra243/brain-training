@@ -3,6 +3,7 @@ import { Dialog } from '../game/Dialog.tsx';
 import { caseTitle } from '../game/names.ts';
 import { OptionsSheet } from '../game/OptionsSheet.tsx';
 import { loadCampaign, loadQuick } from '../game/storage.ts';
+import { chapterTitle } from './campaignBook.ts';
 import { OpenBook, type Box, type Tone } from './OpenBook.tsx';
 import { fitScale } from './fitScale.ts';
 import { StickerTin } from './StickerTin.tsx';
@@ -13,7 +14,7 @@ import styles from './Shelf.module.css';
 
 /** The book she has taken down: which one, what it says, and where it stood. */
 interface Taken {
-  id: 'quick' | 'new' | 'pick';
+  id: 'quick' | 'new' | 'pick' | 'campaign';
   title: string;
   tone: Tone;
   from: Box;
@@ -316,6 +317,11 @@ export function Bookcase() {
                   size={16}
                   className={styles.campaignBook}
                   seal={<MoonSeal />}
+                  onOpen={(e) => {
+                    e.preventDefault();
+                    take(e.currentTarget, 'campaign', chapterTitle(round - 1), 'quick');
+                  }}
+                  gone={taken?.id === 'campaign'}
                   note={
                     <span className={styles.note}>
                       {round} of {ROUNDS}
@@ -389,7 +395,7 @@ export function Bookcase() {
           </div>
         </Dialog>
       ) : null}
-      {taken ? <OpenBook key={taken.id} title={taken.title} tone={taken.tone} from={taken.from} onBack={() => setTaken(null)} pick={taken.pick} /> : null}
+      {taken ? <OpenBook key={taken.id} title={taken.title} tone={taken.tone} from={taken.from} onBack={() => setTaken(null)} pick={taken.pick} campaign={taken.id === 'campaign'} /> : null}
     </>
   );
 }

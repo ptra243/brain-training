@@ -79,6 +79,9 @@ What a look check judges on each:
 - `shelf-ribbons`: the #shelf puzzle book open on Case, ribbons dropped (two ribbons in a row of three, a gap
   where Case lies in the crease): book runs to the left edge with a 20px left page, 6px felt right, header 16/10px
   inset; satin ribbons readable and 44px+; no sideways scroll.
+- `shelf-campaign`: the #shelf campaign book open on Room for a sample chapter-one campaign: title "Chapter one: 9pm", the
+  "You are in the ..." line and "This page isn't drawn yet."; ribbons Room, Plan, Answer (dropped by `startOpen`), 44px+;
+  no sideways scroll.
 - `shelf-new-case`: the New case book on a fresh sample Play case (fixed seed, nothing saved), opening not yet seen: the
   body line, the story paragraph and the button that goes on to Find a clue; notebook strip at the foot; no sideways
   scroll. The real book builds its case when opened ("Laying out the cards…" until it arrives).

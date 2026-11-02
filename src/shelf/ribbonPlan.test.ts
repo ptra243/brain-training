@@ -1,9 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MOTION, SECTIONS, dropOrder, flickCount, tuckStep, turnDirection } from './ribbonPlan.ts';
+import { MOTION, SECTIONS, sectionsFor, dropOrder, flickCount, tuckStep, turnDirection } from './ribbonPlan.ts';
 
 test('sections run in book order', () => {
   assert.deepEqual([...SECTIONS], ['Case', 'Map', 'Answer']);
+});
+
+test('the campaign book has its own sections', () => {
+  assert.deepEqual([...sectionsFor('campaign')], ['Room', 'Plan', 'Answer']);
+  assert.deepEqual([...sectionsFor('quick')], [...SECTIONS]);
 });
 
 test('turn direction follows book order', () => {
