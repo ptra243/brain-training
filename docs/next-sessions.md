@@ -5,8 +5,8 @@ Ideas for sessions to start fresh with `/clear` (or another terminal). Each has 
 numbered menu when a session starts (or after `/clear`): reply "start 3" and Claude runs that entry's
 starting prompt, and renames the session to that heading. It also tells Claude to mention any entry untouched for 14 days or more and ask
 whether to keep, update or drop it. Each `## Session:` heading is its menu line, so keep it short.
-Exploratory ideas with no settled design live in `docs/someday-sessions.md`; the menu lists them after
-these, numbered on, without stale reminders.
+Exploratory ideas with no settled design, and designed work the owner has put off, live in
+`docs/someday-sessions.md`; the menu lists them after these, numbered on, without stale reminders.
 
 Keeping an entry current: every session that works on something an entry covers (from the menu or
 not) updates that entry before it finishes, in the same commit as the work: its `Last touched` line
@@ -158,31 +158,6 @@ unchanged. Do "Hunting the weapon" first or agree the order.
 Starting prompt:
 ```
 Read docs/second-killer.md, work out how the night 2 round is built from night 1's lineup and how roundProblems proves it, then write an implementer brief.
-```
-
-## Session: Grid cases (Murdoku-style), build
-Last touched: 2026-10-21
-Reads first: the "Grid cases — Build Plan" doc
-(https://claude.ai/artifact/Vkrc5ipo8cJ91ofWiUbmAj; read it with the Claude Docs reader),
-`src/engine/CLAUDE.md`, `src/engine/house.ts`, `src/engine/types.ts`.
-Goal: a new grid case mode beside the current one. An N×N floor plan generated per case, one person
-per row and column, rooms shared, and the killer is the only other person in the victim's room.
-Minigames unlock the clues. Steps 1 and 3 of the plan (the map generator, clue selection and tuning)
-stay in the main session; the rest go to the implementer. Existing cases must not change (no prefix
-bump; the grid gets its own save key and golden snapshot). Settle the plan's open questions with the
-owner first, ideally from screenshots of her game.
-Starting prompt:
-```
-Read the Grid cases build plan doc, go through its open questions with me, then start step 1: grid types and the per-case map generator in src/engine/grid/.
-```
-
-## Session: Card Capture in Parlour games, build
-Last touched: 2026-10-29 (designed and mocked up with the owner; nothing built)
-Reads first: `docs/card-capture.md` (rules, "The guests as face cards", "On the Shelf"; its mockup canvas is the layout), the Card Capture terms in `CONTEXT.md`, `src/games/CLAUDE.md`.
-Goal: a standalone card game she can lose, the first in a new Parlour games book on the Shelf: the guest deck (pip number cards, portrait face cards and jokers), seeded deals, saved moves, her last 5 deals with Replay. #shelf only. Left to settle first: each guest's suit, and the cat joker's coat outside a case.
-Starting prompt:
-```
-Read docs/card-capture.md and the Card Capture terms in CONTEXT.md. Settle the guest suits and the cat joker's coat with me, then plan the build from the mockup canvas and brief the implementer.
 ```
 
 ## Session: CSS Modules for game styles

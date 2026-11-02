@@ -1,9 +1,34 @@
 # Someday sessions
 
-Exploratory ideas with no settled design, kept out of `docs/next-sessions.md` so the ranked menu stays
-short. Same entry format and rules as that file. The `SessionStart` menu lists these after the ranked
-entries, numbered on from them, without stale-date reminders. When one gets a settled design (or the
-owner wants it soon), move it into `docs/next-sessions.md` at its rank.
+Exploratory ideas with no settled design, and designed work the owner has put off, kept out of
+`docs/next-sessions.md` so the ranked menu stays short. Same entry format and rules as that file. The
+`SessionStart` menu lists these after the ranked entries, numbered on from them, without stale-date
+reminders. When the owner wants one soon, move it into `docs/next-sessions.md` at its rank.
+
+## Session: Grid cases (Murdoku-style), build
+Last touched: 2026-11-02 (moved here by the owner)
+Reads first: the "Grid cases — Build Plan" doc
+(https://claude.ai/artifact/Vkrc5ipo8cJ91ofWiUbmAj; read it with the Claude Docs reader),
+`src/engine/CLAUDE.md`, `src/engine/house.ts`, `src/engine/types.ts`.
+Goal: a new grid case mode beside the current one. An N×N floor plan generated per case, one person
+per row and column, rooms shared, and the killer is the only other person in the victim's room.
+Minigames unlock the clues. Steps 1 and 3 of the plan (the map generator, clue selection and tuning)
+stay in the main session; the rest go to the implementer. Existing cases must not change (no prefix
+bump; the grid gets its own save key and golden snapshot). Settle the plan's open questions with the
+owner first, ideally from screenshots of her game.
+Starting prompt:
+```
+Read the Grid cases build plan doc, go through its open questions with me, then start step 1: grid types and the per-case map generator in src/engine/grid/.
+```
+
+## Session: Card Capture in Parlour games, build
+Last touched: 2026-11-02 (moved here by the owner; designed and mocked up 2026-10-29, nothing built)
+Reads first: `docs/card-capture.md` (rules, "The guests as face cards", "On the Shelf"; its mockup canvas is the layout), the Card Capture terms in `CONTEXT.md`, `src/games/CLAUDE.md`.
+Goal: a standalone card game she can lose, the first in a new Parlour games book on the Shelf: the guest deck (pip number cards, portrait face cards and jokers), seeded deals, saved moves, her last 5 deals with Replay. #shelf only. Left to settle first: each guest's suit, and the cat joker's coat outside a case.
+Starting prompt:
+```
+Read docs/card-capture.md and the Card Capture terms in CONTEXT.md. Settle the guest suits and the cat joker's coat with me, then plan the build from the mockup canvas and brief the implementer.
+```
 
 ## Session: Target or another word game
 Last touched: 2026-10-23
