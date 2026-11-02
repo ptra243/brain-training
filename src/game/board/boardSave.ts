@@ -156,7 +156,7 @@ export function truthPlacement(board: Board, pid: string): PlacedPiece {
 }
 
 export function pinnedIds(board: Board, level: Difficulty): string[] {
-  const always = board.pieces.filter((p) => p.kind === 'body' || p.kind === 'fog').map((p) => p.id);
+  const always = board.pieces.filter((p) => p.kind === 'body' || (p.kind === 'fog' && !p.loose)).map((p) => p.id);
   return [...new Set([...always, ...(board.pinned[level] ?? [])])];
 }
 
@@ -231,7 +231,7 @@ export function touching(r: Rules, save: BoardSave, a: string, b: string, occ: R
 
 // ---------- Refusals ----------
 
-export type BlockCode = 'grey' | 'not' | 'only' | 'apart-pinned' | 'touch-pinned' | 'same-pinned';
+export type BlockCode = 'grey' | 'fog' | 'not' | 'only' | 'apart-pinned' | 'touch-pinned' | 'same-pinned';
 
 export interface Block {
   code: BlockCode;
@@ -249,6 +249,7 @@ export function blocker(r: Rules, pid: string, section: string): Block | null {
   const p = r.piece[pid];
   if (!p) return null;
   if (p.kind === 'grey' && section !== UNKNOWN) return { code: 'grey', clue: null };
+  if (p.kind === 'fog' && p.loose && !(p.marks.only ?? [UNKNOWN]).includes(section)) return { code: 'fog', clue: null };
   if (p.marks.not.includes(section)) return { code: 'not', clue: p.clue };
   // Marks are about rooms: Unknown (the clues don't place it) is always allowed for guests and weapons.
   if (p.marks.only && section !== UNKNOWN && !p.marks.only.includes(section)) return { code: 'only', clue: p.clue };
@@ -409,4 +410,54 @@ export function checkBoard(r: Rules, save: BoardSave, solvable: Solvable): Check
   }
   const flagged = loose.filter(([pid, p]) => !solvable(r.board, { ...pins, [pid]: p.cells }, at)).map(([pid]) => pid);
   return { kind: 'gaps', flagged, sections: [...new Set(flagged.map((pid) => at[pid]))] };
+}
+
+// ---------- Stale saves ----------
+
+/**
+ * A saved board checked against the board rebuilt today. A placement is dropped (the piece goes back in the
+ * tray) when its piece isn't on the board or is pinned, its squares aren't that piece's shape turned some way
+ * with every square in the section it names, a square is off the board, or it overlaps a pinned piece or a
+ * placement kept before it. The same object comes back when nothing is dropped.
+ */
+export function cleanBoardSave(board: Board, level: Difficulty, save: BoardSave): BoardSave {
+  const byId = new Map(board.pieces.map((p) => [p.id, p]));
+  const taken = new Set<string>();
+  for (const pid of pinnedIds(board, level)) {
+    if (byId.has(pid)) truthPlacement(board, pid).cells.forEach(([r, c]) => taken.add(boardKey(r, c)));
+  }
+  const pinned = new Set(pinnedIds(board, level));
+  const placed: Record<string, PlacedPiece> = {};
+  let dropped = false;
+  for (const [pid, pl] of Object.entries(save.placed)) {
+    if (placementFits(board, byId.get(pid), pinned.has(pid), pl, taken)) {
+      placed[pid] = pl;
+      pl.cells.forEach(([r, c]) => taken.add(boardKey(r, c)));
+    } else {
+      dropped = true;
+    }
+  }
+  return dropped ? { ...save, placed } : save;
+}
+
+function placementFits(board: Board, piece: BoardPiece | undefined, isPinned: boolean, pl: PlacedPiece, taken: ReadonlySet<string>): boolean {
+  if (!piece || isPinned || pl.cells.length !== piece.shape.length || pl.shape.length !== piece.shape.length) return false;
+  // The shape is the piece's own turned a whole number of quarter turns, in the same order of squares.
+  let turned = normCells(piece.shape);
+  let turns = false;
+  for (let k = 0; k < 4 && !turns; k++) {
+    turns = sameCells(turned, pl.shape);
+    turned = turnCells(turned);
+  }
+  if (!turns) return false;
+  // The squares are that shape moved as one, never twice on the same square, all on the board in the named section.
+  const dr = pl.cells[0][0] - pl.shape[0][0];
+  const dc = pl.cells[0][1] - pl.shape[0][1];
+  const seen = new Set<string>();
+  return pl.cells.every(([r, c], i) => {
+    const key = boardKey(r, c);
+    const ok = r === pl.shape[i][0] + dr && c === pl.shape[i][1] + dc && !seen.has(key) && !taken.has(key) && board.cells[key] === pl.section;
+    seen.add(key);
+    return ok;
+  });
 }

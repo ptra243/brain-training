@@ -116,30 +116,31 @@ export const tarotCatLines = {
 
 /**
  * Things she noticed about the house that turn out to have nothing to do with
- * the case: the case board's filler pieces. Kept out of `content` like the
+ * the case: the case board's filler pieces. Each reads after "Noticed in the <room>:" or
+ * "Noticed somewhere:", so it must suit any room. Kept out of `content` like the
  * cats, so they never change a case. Never name a guest, room or weapon here.
  */
 export const houseDetails: readonly string[] = [
   'A clock that runs five minutes slow',
-  'A dripping tap nobody has fixed',
+  'A lamp that flickers whenever the door shuts',
   'A cushion embroidered with ducks',
   'A stack of newspapers, still folded',
-  'A piano with one key that sticks',
+  'A music box that plays one note too few',
   'A painting hung slightly crooked',
   'A draught under every door',
   'A jigsaw puzzle with one piece missing',
-  'Crumbs on the stair carpet',
+  'Crumbs on a saucer nobody has cleared',
   'A barometer stuck on "Change"',
   'Cat hair on every chair',
-  'A squeaky floorboard on the landing',
+  'A squeaky floorboard by the door',
   'Half a crossword done in pen',
-  'A record of brass band music on the gramophone',
+  'A gramophone record of brass band music, out of its sleeve',
   'A cup of cocoa gone cold',
   'A hat stand with no hats',
   'A bowl of wax fruit',
   'A calendar still on last month',
   'A chessboard left mid-game',
-  'A single sock under the sofa',
+  'A single sock left on a shelf',
   'A bell pull that rings nowhere',
   'A mirror cracked in one corner',
   'A fern that needs watering',

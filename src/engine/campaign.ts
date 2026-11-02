@@ -23,7 +23,7 @@ import { chooseHouse, houseById, houseOf } from '../content/houses.ts';
 import { Rng, hashSeed } from './rng.ts';
 import { couldBeKiller, possibleKillers, possibleWeapons, type Space } from './search.ts';
 import { caseSettings, type CaseLevels, type CaseSettings } from './settings.ts';
-import { boardPuzzle } from './caseBoard.ts';
+import { boardLevel, boardPuzzle } from './caseBoard.ts';
 import { tarotClueCards, tarotPairsFor } from './tarotCards.ts';
 import type { Case, ClueFact, Content, Difficulty, RotatingKind } from './types.ts';
 
@@ -315,7 +315,7 @@ function wideRound(
       picked: { tarotPairs },
     });
     const board = c.games.find((g) => g.kind === 'board');
-    if (board && !boardPuzzle(content, c, board)) continue;
+    if (board && !boardPuzzle(content, c, board, boardLevel(c.levels))) continue;
     return c;
   }
   throw new Error(`Campaign ${ref.code}: could not build round ${round + 1}`);

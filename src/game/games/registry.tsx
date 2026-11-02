@@ -7,7 +7,7 @@ import { houseOf } from '../../content/houses.ts';
 import type { ReactNode } from 'react';
 import { content } from '../../content/index.ts';
 import type { Board } from '../../engine/boardTypes.ts';
-import { boardPuzzle } from '../../engine/caseBoard.ts';
+import { boardLevel, boardPuzzle } from '../../engine/caseBoard.ts';
 import { caseFacts, interrogationEvidence } from '../../engine/caseFacts.ts';
 import { disproves } from '../../engine/interrogation.ts';
 import { Rng } from '../../engine/rng.ts';
@@ -22,7 +22,7 @@ import { foundLocations, generateSudoku, locationSquares, type LocationSquares, 
 import type { WordSearchPuzzle } from '../../games/wordsearch.ts';
 import type { LabelKind } from '../../shelf/labels.ts';
 import { CaseBoard } from '../board/CaseBoard.tsx';
-import { boardInitial, boardSolvedSave } from '../board/boardSave.ts';
+import { boardInitial, boardSolvedSave, cleanBoardSave } from '../board/boardSave.ts';
 import { sceneCrossword, sceneWordSearch } from '../sceneGames.ts';
 import {
   isBoardSave,
@@ -278,14 +278,14 @@ export const GAMES: Record<GameKind, GameEntry> = {
     label: { kind: 'logic', Art: BoardArt },
     titles: { won: 'What the pieces proved', revealed: 'Solved for you. What the pieces proved' },
     build(c, spec) {
-      const board = boardPuzzle({ ...content, house: houseOf(c) }, c, spec);
+      const board = boardPuzzle({ ...content, house: houseOf(c) }, c, spec, boardLevel(c.levels));
       // The generator only hands a case this game when its board builds.
       if (!board) throw new Error(`Case ${c.code}: no case board for these clues`);
       return board;
     },
     play: (board, a) => {
       // Play cases roll a level for this game; every other case uses its minigame level.
-      const level = a.c.games.find((g) => g.kind === 'board')?.level ?? a.c.levels.minigames;
+      const level = boardLevel(a.c.levels);
       return {
         solved: () => boardSolvedSave(board, level),
         view: (
@@ -293,7 +293,7 @@ export const GAMES: Record<GameKind, GameEntry> = {
             board={board}
             level={level}
             c={a.c}
-            save={savedOr(a, isBoardSave, boardInitial, () => boardSolvedSave(board, level))}
+            save={cleanBoardSave(board, level, savedOr(a, isBoardSave, boardInitial, () => boardSolvedSave(board, level)))}
             onChange={a.onChange}
             finished={a.finished !== null}
             helper={a.helper}

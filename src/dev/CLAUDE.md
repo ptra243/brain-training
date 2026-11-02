@@ -69,6 +69,10 @@ What a look check judges on each:
   readable at 360px, no sideways scroll.
 - `nosing-houses`: the Nosing around board at the start on the lodge, courtyard, steps, long house and T
   lodge (medium): squares and marks readable at 360px, no wall inside door-joined rooms, no sideways scroll.
+- `case-board`: the real case board on a thin Play case (BKVNS, medium) padded with Noticed pieces: a room group and an
+  Unknown group in the tray, labelled "Noticed in the <room>: ..." / "Noticed somewhere: ..." (tap one for its rules and its
+  touching symbols), the How to play list with the Noticed line, "Clues on the board (N)" counting every clue with the
+  puzzle's own ones blank; squares readable at 360px, no sideways scroll. Moves are not saved.
 - `motives`: a talk simulator (Guest, Card, Reading, Thread, Victim, Mood, Games finished, Case solved, Start over,
   Hear all, Reset), each control 44px+ and fitting 360px; the greeting changes with Mood; beats appear one per tap
   up to the ready count; {victim} shows the chosen name; the source line names the thread in use; no sideways scroll.

@@ -146,14 +146,16 @@ function gilbert(width: number, height: number): Cell[] {
 
 // ------------------------------------------------------------------ rules
 
-/** Sections a piece may sit in, from its marks. Body and fog are fixed, so they may be anywhere. */
+/** Sections a piece may sit in, from its marks. Body and fixed fog may be anywhere; loose fog fits only its one room (`only`) or only Unknown; grey only Unknown. */
 function allowedSections(
   kind: BoardPieceKind,
   not: readonly string[],
   only: readonly string[] | null,
   sections: readonly string[],
+  loose = false,
 ): string[] {
   if (kind === 'grey') return [UNKNOWN];
+  if (kind === 'fog' && loose) return only?.length ? only.filter((s) => sections.includes(s)) : [UNKNOWN];
   if (kind === 'body' || kind === 'fog') return sections.slice();
   return sections.filter((s) => s === UNKNOWN || (!not.includes(s) && (only === null || only.includes(s))));
 }
@@ -623,10 +625,10 @@ export function countPackings(board: Board, limit = 2, pinned: readonly string[]
   const fixed: FixedPiece[] = [];
   const loose: SolverPiece[] = [];
   for (const p of board.pieces) {
-    if (p.kind === 'body' || p.kind === 'fog' || pinned.includes(p.id)) {
+    if (p.kind === 'body' || (p.kind === 'fog' && !p.loose) || pinned.includes(p.id)) {
       fixed.push({ id: p.id, kind: p.kind, who: p.who, section: board.truth[p.id].section, cells: board.truth[p.id].cells });
     } else {
-      loose.push({ id: p.id, kind: p.kind, who: p.who, cells: p.shape, allowed: allowedSections(p.kind, p.marks.not, p.marks.only, board.sections) });
+      loose.push({ id: p.id, kind: p.kind, who: p.who, cells: p.shape, allowed: allowedSections(p.kind, p.marks.not, p.marks.only, board.sections, p.loose) });
     }
   }
   const { touches, apart } = pairsFromMarks(board.pieces);
@@ -659,7 +661,7 @@ export function boardSolvable(
       taken.add(key);
     }
     if (cells.length !== p.shape.length || shapeKey(cells) !== shapeKey(p.shape)) return false;
-    if (p.kind !== 'body' && p.kind !== 'fog' && !allowedSections(p.kind, p.marks.not, p.marks.only, board.sections).includes(section)) return false;
+    if (p.kind !== 'body' && !(p.kind === 'fog' && !p.loose) && !allowedSections(p.kind, p.marks.not, p.marks.only, board.sections, p.loose).includes(section)) return false;
     fixedList.push({ id: p.id, kind: p.kind, who: p.who, section, cells });
     return true;
   };
@@ -668,7 +670,7 @@ export function boardSolvable(
     if (!p || !place(p, cells)) return false;
   }
   for (const p of board.pieces) {
-    if ((p.kind === 'body' || p.kind === 'fog') && !(p.id in fixed) && !place(p, board.truth[p.id].cells)) return false;
+    if ((p.kind === 'body' || (p.kind === 'fog' && !p.loose)) && !(p.id in fixed) && !place(p, board.truth[p.id].cells)) return false;
   }
   const fixedIds = new Set(fixedList.map((f) => f.id));
   for (const [id, section] of Object.entries(at)) {
@@ -679,7 +681,7 @@ export function boardSolvable(
   const loose: SolverPiece[] = [];
   for (const p of board.pieces) {
     if (fixedIds.has(p.id)) continue;
-    let allowed = allowedSections(p.kind, p.marks.not, p.marks.only, board.sections);
+    let allowed = allowedSections(p.kind, p.marks.not, p.marks.only, board.sections, p.loose);
     if (p.id in at) allowed = allowed.filter((s) => s === at[p.id]);
     if (!allowed.length) return false;
     loose.push({ id: p.id, kind: p.kind, who: p.who, cells: p.shape, allowed });
@@ -703,10 +705,13 @@ interface Work {
   anti: string[];
   clue: string | null;
   hidden?: boolean;
+  /** A fog piece she places herself (only in its one room, or only in Unknown). */
+  loose?: boolean;
+  group?: string;
   cells: Cell[];
 }
 
-const alwaysFixed = (p: Work) => p.kind === 'body' || p.kind === 'fog';
+const alwaysFixed = (p: Work) => p.kind === 'body' || (p.kind === 'fog' && !p.loose);
 
 /** Check that the plan itself is consistent: its own truth must obey every rule. */
 function planIsSound(plan: BoardPlan, sections: string[]): boolean {
@@ -716,8 +721,8 @@ function planIsSound(plan: BoardPlan, sections: string[]): boolean {
     if (ids.has(p.id) || !sections.includes(p.section)) return false;
     ids.add(p.id);
     sectionOf.set(p.id, p.section);
-    if (p.kind === 'fog' && p.section !== UNKNOWN) return false;
-    if (!allowedSections(p.kind, p.not, p.only, sections).includes(p.section)) return false;
+    if (p.kind === 'fog' && !p.loose && p.section !== UNKNOWN) return false;
+    if (!allowedSections(p.kind, p.not, p.only, sections, p.loose).includes(p.section)) return false;
   }
   const guestSection = new Map<string, string>();
   for (const p of plan.pieces) {
@@ -762,7 +767,7 @@ function buildAttempt(plan: BoardPlan, sections: string[], seed: number): Board 
   const sizeOf = (kind: BoardPieceKind) =>
     kind === 'guest' ? 3 + rng.int(3) : kind === 'weapon' ? 3 + rng.int(2) : kind === 'grey' ? 4 : kind === 'fog' ? 3 + rng.int(2) : 2;
   for (const p of plan.pieces) {
-    ps.push({ id: p.id, kind: p.kind, who: p.who, size: sizeOf(p.kind), section: p.section, not: p.not.slice(), only: p.only ? p.only.slice() : null, sym: [], anti: [], clue: p.clue, hidden: p.hidden, cells: [] });
+    ps.push({ id: p.id, kind: p.kind, who: p.who, size: sizeOf(p.kind), section: p.section, not: p.not.slice(), only: p.only ? p.only.slice() : null, sym: [], anti: [], clue: p.clue, hidden: p.hidden, loose: p.loose, group: p.group, cells: [] });
   }
   const ids = new Set(ps.map((p) => p.id));
   for (let i = 0; i < plan.fog; i++) {
@@ -829,7 +834,7 @@ function buildAttempt(plan: BoardPlan, sections: string[], seed: number): Board 
         for (const p of cand) {
           const cells = curve.slice(pos, pos + p.size);
           pos += p.size;
-          if (!(p.kind === 'fog' || p.kind === 'grey' || p.kind === 'body')) open.push(...cells);
+          if (!((p.kind === 'fog' && !p.loose) || p.kind === 'grey' || p.kind === 'body')) open.push(...cells);
         }
         const biggest = biggestPatch(open.map(([r, c]) => r * W + c), W, H);
         if (biggest < bestNook) { bestNook = biggest; seq = cand; }
@@ -856,7 +861,7 @@ function buildAttempt(plan: BoardPlan, sections: string[], seed: number): Board 
     const sq = squares();
     for (const p of ps) {
       if (alwaysFixed(p) || repairPins.includes(p.id)) fixed.push({ id: p.id, kind: p.kind, who: p.who, section: p.section, cells: p.cells });
-      else loose.push({ id: p.id, kind: p.kind, who: p.who, cells: p.cells, allowed: allowedSections(p.kind, p.not, p.only, sections) });
+      else loose.push({ id: p.id, kind: p.kind, who: p.who, cells: p.cells, allowed: allowedSections(p.kind, p.not, p.only, sections, p.loose) });
     }
     const out = solve({ sections, squares: sq, loose, fixed, touches: plan.touches, apart: plan.apart, limit, budget: BUILD_BUDGET, hint: Object.fromEntries(ps.map((p) => [p.id, p.cells])) });
     return { out, loose };
@@ -977,9 +982,11 @@ function buildAttempt(plan: BoardPlan, sections: string[], seed: number): Board 
       marks: { not: p.not, only: p.only, sym: p.sym, anti: p.anti },
       clue: p.clue,
       ...(p.hidden !== undefined ? { hidden: p.hidden } : {}),
+      ...(p.loose ? { loose: true as const, group: p.group } : {}),
     })),
     truth,
     pinned,
+    ...(plan.clues ? { clues: plan.clues } : {}),
   };
 }
 

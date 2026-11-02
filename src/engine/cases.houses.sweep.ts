@@ -30,5 +30,5 @@ test('cases on the other houses', () => {
 test('summary', (t) => {
   t.diagnostic(`Other houses (${sampledVariants(FULL).length} of ${eachVariant().length} variants): ${Object.entries(counts).map(([d, c]) => `${d} ${c.cases} cases on ${c.houses} houses`).join(', ')}`);
   t.diagnostic(`Talk: ${stats.talk.guests} guests have a thread; ${stats.talk.short} still have a beat waiting for the solved case once every game is done`);
-  t.diagnostic(`Case boards:${stats.boards.puzzles} puzzles and ${stats.boards.ends} end boards built (slowest ${stats.boards.slowest.toFixed(0)} ms)`);
+  t.diagnostic(`Case boards:${stats.boards.puzzles} puzzles and ${stats.boards.ends} end boards built (slowest ${stats.boards.slowest.toFixed(0)} ms); ${stats.boards.padded} puzzle boards padded, ${stats.boards.thin} still below their minimum to place`);
 });

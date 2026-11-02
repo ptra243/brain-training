@@ -7,7 +7,7 @@ import { countMatching, holdingTable, roomingTable } from './search.ts';
 import { allCandidates, countSolutions, filterCandidates } from './solver.ts';
 import { BOARD_SHARE, CLUE_SOURCE, PLAY_GAMES_MAX, PLAY_GAMES_MIN, NOSING_SHARE, ROTATION, SCENE_GAMES, TAROT_SHARE } from './gameKinds.ts';
 import { tarotClueCards, tarotPairsFor } from './tarotCards.ts';
-import { boardPuzzle } from './caseBoard.ts';
+import { boardLevel, boardPuzzle } from './caseBoard.ts';
 import { chooseHouse } from '../content/houses.ts';
 import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
 import { buildNosing, nosingSeed } from '../games/nosing.ts';
@@ -177,7 +177,7 @@ export function buildPlayCaseIn(
       const clues = order.map((fact, i) => ({ id: `c${i + 1}`, fact, delivery: 'board' as ClueDelivery }));
       const share = clues.slice(start, start + shares.games[at]).map((cl) => cl.id);
       const c = { suspects, rooms, items, shared: settings.shared, seed, sceneRoom, clues };
-      if (!boardPuzzle(content, c, { seed: hashSeed(`${seed}-board`), clues: share })) {
+      if (!boardPuzzle(content, c, { seed: hashSeed(`${seed}-board`), clues: share }, boardLevel(levels))) {
         if (mine.has('board')) fail('the board puzzle will not build');
         without('board');
         continue;
@@ -428,7 +428,7 @@ function boardSlot(o: Layout): number {
   const start = o.shares.free + o.shares.games.slice(0, slot).reduce((a, b) => a + b, 0);
   const share = clues.slice(start, start + o.shares.games[slot]).map((cl) => cl.id);
   const c = { suspects, rooms, items, shared: o.settings.shared, seed: o.seed, sceneRoom: solution.room[murdererIndex], clues };
-  return boardPuzzle(o.content, c, { seed: hashSeed(`${o.seed}-board`), clues: share }) ? slot : -1;
+  return boardPuzzle(o.content, c, { seed: hashSeed(`${o.seed}-board`), clues: share }, boardLevel(o.levels)) ? slot : -1;
 }
 
 /**

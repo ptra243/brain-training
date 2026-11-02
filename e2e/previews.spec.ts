@@ -255,3 +255,11 @@ test('shelf-notebook-jigsaw preview', async ({ page }) => {
   await expect(page.locator('.cb-tray')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test('case-board preview', async ({ page }) => {
+  await page.goto('/#dev/case-board');
+  await expect(page.getByRole('button', { name: /^Noticed in the .+: / }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Noticed somewhere: / }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Clues on the board \(\d+\)$/ })).toBeVisible();
+  await checkScreen(page, 'preview case-board');
+});

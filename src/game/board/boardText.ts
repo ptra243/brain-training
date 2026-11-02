@@ -17,6 +17,9 @@ export function listAnd(xs: readonly string[], word = 'and') {
   return xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} ${word} ${xs[xs.length - 1]}`;
 }
 
+/** Where a loose Noticed piece was noticed: "in the Kitchen", or "somewhere" for an Unknown group. */
+const noticedPlace = (p: { marks: { only: string[] | null } }) => (p.marks.only?.[0] ? `in ${theSection(p.marks.only[0])}` : 'somewhere');
+
 /** What a piece is called: "The Butler (piece 1 of 2)", "The knife", "A hunch", "A clock that runs five minutes slow". */
 export function pieceName(r: Rules, pid: string): string {
   const p = r.piece[pid];
@@ -27,7 +30,12 @@ export function pieceName(r: Rules, pid: string): string {
   }
   if (p.kind === 'weapon') return `The ${itemName(p.who as string)}`;
   if (p.kind === 'grey') return 'A hunch';
-  if (p.kind === 'fog') return r.labels?.noticed[pid] ?? 'Something you noticed';
+  if (p.kind === 'fog') {
+    const detail = r.labels?.noticed[pid];
+    if (!detail) return 'Something you noticed';
+    // Loose filler says where it was noticed: its room, or somewhere she can't place.
+    return p.loose ? `Noticed ${noticedPlace(p)}: ${detail}` : detail;
+  }
   return 'The body';
 }
 
@@ -36,6 +44,7 @@ export function caption(r: Rules, pid: string): string {
   const p = r.piece[pid];
   if (p.kind === 'guest') return shortName(r.guests, p.who as string);
   if (p.kind === 'weapon') return capital(itemName(p.who as string));
+  if (p.kind === 'fog') return 'Noticed';
   return p.kind === 'grey' ? 'Hunch' : capital(p.kind);
 }
 
@@ -45,6 +54,10 @@ export function blockText(r: Rules, pid: string, section: string, b: Block): str
   switch (b.code) {
     case 'grey':
       return `${lead} A hunch only fits in Unknown: it's a clue you haven't found yet.`;
+    case 'fog': {
+      const home = r.piece[pid].marks.only?.[0];
+      return `${lead} Something you noticed only fits in ${home ? theSection(home) : "Unknown, where you can't place it"}.`;
+    }
     case 'not':
     case 'only':
       return b.clue ? lead : `${lead} The clues rule it out.`;
@@ -84,6 +97,14 @@ function ruleBits(r: Rules, pid: string): string[] {
 /** The rules a piece carries, in sentences. A guest with several pieces also gets the others' rules. */
 export function rulesOf(r: Rules, pid: string, finished: boolean): string[] {
   const p = r.piece[pid];
+  if (p.kind === 'fog' && p.loose) {
+    const room = p.marks.only?.[0];
+    const first = room
+      ? `Something you noticed in ${theSection(room)}. It has nothing to do with the case, so it goes in ${theSection(room)}, touching the others you noticed there.`
+      : "Something you noticed somewhere you can't place. It has nothing to do with the case, so it goes in Unknown, touching the others like it.";
+    const mates = r.touch.filter((t) => t.a === pid || t.b === pid).map((t) => `Its ${t.sym} has to touch the ${t.sym} on “${r.labels?.noticed[t.a === pid ? t.b : t.a] ?? 'another piece you noticed'}”.`);
+    return [first, ...mates];
+  }
   if (p.kind === 'fog') return ['Something you noticed about the house. It has nothing to do with the case, so it stays in Unknown and never moves.'];
   if (p.kind === 'grey') {
     const game = r.labels?.hunchFor[pid];

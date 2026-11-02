@@ -25,6 +25,7 @@ export const PREVIEWS: readonly PreviewInfo[] = [
   { id: 'midnight', about: 'The locked map at midnight', look: 'game' },
   { id: 'you-sheet', about: 'The You sheet: her portrait and tonight at a glance', look: 'game' },
   { id: 'nosing-houses', about: 'The Nosing around board at the start on each other house (medium)', look: 'game' },
+  { id: 'case-board', about: 'The case board puzzle on a thin Play case (BKVNS, medium), padded with a room group and an Unknown group of Noticed pieces: labels, the How to play list, the Clues on the board count (all clues, own ones blank)', look: 'game' },
   { id: 'houses', about: 'The lodge, courtyard house and steps on the floor plan', look: 'game' },
   { id: 'motives', about: 'Talk to any guest on any card, thread and mood, one beat at a time or all at once', look: 'game' },
   { id: 'shelf-ribbons', about: 'The #shelf puzzle book open on Case with the ribbons dropped', look: 'plain' },

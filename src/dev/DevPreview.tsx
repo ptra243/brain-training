@@ -4,7 +4,10 @@ import { useEffect, useLayoutEffect, useMemo, useState, type CSSProperties, type
 import { cats, content } from '../content/index.ts';
 import { isSceneGame } from '../engine/gameKinds.ts';
 import { caseCode, newPlayCase, newQuickCase } from '../engine/caseRef.ts';
-import { endBoard } from '../engine/caseBoard.ts';
+import { boardLevel, boardPuzzle, endBoard } from '../engine/caseBoard.ts';
+import { houseOf } from '../content/houses.ts';
+import { caseFor } from '../engine/caseRef.ts';
+import { CaseBoard } from '../game/board/CaseBoard.tsx';
 import { boardInitial, makeRules, trayIds, truthPlacement } from '../game/board/boardSave.ts';
 import { generateCase } from '../engine/generate.ts';
 import { midSentence } from '../engine/text.ts';
@@ -232,6 +235,21 @@ function HousesPreview() {
           })}
         </section>
       ))}
+    </main>
+  );
+}
+
+/** The case board on a thin Play case: the real puzzle, padded with Noticed groups (a room and Unknown), moves not saved. */
+function CaseBoardPreview() {
+  const c = useMemo(() => caseFor(content, { mode: 'play', code: 'BKVNS', games: ['wordsearch', 'cats', 'sudoku', 'interrogation', 'board', 'tarot'] } as never), []);
+  const spec = c.games.find((g) => g.kind === 'board')!;
+  const level = boardLevel(c.levels);
+  const board = useMemo(() => boardPuzzle({ ...content, house: houseOf(c) }, c, spec, level), [c, spec, level]);
+  const [save, setSave] = useState(boardInitial);
+  if (!board) return <main className="panel"><p>No board for this case.</p></main>;
+  return (
+    <main className="panel">
+      <CaseBoard board={board} level={level} c={c} save={save} onChange={setSave} finished={false} helper={cats[0]} />
     </main>
   );
 }
@@ -578,6 +596,7 @@ const SCREENS: Record<string, () => ReactNode> = {
   hints: () => <HintsPreview />,
   houses: () => <HousesPreview />,
   'nosing-houses': () => <NosingHousesPreview />,
+  'case-board': () => <CaseBoardPreview />,
   'next-murder': () => <NextMurderPreview />,
   opening: () => <OpeningPreview kind="start" />,
   'opening-midway': () => <OpeningPreview kind="midway" />,

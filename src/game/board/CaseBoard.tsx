@@ -481,7 +481,14 @@ export function CaseBoard(props: CaseBoardProps) {
     ...(pieceKinds.has('grey') ? [{ k: 'grey', label: 'Hunch', cls: '', style: { background: '#8f918b' } }] : []),
     ...(pieceKinds.has('fog') ? [{ k: 'fog', label: 'Noticed', cls: 'fog', style: {} }] : []),
   ];
-  const clueIds = [...new Set(rules.board.pieces.filter((p) => p.clue && (!p.hidden || finished) && clueText(p.clue)).map((p) => p.clue as string))];
+  // Every clue the board was built from, not just the ones a piece carries (a clue about a weapon has no guest piece).
+  // The puzzle's own clues stay blank until she finishes. A board with no clue list falls back on its pieces.
+  const clueRows: { id: string; blank: boolean }[] = board.clues
+    ? [
+        ...board.clues.shown.filter((id) => clueText(id)).map((id) => ({ id, blank: false })),
+        ...board.clues.hidden.filter((id) => finished ? clueText(id) : true).map((id) => ({ id, blank: !finished })),
+      ]
+    : [...new Set(rules.board.pieces.filter((p) => p.clue && (!p.hidden || finished) && clueText(p.clue)).map((p) => p.clue as string))].map((id) => ({ id, blank: false }));
 
   const tipPiece = tip ? rules.piece[tip.pid] : null;
   const tipLines = tip && tipPiece ? [...rulesOf(rules, tip.pid, finished), ...(loose(tip.pid) && (save.hints[tip.pid] || 0) ? [`${helper} curled up in ${theSection(board.truth[tip.pid].section)}.`] : [])] : [];
@@ -498,7 +505,8 @@ export function CaseBoard(props: CaseBoardProps) {
           <li>Fit every piece into a room or into Unknown. Pieces can't cross the thick walls.</li>
           <li>Pieces with the same symbol must touch. A crossed-out symbol means those two were never in the same room.</li>
           <li>Grey pieces are hunches: clues from puzzles you haven't played. They only fit in Unknown.</li>
-          <li>Speckled pieces are things you noticed about the house that have nothing to do with the case. They're already in place and never move.</li>
+          <li>Speckled pieces are things you noticed about the house that have nothing to do with the case. Some are already in place and never move.</li>
+          <li>Pieces marked "Noticed in" a room go in that room, and those marked "Noticed somewhere" go in Unknown. Each one touches the others in its group.</li>
           <li>All of one person's pieces go in the same place.</li>
           <li>Pick up a piece and the rooms it can't go in go dark.</li>
           <li>Turn a piece: double-tap it, or press Turn. While dragging: right-click, press R, scroll, or tap with another finger.</li>
@@ -649,9 +657,9 @@ export function CaseBoard(props: CaseBoardProps) {
         </section>
       )}
 
-      {clueIds.length > 0 && (
+      {clueRows.length > 0 && (
         <button className="secondary cb-clues-open" onClick={() => setCluesOpen(true)}>
-          Clues on the board ({clueIds.length})
+          Clues on the board ({clueRows.length})
         </button>
       )}
       {cluesOpen && (
@@ -667,13 +675,22 @@ export function CaseBoard(props: CaseBoardProps) {
             </button>
           </header>
           <ul className="cb-clues">
-            {clueIds.map((id) => {
+            {clueRows.map(({ id, blank }) => {
               const first = rules.board.pieces.find((p) => p.clue === id);
+              if (blank || !first) {
+                return (
+                  <li key={id}>
+                    <p className="cb-clue" style={{ cursor: 'default', margin: 0 }}>
+                      {blank ? "A clue this puzzle's own pieces give you when you finish." : clueText(id)}
+                    </p>
+                  </li>
+                );
+              }
               return (
                 <li key={id}>
                   <button
                     className={`cb-clue ${clueSel === id ? 'on' : ''}`}
-                    style={{ '--who': first ? colourOf(first.id) : 'var(--brass)' } as CSSProperties}
+                    style={{ '--who': colourOf(first.id) } as CSSProperties}
                     onClick={() => {
                       // Close so she sees the pieces light up.
                       setClueSel((s) => (s === id ? null : id));

@@ -22,7 +22,7 @@ export type BoardCell = readonly [row: number, col: number];
  * - weapon: one per weapon in play
  * - grey: a clue she hasn't found yet (end board only); fits only Unknown
  * - body: the body, fixed in the scene room once she knows it
- * - fog: filler, fixed in Unknown, splitting it into smaller nooks
+ * - fog: filler, fixed in Unknown, splitting it into smaller nooks; a `loose` one is placed by her (Unknown only)
  */
 export type BoardPieceKind = 'guest' | 'weapon' | 'grey' | 'body' | 'fog';
 
@@ -53,6 +53,10 @@ export interface BoardPiecePlan {
   clue: string | null;
   /** A clue she doesn't have yet (the puzzle's own reward): its piece shows no marks until solved. */
   hidden?: boolean;
+  /** Loose filler ("Noticed") she places herself: a fog piece that fits only `only` (one room) or, with no `only`, only Unknown. */
+  loose?: true;
+  /** The filler group it belongs to; a group's pieces touch in a chain and share a section. */
+  group?: string;
 }
 
 /** Everything the builder needs. */
@@ -69,6 +73,8 @@ export interface BoardPlan {
   fog: number;
   /** Piece ids that must never be pinned (they'd give the answer away). */
   neverPin: string[];
+  /** Every clue the board was built from: shown ones, and the puzzle's own hidden ones (blank until finished). */
+  clues?: { shown: string[]; hidden: string[] };
 }
 
 /** A piece on the finished board. */
@@ -81,6 +87,10 @@ export interface BoardPiece {
   marks: BoardMarks;
   clue: string | null;
   hidden?: boolean;
+  /** Fog she places herself; absent = fixed as before. Fits only `marks.only` (one room) or, with none, only Unknown. */
+  loose?: true;
+  /** Filler group id: pieces of one group touch in a chain. Label: the room is `marks.only[0]`, or Unknown ("somewhere"). */
+  group?: string;
 }
 
 /** A built board. Same plan, same board. */
@@ -95,8 +105,10 @@ export interface Board {
   pieces: BoardPiece[];
   /** Where each piece really goes: its section and exact squares. */
   truth: Record<string, { section: string; cells: BoardCell[] }>;
-  /** Pieces fixed at the start besides body and fog, per level. */
+  /** Pieces fixed at the start besides body and fixed fog, per level. */
   pinned: Record<Difficulty, string[]>;
+  /** Every clue the board was built from (copied from the plan), whether or not a piece carries it. */
+  clues?: { shown: string[]; hidden: string[] };
 }
 
 export const boardKey = (r: number, c: number) => `${r},${c}`;

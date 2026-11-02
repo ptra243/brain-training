@@ -6,8 +6,9 @@ import { endBoard } from '../engine/caseBoard.ts';
 import { caseContext, caseSpace } from '../engine/caseFacts.ts';
 import { possibleKillers, possibleWeapons } from '../engine/search.ts';
 import type { Case } from '../engine/types.ts';
-import { CaseBoard, type BoardSave } from './board/CaseBoard.tsx';
-import { boardInitial } from './board/boardSave.ts';
+import { CaseBoard } from './board/CaseBoard.tsx';
+import { isBoardSave } from './saveGuards.ts';
+import { boardInitial, cleanBoardSave } from './board/boardSave.ts';
 import { GAMES } from './games/registry.tsx';
 import { itemName, roomName, suspectName } from './names.ts';
 import { gameDone, sceneUnlocked, unlockedClueIds, type Action, type Progress } from './state.ts';
@@ -44,7 +45,9 @@ export function EndBoardPanel({ c, progress, dispatch, helper, readOnly, onAccus
   const board = useMemo(() => endBoard(content, c, unlocked, scene, left), [c, key]);
   if (!board) return <p className="muted">There's no board for these clues. The map and grid still work.</p>;
 
-  const save = progress.endBoard?.key === key ? (progress.endBoard.save as BoardSave) : boardInitial();
+  // A saved board can be stale (the board is rebuilt from today's code): drop placements that no longer fit it.
+  const stored = progress.endBoard?.key === key && isBoardSave(progress.endBoard.save) ? progress.endBoard.save : boardInitial();
+  const save = cleanBoardSave(board, c.levels.logic, stored);
   const placedBy = (who: string) => board.pieces.find((p) => p.kind === 'guest' && p.who === who)?.id;
   const placed = c.suspects.filter((s) => placedBy(s) && board.truth[placedBy(s)!].section !== UNKNOWN);
   const open = c.suspects.filter((s) => !placed.includes(s));

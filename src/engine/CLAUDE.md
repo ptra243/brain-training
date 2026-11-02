@@ -34,7 +34,14 @@
   a case's drawn games on a seed of its own (`BOARD_SHARE`, only when its
   board builds), so cases that keep their games are unchanged; and the **end
   board**, a starting option that doesn't change the case. `caseChecks.ts`
-  builds every puzzle board and two end boards per case.
+  builds every puzzle board and two end boards per case. The puzzle board is
+  built for its level (`boardLevel`): a board with fewer pieces to place than
+  `MIN_TO_PLACE` (easy 5, medium 8, hard 11) is padded with loose Noticed
+  filler (`padPlan`: kind `fog` with `loose`, in touching groups of at most
+  `MAX_GROUP` 3/4/5, each group fitting only one room or only Unknown). A
+  board that already meets its minimum is built exactly as before, and
+  padding never changes whether a board builds, so cases don't change. Saved
+  placements are checked against the rebuilt board on load (`cleanBoardSave`).
 - **7 guests share 5 rooms and 5 weapons.** The killer was alone in the scene
   room holding the weapon; two guests hold nothing (`null` in
   `Solution.item`). These cases are checked with the search in `search.ts`

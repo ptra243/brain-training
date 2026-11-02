@@ -12,7 +12,7 @@ import { buildTarot, JOKER } from '../games/tarot.ts';
 import { campaignCast, campaignRound, roundBudget, roundProblems, roundSuspects, walkedFreeVictim, type CampaignRef } from './campaign.ts';
 import { boardSolvable } from './board.ts';
 import type { Board } from './boardTypes.ts';
-import { boardPuzzle, endBoard } from './caseBoard.ts';
+import { MIN_TO_PLACE, boardLevel, boardPuzzle, endBoard, piecesToPlace } from './caseBoard.ts';
 import { caseContext, caseFacts, caseSpace, interrogationEvidence } from './caseFacts.ts';
 import { isInterrogation, isSceneGame } from './gameKinds.ts';
 import { disproves } from './interrogation.ts';
@@ -28,8 +28,8 @@ import { houseOf } from '../content/houses.ts';
 export const stats = {
   /** Play cases: word games that blank a clue, how many of those clues name the scene room, and how many games cases draw. */
   play: { blanks: 0, sceneBlanks: 0, games: new Map<number, number>() },
-  /** Case boards built, end boards built, and the slowest one (ms). */
-  boards: { puzzles: 0, ends: 0, slowest: 0 },
+  /** Case boards built, end boards built, the slowest one (ms), and the puzzle boards padded with filler or still thin (below the minimum to place for their level). */
+  boards: { puzzles: 0, ends: 0, slowest: 0, padded: 0, thin: 0 },
   /** Talk: guests checked, and those with a beat still waiting for the solved case. */
   talk: { guests: 0, short: 0 },
   /** Tarot games checked per level. */
@@ -171,10 +171,14 @@ export function puzzleProblems(c: Case): string[] {
   }
   // Case board puzzle: builds for its clues, and its answer packs.
   for (const g of c.games.filter((g) => g.kind === 'board')) {
-    const b = timed(() => boardPuzzle(content, c, g));
+    const b = timed(() => boardPuzzle(content, c, g, boardLevel(c.levels)));
     stats.boards.puzzles++;
     if (!b) out.push('case board puzzle has no board');
-    else if (!packs(b)) out.push("case board puzzle's answer doesn't pack");
+    else {
+      if (!packs(b)) out.push("case board puzzle's answer doesn't pack");
+      if (b.pieces.some((p) => p.loose)) stats.boards.padded++;
+      if (piecesToPlace(b, boardLevel(c.levels)) < MIN_TO_PLACE[boardLevel(c.levels)]) stats.boards.thin++;
+    }
   }
   // End board (a starting option): builds from the free clues alone, and from every clue once the scene is known.
   const free = new Set(c.clues.filter((cl) => cl.delivery === 'given').map((cl) => cl.id));

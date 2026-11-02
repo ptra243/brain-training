@@ -8,11 +8,14 @@ import {
   boardInitial,
   boardSolvedSave,
   checkBoard,
+  cleanBoardSave,
   clashes,
   dropCheck,
   fitsAnywhere,
   makeRules,
+  normCells,
   occupancy,
+  type PlacedPiece,
   orient,
   pinnedIds,
   rotations,
@@ -267,4 +270,41 @@ test('check: empty, ok, wrong sections, and gaps', () => {
     return true;
   });
   assert.deepEqual(seen, ['fog', 'g1']);
+});
+
+test('loose filler is not auto-pinned and only fits its room, or Unknown', () => {
+  const b = tinyBoard();
+  b.pieces.push(piece('n1', 'fog', null, { loose: true, marks: { ...noMarks(), only: ['a'] } }), piece('n2', 'fog', null, { loose: true }));
+  assert.deepEqual(pinnedIds(b, 'medium'), ['fog']);
+  const r = makeRules(b, 'medium');
+  assert.equal(blocker(r, 'n1', UNKNOWN)?.code, 'fog');
+  assert.equal(blocker(r, 'n1', 'a'), null);
+  assert.equal(blocker(r, 'n2', 'a')?.code, 'fog');
+  assert.equal(blocker(r, 'n2', UNKNOWN), null);
+});
+
+test('a stale saved board drops placements that no longer fit', () => {
+  const b = tinyBoard();
+  // easy pins w1 (row 1, columns 0-1); g1 and grey are loose, fog is always pinned.
+  const good = truthPlacement(b, 'g1');
+  const grey = truthPlacement(b, 'grey');
+  const save = { ...boardInitial(), hintCount: 2, placed: { g1: good, grey } };
+  assert.equal(cleanBoardSave(b, 'easy', save), save, 'a good save comes back as is');
+
+  const clean = (placed: Record<string, PlacedPiece>) => Object.keys(cleanBoardSave(b, 'easy', { ...save, placed }).placed);
+  const dom = (cells: BoardCell[], section: string): PlacedPiece => ({ section, shape: domino, cells });
+  assert.deepEqual(clean({ gone: good }), [], 'a piece that is not on the board');
+  assert.deepEqual(clean({ w1: truthPlacement(b, 'w1') }), [], 'a pinned piece');
+  assert.deepEqual(clean({ g1: dom([[0, 0], [0, 2]], 'a') }), [], 'squares that are not its shape');
+  assert.deepEqual(clean({ g1: { ...good, shape: [[0, 0], [1, 1]] } }), [], 'a shape it never had');
+  assert.deepEqual(clean({ g1: dom([[0, 3], [0, 4]], UNKNOWN) }), [], 'off the board');
+  assert.deepEqual(clean({ g1: dom([[0, 0], [0, 1]], UNKNOWN) }), [], 'the wrong section for its squares');
+  assert.deepEqual(clean({ g1: dom([[1, 0], [1, 1]], 'a') }), [], 'over a pinned piece');
+  // At medium w1 is loose, so it can be placed over g1: the earlier placement stays.
+  const over = cleanBoardSave(b, 'medium', { ...save, placed: { g1: good, w1: dom([[0, 0], [0, 1]], 'a') } });
+  assert.deepEqual(Object.keys(over.placed), ['g1'], 'over another placement');
+  assert.deepEqual(clean({ grey: { ...grey, shape: normCells([[0, 0], [0, 1]]) } }), [], 'cells that are not the shape moved');
+  const kept = cleanBoardSave(b, 'easy', { ...save, placed: { g1: good, gone: good } });
+  assert.equal(kept.hintCount, 2);
+  assert.deepEqual(Object.keys(kept.placed), ['g1']);
 });
