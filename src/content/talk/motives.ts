@@ -8,64 +8,95 @@
 import type { TalkContent } from '../../engine/types.ts';
 
 export const motives: TalkContent['motives'] = [
+  // The Lawyer (id `financier`): guarded questioning, `asks` are her line before each beat.
   {
     suspect: 'financier',
     card: 'devil',
     reversed: false,
+    asks: [
+      "You must know what's in the will.",
+      'One of the guests told me exactly what\'s in the will. How would they know that?',
+      '{victim} is dead.',
+    ],
     thread: [
-      "I lend money to people who can't ask their families. They're very grateful, right up until it falls due.",
-      "Everyone at this table is pleasant to me. I've yet to meet one who was glad to see me arrive.",
-      "{victim} owed me, and made a joke of it in front of everyone. I don't kill people who owe me. It's terrible for collections.",
+      "Every word. I've been this family's lawyer for twenty years. I hold the will, the prenup and the shareholders' agreement. People are always very polite to me.",
+      "Did they. People ask to see it. One did, once, and paid for my time. Lawyers get struck off for less, so I'd be grateful if you didn't repeat that.",
+      "A death sends a family straight to its paperwork. Whoever paid me will be nervous now, and nervous people talk. I'd very much like them not to. I can hear how that sounds.",
     ],
   },
   {
     suspect: 'financier',
     card: 'devil',
     reversed: true,
+    asks: [
+      'How did you come to work for this family?',
+      'I overheard someone say you owe somebody here. They sounded pleased about it.',
+      '{victim} is dead. Does that settle it?',
+    ],
     thread: [
-      'Years ago I made a bargain on a handshake. No paper. It seemed very gentlemanly at the time.',
-      "It falls due this year, and I can't remember the terms. I haven't slept properly since, and I'm told it shows.",
-      '{victim} was the other hand in that handshake. Now nobody can tell me what I agreed to, and I can see how that looks.',
+      'Twenty years ago they needed a lawyer quickly, and I needed a client. Nothing more romantic than that.',
+      "Twenty years ago I agreed to one favour, for the family's account. No paper, no questions, whenever asked. It was called in this spring, and that's all you're getting.",
+      "That depends who held it, and I won't say. If it was {victim}, I'm free for the first time in twenty years. If it wasn't, I still owe it. You'll notice I'm not telling you which.",
     ],
   },
   {
     suspect: 'financier',
     card: 'emperor',
     reversed: false,
+    asks: [
+      "You're handling the sale for the family?",
+      "Someone told me you're holding up the sale.",
+      '{victim} is dead. What happens to the sale?',
+    ],
     thread: [
-      "I've asked to see this family's accounts. Done properly, that's all. You'd think I'd asked to read their letters.",
-      'Nobody here likes me for asking, and I understand why. A proper look would bring the roof in.',
-      '{victim} had been dragging the family name round every club in town, and I said so. Somebody has to mind. I know minding looks like a motive tonight.',
+      "The family's side of it. I've spent twenty years arranging this company to pass neatly to an heir. Every share, every trust, every signature. It's the best work I've ever done.",
+      "I'm thorough, and they call it slow. This family is nearly all my firm's work, and a buyer brings its own lawyers. If the sale closes, eleven people lose their jobs, and I'm one of them. So every page gets read twice.",
+      "It stops. No buyer signs for a company in the middle of a murder inquiry. I couldn't have slowed it better myself.",
     ],
   },
   {
     suspect: 'financier',
     card: 'emperor',
     reversed: true,
+    asks: [
+      'People keep talking about a will. Is there one?',
+      'Someone said a new will was signed this year.',
+      '{victim} is dead. Will anyone ask about the will now?',
+    ],
     thread: [
-      'There are two sets of books in this house. I have the one that is true.',
-      "I don't show it to anyone. I only mention it, now and then, and watch the colour leave the room.",
-      "{victim} had found out what's in it and meant to tell the table. I'd rather it came from me. It still might.",
+      'There is, in the safe. Signed, witnessed and none of your business.',
+      "Suppose one was. Suppose it cut out someone who did nothing to deserve it, and suppose it never reached the safe. I'd call that a kindness. A court would call it something else.",
+      "After a death, everyone asks about wills. Someone will want that safe opened, and will want to know if that's all there is. I'd do a good deal to make sure it is.",
     ],
   },
   {
     suspect: 'financier',
-    card: 'hanged-man',
+    card: 'justice',
     reversed: false,
+    asks: [
+      "You didn't look like you were enjoying yourself at dinner.",
+      'Does client legal privilege have any exceptions? For a murder, say?',
+      '{victim} is dead. Does your rule still hold?',
+    ],
     thread: [
-      'I put a great deal into a sure thing. It went wrong some weeks ago.',
-      "I'm being very calm about it. People keep telling me how calm I am, in the voice you'd use near a ticking parcel.",
-      "{victim} talked me into it. I'd have every reason to be furious, which is why I'm being so very calm.",
+      "I'm not paid to enjoy this family. I'm paid to listen to them and keep quiet. Client legal privilege. Whatever they tell me, I take to the grave.",
+      "Only a crime that hasn't happened yet. Once it's done, I can't repeat a word, however bad it was. And some of it was bad. I've sat across a table from one client every Christmas for twenty years, knowing what they did.",
+      "It holds for the dead too, so I can't tell you whether {victim} was that client. I can tell you I've spent twenty years wishing someone would do what the law couldn't. Make of that what you like.",
     ],
   },
   {
     suspect: 'financier',
-    card: 'hanged-man',
+    card: 'justice',
     reversed: true,
+    asks: [
+      'You look tired.',
+      'Someone told me you lost a lot of money last year.',
+      "{victim} is dead. What about the buyer's checks?",
+    ],
     thread: [
-      'The sure thing went wrong, and I covered the loss before anyone noticed.',
-      'Not with my own money, you understand. It all goes back the moment things turn. Things are going to turn.',
-      '{victim} never noticed the money was gone. Now nobody will, unless somebody looks.',
+      "It's been a long year. The sale, and now the buyer wants to see the family trust. I sign for it once a year, and nobody has ever asked before.",
+      'Someone reads the business pages. It was a sure thing, I was told. It took everything I had. And every cent will be back in the trust before the buyer\'s accountants look, so you can stop staring.',
+      'Postponed, naturally. A murder inquiry buys me a few months, and a few months is all I\'ve ever needed. Things are going to turn. I said that last year as well.',
     ],
   },
   // The Fixer (id `butler`): guarded questioning, `asks` are her line before each beat.

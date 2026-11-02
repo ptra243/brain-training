@@ -130,29 +130,25 @@ Treated as part of the furniture, which suits them. Sees what the family leaves 
     - Upright: Leaving after the weekend. Their grandchild is ill and needs treatment abroad. The Host promised to help, then said the company could not spare it.
     - Reversed: Was left something in a will years ago, and is afraid it has been changed.
 
-### The Lawyer: Devil (borrows Emperor, Hanged Man)
-The family's lawyer for twenty years (draft, to refine in its own session). Precise, dry, a little too
-pleased to know who gets what. Holds the will, drafted the Hostess's prenup and the shareholders'
-agreement that pushed the Uncle out, and is running the family's side of the sale. Can talk about
-inheritance, but never knows what the Host's sealed decision says, and never says anything about a
-will that would only be true because of who the killer is.
-- Versions (the card she meets them on; draft):
+### The Lawyer: Devil (borrows Emperor, Justice)
+The family's lawyer for twenty years. Precise, dry, a little too pleased to know who gets what. Holds
+the will, drafted the Hostess's prenup and the shareholders' agreement that pushed the Uncle out, and
+is running the family's side of the sale. Can talk about inheritance, but never knows what the Host's
+sealed decision says, and never says anything about a will that would only be true because of who the
+killer is. Careful with words: half-admits, speaks in hypotheticals, and slips; never confesses.
+- Versions (the card she meets them on; settled 2026-11-02):
   - **Devil (home)**
-    - Upright: Holds the will. A guest paid for an early look at it, and the lawyer took the money.
-    - Reversed: Made a handshake deal years ago with someone at this table, with no paper. It falls due this year.
+    - Upright: Holds the will. A guest paid for an early look at it, and the lawyer took the money. It would get them struck off. (exposure)
+    - Reversed: Agreed to one favour twenty years ago, for the family's account: no paper, no questions, whenever asked. It was called in this spring. (freedom)
   - **Emperor**
-    - Upright: Spent twenty years setting the company up to pass to an heir. A sale tears it up, and loses the firm its biggest client.
-    - Reversed: Drafted two wills. The one in the safe is not the latest, and only the lawyer knows.
-  - **Hanged Man**
-    - Upright: Executor of every will in this family, paid from each estate, and badly needs the money after a sure thing went wrong.
-    - Reversed: Covered a loss with money from the family's trust. The buyer's checks would find it.
-- **Card swap to make when refining** (owner, 2026-10-29): the Hanged Man was inherited from the old
-  Financier. Swap it for **Justice** (the law; shared with the Detective, two people who think they are
-  the law): `mayAlsoRoll` in `src/content/`, and check the Justice neutral lines and card threads still
-  fit a lawyer (they were written for the Detective alone). Talk sets are not in a `Case`, so cases stay
-  the same. The Hanged Man keeps the Host and the Uncle, like Lovers and Death with two holders each.
-- Links: the Elder heir's borrowing against her inheritance (the lawyer knows how much); the
-  Housekeeper's fear that a will was changed (Emperor reversed); the Uncle's shares; the Hostess's prenup.
+    - Upright: Spent twenty years setting the company up to pass to an heir. The family is nearly all the firm's work, so a sale ends it, and the lawyer is slowing the sale down. (money)
+    - Reversed: A newer will cut out someone who did nothing to deserve it, and never reached the safe. It concerns the estate, never who runs the company. (protecting someone)
+  - **Justice** (replaces the Hanged Man, 2026-11-02; two people who think they are the law)
+    - Upright: Bound by client legal privilege to keep what a client did, and has watched them get away with it for twenty years. Never named, and never the fire. (revenge)
+    - Reversed: A sure thing went wrong, and the loss was covered with money from the family's trust. The buyer's checks would find it. (exposure)
+- Links: the Elder heir's borrowing against her inheritance (the lawyer knows how much; she may be who
+  paid for the early look, unsaid); the Housekeeper's fear that a will was changed (Emperor reversed);
+  the Uncle's shares; the Hostess's prenup.
 
 ### The Uncle: Hermit (borrows Death, Hanged Man)
 The Host's brother-in-arms from the first shop, and family by marriage. Pushed out of the company
@@ -253,7 +249,7 @@ Any guest can be the victim or the killer, and any seven are seated, so the back
 ### Three questions everyone has an answer to
 1. **Whose company is it, really?** The Hostess's recipe, the Uncle's shares, the Fixer's work, the
    heirs' birthright, the Host's name on the box.
-2. **Is it as healthy as it looks?** The Lawyer's two wills and the family trust, the Investor's offer, whatever the
+2. **Is it as healthy as it looks?** The Lawyer's unfiled will and the family trust, the Investor's offer, whatever the
    Fixer has made go away, why the Hostess invited the detective who once investigated it.
 3. **Who will the Host pick?** Elder heir, Younger heir, the Fixer, or a sale. The Uncle's vote and the
    Hostess's opinion both count.
@@ -333,6 +329,12 @@ would say to a stranger at that point. Past dates and places are fine ("twelve y
 factory"); tonight's whereabouts, times and objects are not. Beat 3 never mentions the boss separately
 from `{victim}`, since the victim may be the Host.
 
+**Two questions for every line (owner, 2026-11-02).** Her line: why would she say this now, to this
+person, and how could she know it? Their reply: why don't they just tell her to mind her own business?
+Later beats open after more games, so she can't pick up a word from the last beat as if no time had
+passed. Nobody confesses a crime to a stranger: use half-admissions, hypotheticals and slips, and let
+her work out the rest. Who a "someone told me" could have come from must make sense too.
+
 **Nothing that hints at a weapon.** No nut allergies, and no chemicals, sprays or anything that
 sounds like poison in a motive: poison is a weapon, so it would read as a clue to how someone died.
 Pollution is factory waste, never a chemical.
@@ -355,7 +357,7 @@ Each guest gets a session like the Fixer's, in this order:
 ## Threads written
 
 Guarded questioning, her line before each beat (see "How a thread reads"). Settled with the owner
-2026-10-29; not in the game yet (threads need a field for her lines first).
+and in the game (`src/content/talk/motives.ts`): the Fixer 2026-10-29, the Lawyer 2026-11-02.
 
 ### The Fixer
 
@@ -406,6 +408,56 @@ Guarded questioning, her line before each beat (see "How a thread reads"). Settl
 - **Fixer:** Then someone has been in my desk. Yes. The river below the factory has been dead for ten years. I never reported it. I mentioned once to the boss that I'd kept copies, and my job has been very safe since.
 - **You:** {victim} is dead. What happens to your copies now?
 - **Fixer:** There are two kinds of people at this table: the ones who'd pay to keep those reports quiet, and the ones who'd love them in a newspaper. {victim} was one or the other. Either way, my copies are worth more now.
+
+### The Lawyer
+
+**Devil upright (the early look)**
+- **You:** You must know what's in the will.
+- **Lawyer:** Every word. I've been this family's lawyer for twenty years. I hold the will, the prenup and the shareholders' agreement. People are always very polite to me.
+- **You:** One of the guests told me exactly what's in the will. How would they know that?
+- **Lawyer:** Did they. People ask to see it. One did, once, and paid for my time. Lawyers get struck off for less, so I'd be grateful if you didn't repeat that.
+- **You:** {victim} is dead.
+- **Lawyer:** A death sends a family straight to its paperwork. Whoever paid me will be nervous now, and nervous people talk. I'd very much like them not to. I can hear how that sounds.
+
+**Devil reversed (the favour)**
+- **You:** How did you come to work for this family?
+- **Lawyer:** Twenty years ago they needed a lawyer quickly, and I needed a client. Nothing more romantic than that.
+- **You:** I overheard someone say you owe somebody here. They sounded pleased about it.
+- **Lawyer:** Twenty years ago I agreed to one favour, for the family's account. No paper, no questions, whenever asked. It was called in this spring, and that's all you're getting.
+- **You:** {victim} is dead. Does that settle it?
+- **Lawyer:** That depends who held it, and I won't say. If it was {victim}, I'm free for the first time in twenty years. If it wasn't, I still owe it. You'll notice I'm not telling you which.
+
+**Emperor upright (the slow sale)**
+- **You:** You're handling the sale for the family?
+- **Lawyer:** The family's side of it. I've spent twenty years arranging this company to pass neatly to an heir. Every share, every trust, every signature. It's the best work I've ever done.
+- **You:** Someone told me you're holding up the sale.
+- **Lawyer:** I'm thorough, and they call it slow. This family is nearly all my firm's work, and a buyer brings its own lawyers. If the sale closes, eleven people lose their jobs, and I'm one of them. So every page gets read twice.
+- **You:** {victim} is dead. What happens to the sale?
+- **Lawyer:** It stops. No buyer signs for a company in the middle of a murder inquiry. I couldn't have slowed it better myself.
+
+**Emperor reversed (the will that wasn't filed)**
+- **You:** People keep talking about a will. Is there one?
+- **Lawyer:** There is, in the safe. Signed, witnessed and none of your business.
+- **You:** Someone said a new will was signed this year.
+- **Lawyer:** Suppose one was. Suppose it cut out someone who did nothing to deserve it, and suppose it never reached the safe. I'd call that a kindness. A court would call it something else.
+- **You:** {victim} is dead. Will anyone ask about the will now?
+- **Lawyer:** After a death, everyone asks about wills. Someone will want that safe opened, and will want to know if that's all there is. I'd do a good deal to make sure it is.
+
+**Justice upright (privilege)**
+- **You:** You didn't look like you were enjoying yourself at dinner.
+- **Lawyer:** I'm not paid to enjoy this family. I'm paid to listen to them and keep quiet. Client legal privilege. Whatever they tell me, I take to the grave.
+- **You:** Does client legal privilege have any exceptions? For a murder, say?
+- **Lawyer:** Only a crime that hasn't happened yet. Once it's done, I can't repeat a word, however bad it was. And some of it was bad. I've sat across a table from one client every Christmas for twenty years, knowing what they did.
+- **You:** {victim} is dead. Does your rule still hold?
+- **Lawyer:** It holds for the dead too, so I can't tell you whether {victim} was that client. I can tell you I've spent twenty years wishing someone would do what the law couldn't. Make of that what you like.
+
+**Justice reversed (the trust)**
+- **You:** You look tired.
+- **Lawyer:** It's been a long year. The sale, and now the buyer wants to see the family trust. I sign for it once a year, and nobody has ever asked before.
+- **You:** Someone told me you lost a lot of money last year.
+- **Lawyer:** Someone reads the business pages. It was a sure thing, I was told. It took everything I had. And every cent will be back in the trust before the buyer's accountants look, so you can stop staring.
+- **You:** {victim} is dead. What about the buyer's checks?
+- **Lawyer:** Postponed, naturally. A murder inquiry buys me a few months, and a few months is all I've ever needed. Things are going to turn. I said that last year as well.
 
 ## Still to do
 

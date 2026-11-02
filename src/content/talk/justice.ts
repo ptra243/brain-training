@@ -4,7 +4,7 @@ import { reading } from './reading.ts';
 export const justice: TalkCard = {
   upright: reading(
     [
-      "A good detective notices what doesn't fit. Mostly it's my own hat.",
+      "I always notice what doesn't fit. Mostly it's my own hat.",
       'Facts first, then theories, then a very good sit-down.',
       'I weigh everything twice. Once for the evidence, once for the cut of the coat.',
       "I like a pair of scales that balances. I like it better when I'm the one reading them.",
