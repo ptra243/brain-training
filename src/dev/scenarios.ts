@@ -2,7 +2,7 @@
 // functions, then the real game opens on it. Never a committed save, so a format change can't
 // leave one stale. e2e builds the same states from here (e2e/CLAUDE.md).
 
-import { content } from '../content/index.ts';
+import { content, houseDetails } from '../content/index.ts';
 import { ROUNDS, type CampaignRef } from '../engine/campaign.ts';
 import { caseFor, codeFor, type QuickRef } from '../engine/caseRef.ts';
 import { isSceneGame } from '../engine/gameKinds.ts';
@@ -10,6 +10,7 @@ import type { Case } from '../engine/types.ts';
 import { newCampaign, pick, roundCase, updateRound, type CampaignSave } from '../game/campaignSave.ts';
 import { emptyHistory, recordCampaign, recordQuick } from '../game/history.ts';
 import { localDate } from '../game/runRecord.ts';
+import { roomContents, roundPuzzles } from '../game/explore.ts';
 import { emptyProgress, type Progress } from '../game/state.ts';
 import { saveCampaign, saveHistory, saveQuick, saveScreen } from '../game/storage.ts';
 
@@ -72,6 +73,24 @@ function loadCampaign(save: CampaignSave) {
 
 /** A new campaign at the start of round 1 with the opening done, for the #shelf campaign book's preview. */
 export const campaignStart = (): CampaignSave => openingDone(newCampaign(campaignRef));
+
+/**
+ * Chapter two (Midnight) after one wrong accusation, for the #shelf campaign book's midnight preview: two
+ * puzzles picked, the first one won, and she stands in the room that holds it. Both rounds are built, as
+ * the book wants every round (the sample never writes).
+ */
+export function campaignChapterTwo(): { save: CampaignSave; cases: Case[] } {
+  let save = campaignAfter(1);
+  const cases = [roundCase(content, save, 0), roundCase(content, save, 1)];
+  const c = cases[1];
+  const [won, second] = roundPuzzles(c).objects;
+  save = pick(pick(save, c, won.kind), c, second.kind);
+  const contents = roomContents(houseDetails, c);
+  const at = Object.keys(contents).find((room) => contents[room].objects.some((o) => o.kind === won.kind))!;
+  const rounds = save.rounds.slice();
+  rounds[1] = { ...rounds[1], at, games: { ...rounds[1].games, [won.kind]: { status: 'won', data: null } } };
+  return { save: { ...save, rounds }, cases };
+}
 
 export const SCENARIOS: readonly Scenario[] = [
   {

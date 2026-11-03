@@ -114,7 +114,17 @@ test('shelf-campaign preview', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Chapter one: 9pm' })).toBeVisible();
   await expect(page.getByText(/^You are in the /)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Plan' })).toBeVisible();
+  await expect(page.getByRole('img', { name: '3 accusations left' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Walk to' })).toBeVisible();
   await checkScreen(page, 'preview shelf-campaign');
+});
+
+test('shelf-campaign-midnight preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-campaign-midnight');
+  await expect(page.getByRole('heading', { name: 'Chapter two: Midnight' })).toBeVisible();
+  await expect(page.getByRole('img', { name: '2 accusations left' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /, won$/ })).toBeVisible();
+  await checkScreen(page, 'preview shelf-campaign-midnight');
 });
 
 test('shelf-find-a-clue preview', async ({ page }) => {

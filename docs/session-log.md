@@ -90,3 +90,8 @@ duration), each full check, and how many ran in order versus alongside. Older li
   (2) screenshots read in the main session (55 images in Quick play, 16 in two others); (3) the line
   here depends on a split being written up, so it never gets written. Open question on the tuner split
   from 23 Oct: not checked in this review, so still open. Rules changed: reminder at 200k, log line at the first reminder, about 10 design edits or 5 images in the main session prompts a move.
+- 2026-11-03, Theme content, land the lines (Elder heir): 68 replies, context 204k, 10.2M read from
+  cache, 413k written, 57k output. Card and version design ran round by round in the main session
+  (eight owner rounds, `docs/story.md` edited about 8 times), then a backlog edit and the build were
+  added on top. The build was quick (one script, two re-runs of the talk lint for repeated lines), and
+  clue wording went to its own session as asked.

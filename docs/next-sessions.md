@@ -127,12 +127,12 @@ Read docs/case-check-split.md ("Quick sweep profile and crossword letters" and "
 ```
 
 ## Session: Shelf UI, beside the current game
-Last touched: 2026-11-03 (campaign split into six pieces; piece 1, the book setup with Room · Plan · Answer placeholders and `#dev/shelf-campaign`, built)
-Reads first: `docs/visual-theme.md` ("Screens 8–10, settled", its six pieces), `.claude/handoff/shelf-campaign-1.md` if present, `CONTEXT.md`.
-Goal: build the campaign on `#shelf` (Screen plan step 8), pieces 2 to 6 in the order 2, 4, 3, 5, 6. Notebook in the campaign book is still to do (it reads a `QuickBook`); fold it into piece 2.
+Last touched: 2026-11-03 (pieces 1 and 2 built: the book setup, then the room page (`CampaignRoom`, candles, object rows, Walk to, midnight green) and the notebook in the campaign book; previews `#dev/shelf-campaign` and `shelf-campaign-midnight`)
+Reads first: `docs/visual-theme.md` ("Screens 8–10, settled", its six pieces), `.claude/handoff/shelf-campaign-2.md` if present, `CONTEXT.md`.
+Goal: build the campaign on `#shelf` (Screen plan step 8), pieces 4, 3, 5, 6 in that order. The midnight palette (`OpenBook.module.css`, a `midnight` class on body) was made up in piece 2; show it to the owner. Guests on the room page are plain text until piece 4 makes them open the talk spread. The notebook's Accuse buttons are hidden in the campaign until piece 5.
 Starting prompt:
 ```
-Read docs/visual-theme.md "Screens 8–10, settled" (the six pieces) and src/shelf/useCampaignBook.ts, then brief an implementer for piece 2, the room page, including the notebook in the campaign book. #shelf only.
+Read docs/visual-theme.md "Screens 8–10, settled" (piece 4, the talk spread), src/shelf/CampaignRoom.tsx and today's person screen in src/game/ExploreMap.tsx, then brief an implementer for piece 4: tapping a guest on the room page opens the face-to-face spread (Talk, Minigame, Clues opening their subject page in the notebook). #shelf only.
 ```
 
 ## Session: Hunting the weapon (campaign)

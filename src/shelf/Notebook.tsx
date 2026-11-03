@@ -16,13 +16,13 @@ import { SCENE_TEASER, holderOf, itemRoom, placedRoom, sceneText, sceneUnlocked,
 import { SuspectCounterFace } from '../game/SuspectCounterFace.tsx';
 import { youLines } from '../game/youSheet.ts';
 import styles from './Notebook.module.css';
-import { accuseLabel, accuseRequest, afterSwipe, peekLine, placeAction, placeRooms, placementLine, slipCount, subjectClues, subjectTitle, tabForCase, tabsFor, type AccuseRequest, type Height, type NotebookTab } from './notebook.ts';
+import { accuseLabel, accuseRequest, afterSwipe, peekLine, placeAction, placeRooms, placementLine, slipCount, subjectClues, subjectTitle, tabForCase, tabsFor, type AccuseRequest, type Height, type NotebookBook, type NotebookTab } from './notebook.ts';
 import { GridSheet } from './GridSheet.tsx';
 import { sheetClues, sheetSubjectName, type SheetFace } from './gridSheet.ts';
 import { saveNotebookTab, loadNotebookTab } from './shelfStore.ts';
 import { stepIndex, watchSwipe, type SwipeDir } from './swipe.ts';
 import { useBackLayer } from './useBackLayer.ts';
-import type { QuickBook, SampleCase } from './useQuickBook.ts';
+import type { SampleCase } from './useQuickBook.ts';
 
 /** A page on top of a tab: a guest, a weapon or a room, with the tab to go back to. */
 interface Page {
@@ -158,7 +158,7 @@ function Chip({ item }: { item: string }) {
 interface ListProps {
   c: Case;
   progress: Progress;
-  dispatch: QuickBook['dispatch'];
+  dispatch: NotebookBook['dispatch'];
   clues: readonly Clue[];
   pawed?: readonly string[];
 }
@@ -231,7 +231,7 @@ function GuestsTab({ c, onPick }: { c: Case; onPick: (s: Subject) => void }) {
   );
 }
 
-function GridTab({ book, onPick, startSheet }: { book: QuickBook; onPick: (s: Subject) => void; startSheet?: SheetFace }) {
+function GridTab({ book, onPick, startSheet }: { book: NotebookBook; onPick: (s: Subject) => void; startSheet?: SheetFace }) {
   const { c, progress, dispatch } = book;
   // The pull-up sheet: local, never saved. A label or room tap filters its Clues face.
   const [face, setFace] = useState<SheetFace | null>(startSheet ?? null);
@@ -342,7 +342,7 @@ function GridTab({ book, onPick, startSheet }: { book: QuickBook; onPick: (s: Su
 }
 
 /** The Jigsaw tab: the classic end board on the notebook's page, its sticker sheet pinned as a drawer above the tabs. */
-function JigsawTab({ book, onAccuse }: { book: QuickBook; onAccuse: () => void }) {
+function JigsawTab({ book, onAccuse }: { book: NotebookBook; onAccuse?: () => void }) {
   const { c, progress, dispatch } = book;
   const helper = cats[c.number % cats.length];
   return (
@@ -357,12 +357,12 @@ function JigsawTab({ book, onAccuse }: { book: QuickBook; onAccuse: () => void }
 }
 
 /** A guest's, a weapon's or a room's page. */
-function SubjectPage({ book, page, onBack, onAccuseGuest }: { book: QuickBook; page: Page; onBack: () => void; onAccuseGuest: (req: AccuseRequest) => void }) {
+function SubjectPage({ book, page, onBack, onAccuseGuest }: { book: NotebookBook; page: Page; onBack: () => void; onAccuseGuest?: (req: AccuseRequest) => void }) {
   const { c, progress, dispatch } = book;
   const { subject } = page;
   const back = tabsFor(book.finish).find((t) => t.id === page.from)?.label ?? 'Back';
   const clues = subjectClues(c, progress, subject);
-  const accuse = accuseRequest(c, progress, subject);
+  const accuse = onAccuseGuest ? accuseRequest(c, progress, subject) : null;
   const move = subject.kind === 'suspect' ? 'Move their counter' : 'Move it';
   const them = subject.kind === 'suspect' ? 'them' : 'it';
   let head: ReactNode;
@@ -416,7 +416,7 @@ function SubjectPage({ book, page, onBack, onAccuseGuest }: { book: QuickBook; p
           </ul>
         </>
       )}
-      {accuse ? (
+      {accuse && onAccuseGuest ? (
         <button type="button" className={styles.accuse} onClick={() => onAccuseGuest(accuse)}>
           {accuseLabel(c, accuse)}
         </button>
@@ -437,7 +437,7 @@ function Rings() {
 }
 
 interface Props {
-  book: QuickBook;
+  book: NotebookBook;
   /** The dev preview's sample: where to start, and nothing is saved. */
   sample?: SampleCase;
   /** A puzzle page is open over the book: the notebook steps aside. */
@@ -449,10 +449,10 @@ interface Props {
   focus?: { subject: Subject; seq: number } | null;
   /** The guest or weapon page showing (none on a tab or a room page), so the map can ring it. */
   onPage?: (s: Subject | null) => void;
-  /** The board's Accuse button: turn the book to its Answer page. */
-  onAccuse: () => void;
-  /** A guest page's Accuse button: turn the book to Answer with this guest (and weapon) written in. */
-  onAccuseGuest: (req: AccuseRequest) => void;
+  /** The board's Accuse button: turn the book to its Answer page. Absent: no button (the campaign book, until its Answer page). */
+  onAccuse?: () => void;
+  /** A guest page's Accuse button: turn the book to Answer with this guest (and weapon) written in. Absent: no button. */
+  onAccuseGuest?: (req: AccuseRequest) => void;
 }
 
 /**

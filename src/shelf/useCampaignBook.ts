@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Case } from '../engine/types.ts';
+import type { Case, GameKind } from '../engine/types.ts';
 import { generate } from '../game/caseClient.ts';
 import { roundsKey } from '../game/caseJobs.ts';
-import { currentRound, type CampaignSave } from '../game/campaignSave.ts';
+import { currentRound, pick, puzzlesLeft, type CampaignSave } from '../game/campaignSave.ts';
 import { holdRound, pendingAccusation } from '../game/face.ts';
 import { reduce, type Action, type Progress } from '../game/state.ts';
+import { finishFor, type Finish } from './notebook.ts';
 import { loadCampaign, saveCampaign } from '../game/storage.ts';
 
 /** A campaign to show without loading her save (the dev preview). */
@@ -22,7 +23,15 @@ export interface CampaignBook {
   /** The current round, as an explored copy (a UI flag the engine never sets). */
   c: Case;
   progress: Progress;
+  /** Which of Grid and Jigsaw the notebook shows, decided as the classic Casebook does (the starting option). */
+  finish: Finish;
   dispatch: (a: Action) => void;
+  /** The puzzles she has chosen this round. */
+  picked: GameKind[];
+  /** Puzzles she may still choose this round. */
+  left: number;
+  /** Spend a pick on this puzzle (does nothing if already picked or none is left). A sample never writes. */
+  onPick: (kind: GameKind) => void;
   /** A held accusation waits for its questioning; nothing in the book resolves it yet. */
   pending: { accused: string } | null;
 }
@@ -68,5 +77,15 @@ export function useCampaignBook(sample: SampleCampaign | undefined, enabled: boo
     saveCampaign(next);
     setSave(next);
   };
-  return { save, round, c, progress: save.rounds[round], dispatch, pending: pendingAccusation(save) };
+  const onPick = (kind: GameKind) => {
+    if (sample) return;
+    const base = latest.current ?? save;
+    const next = pick(base, c, kind);
+    if (next === base) return;
+    latest.current = next;
+    saveCampaign(next);
+    setSave(next);
+  };
+  return { save, round, c, progress: save.rounds[round], finish: finishFor(c, null, save.ref.endBoard),
+    picked: save.picked[round] ?? [], left: puzzlesLeft(save, c), dispatch, onPick, pending: pendingAccusation(save) };
 }

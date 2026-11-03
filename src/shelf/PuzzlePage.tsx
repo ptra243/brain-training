@@ -29,6 +29,8 @@ interface Props {
   turnSource: () => HTMLElement | null;
   /** Called when the turned-back leaf has landed and the book should be showing again. */
   onClose: () => void;
+  /** Where the back button turns to: "page 3" in Quick play, "the room" in the campaign book. */
+  backTo?: string;
 }
 
 const BACKDROP = 'rgb(58, 112, 88)';
@@ -45,7 +47,7 @@ const LEAF = { leaf: book.leaf, page: book.page, back: book.back, shade: book.sh
  * (build the puzzle once, play it, Solve with its confirm, the clues when she finishes) so that
  * screen is untouched. It is rendered on `document.body` to escape the book's transform and clipping.
  */
-export function PuzzlePage({ c, spec, progress, dispatch, page, level, turn, turnSource, onClose }: Props) {
+export function PuzzlePage({ c, spec, progress, dispatch, page, level, turn, turnSource, onClose, backTo = 'page 3' }: Props) {
   const [confirming, setConfirming] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const entry = GAMES[spec.kind];
@@ -159,7 +161,7 @@ export function PuzzlePage({ c, spec, progress, dispatch, page, level, turn, tur
               Solve
             </button>
           ) : null}
-          <button ref={backRef} type="button" className={styles.ribbon} aria-label="Turn back to page 3" onClick={turnBack}>
+          <button ref={backRef} type="button" className={styles.ribbon} aria-label={`Turn back to ${backTo}`} onClick={turnBack}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M15 5l-7 7 7 7" />
             </svg>
@@ -195,7 +197,7 @@ export function PuzzlePage({ c, spec, progress, dispatch, page, level, turn, tur
                 ))}
               </ul>
               <button type="button" className={styles.turnBack} onClick={turnBack}>
-                Turn back to page 3
+                Turn back to {backTo}
               </button>
             </section>
           ) : null}

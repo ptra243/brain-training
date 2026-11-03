@@ -19,7 +19,8 @@ interface Props {
   dispatch: (a: Action) => void;
   helper: string;
   readOnly?: boolean;
-  onAccuse: () => void;
+  /** Absent: no Accuse button (the #shelf campaign book has no Answer page yet). */
+  onAccuse?: () => void;
 }
 
 const lower = (name: string) => name.replace(/^The /, 'the ');
@@ -87,7 +88,7 @@ export function EndBoardPanel({ c, progress, dispatch, helper, readOnly, onAccus
       ) : (
         <p className="muted">Play a word game to find where the body was, and the board shows who could be the killer.</p>
       )}
-      {!readOnly && (
+      {!readOnly && onAccuse && (
         <button className="primary" onClick={onAccuse}>
           Accuse
         </button>

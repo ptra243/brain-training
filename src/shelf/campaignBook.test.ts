@@ -1,6 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { chapterTitle, roomLine } from './campaignBook.ts';
+import { houseDetails } from '../content/index.ts';
+import { content } from '../content/index.ts';
+import { ROUNDS, type CampaignRef } from '../engine/campaign.ts';
+import { codeFor } from '../engine/caseRef.ts';
+import { newCampaign, roundCase } from '../game/campaignSave.ts';
+import { clockAfterNext, roomContents } from '../game/explore.ts';
+import { emptyProgress, reduce } from '../game/state.ts';
+import { accusationsLeft, candleLabel, chapterTitle, isNightChapter, NO_PUZZLES_LEFT, roomLine, roomRowAria, roomRows, walkTargets } from './campaignBook.ts';
 
 test('chapter titles follow the rounds', () => {
   assert.equal(chapterTitle(0), 'Chapter one: 9pm');
@@ -15,4 +22,63 @@ test('a round outside the range is clamped', () => {
 
 test('the room line names the room', () => {
   assert.equal(roomLine('Library'), 'You are in the Library.');
+});
+
+const ref: CampaignRef = { mode: 'campaign', code: codeFor(104_729), difficulty: 'medium' };
+const save = newCampaign(ref);
+const c = roundCase(content, save, 0);
+const contents = roomContents(houseDetails, c);
+const withObjects = Object.keys(contents).find((r) => contents[r].objects.length > 0)!;
+
+test('the night chapters are Midnight and 3am', () => {
+  assert.equal(isNightChapter(0), false);
+  assert.equal(isNightChapter(1), true);
+  assert.equal(isNightChapter(2), true);
+});
+
+test('candles: one per accusation left, labelled', () => {
+  assert.equal(accusationsLeft(0), ROUNDS);
+  assert.equal(accusationsLeft(1), ROUNDS - 1);
+  assert.equal(accusationsLeft(ROUNDS + 2), 0);
+  assert.equal(candleLabel(2), '2 accusations left');
+  assert.equal(candleLabel(1), '1 accusation left');
+  assert.equal(candleLabel(0), 'No accusations left');
+});
+
+test('walking goes to every other room in play', () => {
+  const here = c.rooms[0];
+  const to = walkTargets(c, here);
+  assert.equal(to.length, c.rooms.length - 1);
+  assert.ok(!to.includes(here));
+});
+
+test('open rows say how many clues and when the clock will read; a spent budget disables them', () => {
+  const p = emptyProgress();
+  const objects = contents[withObjects].objects;
+  const budget = c.campaign!.budget;
+  const open = roomRows(c, p, 'x', objects, [], budget);
+  assert.equal(open.length, objects.length);
+  for (const r of open) {
+    assert.ok(r.enabled);
+    assert.match(r.line, /^\d+ clues? · until \d+:\d\d$/);
+    assert.equal(r.line.endsWith(clockAfterNext(c, p)), true);
+  }
+  // No picks left: only a game she already picked can still be opened.
+  const shut = roomRows(c, p, 'x', objects, [], 0);
+  for (const r of shut) {
+    assert.equal(r.enabled, false);
+    assert.equal(r.line, NO_PUZZLES_LEFT);
+    assert.match(roomRowAria(r, 'Game', 'medium'), /no puzzles left tonight$/);
+  }
+  const kept = roomRows(c, p, 'x', objects, [objects[0].kind], 0);
+  assert.equal(kept[0].enabled, true);
+});
+
+test('a finished object shows the page-3 state text and stays openable', () => {
+  const objects = contents[withObjects].objects;
+  const p = reduce(c, emptyProgress(), { type: 'game-finish', kind: objects[0].kind, status: 'won', data: null });
+  const [r] = roomRows(c, p, 'x', objects, [objects[0].kind], 0);
+  assert.equal(r.row.done, true);
+  assert.equal(r.enabled, true);
+  assert.match(r.line, /clues? found$|^No new clues$/);
 });

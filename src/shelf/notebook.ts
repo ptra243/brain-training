@@ -25,6 +25,17 @@ export function parseTab(raw: unknown): NotebookTab {
 export type Finish = 'grid' | 'jigsaw' | 'both';
 
 /**
+ * All the notebook reads of a book: the case, her progress, a way to move and which finish tabs to show.
+ * A `QuickBook` and the campaign book both satisfy it.
+ */
+export interface NotebookBook {
+  c: Case;
+  progress: Progress;
+  dispatch: (a: Action) => void;
+  finish: Finish;
+}
+
+/**
  * Which finish tabs this case's notebook shows; one place to change the rule, like the classic Casebook.
  * A Play case (scene given) shows both. A Quick start case shows Jigsaw in place of Grid when it chose the
  * Jigsaw finish, else Grid only. `sampleEndBoard` is the dev previews' stand-in for a ref.

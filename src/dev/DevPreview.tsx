@@ -37,7 +37,7 @@ import { DogFightStates } from './DogFightStates.tsx';
 import { MotivesPreview } from './MotivesPreview.tsx';
 import { PortraitGallery } from './PortraitGallery.tsx';
 import { StickerTin } from '../shelf/StickerTin.tsx';
-import { campaignStart } from './scenarios.ts';
+import { campaignChapterTwo, campaignStart } from './scenarios.ts';
 import { roundCase } from '../game/campaignSave.ts';
 import { OpenBook } from '../shelf/OpenBook.tsx';
 import { NightReplay } from '../shelf/NightReplay.tsx';
@@ -442,17 +442,18 @@ function ShelfRibbonsPreview() {
   return <OpenBook title={caseTitle({ mode: 'quick', code: 'K7QF2', difficulty: 'medium', length: 'normal' })} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen sample={sample} />;
 }
 
-/** The #shelf campaign book on Room, over a sample campaign in chapter one (nothing is read or saved). */
-function ShelfCampaignPreview() {
+/** The #shelf campaign book on Room, over a sample campaign (nothing is read or saved): chapter one, or chapter two in midnight green. */
+function ShelfCampaignPreview({ night }: { night?: boolean }) {
   useLayoutEffect(() => {
     document.body.classList.add('shelf');
     return () => document.body.classList.remove('shelf');
   }, []);
   const campaignSample = useMemo(() => {
+    if (night) return campaignChapterTwo();
     const save = campaignStart();
     return { save, cases: [roundCase(content, save, 0)] };
-  }, []);
-  return <OpenBook title="Chapter one: 9pm" tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen campaign campaignSample={campaignSample} />;
+  }, [night]);
+  return <OpenBook title={night ? 'Chapter two: Midnight' : 'Chapter one: 9pm'} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen campaign campaignSample={campaignSample} />;
 }
 
 /**
@@ -628,6 +629,7 @@ const SCREENS: Record<string, () => ReactNode> = {
   motives: () => <MotivesPreview />,
   'shelf-ribbons': () => <ShelfRibbonsPreview />,
   'shelf-campaign': () => <ShelfCampaignPreview />,
+  'shelf-campaign-midnight': () => <ShelfCampaignPreview night />,
   'shelf-labels': () => <ShelfLabelsPreview />,
   'shelf-tin': () => <ShelfTinPreview />,
   'shelf-new-case': () => <ShelfNewCasePreview />,

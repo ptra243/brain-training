@@ -79,9 +79,15 @@ What a look check judges on each:
 - `shelf-ribbons`: the #shelf puzzle book open on Case, ribbons dropped (two ribbons in a row of three, a gap
   where Case lies in the crease): book runs to the left edge with a 20px left page, 6px felt right, header 16/10px
   inset; satin ribbons readable and 44px+; no sideways scroll.
-- `shelf-campaign`: the #shelf campaign book open on Room for a sample chapter-one campaign: title "Chapter one: 9pm", the
-  "You are in the ..." line and "This page isn't drawn yet."; ribbons Room, Plan, Answer (dropped by `startOpen`), 44px+;
-  no sideways scroll.
+- `shelf-campaign`: the #shelf campaign book open on Room for a sample chapter-one campaign (honey oak): title "Chapter one: 9pm",
+  the dropped ribbons Room, Plan, Answer (44px+) hang over a clear header band (clock "9:00 (N games left)" at the left, three lit
+  candles at the right, `aria-label` "3 accusations left") and not over "You are in the ..."; then the room's look lines, "Here with
+  you: ...", "Things to try" rows (puzzle label, "The inkwell"-style name, "N clues · until 10:20") and "Walk to" buttons (44px+)
+  with "No time taken."; the notebook strip at the foot. Plan and Answer say "This page isn't drawn yet." No sideways scroll.
+- `shelf-campaign-midnight`: chapter two in the midnight-green palette (deep green felt and cover, pale green paper, dark ink): two
+  candles lit and one blown out (thin smoke), the clock past 9:00, the room with a done row (green tick, "N clues found"), the other
+  picked object open and the rest saying "No puzzles left tonight" (faded, disabled); ribbons and text readable on the green
+  paper; no sideways scroll.
 - `shelf-new-case`: the New case book on a fresh sample Play case (fixed seed, nothing saved), opening not yet seen: the
   body line, the story paragraph and the button that goes on to Find a clue; notebook strip at the foot; no sideways
   scroll. The real book builds its case when opened ("Laying out the cards…" until it arrives).

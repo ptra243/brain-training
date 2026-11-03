@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import styles from './OpenBook.module.css';
 import { FindAClue } from './FindAClue.tsx';
 import { caseTitle } from '../game/names.ts';
@@ -10,11 +10,10 @@ import type { Subject } from '../game/state.ts';
 import { Shuffling } from '../game/Shuffling.tsx';
 import { useQuickBook, type PickRequest, type SampleCase } from './useQuickBook.ts';
 import { useCampaignBook, type SampleCampaign } from './useCampaignBook.ts';
-import { chapterTitle, roomLine } from './campaignBook.ts';
-import { roomName } from '../game/names.ts';
-import { whereAmI } from '../game/explore.ts';
+import { chapterTitle, isNightChapter } from './campaignBook.ts';
+import { CampaignRoom } from './CampaignRoom.tsx';
 import { attachRibbons } from './ribbonMotion.ts';
-import { SECTIONS, sectionsFor } from './ribbonPlan.ts';
+import { sectionsFor } from './ribbonPlan.ts';
 import { stepIndex, watchSwipe, type SwipeDir } from './swipe.ts';
 import { useBackLayer } from './useBackLayer.ts';
 
@@ -89,6 +88,15 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   // Her case, shared by the Case page and the notebook. The New case book builds one and saves it.
   const book = useQuickBook(sample, campaign ? 'none' : tone === 'quick' ? 'saved' : 'new', pick);
   const campaignBook = useCampaignBook(campaignSample, !!campaign);
+  // What the notebook reads: the campaign round, or her Quick case. The Answer page is not drawn for a campaign yet, so no Accuse buttons.
+  const notebookBook = campaign ? campaignBook || null : book || null;
+  const night = !!campaignBook && isNightChapter(campaignBook.round);
+  // Midnight and 3am use the midnight-green palette. It is a body class so a turning leaf (added to body) takes it too.
+  useLayoutEffect(() => {
+    if (!night) return;
+    document.body.classList.add(styles.midnight);
+    return () => document.body.classList.remove(styles.midnight);
+  }, [night]);
   const title = campaign ? (campaignBook ? chapterTitle(campaignBook.round) : coverTitle) : book && book.fullRef ? caseTitle(book.fullRef) : coverTitle;
   // A guest page's Accuse without a weapon: the Answer form gets the guest written in. A new `seq` is a new request.
   const [prefill, setPrefill] = useState<{ suspect: string; seq: number } | null>(null);
@@ -119,7 +127,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
     if (action) book.dispatch(action);
     // A handed-in try leaves the form blank again, as the Answer page's own button does.
     setPrefill((p) => ({ suspect: action ? '' : req.suspect, seq: (p?.seq ?? 0) + 1 }));
-    turnRef.current?.(SECTIONS.indexOf('Answer'));
+    turnRef.current?.(sections.indexOf('Answer'));
   };
 
   // Back puts the notebook away first, then the ribbons; the book and the puzzle page register themselves.
@@ -179,7 +187,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   return (
     <div className={styles.stage}>
       <div className={styles.flyer} style={start}>
-        <section ref={appRef} className={styles.app} style={book ? ({ paddingBottom: 'calc(52px + env(safe-area-inset-bottom, 0px))' } as CSSProperties) : undefined} aria-label={`${title}: ${sections[section]}`} data-section={sections[section]}>
+        <section ref={appRef} className={styles.app} style={notebookBook ? ({ paddingBottom: 'calc(52px + env(safe-area-inset-bottom, 0px))' } as CSSProperties) : undefined} aria-label={`${title}: ${sections[section]}`} data-section={sections[section]}>
           <header className={styles.head}>
             <button ref={backRef} type="button" className={styles.round} aria-label="Back to the shelf" onClick={onBack}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -198,7 +206,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                     <span>{sections[0]}</span>
                   </div>
                   {campaign ? (
-                    <CampaignRoom book={campaignBook} />
+                    <CampaignRoom book={campaignBook} onPuzzleOpen={setPuzzleOpen} />
                   ) : tone === 'fresh' && book === null ? (
                     <p className={styles.lede}>Laying out the cards…</p>
                   ) : tone === 'fresh' && book === false ? (
@@ -253,7 +261,18 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
               ))}
             </nav>
           </div>
-          {book ? <Notebook book={book} sample={sample} hidden={puzzleOpen} height={height} onHeight={setHeight} focus={focus} onPage={setPageSubject} onAccuse={() => { setHeight('peek'); turnRef.current?.(SECTIONS.indexOf('Answer')); }} onAccuseGuest={accuseGuest} /> : null}
+          {notebookBook ? (
+            <Notebook
+              book={notebookBook}
+              sample={sample}
+              hidden={puzzleOpen}
+              height={height}
+              onHeight={setHeight}
+              focus={focus}
+              onPage={setPageSubject}
+              {...(campaign ? {} : { onAccuse: () => { setHeight('peek'); turnRef.current?.(sections.indexOf('Answer')); }, onAccuseGuest: accuseGuest })}
+            />
+          ) : null}
         </section>
 
         <div aria-hidden="true" className={`${styles.cover} ${tone === 'quick' ? styles.quick : styles.fresh}`}>
@@ -265,18 +284,5 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
       {/* Outside the flyer: its page-turn transform would otherwise hold this "fixed" overlay inside the book. */}
       {pick && book === null ? <Shuffling /> : null}
     </div>
-  );
-}
-
-/** The campaign book's first page for now: the chapter, the room she is in, and a note that the rest is not drawn. */
-function CampaignRoom({ book }: { book: ReturnType<typeof useCampaignBook> }) {
-  if (book === null) return <p className={styles.lede}>Laying out the cards…</p>;
-  if (book === false) return <p className={styles.lede}>That campaign wouldn&apos;t open. Go back and try again.</p>;
-  return (
-    <>
-      <p className={styles.lede}>{chapterTitle(book.round)}</p>
-      <p className={styles.lede}>{roomLine(roomName(whereAmI(book.c, book.progress)))}</p>
-      <p className={styles.lede}>This page isn&apos;t drawn yet.</p>
-    </>
   );
 }

@@ -133,6 +133,25 @@
   --display: 'EB Garamond', Georgia, 'Times New Roman', serif;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
+/* Midnight green, for the Midnight and 3am chapters (no existing palette: docs/visual-theme.md only names it).
+   The felt goes to deep night green, the cover to dark spruce, and the paper to a cool pale green so the
+   ink, the label cards and every game drawn for light paper stay readable. The class is on body so the
+   turning leaf, which lives outside .app, takes it too. */
+:global(body.shelf).midnight .app,
+:global(body.shelf).midnight .leaf {
+  --felt: #1f4640;
+  --felt-deep: #122b28;
+  --cover-red: #1b3d38;
+  --paper: #e9efe2;
+  --page-line: #c3d1bf;
+  --ink: #17231f;
+  --ink-soft: #4a5f55;
+  --ivory: #e6eddc;
+  --brass: #c9ae62;
+  --r-case: #b9a263;
+  --r-map: #4f8a80;
+  --r-answer: #7d5a52;
+}
 :global(body.shelf) .app {
   position: absolute;
   inset: 0;
@@ -430,4 +449,14 @@
   position: absolute;
   inset: 0;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 7px), 0 100%);
+}
+
+/* Midnight green: the left sliver and a turning leaf's back are painted with fixed creams, so they follow. */
+:global(body.shelf).midnight .verso {
+  background:
+    repeating-linear-gradient(90deg, rgba(30, 70, 60, 0.18) 0 1px, transparent 1px 3px) left / 5px 100% no-repeat,
+    linear-gradient(90deg, #d9e4d3 0%, #e4ecdc 30%, #d3dfcc 72%, #a9bba6 100%);
+}
+:global(body.shelf).midnight .leaf .page.back {
+  background: linear-gradient(90deg, #d8e3d2, var(--paper) 40%);
 }
