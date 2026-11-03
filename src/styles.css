@@ -146,7 +146,17 @@ h1, h2 { font-family: var(--serif); font-weight: 600; margin: 0; }
 .counter.static { cursor: default; flex: none; }
 /* A portrait head fills the circle (clipped round) instead of the colour fill and initials. */
 .counter.has-portrait, .ghost.has-portrait { overflow: hidden; background: none; }
-.counter.has-portrait svg, .ghost.has-portrait svg { border-radius: 50%; }
+.counter.has-portrait svg, .ghost.has-portrait svg { border-radius: 50%; overflow: hidden; }
+
+/* Map pieces look 35px (counters) or smaller (weapons) but take a 44px touch.
+   The invisible hit area sits at z-index -1, so a neighbouring piece's real
+   box always wins and the extra only catches taps in the gaps. A counter
+   clips its portrait on the svg instead, so the hit area isn't clipped away. */
+.counter:not(.static), .weapon:not(.static) { position: relative; }
+.counter.has-portrait:not(.static) { overflow: visible; }
+.counter:not(.static)::before, .weapon:not(.static)::before { content: ""; position: absolute; z-index: -1; }
+.counter:not(.static)::before { inset: -7.5px; border-radius: 50%; } /* 3px border + 4.5px out = 44px */
+.weapon:not(.static)::before { inset: -10px -4px; }
 
 .sheet-backdrop {
   position: fixed; inset: 0; z-index: 30;
@@ -186,7 +196,8 @@ h1, h2 { font-family: var(--serif); font-weight: 600; margin: 0; }
   @keyframes sheet-up { from { transform: translateY(24px); opacity: 0; } }
 }
 
-.tray ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; }
+/* isolation keeps the pieces' z-index -1 hit areas above the card's background. */
+.tray ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; isolation: isolate; }
 .tray li { display: flex; align-items: center; gap: 0.45rem; font-size: 0.9rem; }
 .legend { margin: 0; font-size: 0.8rem; color: var(--on-baize-soft); }
 
@@ -510,7 +521,7 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
   width: auto; height: auto; border-radius: 0.25rem; padding: 0.25rem 0.5rem;
   background: #fbf7ea; color: var(--ink); border: 1.5px solid var(--brass-deep); font-family: var(--sans); font-size: 0.75rem;
 }
-.tray li .weapon { max-width: none; font-size: 0.8rem; min-height: 2.2rem; padding: 0.25rem 0.6rem; }
+.tray li .weapon { max-width: none; font-size: 0.8rem; min-height: 2.75rem; padding: 0.25rem 0.6rem; }
 .accuse-bar { display: grid; gap: 0.6rem; }
 .accuse-bar p { margin: 0; line-height: 1.45; }
 .primary:disabled { opacity: 0.5; cursor: default; }

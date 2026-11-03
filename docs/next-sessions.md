@@ -104,18 +104,6 @@ Starting prompt:
 Read the act breaks and dinner prologue sections of docs/story-layer.md, draft the line pools with me, then write an implementer brief.
 ```
 
-## Session: Map counters and weapon chips to 44px
-Last touched: 2026-10-26
-Reads first: `src/styles.css` (`.counter` and `.tray li .weapon`, both 2.2rem = 35px), `src/game/CLAUDE.md`
-(Map, dragging, the 44px exceptions).
-Goal: the map's suspect counters and weapon chips are 35px on every house, under the 44px rule. Grow the
-tap and drag target to 44px (a bigger hit area or a bigger counter) without the tray wrapping off one phone
-screen; check `#dev/explore` and a Quick case map at 360px.
-Starting prompt:
-```
-Read the Map rules in src/game/CLAUDE.md, then propose how to make the map counters and weapon chips 44px touch targets, and check it at 360px with browser-check.
-```
-
 ## Session: Case check split into sweep files
 Last touched: 2026-10-27
 Reads first: `docs/case-check-split.md` ("Quick sweep profile and crossword letters").
