@@ -67,6 +67,8 @@ Clues read like a logic grid ("X was not in the library").
   casebook keeps the plain statement for the grid.
 - Needs per-clue-type line templates in `wording.ts` style with the same facts, and the fact check to
   confirm a moment never says more or less than its clue.
+- 2026-11-03: the plain lines got a wording pass first (more templates, how the witness knows, the cat by
+  name). The text changed, but the facts, clue ids and puzzles didn't, so no storage bump was needed.
 
 ## Replay
 - Seeds give new puzzles, but 6-line pools repeat within a few campaigns: grow the pools first

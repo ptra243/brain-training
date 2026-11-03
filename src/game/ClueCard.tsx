@@ -50,7 +50,7 @@ interface Props {
 
 /** One clue with where it came from: a witness's words or what the cats found. */
 export function ClueCard({ clue, guests, coords, blank, used, onToggle, compact, fresh }: Props) {
-  const label = clue.source === 'testimony' ? `${suspectName(clue.speaker ?? '', guests)} says` : 'Found by the cats';
+  const label = clue.source === 'testimony' ? `${suspectName(clue.speaker ?? '', guests)} says` : 'Found by the cat';
   const loc = clue.location;
   const room = 'room' in clue.fact ? clue.fact.room : null;
 

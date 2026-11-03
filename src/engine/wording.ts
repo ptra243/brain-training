@@ -1,51 +1,73 @@
 // How clues read. Every clue is a true statement, told one of two ways:
 // - testimony: a quote from one of the suspects (free clues and sudoku clues)
-// - evidence: something the cats found (cat-puzzle clues)
+// - evidence: something the house cat found (cat-puzzle clues)
 //
 // Placeholders: {s}/{S} suspect mid-sentence/start of sentence ("the Butler" /
 // "The Butler"), {a}/{b} and {A}/{B} the two suspects in pair clues, {i} item,
-// {r}/{r2} rooms. Room templates always write "the {r}" so a sudoku clue can
-// swap in "the room at row 3, column 4".
+// {r}/{r2} rooms, {cat} the house cat's name. Room templates write "the {r}"
+// exactly once, never at the start, so a sudoku clue can swap in "the room at
+// row 3, column 4". A line may say how the witness knows, but never where the
+// witness (or anyone else) was, or which rooms are near each other.
 
 import type { ClueFact, ClueSource, ClueType, Content } from './types.ts';
 import type { Rng } from './rng.ts';
 import { capital, fillIn, midSentence } from './text.ts';
 
 const TESTIMONY: Record<ClueType, readonly string[]> = {
-  'suspect-room': ['I saw {s} in the {r} all evening.', '{S} was in the {r}. I took them a cup of tea there.'],
-  'suspect-not-room': ['{S} never set foot in the {r}. Ask anyone.', "Not the {r}. Wherever {s} was, it wasn't in there."],
-  'suspect-item': ['{S} had the {i} with them all evening.', 'I saw {s} carrying the {i}.'],
-  'suspect-not-item': ['{S} never touched the {i}.', "{S} never had the {i}. I'd swear to that."],
-  'item-room': ['The {i} was in the {r} when I looked in.', 'I noticed the {i} lying in the {r}.'],
-  'item-not-room': ["There was no {i} in the {r}. I'm certain of it.", 'I looked all round the {r}. No {i} anywhere.'],
-  'suspect-either-room': ["{S} was in the {r} or the {r2}. I couldn't say which."],
+  'suspect-room': [
+    'I saw {s} in the {r} all evening.',
+    '{S} was in the {r}. I took them a cup of tea there.',
+    '{S} spent the whole evening in the {r}. Everyone saw them there.',
+  ],
+  'suspect-not-room': [
+    '{S} never set foot in the {r}. Ask anyone.',
+    "{S} can't abide the {r}. They wouldn't set foot in it tonight.",
+    '{S} and the {r}? No. They never went in there.',
+  ],
+  'suspect-item': ['{S} had the {i} with them all evening.', 'I saw {s} carrying the {i}.', "{S} had the {i} and wouldn't put it down."],
+  'suspect-not-item': [
+    "Whoever had the {i}, it wasn't {s}.",
+    "{S} with the {i}? Not a chance. I'd have noticed.",
+    "I'd know if {s} had the {i}. They didn't.",
+  ],
+  'item-room': ['The {i} was in the {r} when I looked in.', 'I noticed the {i} lying in the {r}.', 'I nearly tripped over the {i} in the {r}.'],
+  'item-not-room': [
+    'I looked all round the {r}. No {i} anywhere.',
+    'I looked into the {r} more than once tonight. No sign of the {i} in there.',
+    "The {i}, in the {r}? No. I'd have seen it.",
+  ],
+  'suspect-either-room': [
+    '{S} said the {r}. Or was it the {r2}? One of the two.',
+    "It was either the {r} or the {r2} for {s}. I didn't catch which.",
+    "{S} was in the {r} or the {r2}. I couldn't say which.",
+  ],
   'suspect-next-to-room': [
-    'I saw {s} going into a room beside the {r}. Not into it, the one next door.',
+    '{S} was next door to the {r}, not in it.',
     '{S} told me they spent the evening in a room next to the {r}, not in it.',
   ],
   'suspects-adjacent': ['I could hear {b} through the wall all evening.', '{B} was in the room next to mine.'],
   'suspects-not-adjacent': ["{B} wasn't in a room next to mine. I'd have heard them through the wall."],
-  'suspects-together': ['{B} and I were in the same room all evening.', '{B} was with me the whole time.'],
-  'suspects-apart': ["{B} wasn't in my room. I'd have seen them."],
-  'suspect-alone': ['{S} was on their own all evening. Nobody went in to them.', 'Nobody else was in the room with {s}.'],
-  'suspect-empty-handed': ['{S} had nothing in their hands. No weapon at all.', 'Every time I caught sight of {s}, their hands were empty. No weapon at all.'],
+  'suspects-together': ['{B} and I were in the same room all evening.', "Ask {b}. We didn't leave each other's side all night."],
+  'suspects-apart': ["{B} wasn't in my room. I'd have seen them.", "{B}? Not in my room. I'd have noticed."],
+  'suspect-alone': ['{S} was on their own all evening. Nobody went in to them.', '{S} had a room to themselves all evening.'],
+  'suspect-empty-handed': ['{S} had nothing in their hands. No weapon at all.', "{S} hadn't a weapon on them. Hands in their pockets all night."],
 };
 
 const EVIDENCE: Record<ClueType, readonly string[]> = {
-  'suspect-room': ["The cats found a button from {s}'s coat in the {r}.", "The cats dragged {s}'s handkerchief out from under a chair in the {r}."],
-  'suspect-not-room': ['The cats sniffed every corner of the {r}. No trace of {s}.'],
-  'suspect-item': ["The cats found {s}'s fingerprints all over the {i}."],
-  'suspect-not-item': ["The cats found the {i}. Not one of {s}'s fingerprints on it."],
-  'item-room': ['The cats found scratches from the {i} on the floor of the {r}.'],
-  'item-not-room': ['The cats searched the {r} from top to bottom. The {i} was never there.'],
-  'suspect-either-room': ["The cats followed {s}'s footprints to the {r} or the {r2}. The trail is smudged after that."],
-  'suspect-next-to-room': ["The cats found {s}'s glass pressed against a wall of the {r}, from the room next door."],
-  'suspects-adjacent': ['The cats found a note from {a} to {b}, slipped under the connecting door between their rooms.'],
-  'suspects-not-adjacent': ["The cats checked every connecting door. None joins {a}'s room to {b}'s."],
-  'suspects-together': ["The cats found {a}'s glove and {b}'s scarf on the same chair."],
-  'suspects-apart': ["The cats followed {a}'s and {b}'s footprints. They never met."],
-  'suspect-alone': ["The cats found only one set of footprints in {s}'s room: {s}'s own."],
-  'suspect-empty-handed': ["The cats checked every weapon. None has {s}'s fingerprints."],
+  'suspect-room': ["{cat} found a button from {s}'s coat in the {r}.", "{cat} dragged {s}'s handkerchief out from under a chair in the {r}."],
+  'suspect-not-room': ['{cat} sniffed every corner of the {r}. Not a whiff of {s}.'],
+  'suspect-item': ["{cat} found {s}'s fingerprints all over the {i}."],
+  'suspect-not-item': ["{cat} sniffed the {i} and walked off. It doesn't smell of {s} at all.", "{cat} batted the {i} out into the open. Not one of {s}'s fingerprints on it."],
+  'item-room': ['{cat} found scratches from the {i} on the floor of the {r}.'],
+  'item-not-room': ['{cat} checked every shelf and cushion in the {r}. No {i}.'],
+  'suspect-either-room': ["{cat} followed {s}'s wet footprints to the {r} or the {r2}. Then they dried."],
+  'suspect-next-to-room': ["{cat} found {s}'s glass pressed against a wall of the {r}, from the room next door."],
+  'suspects-adjacent': ['{cat} found a note from {a} to {b}, slipped under the connecting door between their rooms.'],
+  'suspects-not-adjacent': ["{cat} checked every connecting door. None joins {a}'s room to {b}'s."],
+  'suspects-together': ["{cat} found {a}'s glove and {b}'s scarf on the same chair."],
+  'suspects-apart': ["{cat} followed {a}'s and {b}'s footprints. They never met."],
+  'suspect-alone': ["{cat} found only one set of footprints in {s}'s room: {s}'s own."],
+  'suspect-empty-handed': ["{cat} checked every weapon. None has {s}'s fingerprints."],
 };
 
 /** A suspect talking about themselves (in an interrogation). */
@@ -146,9 +168,11 @@ export function wordClue(
   located = false,
   /** Force the witness (interrogations: the suspect in the chair). */
   forcedSpeaker?: string,
+  /** The house cat, for evidence (`cats` in `src/content/`, picked by case number). */
+  cat = 'The cat',
 ): Worded {
   if (forcedSpeaker) fact = speakerFirst(fact, forcedSpeaker);
-  const fill = fillFor(fact, content);
+  const fill: Record<string, string> = { ...fillFor(fact, content), cat };
   const self = forcedSpeaker !== undefined && subjectOf(fact) === forcedSpeaker ? FIRST_PERSON[fact.type] : undefined;
   let template = rng.pick(self ?? (source === 'testimony' ? TESTIMONY : EVIDENCE)[fact.type]);
   if (located) {

@@ -10,6 +10,7 @@ import { tarotClueCards, tarotPairsFor } from './tarotCards.ts';
 import { boardLevel, boardPuzzle } from './caseBoard.ts';
 import { chooseHouse } from '../content/houses.ts';
 import { nosingLadders, nosingSnakes } from '../content/nosing.ts';
+import { cats } from '../content/index.ts';
 import { buildNosing, nosingSeed } from '../games/nosing.ts';
 import type { Case, Clue, ClueDelivery, ClueFact, ClueType, Content, Difficulty, GameKind, GameSpec, Interrogation, RotatingKind, SceneKind, Solution, CampaignRound } from './types.ts';
 import { buildInterrogation, type CaseFacts } from './interrogation.ts';
@@ -294,7 +295,7 @@ export function assemble(o: Layout): Case {
     const delivery = deliveryOf(fact, i);
     const blankOf = o.words?.find((pw) => pw.blank === fact);
     const isLocated = (locatedFacts.includes(fact) && canLocate(fact)) || blankOf !== undefined;
-    const w = wordClue(fact, CLUE_SOURCE[delivery], named, suspects, rng, isLocated, speaker);
+    const w = wordClue(fact, CLUE_SOURCE[delivery], named, suspects, rng, isLocated, speaker, cats[caseNumber % cats.length]);
     const clue: Clue = { id: `c${i + 1}`, fact, delivery, source: CLUE_SOURCE[delivery], speaker: w.speaker, body: w.body, text: plainText(w, named) };
     if (blankOf && w.located) {
       // A Play word game's clue, with its room hidden behind the word.

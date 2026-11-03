@@ -60,7 +60,10 @@ Read the expressions note in docs/portraits.md and help me decide whether brows,
 ```
 
 ## Session: Clue moments
-Last touched: 2026-10-25
+Last touched: 2026-11-03
+Done first (2026-11-03): a wording pass on the plain clue lines in `wording.ts`. They now have 2 or 3
+templates per common type, each saying how the witness knows, and evidence names the house cat. Moments
+build on those lines. Each guest's own voice (the Butler formal, the Conjurer flippant) is still open.
 Reads first: `docs/story-layer.md` (clue moments), `src/engine/wording.ts`, `src/game/ClueCard.tsx`.
 Goal: show each newly won clue first as a one-line scene (the witness's voice and portrait, or the cat
 finding something), with the plain statement kept for the casebook. Settle templates and a fact check.
