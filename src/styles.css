@@ -505,7 +505,8 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
 .plan-body { display: grid; grid-template-columns: 1rem 1fr; }
 .plan-rows { display: grid; color: #d8ccb0; font-size: 0.68rem; align-items: center; }
 .tile.scene { box-shadow: inset 0 0 0 100px rgba(168, 50, 45, 0.12); }
-.body-mark { color: var(--pencil); }
+/* Its own line under the room name, so it can't run past a room at the plan's right edge. */
+.body-mark { display: block; color: var(--pencil); }
 .on-map.items { display: flex; flex-direction: column; gap: 2px; align-items: center; z-index: 1; }
 .weapon {
   max-width: 4.6rem; padding: 0.15rem 0.35rem; cursor: grab; touch-action: none;
