@@ -117,9 +117,9 @@ Read the Map rules in src/game/CLAUDE.md, then propose how to make the map count
 ```
 
 ## Session: Case check split into sweep files
-Last touched: 2026-10-27
+Last touched: 2026-11-03
 Reads first: `docs/case-check-split.md` ("Quick sweep profile and crossword letters").
-Crossword boards left the case check 2026-10-27. `crosswordAnswers()` (every house's things) is built by `crosswordSeed`, from `sceneGames.test.ts` and `sceneGames.sweep.ts`. Not done: case and end boards still build inside the case files.
+Crossword boards left the case check 2026-10-27. Since PR #3 (shared-case search reuses its tables; `check-cases:full` 90 s to 50 s on 2 cores), board building is the biggest cost, about 30% of a case file. `crosswordAnswers()` (every house's things) is built by `crosswordSeed`, from `sceneGames.test.ts` and `sceneGames.sweep.ts`. Not done: case and end boards still build inside the case files.
 Goal: the case files check only case logic and wiring; each game proves it always builds in its own sweep.
 Starting prompt:
 ```
@@ -192,6 +192,42 @@ Goal: paused. Do not restyle the live app. The look is built on `#shelf` in "She
 Starting prompt:
 ```
 Read docs/visual-theme.md. This is paused. Do not change src/styles.css or replace Home or Casebook. New screens belong to the Shelf UI session, on #shelf only.
+```
+
+## Session: Card solitaire, the witness deal (design)
+Last touched: 2026-11-03
+Reads first: `docs/clear-the-dungeon.md` (rules, the 6-card slack, detective reskin, open questions).
+Goal: settle the open questions, then a solver over seeded deals that keeps only winnable ones, before any UI. A reskin of Clear the Dungeon: its name, text and art aren't ours.
+Starting prompt:
+```
+Read docs/clear-the-dungeon.md. Go through its open questions with me one at a time, then prototype the solver and report how many seeded deals it wins per variant before briefing the implementer.
+```
+
+## Session: Path puzzles, Mirrors then Railroad (design)
+Last touched: 2026-11-03
+Reads first: `docs/path-puzzles.md` (the shared engine, both games' pieces and levels, open questions).
+Goal: one grid-and-path engine, generated route-first so every seed is solvable; Mirrors as its first game, Railroad on the same engine after.
+Starting prompt:
+```
+Read docs/path-puzzles.md. Settle its open questions with me, then propose the engine's tile and tracer types and brief the implementer on the engine plus Mirrors easy.
+```
+
+## Session: FreeCell (design)
+Last touched: 2026-11-03
+Reads first: `docs/freecell.md` (rules, levels by free cells, the 360px layout problem).
+Goal: prove 8 columns read well at 360px with a throwaway mockup, then settle levels and the solver for 3 and 2 free cells.
+Starting prompt:
+```
+Read docs/freecell.md. Mock up the 8-column table at 360px first so we can judge readability, then settle the open questions with me.
+```
+
+## Session: Pyramid (design)
+Last touched: 2026-11-03
+Reads first: `docs/pyramid.md` (rules, scoring by cards cleared, levels by passes).
+Goal: settle the open questions, then measure what share of seeded deals clear per level before building. Shares a card deck and table look with the other card games, so build after whichever card game comes first.
+Starting prompt:
+```
+Read docs/pyramid.md. Settle its open questions with me, then prototype a solver and report the share of seeded deals that clear at 1 and 3 passes.
 ```
 
 ## Session: Session hygiene review (weekly)
