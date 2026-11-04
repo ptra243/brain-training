@@ -147,7 +147,8 @@ What a look check judges on each:
   game's level in stars); four lifted (raised, bigger shadow, brass tick); under it "4 of 7 lifted" and "Logic ★★☆ · N guests",
   then Shake the tin and the gold Stick them in, both 50px; the whole screen fits 360 x 780 with no scrolling and no
   sideways scroll; sticker overhang (brass ticks) is not cut off at the sheet's edge.
-- `portraits`: the portrait gallery on its own (light dev page).
+- `portraits`: the art gallery on its own (light dev page; `docs/art-guide.md`): the guest portraits, earlier looks
+  (replaced ones, with date and reason), the sub-sections, and placeholder sections for standees, room plates and props.
 - `dogfight`: the dog fight board in each state, with a cat helper picker
   (light dev page).
 - `cases` (not a preview): the case inspector.

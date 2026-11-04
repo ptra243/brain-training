@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { cats } from '../content/index.ts';
-import { catCoats, dogCoat, playerPortrait, portraits, type PortraitParts } from '../content/portraits.ts';
+import { catCoats, dogCoat, earlierPortraits, playerPortrait, portraits, type PortraitParts } from '../content/portraits.ts';
 import {
   catShapes, coatForCat, dogShapes, FRAME, GUEST_CROP, guestCropBox, portraitShapes, type Layer, type Tint,
 } from './portrait.ts';
@@ -17,14 +17,29 @@ test('shade multiplies and clamps channels', () => {
   assert.equal(skinTones('#f3d2b0').shadow, '#c9946e');
 });
 
+function assertStylesResolve(parts: PortraitParts) {
+  assert.ok(Object.hasOwn(hairStyles, parts.hair.style), parts.hair.style);
+  assert.ok(Object.hasOwn(costumeStyles, parts.costume.style), parts.costume.style);
+  if (parts.headwear) assert.ok(Object.hasOwn(headwearStyles, parts.headwear.style), parts.headwear.style);
+  if (parts.accent) assert.ok(Object.hasOwn(accentStyles, parts.accent.style), parts.accent.style);
+}
+
 test('every theme id has parts whose style ids all resolve', () => {
   assert.deepEqual(Object.keys(portraits).sort(), [...THEME_IDS].sort());
   for (const parts of [...Object.values(portraits), playerPortrait]) {
-    assert.ok(Object.hasOwn(hairStyles, parts.hair.style), parts.hair.style);
-    assert.ok(Object.hasOwn(costumeStyles, parts.costume.style), parts.costume.style);
-    if (parts.headwear) assert.ok(Object.hasOwn(headwearStyles, parts.headwear.style), parts.headwear.style);
-    if (parts.accent) assert.ok(Object.hasOwn(accentStyles, parts.accent.style), parts.accent.style);
+    assertStylesResolve(parts);
     assert.doesNotThrow(() => portraitShapes(parts));
+  }
+});
+
+test('earlier looks belong to a guest, are described, and still draw', () => {
+  for (const [id, looks] of Object.entries(earlierPortraits)) {
+    assert.ok(Object.hasOwn(portraits, id), `${id} is not a guest id`);
+    for (const look of looks) {
+      for (const field of [look.name, look.replaced, look.why]) assert.ok(field.trim().length > 0, `${id} look field is empty`);
+      assertStylesResolve(look.parts);
+      assert.doesNotThrow(() => portraitShapes(look.parts, 'none'));
+    }
   }
 });
 
@@ -90,6 +105,7 @@ test('one cat coat per cat, and the player uses the guest model', () => {
   const player: PortraitParts = playerPortrait;
   assert.ok(player.hair && player.costume && player.skin && player.background);
   assert.equal(guestCropBox(player), GUEST_CROP.join(' '));
-  assert.equal(guestCropBox(portraits.conjurer), '15 0 70 70');
+  assert.equal(guestCropBox(portraits.conjurer), '15 5 70 70');
+  assert.equal(guestCropBox(portraits.detective), '15 9 70 70');
   assert.ok(portraitShapes(player).some((l) => l.id === 'head'));
 });

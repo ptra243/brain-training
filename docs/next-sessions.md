@@ -93,6 +93,16 @@ Starting prompt:
 Read docs/relationships.md and docs/theme-draft.md, then help me design card-pair and shared-card threads, campaign victim threads and the heard trigger.
 ```
 
+## Session: New looks for the Fixer, Investor, Lawyer and Elder heir
+Last touched: 2026-11-04
+Reads first: `docs/art-guide.md` (Cast, Pipeline, Open), `docs/portraits.md`.
+Goal: settle the ungendered-looks question, then draw the four new (modern) looks and modernise the
+Detective's fedora through the pipeline, moving old looks to `earlierPortraits`. The Host is done.
+Starting prompt:
+```
+Read docs/art-guide.md. Ask me the open question on ungendered looks, then propose modern looks for the Fixer, Investor, Lawyer and Elder heir (and the Detective without the fedora) in the #dev/portraits gallery, keeping the old ones as earlier looks.
+```
+
 ## Session: Act breaks and a dinner prologue (campaign)
 Last touched: 2026-10-25
 Reads first: `docs/story-layer.md` (act breaks, dinner prologue), `src/game/NextMurderScene.tsx`,

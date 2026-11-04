@@ -21,14 +21,14 @@ export type Layer = { id: string; transform?: Transform; shapes: Shape[] };
 
 export const FRAME = { width: 100, height: 120 } as const;
 export const BODY_TRANSFORM: Transform = { tx: -10, ty: 0, sx: 1.2, sy: 1 };
-export const HEAD_TRANSFORM: Transform = { tx: -12.5, ty: -7, sx: 1.25, sy: 1.25 };
+export const HEAD_TRANSFORM: Transform = { tx: -12.5, ty: -2, sx: 1.25, sy: 1.25 };
 export const TINT_FILL: Record<'warm' | 'hostile', { fill: string; o: number }> = {
   warm: { fill: '#e8a040', o: 0.16 },
   hostile: { fill: '#2a4a6a', o: 0.24 },
 };
 
 /** Counter crops: the head of a person, nearly the whole frame for the cat. */
-export const GUEST_CROP: readonly [number, number, number, number] = [15, 10, 70, 70];
+export const GUEST_CROP: readonly [number, number, number, number] = [15, 15, 70, 70];
 export const CAT_CROP: readonly [number, number, number, number] = [4, 6, 92, 92];
 export const DOG_CROP: readonly [number, number, number, number] = [4, 6, 92, 92];
 export const FULL_VIEW_BOX = `0 0 ${FRAME.width} ${FRAME.height}`;

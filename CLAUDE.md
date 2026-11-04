@@ -50,6 +50,9 @@ Folder rules live next to the code: `src/engine/CLAUDE.md` (case generation),
   suspect counters, red-pencil crosses, serif headings. The floor plan is the
   one bold element; keep everything else quiet. Colours and type are CSS
   variables at the top of `src/styles.css`.
+- **Art** (portraits, standees, room plates, props) is SVG drawn in code, in
+  one faceted, faceless style; follow `docs/art-guide.md` and its pipeline.
+  A replaced look is kept in `earlierPortraits`, never deleted.
 - **The new look stays on `#shelf`.** Cosy library and puzzle-book screens are
   a second shell and must not change `src/styles.css`, `Home`, `Casebook`, or
   the address with no hash. See `docs/visual-theme.md`.
