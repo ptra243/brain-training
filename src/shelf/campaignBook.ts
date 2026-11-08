@@ -3,7 +3,8 @@ import { ROUNDS } from '../engine/campaign.ts';
 import type { Case, GameKind } from '../engine/types.ts';
 import { canOpen, clockAfterNext, type RoomObject } from '../game/explore.ts';
 import { ROUND_TIMES } from '../game/labels.ts';
-import type { Progress } from '../game/state.ts';
+import { gameDone, type Progress } from '../game/state.ts';
+import { questioningOf } from '../game/talk.ts';
 import { clueRows, plural, rowAriaLabel, rowStateText, type ClueRow } from './findAClue.ts';
 
 const NUMBERS = ['one', 'two', 'three'];
@@ -59,6 +60,25 @@ export function roomRows(c: Case, p: Progress, ref: string, objects: readonly Ro
   }
   return out;
 }
+
+/** What the Minigame tab of a guest's talk spread shows. */
+export type PersonGame =
+  | { state: 'none' }
+  | { state: 'done'; solved: boolean }
+  | { state: 'used-up' }
+  | { state: 'open'; kind: GameKind; clues: number; continuing: boolean };
+
+/** A guest's questioning game, and whether she can play it now (same rules as a room row: `canOpen`). */
+export function personGame(c: Case, p: Progress, person: string, picked: readonly GameKind[], left: number): PersonGame {
+  const q = questioningOf(c, person);
+  if (!q) return { state: 'none' };
+  if (gameDone(p, q.kind)) return { state: 'done', solved: p.games[q.kind]?.status === 'won' };
+  if (!canOpen(c, p, q.kind, picked, left)) return { state: 'used-up' };
+  return { state: 'open', kind: q.kind, clues: q.clues.length, continuing: p.games[q.kind]?.status === 'playing' };
+}
+
+/** The line under a guest on the Room page. */
+export const guestLine = (g: PersonGame): string => (g.state === 'open' ? 'Talk, or question them' : 'Talk');
 
 /** The row's spoken label: the object, the game, its level and how it stands. */
 export function roomRowAria(r: RoomRow, gameName: string, levelName: string | undefined): string {

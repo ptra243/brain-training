@@ -6,7 +6,10 @@ import { atMidnight, clockLine, roomContents, whereAmI } from '../game/explore.t
 import { DIFFICULTY_LABEL } from '../game/labels.ts';
 import { GAMES } from '../game/games/registry.tsx';
 import { roomName, suspectName } from '../game/names.ts';
-import { accusationsLeft, candleLabel, chapterTitle, roomLine, roomRowAria, roomRows, walkTargets, type RoomRow } from './campaignBook.ts';
+import type { Subject } from '../game/state.ts';
+import { accusationsLeft, candleLabel, chapterTitle, guestLine, personGame, roomLine, roomRowAria, roomRows, walkTargets, type RoomRow } from './campaignBook.ts';
+import { clueRows } from './findAClue.ts';
+import { TalkSpread } from './TalkSpread.tsx';
 import styles from './CampaignRoom.module.css';
 import rowStyles from './FindAClue.module.css';
 import { labelAngle, labelName } from './labels.ts';
@@ -55,12 +58,14 @@ function Row({ r, caseRef, onOpen }: { r: RoomRow; caseRef: string; onOpen: (kin
 /**
  * The campaign book's Room page: the clock and candles, where she is and who is there, the objects as
  * page-3 rows (opening one spends a pick, then its puzzle page), and the other rooms to walk to.
- * Her moves go through the campaign book, which saves them. Tapping a guest does nothing yet.
+ * Her moves go through the campaign book, which saves them. Tapping a guest opens the face-to-face talk spread.
  */
-export function CampaignRoom({ book, onPuzzleOpen }: { book: CampaignBook | null | false; onPuzzleOpen?: (open: boolean) => void }) {
+export function CampaignRoom({ book, onPuzzleOpen, onSubject, initialTalk }: { book: CampaignBook | null | false; onPuzzleOpen?: (open: boolean) => void; onSubject?: (s: Subject) => void; initialTalk?: string }) {
   const [picked, setPicked] = useState<GameKind | null>(null);
+  const [talking, setTalking] = useState<string | null>(initialTalk ?? null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const puzzleOpen = picked !== null;
+  // The notebook strip stays away while a puzzle page or the talk spread is up.
+  const puzzleOpen = picked !== null || talking !== null;
   useEffect(() => {
     onPuzzleOpen?.(puzzleOpen);
   }, [puzzleOpen, onPuzzleOpen]);
@@ -80,7 +85,9 @@ export function CampaignRoom({ book, onPuzzleOpen }: { book: CampaignBook | null
     if (!book.picked.includes(kind) && !rows.find((r) => r.kind === kind)?.row.done) book.onPick(kind);
     setPicked(kind);
   };
-  const row = picked ? rows.find((r) => r.kind === picked) : undefined;
+  // A guest's questioning game is not one of the room's objects, so its row comes from the whole case.
+  const allRows = clueRows(book.c, progress, ref);
+  const row = picked ? (rows.find((r) => r.kind === picked)?.row ?? allRows.find((r) => r.kind === picked)) : undefined;
   const spec = picked ? book.c.games.find((g) => g.kind === picked) : undefined;
   return (
     <>
@@ -104,9 +111,21 @@ export function CampaignRoom({ book, onPuzzleOpen }: { book: CampaignBook | null
           </p>
         ))}
         {mine.guests.length > 0 ? (
-          <p className={styles.guests}>
-            <span>Here with you:</span> {mine.guests.map((s) => suspectName(s, book.c.guests)).join(', ')}
-          </p>
+          <>
+            <p className={styles.guests}>
+              <span>Here with you:</span>
+            </p>
+            <ul className={styles.people}>
+              {mine.guests.map((s) => (
+                <li key={s}>
+                  <button type="button" disabled={midnight} onClick={() => setTalking(s)}>
+                    <span className={styles.who}>{suspectName(s, book.c.guests)}</span>
+                    <span className={styles.talk}>{guestLine(personGame(book.c, progress, s, book.picked, book.left))}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
         ) : null}
 
         {rows.length > 0 ? (
@@ -132,14 +151,39 @@ export function CampaignRoom({ book, onPuzzleOpen }: { book: CampaignBook | null
         </ul>
         <p className={styles.note}>{midnight ? "It's midnight. There's no time left to look around." : 'No time taken.'}</p>
       </div>
+      {talking && !midnight ? (
+        <TalkSpread
+          c={book.c}
+          progress={progress}
+          dispatch={dispatch}
+          person={talking}
+          picked={book.picked}
+          left={book.left}
+          gameRow={(() => {
+            const q = personGame(book.c, progress, talking, book.picked, book.left);
+            return q.state === 'open' ? allRows.find((r) => r.kind === q.kind) : undefined;
+          })()}
+          caseRef={ref}
+          onClose={() => setTalking(null)}
+          onPlay={(kind) => {
+            setTalking(null);
+            open(kind);
+          }}
+          onClues={() => {
+            const id = talking;
+            setTalking(null);
+            onSubject?.({ kind: 'suspect', id });
+          }}
+        />
+      ) : null}
       {picked && row && spec ? (
         <PuzzlePage
           c={book.c}
           spec={spec}
           progress={progress}
           dispatch={dispatch}
-          page={row.row.page}
-          level={row.row.level}
+          page={row.page}
+          level={row.level}
           turn
           turnSource={() => scrollRef.current?.closest<HTMLElement>('[data-section]') ?? null}
           onClose={() => setPicked(null)}

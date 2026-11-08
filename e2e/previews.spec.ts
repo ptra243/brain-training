@@ -127,6 +127,15 @@ test('shelf-campaign-midnight preview', async ({ page }) => {
   await checkScreen(page, 'preview shelf-campaign-midnight');
 });
 
+test('shelf-campaign-talk preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-campaign-talk');
+  const spread = page.getByTestId('talk-spread');
+  await expect(spread).toBeVisible();
+  await expect(spread.getByRole('tab', { name: 'Talk' })).toHaveAttribute('aria-selected', 'true');
+  await expect(spread.getByText('You', { exact: true })).toBeVisible();
+  await checkScreen(page, 'preview shelf-campaign-talk');
+});
+
 test('shelf-find-a-clue preview', async ({ page }) => {
   await page.goto('/#dev/shelf-find-a-clue');
   await expect(page.getByRole('heading', { name: 'Find a clue' })).toBeVisible();

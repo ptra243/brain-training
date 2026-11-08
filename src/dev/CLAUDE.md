@@ -88,6 +88,11 @@ What a look check judges on each:
   candles lit and one blown out (thin smoke), the clock past 9:00, the room with a done row (green tick, "N clues found"), the other
   picked object open and the rest saying "No puzzles left tonight" (faded, disabled); ribbons and text readable on the green
   paper; no sideways scroll.
+- `shelf-campaign-talk`: the talk spread over the chapter-one book, open on a guest who has a questioning game: a full-screen green
+  baize table, the name as a serif heading with a 44px Close at the right, two ivory cards ("You" and the guest, art filling the card, caption
+  readable), tabs Talk / Minigame / Clues (44px, Talk underlined in brass), the Talk tab with greeting, one filled pip, the one line
+  heard and a "Go on…" or idle line; nothing clipped, the notebook strip hidden, no sideways scroll. Minigame shows the puzzle label
+  with "Unlocks N clues." and a Play button; Clues has one line and "Open their page" (both 44px+). Sample: buttons do nothing saved.
 - `shelf-new-case`: the New case book on a fresh sample Play case (fixed seed, nothing saved), opening not yet seen: the
   body line, the story paragraph and the button that goes on to Find a clue; notebook strip at the foot; no sideways
   scroll. The real book builds its case when opened ("Laying out the cards…" until it arrives).

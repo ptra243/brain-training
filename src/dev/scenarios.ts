@@ -12,6 +12,7 @@ import { emptyHistory, recordCampaign, recordQuick } from '../game/history.ts';
 import { localDate } from '../game/runRecord.ts';
 import { roomContents, roundPuzzles } from '../game/explore.ts';
 import { emptyProgress, type Progress } from '../game/state.ts';
+import { questioningOf } from '../game/talk.ts';
 import { saveCampaign, saveHistory, saveQuick, saveScreen } from '../game/storage.ts';
 
 export interface Scenario {
@@ -73,6 +74,21 @@ function loadCampaign(save: CampaignSave) {
 
 /** A new campaign at the start of round 1 with the opening done, for the #shelf campaign book's preview. */
 export const campaignStart = (): CampaignSave => openingDone(newCampaign(campaignRef));
+
+/**
+ * Chapter one with the face-to-face talk open on a guest who has a questioning game: she stands in
+ * that guest's room and has heard one line from them. For the #shelf campaign book's talk preview.
+ */
+export function campaignTalk(): { save: CampaignSave; cases: Case[]; talk: string } {
+  const save = campaignStart();
+  const c = roundCase(content, save, 0);
+  const contents = roomContents(houseDetails, c);
+  const at = c.rooms.find((room) => contents[room].guests.some((g) => questioningOf(c, g)))!;
+  const talk = contents[at].guests.find((g) => questioningOf(c, g))!;
+  const rounds = save.rounds.slice();
+  rounds[0] = { ...rounds[0], at, talk: { ...rounds[0].talk, [talk]: 1 } };
+  return { save: { ...save, rounds }, cases: [c], talk };
+}
 
 /**
  * Chapter two (Midnight) after one wrong accusation, for the #shelf campaign book's midnight preview: two

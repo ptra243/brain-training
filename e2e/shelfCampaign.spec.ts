@@ -3,7 +3,8 @@ import { content, houseDetails } from '../src/content/index.ts';
 import { campaignStart } from '../src/dev/scenarios.ts';
 import { roomContents } from '../src/game/explore.ts';
 import { roundCase } from '../src/game/campaignSave.ts';
-import { roomName } from '../src/game/names.ts';
+import { roomName, suspectName } from '../src/game/names.ts';
+import { questioningOf } from '../src/game/talk.ts';
 import { checkScreen } from './rules.ts';
 import { expect, test } from './fixtures.ts';
 
@@ -47,4 +48,64 @@ test('the room page: open an object and come back, then walk to another room', a
   // Walking is free and changes the room.
   await page.getByRole('button', { name: roomName(other), exact: true }).click();
   await expect(page.getByText(`You are in the ${roomName(other)}.`)).toBeVisible();
+});
+
+// The face-to-face talk: she stands in a room with a guest who has a questioning game.
+const withGuest = c.rooms.find((room) => contents[room].guests.some((g) => questioningOf(c, g)))!;
+const guest = contents[withGuest].guests.find((g) => questioningOf(c, g))!;
+const guestName = suspectName(guest, c.guests);
+const talkSave = { ...start, rounds: [{ ...start.rounds[0], at: withGuest }, ...start.rounds.slice(1)] };
+
+async function openRoom(page: import('@playwright/test').Page) {
+  await page.addInitScript(
+    ({ key, value }) => {
+      if (localStorage.getItem(key) === null) localStorage.setItem(key, value);
+    },
+    { key: KEY, value: JSON.stringify(talkSave) },
+  );
+  await page.goto('/#shelf');
+  await page.getByRole('link', { name: /Your campaign, .*: continue/ }).click();
+  await expect(page.getByText(`You are in the ${roomName(withGuest)}.`)).toBeVisible();
+}
+
+test('the talk spread: talk, open their notebook page, and Back closes it', async ({ page }) => {
+  await openRoom(page);
+  await page.getByRole('button', { name: new RegExp(guestName) }).click();
+  const spread = page.getByTestId('talk-spread');
+  await expect(spread).toBeVisible();
+  await expect(spread.getByRole('heading', { name: `Talking to ${guestName}` })).toBeVisible();
+  await expect(spread.getByText('You', { exact: true })).toBeVisible();
+  await expect(spread.getByRole('tab', { name: 'Talk' })).toHaveAttribute('aria-selected', 'true');
+  await checkScreen(page, 'shelf talk spread');
+
+  await spread.getByRole('button', { name: 'Tell me about yourself' }).click();
+  await expect(spread.getByRole('list')).toBeVisible();
+
+  await spread.getByRole('tab', { name: 'Clues' }).click();
+  await spread.getByRole('button', { name: 'Open their page' }).click();
+  await expect(spread).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Clues that name them' })).toBeVisible();
+  await page.goBack();
+
+  // Back closes the spread without leaving #shelf.
+  await page.getByRole('button', { name: new RegExp(guestName) }).click();
+  await expect(spread).toBeVisible();
+  await page.goBack();
+  await expect(spread).toHaveCount(0);
+  expect(new URL(page.url()).hash).toBe('#shelf');
+  await expect(page.getByText(`You are in the ${roomName(withGuest)}.`)).toBeVisible();
+});
+
+test('the talk spread: Minigame, Play opens the puzzle page and Back returns to the room', async ({ page }) => {
+  await openRoom(page);
+  await page.getByRole('button', { name: new RegExp(guestName) }).click();
+  const spread = page.getByTestId('talk-spread');
+  await spread.getByRole('tab', { name: 'Minigame' }).click();
+  await spread.getByRole('button', { name: 'Play' }).click();
+  await expect(spread).toHaveCount(0);
+  const paper = page.getByTestId('puzzle-page');
+  await expect(paper).toBeVisible();
+  await paper.getByRole('button', { name: 'Turn back to the room' }).first().click();
+  await expect(paper).toHaveCount(0);
+  await expect(page.getByText(`You are in the ${roomName(withGuest)}.`)).toBeVisible();
 });

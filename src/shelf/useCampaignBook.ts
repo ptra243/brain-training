@@ -13,6 +13,8 @@ export interface SampleCampaign {
   save: CampaignSave;
   /** Every round, built (the preview builds them on the main thread). */
   cases: Case[];
+  /** A guest whose talk spread is open from the start (the dev preview). */
+  talk?: string;
 }
 
 /** Her campaign's current round, explored, with her progress and a way to move (saved to the campaign save). */

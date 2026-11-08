@@ -7,7 +7,8 @@ import { codeFor } from '../engine/caseRef.ts';
 import { newCampaign, roundCase } from '../game/campaignSave.ts';
 import { clockAfterNext, roomContents } from '../game/explore.ts';
 import { emptyProgress, reduce } from '../game/state.ts';
-import { accusationsLeft, candleLabel, chapterTitle, isNightChapter, NO_PUZZLES_LEFT, roomLine, roomRowAria, roomRows, walkTargets } from './campaignBook.ts';
+import { questioningOf } from '../game/talk.ts';
+import { accusationsLeft, candleLabel, chapterTitle, guestLine, isNightChapter, NO_PUZZLES_LEFT, personGame, roomLine, roomRowAria, roomRows, walkTargets } from './campaignBook.ts';
 
 test('chapter titles follow the rounds', () => {
   assert.equal(chapterTitle(0), 'Chapter one: 9pm');
@@ -72,6 +73,26 @@ test('open rows say how many clues and when the clock will read; a spent budget 
   }
   const kept = roomRows(c, p, 'x', objects, [objects[0].kind], 0);
   assert.equal(kept[0].enabled, true);
+});
+
+test('a guest with a questioning game: open, used up, finished, or none', () => {
+  const q = c.games.find((g) => g.kind !== 'finale' && c.suspects.some((s) => questioningOf(c, s)?.kind === g.kind))!;
+  const who = c.suspects.find((s) => questioningOf(c, s)?.kind === q.kind)!;
+  const p = emptyProgress();
+  const open = personGame(c, p, who, [], 1);
+  assert.deepEqual(open, { state: 'open', kind: q.kind, clues: q.clues.length, continuing: false });
+  assert.equal(guestLine(open), 'Talk, or question them');
+  assert.deepEqual(personGame(c, p, who, [], 0), { state: 'used-up' });
+  assert.equal(guestLine({ state: 'used-up' }), 'Talk');
+  assert.equal(personGame(c, p, who, [q.kind], 0).state, 'open');
+  const playing = reduce(c, p, { type: 'game-save', kind: q.kind, data: null });
+  assert.equal((personGame(c, playing, who, [q.kind], 0) as { continuing: boolean }).continuing, true);
+  const won = reduce(c, p, { type: 'game-finish', kind: q.kind, status: 'won', data: null });
+  assert.deepEqual(personGame(c, won, who, [], 0), { state: 'done', solved: true });
+  const shown = reduce(c, p, { type: 'game-finish', kind: q.kind, status: 'revealed', data: null });
+  assert.deepEqual(personGame(c, shown, who, [], 0), { state: 'done', solved: false });
+  const none = c.suspects.find((s) => !questioningOf(c, s));
+  if (none) assert.deepEqual(personGame(c, p, none, [], 1), { state: 'none' });
 });
 
 test('a finished object shows the page-3 state text and stays openable', () => {

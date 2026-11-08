@@ -47,28 +47,17 @@ Read docs/tarot-faces.md and src/content/tarotArt.ts, settle the pip layout and 
 ```
 
 ## Session: Talk and threads, part B
-Last touched: 2026-10-21
+Last touched: 2026-11-04
 Reads first: `docs/talk-threads.md` (settled design and the implementer brief), `src/game/CLAUDE.md`,
 `src/engine/CLAUDE.md`, `e2e/CLAUDE.md`.
-Part A is built. `src/content/talk.ts` has the drafted lines; card threads beyond that draft are a first
-pass, still to polish.
+Part A is built. Best after "Theme content, land the lines": tangents and `object` threads use its
+lines, and both change cases, so they can share one storage prefix bump.
 Goal: part B of the brief. A cold suspect's questioning game is built one level harder (from their
 mood at case start; in campaigns the mood moves per round), tangents inside minigame answers, and the
 `object` trigger. This changes cases: storage prefix bump and `npm run update-golden` in the same commit.
 Starting prompt:
 ```
 Read docs/talk-threads.md part B, settle how mood maps to the harder questioning with me, then hand it to the implementer.
-```
-
-## Session: Confidant arcs and case framing
-Last touched: 2026-10-21
-Reads first: `docs/confidant-arcs.md` (the work list), `docs/theme-draft.md` (Guest pool, draft cast,
-Extension: Confidants), `docs/talk-threads.md`. Content first; code after.
-Goal: write the campaign's story content for the 10-guest pool (5-chapter backstory arcs, victim
-openings, endings, the new guests' lines), then put chapters in the campaign thread slot.
-Starting prompt:
-```
-Read docs/confidant-arcs.md and the Guest pool and Confidants sections of docs/theme-draft.md, then help me write the 5-chapter arcs, victim openings and endings.
 ```
 
 ## Session: Everyone has a secret (design)
@@ -83,22 +72,24 @@ Read docs/secrets.md, go through its Open list with me, then draft the six secre
 ```
 
 ## Session: Relationships between characters
-Last touched: 2026-10-23
+Last touched: 2026-11-04
 Reads first: `docs/relationships.md` (the ideas to settle, and its last section on the theme content work), `docs/theme-draft.md` (Follow-up threads,
-Model, the cast), `docs/talk-threads.md` (trigger list, settled).
+Model, the cast), `docs/talk-threads.md` (trigger list, settled), `docs/story.md` (the people).
 Goal: make characters react to each other without anything depending on the killer: card-pair and
-shared-card threads, the `heard` trigger, and campaign-only victim threads (needed by the campaign opening).
+shared-card threads, the `heard` trigger, and campaign-only victim threads (needed by the campaign opening),
+including 2 or 3 victim-opening lines per guest on why they mattered to the house.
 Starting prompt:
 ```
 Read docs/relationships.md and docs/theme-draft.md, then help me design card-pair and shared-card threads, campaign victim threads and the heard trigger.
 ```
 
 ## Session: Act breaks and a dinner prologue (campaign)
-Last touched: 2026-10-25
+Last touched: 2026-11-04
 Reads first: `docs/story-layer.md` (act breaks, dinner prologue), `src/game/NextMurderScene.tsx`,
 `docs/campaign-opening.md`. Best after the campaign opening is built.
 Goal: a short survivors scene after each next-murder scene (they react to the body and to her wrong
-accusation, by mood), and 4 or 5 lines of dinner before the first body. Content plus UI; cases unchanged.
+accusation, by mood), 4 or 5 lines of dinner before the first body, and an ending pool per card for
+after the solve, with `{victim}` filled in. Content plus UI; cases unchanged.
 Starting prompt:
 ```
 Read the act breaks and dinner prologue sections of docs/story-layer.md, draft the line pools with me, then write an implementer brief.
@@ -115,12 +106,12 @@ Read docs/case-check-split.md ("Quick sweep profile and crossword letters" and "
 ```
 
 ## Session: Shelf UI, beside the current game
-Last touched: 2026-11-03 (pieces 1 and 2 built: the book setup, then the room page (`CampaignRoom`, candles, object rows, Walk to, midnight green) and the notebook in the campaign book; previews `#dev/shelf-campaign` and `shelf-campaign-midnight`)
-Reads first: `docs/visual-theme.md` ("Screens 8–10, settled", its six pieces), `.claude/handoff/shelf-campaign-2.md` if present, `CONTEXT.md`.
-Goal: build the campaign on `#shelf` (Screen plan step 8), pieces 4, 3, 5, 6 in that order. The midnight palette (`OpenBook.module.css`, a `midnight` class on body) was made up in piece 2; show it to the owner. Guests on the room page are plain text until piece 4 makes them open the talk spread. The notebook's Accuse buttons are hidden in the campaign until piece 5.
+Last touched: 2026-11-08 (pieces 1, 2 and 4 built: the book setup, the room page (`CampaignRoom`, candles, object rows, Walk to, midnight green), the notebook in the campaign book, and the talk spread (`TalkSpread`: portraits on the baize, Talk / Minigame / Clues; Clues opens the guest's subject page via `OpenBook.showSubject`); previews `#dev/shelf-campaign`, `shelf-campaign-midnight`, `shelf-campaign-talk`)
+Reads first: `docs/visual-theme.md` ("Screens 8–10, settled", its six pieces), `.claude/handoff/shelf-campaign-4.md` if present, `CONTEXT.md`.
+Goal: build the campaign on `#shelf` (Screen plan step 8), pieces 3, 5, 6 in that order. The midnight palette (`OpenBook.module.css`, a `midnight` class on body) was shown to the owner on 2026-11-08 (`#dev/shelf-campaign-midnight`); no verdict yet. The notebook's Accuse buttons are hidden in the campaign until piece 5. Small leftovers: PuzzlePage's "Turn back to page 3" copy on the Room page, done rows stay openable at midnight, and the talk spread has no focus trap (only `aria-modal`).
 Starting prompt:
 ```
-Read docs/visual-theme.md "Screens 8–10, settled" (piece 4, the talk spread), src/shelf/CampaignRoom.tsx and today's person screen in src/game/ExploreMap.tsx, then brief an implementer for piece 4: tapping a guest on the room page opens the face-to-face spread (Talk, Minigame, Clues opening their subject page in the notebook). #shelf only.
+Read docs/visual-theme.md "Screens 8–10, settled" (piece 3, Plan), src/shelf/MapPlate.tsx and today's explore map in src/game/ExploreMap.tsx (rooms entered, guests seen, walking), then brief an implementer for piece 3: the campaign book's Plan page is the map plate in explore mode (rooms entered, guests seen; tap a room to walk there, tap a guest in her room to open the talk spread). #shelf only.
 ```
 
 ## Session: Hunting the weapon (campaign)

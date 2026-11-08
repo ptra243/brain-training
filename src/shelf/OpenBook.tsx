@@ -119,6 +119,12 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
     } as CSSProperties;
   });
 
+  // A tap on a guest or a plan counter: that subject's page in the notebook, raised as the Map plate does.
+  const showSubject = (subject: Subject) => {
+    setFocus((f) => ({ subject, seq: (f?.seq ?? 0) + 1 }));
+    setHeight(afterMapTap(height));
+  };
+
   const accuseGuest = (req: AccuseRequest) => {
     if (!book) return;
     setHeight('peek');
@@ -206,7 +212,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                     <span>{sections[0]}</span>
                   </div>
                   {campaign ? (
-                    <CampaignRoom book={campaignBook} onPuzzleOpen={setPuzzleOpen} />
+                    <CampaignRoom book={campaignBook} onPuzzleOpen={setPuzzleOpen} onSubject={showSubject} initialTalk={campaignSample?.talk} />
                   ) : tone === 'fresh' && book === null ? (
                     <p className={styles.lede}>Laying out the cards…</p>
                   ) : tone === 'fresh' && book === false ? (
@@ -229,10 +235,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                         book={book}
                         ring={ringedSubject(height, pageSubject)}
                         height={height}
-                        onSubject={(subject) => {
-                          setFocus((f) => ({ subject, seq: (f?.seq ?? 0) + 1 }));
-                          setHeight(afterMapTap(height));
-                        }}
+                        onSubject={showSubject}
                         onTuck={() => setHeight('peek')}
                       />
                     ) : (
