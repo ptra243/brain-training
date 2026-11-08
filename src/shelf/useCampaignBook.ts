@@ -15,6 +15,8 @@ export interface SampleCampaign {
   cases: Case[];
   /** A guest whose talk spread is open from the start (the dev preview). */
   talk?: string;
+  /** Turn the book to this section (an index) once it is open (the dev preview). */
+  section?: number;
 }
 
 /** Her campaign's current round, explored, with her progress and a way to move (saved to the campaign save). */

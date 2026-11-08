@@ -11,7 +11,8 @@ import { Shuffling } from '../game/Shuffling.tsx';
 import { useQuickBook, type PickRequest, type SampleCase } from './useQuickBook.ts';
 import { useCampaignBook, type SampleCampaign } from './useCampaignBook.ts';
 import { chapterTitle, isNightChapter } from './campaignBook.ts';
-import { CampaignRoom } from './CampaignRoom.tsx';
+import { CampaignPlan } from './CampaignPlan.tsx';
+import { CampaignRoom, type TalkRequest } from './CampaignRoom.tsx';
 import { attachRibbons } from './ribbonMotion.ts';
 import { sectionsFor } from './ribbonPlan.ts';
 import { stepIndex, watchSwipe, type SwipeDir } from './swipe.ts';
@@ -101,10 +102,12 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   // A guest page's Accuse without a weapon: the Answer form gets the guest written in. A new `seq` is a new request.
   const [prefill, setPrefill] = useState<{ suspect: string; seq: number } | null>(null);
   const [puzzleOpen, setPuzzleOpen] = useState(false);
-  const sampleSection = sample?.section;
+  const sampleSection = campaign ? campaignSample?.section : sample?.section;
   // How far the notebook is up, which page it shows (a map tap sets `focus`), and so which piece is ringed.
   const [height, setHeight] = useState<Height>(() => (sample?.notebook?.half ? 'half' : sample?.notebook?.open ? 'full' : 'peek'));
   const [focus, setFocus] = useState<{ subject: Subject; seq: number } | null>(null);
+  // The Plan page's tap on a guest in her room: the Room page opens the talk spread on them.
+  const [talkRequest, setTalkRequest] = useState<TalkRequest | null>(null);
   const [pageSubject, setPageSubject] = useState<Subject | null>(() => sample?.notebook?.subject ?? null);
 
   // Where the book started, as a move and a scale from the page's final place. Read once.
@@ -123,6 +126,11 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   const showSubject = (subject: Subject) => {
     setFocus((f) => ({ subject, seq: (f?.seq ?? 0) + 1 }));
     setHeight(afterMapTap(height));
+  };
+
+  const talkTo = (id: string) => {
+    setTalkRequest((r) => ({ id, seq: (r?.seq ?? 0) + 1 }));
+    turnRef.current?.(0);
   };
 
   const accuseGuest = (req: AccuseRequest) => {
@@ -212,7 +220,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                     <span>{sections[0]}</span>
                   </div>
                   {campaign ? (
-                    <CampaignRoom book={campaignBook} onPuzzleOpen={setPuzzleOpen} onSubject={showSubject} initialTalk={campaignSample?.talk} />
+                    <CampaignRoom book={campaignBook} onPuzzleOpen={setPuzzleOpen} onSubject={showSubject} initialTalk={campaignSample?.talk} talkRequest={talkRequest} />
                   ) : tone === 'fresh' && book === null ? (
                     <p className={styles.lede}>Laying out the cards…</p>
                   ) : tone === 'fresh' && book === false ? (
@@ -227,7 +235,11 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                       <span>{name}</span>
                     </div>
                     {campaign ? (
-                      <p className={styles.lede}>This page isn&apos;t drawn yet.</p>
+                      name === 'Plan' ? (
+                        <CampaignPlan book={campaignBook} height={height} onTalk={talkTo} onSubject={showSubject} />
+                      ) : (
+                        <p className={styles.lede}>This page isn&apos;t drawn yet.</p>
+                      )
                     ) : name === 'Answer' && book ? (
                       <AnswerPage book={book} onBack={onBack} prefill={prefill} />
                     ) : name === 'Map' && book ? (

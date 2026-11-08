@@ -127,6 +127,14 @@ test('shelf-campaign-midnight preview', async ({ page }) => {
   await checkScreen(page, 'preview shelf-campaign-midnight');
 });
 
+test('shelf-campaign-plan preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-campaign-plan');
+  await expect(page.getByTestId('campaign-plan')).toBeVisible();
+  await expect(page.getByText('The house tonight')).toBeVisible();
+  await expect(page.getByRole('button', { name: /, you are here/ })).toBeVisible();
+  await checkScreen(page, 'preview shelf-campaign-plan');
+});
+
 test('shelf-campaign-talk preview', async ({ page }) => {
   await page.goto('/#dev/shelf-campaign-talk');
   const spread = page.getByTestId('talk-spread');

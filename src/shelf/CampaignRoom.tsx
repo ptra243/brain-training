@@ -17,6 +17,12 @@ import { PuzzleLabel } from './PuzzleLabel.tsx';
 import { PuzzlePage } from './PuzzlePage.tsx';
 import type { CampaignBook } from './useCampaignBook.ts';
 
+/** A request to open the talk spread on a guest. A new `seq` is a new request. */
+export interface TalkRequest {
+  id: string;
+  seq: number;
+}
+
 /** One drawn candle: lit with a flame, or blown out with a thin curl of smoke. */
 function Candle({ lit }: { lit: boolean }) {
   return (
@@ -60,9 +66,15 @@ function Row({ r, caseRef, onOpen }: { r: RoomRow; caseRef: string; onOpen: (kin
  * page-3 rows (opening one spends a pick, then its puzzle page), and the other rooms to walk to.
  * Her moves go through the campaign book, which saves them. Tapping a guest opens the face-to-face talk spread.
  */
-export function CampaignRoom({ book, onPuzzleOpen, onSubject, initialTalk }: { book: CampaignBook | null | false; onPuzzleOpen?: (open: boolean) => void; onSubject?: (s: Subject) => void; initialTalk?: string }) {
+export function CampaignRoom({ book, onPuzzleOpen, onSubject, initialTalk, talkRequest }: { book: CampaignBook | null | false; onPuzzleOpen?: (open: boolean) => void; onSubject?: (s: Subject) => void; initialTalk?: string; talkRequest?: TalkRequest | null }) {
   const [picked, setPicked] = useState<GameKind | null>(null);
   const [talking, setTalking] = useState<string | null>(initialTalk ?? null);
+  // A request from the Plan page opens the spread on that guest; a new `seq` is a new request.
+  const [handled, setHandled] = useState(talkRequest?.seq ?? 0);
+  if (talkRequest && talkRequest.seq !== handled) {
+    setHandled(talkRequest.seq);
+    setTalking(talkRequest.id);
+  }
   const scrollRef = useRef<HTMLDivElement>(null);
   // The notebook strip stays away while a puzzle page or the talk spread is up.
   const puzzleOpen = picked !== null || talking !== null;

@@ -91,6 +91,22 @@ export function campaignTalk(): { save: CampaignSave; cases: Case[]; talk: strin
 }
 
 /**
+ * Chapter one turned to the Plan page: she stands in a room with guests and has walked into two more
+ * (so their guests show on the plan). For the #shelf campaign book's Plan preview.
+ */
+export function campaignPlan(): { save: CampaignSave; cases: Case[]; section: number } {
+  const save = campaignStart();
+  const c = roundCase(content, save, 0);
+  const contents = roomContents(houseDetails, c);
+  const withGuests = c.rooms.filter((room) => contents[room].guests.length > 0);
+  const at = withGuests[0];
+  const seen = withGuests.filter((room) => room !== at && room !== c.sceneRoom).slice(0, 2);
+  const rounds = save.rounds.slice();
+  rounds[0] = { ...rounds[0], at, seen };
+  return { save: { ...save, rounds }, cases: [c], section: 1 };
+}
+
+/**
  * Chapter two (Midnight) after one wrong accusation, for the #shelf campaign book's midnight preview: two
  * puzzles picked, the first one won, and she stands in the room that holds it. Both rounds are built, as
  * the book wants every round (the sample never writes).

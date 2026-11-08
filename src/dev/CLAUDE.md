@@ -83,11 +83,15 @@ What a look check judges on each:
   the dropped ribbons Room, Plan, Answer (44px+) hang over a clear header band (clock "9:00 (N games left)" at the left, three lit
   candles at the right, `aria-label` "3 accusations left") and not over "You are in the ..."; then the room's look lines, "Here with
   you: ...", "Things to try" rows (puzzle label, "The inkwell"-style name, "N clues · until 10:20") and "Walk to" buttons (44px+)
-  with "No time taken."; the notebook strip at the foot. Plan and Answer say "This page isn't drawn yet." No sideways scroll.
+  with "No time taken."; the notebook strip at the foot. Answer says "This page isn't drawn yet." No sideways scroll.
 - `shelf-campaign-midnight`: chapter two in the midnight-green palette (deep green felt and cover, pale green paper, dark ink): two
   candles lit and one blown out (thin smoke), the clock past 9:00, the room with a done row (green tick, "N clues found"), the other
   picked object open and the rest saying "No puzzles left tonight" (faded, disabled); ribbons and text readable on the green
   paper; no sideways scroll.
+- `shelf-campaign-plan`: the chapter-one campaign book turned to Plan: a "Plate I / The house tonight" head, the hint line, the
+  floor plan with red `!` marks, the body mark, her marker and guest counters in the rooms she has entered (the scene, the body's room,
+  and two she walked into), the "Shaded rooms are empty tonight" line; room taps 44px+ as in the classic map; no sideways scroll.
+  Tapping a room walks (not saved in a sample); a guest in her room opens the talk spread, one elsewhere the notebook page.
 - `shelf-campaign-talk`: the talk spread over the chapter-one book, open on a guest who has a questioning game: a full-screen green
   baize table, the name as a serif heading with a 44px Close at the right, two ivory cards ("You" and the guest, art filling the card, caption
   readable), tabs Talk / Minigame / Clues (44px, Talk underlined in brass), the Talk tab with greeting, one filled pip, the one line

@@ -2,11 +2,10 @@ import { houseOf } from '../content/houses.ts';
 import { useMemo, useState, type CSSProperties } from 'react';
 import { houseDetails } from '../content/index.ts';
 import type { Case, GameKind, House } from '../engine/types.ts';
-import { PlanFrame } from './PlanFrame.tsx';
-import { ownerMap, tapRect } from './plan.ts';
+import { ExploreFloor } from './ExploreFloor.tsx';
 import { playerPortrait, portraits, type CatCoat, type PortraitParts } from '../content/portraits.ts';
 import { Dialog } from './Dialog.tsx';
-import { canOpen, centreCell, clockAfterNext, minutesPerGame, openPuzzlesIn, bodyRoom, roomContents, roomsSeen, standSpots, whereAmI } from './explore.ts';
+import { canOpen, clockAfterNext, minutesPerGame, roomContents, whereAmI } from './explore.ts';
 import { GAMES } from './games/registry.tsx';
 import { faceClass, roomName, suspectColour, suspectInitials, suspectName } from './names.ts';
 import { hasPortrait, Portrait } from './Portrait.tsx';
@@ -97,8 +96,6 @@ function PersonClues({ c, progress, dispatch, suspect }: { c: Case; progress: Pr
 export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPlay, house = houseOf(c) }: Props) {
   const contents = useMemo(() => roomContents(houseDetails, c), [c]);
   const here = whereAmI(c, progress);
-  const body = bodyRoom(c);
-  const moved = body !== c.sceneRoom;
   const frozen = !!readOnly || !!locked;
   const picked = gate?.picked ?? [];
   const left = gate?.left ?? 0;
@@ -111,9 +108,6 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
     setPerson(id);
   };
 
-  const owner = useMemo(() => ownerMap(house), [house]);
-  const pct = (r: number, col: number) => ({ top: `${(r / house.rows) * 100}%`, left: `${(col / house.cols) * 100}%` });
-
   const open = (kind: GameKind) => {
     if (frozen) return;
     if (gate && !picked.includes(kind)) setConfirming(kind);
@@ -122,14 +116,7 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
   const playable = (kind: GameKind) => !!gate && canOpen(c, progress, kind, picked, left);
   const usedUp = (kind: GameKind) => !!gate && !gameDone(progress, kind) && !picked.includes(kind) && left === 0;
 
-  const go = (room: string) => {
-    if (!frozen) dispatch({ type: 'move', room });
-  };
-
   const mine = contents[here];
-  const there = house.rooms.find((r) => r.id === here)!;
-  const marker = standSpots(there, mine.guests, true).find((s) => s.id === 'player')!;
-  const entered = roomsSeen(c, progress);
   const minutes = minutesPerGame(c);
   const puzzleReward = (kind: GameKind) => {
     const g = c.games.find((x) => x.kind === kind)!;
@@ -154,91 +141,18 @@ export function ExploreMap({ c, progress, dispatch, gate, readOnly, locked, onPl
             : 'Tap a room to walk there. A red mark means something to do.'}
       </p>
 
-      <PlanFrame
+      <ExploreFloor
+        c={c}
+        progress={progress}
         house={house}
-        owner={owner}
-        inPlay={c.rooms}
-        variant="explore"
-        tile={(room, labelR, labelCol, isLabel) => {
-          // The tap target is the room's biggest rectangle, not just the label cell (a cell is ~23px on the 12-cell houses).
-          const rect = tapRect(room);
-          const hitStyle: CSSProperties = {
-            inset: 'auto',
-            top: `${(rect.r - labelR) * 100}%`,
-            left: `${(rect.col - labelCol) * 100}%`,
-            height: `${rect.h * 100}%`,
-            width: `${rect.w * 100}%`,
-          };
-          const inPlay = c.rooms.includes(room.id);
-          const todo = inPlay && !locked && !readOnly && openPuzzlesIn(c, progress, contents[room.id], picked, left).length > 0;
-          return {
-            className: `${room.id === c.sceneRoom ? 'scene' : ''} ${room.id === here ? 'here' : ''}`,
-            onClick: inPlay ? () => go(room.id) : undefined,
-            labelSuffix: (
-              <>
-                {room.id === body && <span className="body-mark"> ✕ body</span>}
-                {moved && room.id === c.sceneRoom && <span className="scene-mark"> ◆ scene</span>}
-              </>
-            ),
-            labelChildren: isLabel && inPlay && (
-              <button
-                className="tile-hit"
-                style={hitStyle}
-                disabled={frozen}
-                aria-label={`${room.name}${room.id === body ? ', where the body was found' : ''}${moved && room.id === c.sceneRoom ? ', where it happened, drag marks lead here' : ''}${room.id === here ? ', you are here' : ''}${todo ? ', something to do' : ''}`}
-                aria-current={room.id === here ? 'location' : undefined}
-                onClick={(ev) => {
-                  ev.stopPropagation();
-                  go(room.id);
-                }}
-              />
-            ),
-          };
-        }}
-      >
-            {house.rooms.map((room) => {
-              if (!c.rooms.includes(room.id) || locked || readOnly) return null;
-              if (!openPuzzlesIn(c, progress, contents[room.id], picked, left).length) return null;
-              const [r, col] = centreCell(room);
-              return (
-                <span key={`mark-${room.id}`} className="todo-mark" style={pct(r + 0.2, col + 0.82)} aria-hidden="true">
-                  !
-                </span>
-              );
-            })}
-            {house.rooms.flatMap((room) => {
-              if (!entered.includes(room.id)) return [];
-              const guests = contents[room.id]?.guests ?? [];
-              const inRoom = room.id === here;
-              return standSpots(room, guests, inRoom).flatMap((spot) => {
-                if (spot.id === 'player') return [];
-                const name = suspectName(spot.id, guests);
-                return (
-                  <button
-                    key={spot.id}
-                    type="button"
-                    className={`map-person${faceClass(spot.id)}`}
-                    style={{ ...pct(spot.r, spot.col), '--counter': suspectColour(spot.id) } as CSSProperties}
-                    aria-label={inRoom ? `Talk to ${name}` : `Clues about ${name}`}
-                    disabled={frozen}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openPerson(spot.id);
-                    }}
-                  >
-                    <SuspectCounterFace id={spot.id} guests={guests} />
-                  </button>
-                );
-              });
-            })}
-            <span className="you-marker" style={pct(marker.r, marker.col)} aria-hidden="true">
-              <Portrait parts={playerPortrait} view="counter" />
-            </span>
-      </PlanFrame>
-
-      <p className="legend">
-        Shaded rooms are empty tonight: {house.rooms.filter((r) => !c.rooms.includes(r.id)).map((r) => roomName(r.id)).join(', ')}.
-      </p>
+        contents={contents}
+        here={here}
+        picked={picked}
+        left={left}
+        frozen={frozen}
+        onWalk={(room) => dispatch({ type: 'move', room })}
+        onPerson={openPerson}
+      />
 
       <article className={`card room-list ${frozen ? 'greyed' : ''}`} aria-label={`In the ${roomName(here)}`}>
         <h2>In the {roomName(here)}</h2>

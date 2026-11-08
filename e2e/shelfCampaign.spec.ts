@@ -109,3 +109,34 @@ test('the talk spread: Minigame, Play opens the puzzle page and Back returns to 
   await expect(paper).toHaveCount(0);
   await expect(page.getByText(`You are in the ${roomName(withGuest)}.`)).toBeVisible();
 });
+
+// The Plan page: walk by tapping a room, and tap a guest in her room to talk.
+test('the Plan page: tap another room to walk there, tap a guest to open the talk', async ({ page }) => {
+  await openRoom(page);
+  await page.getByRole('button', { name: 'Show the ribbons' }).click();
+  await page.getByRole('button', { name: 'Plan' }).click();
+  const plan = page.getByTestId('campaign-plan');
+  await expect(plan).toBeVisible();
+  // The page turn takes about half a second; a tap during it is ignored by the book.
+  await expect(page.getByRole('region', { name: /: Plan$/ })).toBeVisible();
+  await page.waitForTimeout(800);
+  await checkScreen(page, 'shelf campaign plan');
+
+  await plan.getByRole('button', { name: `Talk to ${guestName}` }).click();
+  const spread = page.getByTestId('talk-spread');
+  await expect(spread).toBeVisible();
+  await expect(spread.getByRole('heading', { name: `Talking to ${guestName}` })).toBeVisible();
+  // The book turns to the Room page behind the spread.
+  await expect(page.getByRole('region', { name: /: Room$/ })).toBeVisible();
+  await page.goBack();
+  await expect(spread).toHaveCount(0);
+  await expect(page.getByText(`You are in the ${roomName(withGuest)}.`)).toBeVisible();
+
+  await page.getByRole('button', { name: 'Show the ribbons' }).click();
+  await page.getByRole('button', { name: 'Plan' }).click();
+  const target = c.rooms.find((room) => room !== withGuest)!;
+  await plan.getByRole('button', { name: new RegExp(`^${roomName(target)}(,|$)`) }).first().click();
+  await page.getByRole('button', { name: 'Show the ribbons' }).click();
+  await page.getByRole('button', { name: 'Room', exact: true }).click();
+  await expect(page.getByText(`You are in the ${roomName(target)}.`)).toBeVisible();
+});
