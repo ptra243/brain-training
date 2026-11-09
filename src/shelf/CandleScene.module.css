@@ -1,0 +1,145 @@
+/* The "later that night" scene: the table in the dark, the candles in a row, one going out.
+   On document.body, so scoped under body.shelf. Fixed colours: the midnight palette changes the paper only. */
+:global(body.shelf) .table {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  background: radial-gradient(ellipse at 50% 30%, #2f3a35, #1c2421 65%, #131815);
+  color: #f4f0e4;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+:global(body.shelf) .table:focus {
+  outline: none;
+}
+:global(body.shelf) .column {
+  box-sizing: border-box;
+  width: min(100vw, 480px);
+  margin: auto;
+  padding: 24px 18px calc(24px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+}
+:global(body.shelf) .candles {
+  display: flex;
+  justify-content: center;
+  gap: 34px;
+  padding: 10px 0 4px;
+  border-bottom: 3px solid #5a4630;
+}
+:global(body.shelf) .candle {
+  width: 44px;
+  height: 120px;
+  overflow: visible;
+}
+:global(body.shelf) .glow {
+  fill: #e8b23c;
+  opacity: 0.22;
+}
+:global(body.shelf) .flame {
+  fill: #e8b23c;
+  stroke: #b9791f;
+  stroke-width: 0.8;
+}
+:global(body.shelf) .smoke {
+  fill: none;
+  stroke: #9a9484;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+/* A candle that is out shows no flame or glow and a wisp of smoke; still, unless motion is welcome. */
+:global(body.shelf) .out .flame,
+:global(body.shelf) .out .glow {
+  opacity: 0;
+}
+:global(body.shelf) .out .smoke {
+  opacity: 0.8;
+}
+:global(body.shelf) .lit .smoke {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :global(body.shelf) .going .flame {
+    animation: flame-out 1.6s 0.7s ease-in both;
+  }
+  :global(body.shelf) .going .glow {
+    animation: glow-out 1.6s 0.7s ease-in both;
+  }
+  :global(body.shelf) .going .smoke {
+    animation: smoke-up 2.2s 1.6s ease-out both;
+  }
+  @keyframes flame-out {
+    0% {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+    55% {
+      opacity: 1;
+      transform: scaleY(0.4) translateY(6px);
+    }
+    100% {
+      opacity: 0;
+      transform: scaleY(0.1) translateY(9px);
+    }
+  }
+  @keyframes glow-out {
+    from {
+      opacity: 0.22;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes smoke-up {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 0.8;
+      transform: translateY(0);
+    }
+  }
+}
+:global(body.shelf) .flame,
+:global(body.shelf) .smoke {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+:global(body.shelf) .title {
+  margin: 0;
+  font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+}
+:global(body.shelf) .text {
+  margin: 0;
+  font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  font-size: 19px;
+  line-height: 1.45;
+  text-align: center;
+  color: #e6dfc8;
+}
+:global(body.shelf) .go {
+  box-sizing: border-box;
+  min-height: 48px;
+  padding: 10px 18px;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  color: #2a2118;
+  background: #c99a3c;
+  border: 1px solid #a47a28;
+  border-radius: 24px;
+  cursor: pointer;
+}
+:global(body.shelf) .go:focus-visible {
+  outline: 3px solid #f4f0e4;
+  outline-offset: 2px;
+}

@@ -37,7 +37,9 @@ import { DogFightStates } from './DogFightStates.tsx';
 import { MotivesPreview } from './MotivesPreview.tsx';
 import { PortraitGallery } from './PortraitGallery.tsx';
 import { StickerTin } from '../shelf/StickerTin.tsx';
-import { campaignChapterTwo, campaignPlan, campaignStart, campaignTalk } from './scenarios.ts';
+import { campaignAnswer, campaignChapterTwo, campaignLater, campaignPlan, campaignQuestion, campaignStart, campaignTalk, finishedRuns } from './scenarios.ts';
+import { GuestBook } from '../shelf/GuestBook.tsx';
+import { emptyHistory } from '../game/history.ts';
 import { roundCase } from '../game/campaignSave.ts';
 import { OpenBook } from '../shelf/OpenBook.tsx';
 import { NightReplay } from '../shelf/NightReplay.tsx';
@@ -369,6 +371,16 @@ function ShelfTinPreview() {
   return <StickerTin unsolved={null} onBack={noop} onStick={noop} sample={{ code: 'K7QF2', lifted: ['wordle', 'crossword', 'sudoku', 'interrogation'] }} />;
 }
 
+/** The #shelf guest book: a sample history (two solved cases, a caught and an escaped campaign), or an empty book. Nothing is read or saved. */
+function ShelfGuestBookPreview({ empty }: { empty?: boolean }) {
+  useLayoutEffect(() => {
+    document.body.classList.add('shelf');
+    return () => document.body.classList.remove('shelf');
+  }, []);
+  const history = useMemo(() => (empty ? emptyHistory() : finishedRuns(true).history), [empty]);
+  return <GuestBook sample={history} />;
+}
+
 function ShelfLabelsPreview() {
   useLayoutEffect(() => {
     document.body.classList.add('shelf');
@@ -443,19 +455,22 @@ function ShelfRibbonsPreview() {
 }
 
 /** The #shelf campaign book on Room, over a sample campaign (nothing is read or saved): chapter one, or chapter two in midnight green. */
-function ShelfCampaignPreview({ night, talk, plan }: { night?: boolean; talk?: boolean; plan?: boolean }) {
+function ShelfCampaignPreview({ night, talk, plan, answer, question, later }: { night?: boolean; talk?: boolean; plan?: boolean; answer?: boolean; question?: boolean; later?: boolean }) {
   useLayoutEffect(() => {
     document.body.classList.add('shelf');
     return () => document.body.classList.remove('shelf');
   }, []);
   const campaignSample = useMemo(() => {
     if (night) return campaignChapterTwo();
+    if (later) return campaignLater();
+    if (answer) return campaignAnswer();
+    if (question) return campaignQuestion();
     if (talk) return campaignTalk();
     if (plan) return campaignPlan();
     const save = campaignStart();
     return { save, cases: [roundCase(content, save, 0)] };
-  }, [night, talk, plan]);
-  return <OpenBook title={night ? 'Chapter two: Midnight' : 'Chapter one: 9pm'} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen campaign campaignSample={campaignSample} />;
+  }, [night, talk, plan, answer, question, later]);
+  return <OpenBook title={night || later ? 'Chapter two: Midnight' : 'Chapter one: 9pm'} tone="quick" from={{ left: 0, top: 0, width: 360, height: 780 }} onBack={noop} startOpen campaign campaignSample={campaignSample} />;
 }
 
 /**
@@ -634,8 +649,13 @@ const SCREENS: Record<string, () => ReactNode> = {
   'shelf-campaign-midnight': () => <ShelfCampaignPreview night />,
   'shelf-campaign-talk': () => <ShelfCampaignPreview talk />,
   'shelf-campaign-plan': () => <ShelfCampaignPreview plan />,
+  'shelf-campaign-answer': () => <ShelfCampaignPreview answer />,
+  'shelf-campaign-question': () => <ShelfCampaignPreview question />,
+  'shelf-campaign-later': () => <ShelfCampaignPreview later />,
   'shelf-labels': () => <ShelfLabelsPreview />,
   'shelf-tin': () => <ShelfTinPreview />,
+  'shelf-guest-book': () => <ShelfGuestBookPreview />,
+  'shelf-guest-book-empty': () => <ShelfGuestBookPreview empty />,
   'shelf-new-case': () => <ShelfNewCasePreview />,
   'shelf-find-a-clue': () => <ShelfFindACluePreview />,
   'shelf-notebook': () => <ShelfNotebookPreview view="peek" />,

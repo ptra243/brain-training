@@ -1,0 +1,61 @@
+/* The questioning after an accusation, drawn like the talk spread: the card table (green baize) with two ivory
+   portrait cards, over the book. On document.body, so everything is scoped under body.shelf. Fixed colours:
+   the midnight palette changes the paper, not the table. The questioning itself is today's component, on baize. */
+:global(body.shelf) .table {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: radial-gradient(ellipse at 50% 20%, #2f5a4d, #24463c 60%, #1a352d);
+  color: #f4f0e4;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+:global(body.shelf) .table:focus {
+  outline: none;
+}
+:global(body.shelf) .column {
+  box-sizing: border-box;
+  width: min(100vw, 480px);
+  margin: 0 auto;
+  padding: 10px 12px calc(16px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+:global(body.shelf) .table button:focus-visible {
+  outline: 3px solid #c8a24c;
+  outline-offset: 2px;
+}
+:global(body.shelf) .title {
+  margin: 0;
+  font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+/* Two ivory cards side by side on the baize. */
+:global(body.shelf) .cards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+:global(body.shelf) .cards :global(.portrait-card) {
+  min-width: 0;
+  width: 100%;
+}
+:global(body.shelf) .cards :global(.portrait-art) {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 100 / 120;
+}
+/* The classic questioning, without its own page chrome; its buttons are the shared ones. */
+:global(body.shelf) .pane {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+:global(body.shelf) .pane :global(.link-button) {
+  min-height: 44px;
+}

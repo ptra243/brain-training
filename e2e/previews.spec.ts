@@ -169,6 +169,17 @@ test('shelf-tin preview', async ({ page }) => {
   await checkScreen(page, 'preview shelf-tin');
 });
 
+test('shelf-guest-book previews', async ({ page }) => {
+  await page.goto('/#dev/shelf-guest-book');
+  await expect(page.getByRole('heading', { name: 'Guest book', level: 1 })).toBeVisible();
+  await expect(page.getByTestId('guest-signature').first()).toBeVisible();
+  await expect(page.getByText('left before dessert')).toBeVisible();
+  await checkScreen(page, 'preview shelf-guest-book');
+  await page.goto('/#dev/shelf-guest-book-empty');
+  await expect(page.getByText('No one has signed yet.')).toBeVisible();
+  await checkScreen(page, 'preview shelf-guest-book-empty');
+});
+
 test('an unknown preview lists the real ones', async ({ page }) => {
   await page.goto('/#dev/nope');
   await expect(page.getByRole('link', { name: 'next-murder' })).toBeVisible();
@@ -297,4 +308,32 @@ test('case-board preview', async ({ page }) => {
   await expect(page.getByRole('button', { name: /^Noticed somewhere: / }).first()).toBeVisible();
   await expect(page.getByRole('button', { name: /^Clues on the board \(\d+\)$/ })).toBeVisible();
   await checkScreen(page, 'preview case-board');
+});
+
+test('shelf-campaign-answer preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-campaign-answer');
+  await expect(page.getByRole('region', { name: /: Answer$/ })).toBeVisible();
+  await expect(page.getByText('Fill in the blanks')).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Who: (?!choose)/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Fill both blanks first' })).toBeDisabled();
+  await checkScreen(page, 'preview shelf-campaign-answer');
+});
+
+test('shelf-campaign-question preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-campaign-question');
+  const spread = page.getByTestId('question-spread');
+  await expect(spread).toBeVisible();
+  await expect(spread.getByText('You', { exact: true })).toBeVisible();
+  await expect(spread.getByTestId('exchange')).toHaveCount(2);
+  await expect(spread.getByRole('button', { name: 'Skip to the verdict' })).toBeVisible();
+  await checkScreen(page, 'preview shelf-campaign-question');
+});
+
+test('shelf-campaign-later preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-campaign-later');
+  const later = page.getByTestId('later-scene');
+  await expect(later).toBeVisible();
+  await expect(later.getByRole('img', { name: '2 accusations left' })).toBeVisible();
+  await expect(later.getByText(/^Later that night, /)).toBeVisible();
+  await checkScreen(page, 'preview shelf-campaign-later');
 });

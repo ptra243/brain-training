@@ -9,7 +9,13 @@ import { accuseAction, afterMapTap, ringedSubject, type AccuseRequest, type Heig
 import type { Subject } from '../game/state.ts';
 import { Shuffling } from '../game/Shuffling.tsx';
 import { useQuickBook, type PickRequest, type SampleCase } from './useQuickBook.ts';
-import { useCampaignBook, type SampleCampaign } from './useCampaignBook.ts';
+import { useCampaignBook, type Resolved, type SampleCampaign } from './useCampaignBook.ts';
+import { atMidnight } from '../game/explore.ts';
+import type { LaterScene } from './campaignAnswer.ts';
+import { CampaignAnswer } from './CampaignAnswer.tsx';
+import { CampaignOver } from './CampaignOver.tsx';
+import { CandleScene } from './CandleScene.tsx';
+import { QuestionSpread } from './QuestionSpread.tsx';
 import { chapterTitle, isNightChapter } from './campaignBook.ts';
 import { CampaignPlan } from './CampaignPlan.tsx';
 import { CampaignRoom, type TalkRequest } from './CampaignRoom.tsx';
@@ -88,9 +94,19 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   const turnRef = useRef<((i: number) => void) | null>(null);
   // Her case, shared by the Case page and the notebook. The New case book builds one and saves it.
   const book = useQuickBook(sample, campaign ? 'none' : tone === 'quick' ? 'saved' : 'new', pick);
-  const campaignBook = useCampaignBook(campaignSample, !!campaign);
-  // What the notebook reads: the campaign round, or her Quick case. The Answer page is not drawn for a campaign yet, so no Accuse buttons.
-  const notebookBook = campaign ? campaignBook || null : book || null;
+  // The "later that night" scene after a wrong accusation: it sits on the table over the book, which turns to the next Room page behind it.
+  const [scene, setScene] = useState<LaterScene | null>(() => campaignSample?.later ?? null);
+  // A verdict has been applied (after the questioning, or at once if it could not be built).
+  const resolved = (r: Resolved) => {
+    if (r.scene) {
+      setScene(r.scene);
+      turnRef.current?.(0);
+    } else if (r.verdict) turnRef.current?.(sections.indexOf('Answer'));
+  };
+  const campaignBook = useCampaignBook(campaignSample, !!campaign, resolved);
+  const over = campaignBook ? campaignBook.over : null;
+  // What the notebook reads: the campaign round, or her Quick case. It steps aside once the night is over.
+  const notebookBook = campaign ? (over ? null : campaignBook || null) : book || null;
   const night = !!campaignBook && isNightChapter(campaignBook.round);
   // Midnight and 3am use the midnight-green palette. It is a body class so a turning leaf (added to body) takes it too.
   useLayoutEffect(() => {
@@ -100,7 +116,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   }, [night]);
   const title = campaign ? (campaignBook ? chapterTitle(campaignBook.round) : coverTitle) : book && book.fullRef ? caseTitle(book.fullRef) : coverTitle;
   // A guest page's Accuse without a weapon: the Answer form gets the guest written in. A new `seq` is a new request.
-  const [prefill, setPrefill] = useState<{ suspect: string; seq: number } | null>(null);
+  const [prefill, setPrefill] = useState<{ suspect: string; seq: number } | null>(() => (campaignSample?.guest ? { suspect: campaignSample.guest, seq: 1 } : null));
   const [puzzleOpen, setPuzzleOpen] = useState(false);
   const sampleSection = campaign ? campaignSample?.section : sample?.section;
   // How far the notebook is up, which page it shows (a map tap sets `focus`), and so which piece is ringed.
@@ -134,11 +150,13 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   };
 
   const accuseGuest = (req: AccuseRequest) => {
-    if (!book) return;
+    const which = campaignBook || book;
+    if (!which) return;
     setHeight('peek');
-    // With a weapon given the try is handed in as the Answer page's own button does; the page then shows it.
-    const action = accuseAction(req);
-    if (action) book.dispatch(action);
+    // With a weapon given the try is handed in as the Answer page's own button does; the page then shows it
+    // (in a campaign the book then opens the questioning). A campaign only takes guests its form lists.
+    const action = campaignBook && !campaignBook.allowed.includes(req.suspect) ? null : accuseAction(req);
+    if (action) which.dispatch(action);
     // A handed-in try leaves the form blank again, as the Answer page's own button does.
     setPrefill((p) => ({ suspect: action ? '' : req.suspect, seq: (p?.seq ?? 0) + 1 }));
     turnRef.current?.(sections.indexOf('Answer'));
@@ -198,6 +216,19 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
     };
   }, [startOpen, sampleSection]);
 
+  // At midnight the book turns to Answer once a chapter (the Room and Plan pages are frozen). Not while a puzzle page is open: it waits for that to close.
+  const midnight = !!campaignBook && atMidnight(campaignBook.c, campaignBook.progress);
+  const chapter = campaignBook ? campaignBook.round : -1;
+  const held = !!campaignBook && !!campaignBook.pending;
+  const turnedFor = useRef(-1);
+  useEffect(() => {
+    if (!midnight || puzzleOpen || held || over || turnedFor.current === chapter) return;
+    turnedFor.current = chapter;
+    turnRef.current?.(sections.indexOf('Answer'));
+    // `sections` is fixed for a mounted book.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [midnight, puzzleOpen, held, over, chapter]);
+
   return (
     <div className={styles.stage}>
       <div className={styles.flyer} style={start}>
@@ -219,7 +250,9 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                   <div className={styles.running}>
                     <span>{sections[0]}</span>
                   </div>
-                  {campaign ? (
+                  {campaign && over ? (
+                    <CampaignOver verdict={over} onBack={onBack} />
+                  ) : campaign ? (
                     <CampaignRoom book={campaignBook} onPuzzleOpen={setPuzzleOpen} onSubject={showSubject} initialTalk={campaignSample?.talk} talkRequest={talkRequest} />
                   ) : tone === 'fresh' && book === null ? (
                     <p className={styles.lede}>Laying out the cards…</p>
@@ -235,8 +268,12 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                       <span>{name}</span>
                     </div>
                     {campaign ? (
-                      name === 'Plan' ? (
+                      over ? (
+                        <CampaignOver verdict={over} onBack={onBack} />
+                      ) : name === 'Plan' ? (
                         <CampaignPlan book={campaignBook} height={height} onTalk={talkTo} onSubject={showSubject} />
+                      ) : name === 'Answer' && campaignBook ? (
+                        <CampaignAnswer book={campaignBook} prefill={prefill} />
                       ) : (
                         <p className={styles.lede}>This page isn&apos;t drawn yet.</p>
                       )
@@ -285,7 +322,8 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
               onHeight={setHeight}
               focus={focus}
               onPage={setPageSubject}
-              {...(campaign ? {} : { onAccuse: () => { setHeight('peek'); turnRef.current?.(sections.indexOf('Answer')); }, onAccuseGuest: accuseGuest })}
+              onAccuse={() => { setHeight('peek'); turnRef.current?.(sections.indexOf('Answer')); }}
+              onAccuseGuest={accuseGuest}
             />
           ) : null}
         </section>
@@ -298,6 +336,20 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
       </div>
       {/* Outside the flyer: its page-turn transform would otherwise hold this "fixed" overlay inside the book. */}
       {pick && book === null ? <Shuffling /> : null}
+      {campaignBook && campaignBook.pending && !campaignBook.questioning ? <Shuffling /> : null}
+      {campaignBook && campaignBook.pending && campaignBook.questioning ? (
+        <QuestionSpread
+          key={campaignBook.pending.accused}
+          c={campaignBook.c}
+          interrogation={campaignBook.questioning}
+          killer={campaignBook.pending.accused === campaignBook.c.murderer}
+          rightWeapon={campaignBook.progress.accusations.at(-1)?.item === campaignBook.c.weapon}
+          found={campaignBook.found}
+          startAsked={campaignSample?.asked}
+          onDone={campaignBook.resolve}
+        />
+      ) : null}
+      {scene ? <CandleScene scene={scene} onContinue={() => setScene(null)} /> : null}
     </div>
   );
 }

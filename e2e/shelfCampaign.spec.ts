@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { content, houseDetails } from '../src/content/index.ts';
-import { campaignStart } from '../src/dev/scenarios.ts';
+import { campaignHeld, campaignMidnight, campaignPossibleOnly, campaignStart } from '../src/dev/scenarios.ts';
 import { roomContents } from '../src/game/explore.ts';
 import { roundCase } from '../src/game/campaignSave.ts';
 import { roomName, suspectName } from '../src/game/names.ts';
@@ -139,4 +139,99 @@ test('the Plan page: tap another room to walk there, tap a guest to open the tal
   await page.getByRole('button', { name: 'Show the ribbons' }).click();
   await page.getByRole('button', { name: 'Room', exact: true }).click();
   await expect(page.getByText(`You are in the ${roomName(target)}.`)).toBeVisible();
+});
+
+// The Answer page, the questioning after an accusation, and the "later that night" scene.
+async function openCampaign(page: import('@playwright/test').Page, value: unknown) {
+  await page.addInitScript(
+    ({ key, value }) => {
+      if (localStorage.getItem(key) === null) localStorage.setItem(key, value);
+    },
+    { key: KEY, value: JSON.stringify(value) },
+  );
+  await page.goto('/#shelf');
+  await page.getByRole('link', { name: /Your campaign, .*: continue/ }).click();
+}
+
+async function turnToAnswer(page: import('@playwright/test').Page) {
+  await page.getByRole('button', { name: 'Show the ribbons' }).click();
+  await page.getByRole('button', { name: 'Answer' }).click();
+  await expect(page.getByRole('region', { name: /: Answer$/ })).toBeVisible();
+  await expect(page.getByText('Fill in the blanks')).toBeVisible();
+}
+
+const innocent = c.suspects.find((s) => s !== c.murderer)!;
+const innocentName = suspectName(innocent, c.guests);
+
+test('accuse an innocent guest: the questioning, the verdict scene, then the next chapter', async ({ page }) => {
+  await openCampaign(page, start);
+  await expect(page.getByText(/^You are in the /)).toBeVisible();
+  await turnToAnswer(page);
+  await checkScreen(page, 'shelf campaign answer');
+
+  await page.getByRole('button', { name: 'Who: choose' }).click();
+  await page.getByRole('button', { name: innocentName, exact: true }).click();
+  await page.getByRole('button', { name: 'With what: choose' }).click();
+  await page.getByRole('group', { name: 'With what' }).getByRole('button').first().click();
+  await page.getByRole('button', { name: 'Make the accusation' }).click();
+
+  // Her clues still point at several people: she is asked first.
+  await expect(page.getByRole('heading', { name: 'Guess now?' })).toBeVisible();
+  await page.getByRole('button', { name: 'Guess now' }).click();
+
+  const spread = page.getByTestId('question-spread');
+  await expect(spread).toBeVisible();
+  await expect(spread.getByText('You', { exact: true })).toBeVisible();
+  await expect(spread.getByText(innocentName, { exact: true }).first()).toBeVisible();
+  await checkScreen(page, 'shelf campaign questioning');
+  // Back does not drop the accusation, and Escape does nothing.
+  await page.goBack();
+  await expect(spread).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(spread).toBeVisible();
+
+  await spread.getByRole('button', { name: 'Skip to the verdict' }).click();
+  const later = page.getByTestId('later-scene');
+  await expect(later).toBeVisible();
+  await expect(later.getByRole('heading', { name: `${innocentName} wasn't the killer` })).toBeVisible();
+  await expect(later.getByRole('img', { name: '2 accusations left' })).toBeVisible();
+  await checkScreen(page, 'shelf campaign later');
+  await later.getByRole('button', { name: /^On to / }).click();
+  await expect(later).toHaveCount(0);
+
+  // The next chapter: its title, its Room page first and one candle fewer.
+  await expect(page.getByRole('heading', { name: 'Chapter two: Midnight' })).toBeVisible();
+  await expect(page.getByText(/was found dead later that night\.$/)).toBeVisible();
+  await expect(page.getByRole('img', { name: '2 accusations left' })).toBeVisible();
+  await expect(page.getByRole('region', { name: /: Room$/ })).toBeVisible();
+});
+
+test('only possible killers shorten the list of who she may name', async ({ page }) => {
+  const { save: possibleSave, allowed, all } = campaignPossibleOnly();
+  await openCampaign(page, possibleSave);
+  await expect(page.getByText(/^You are in the /)).toBeVisible();
+  await turnToAnswer(page);
+  await page.getByRole('button', { name: 'Who: choose' }).click();
+  const list = page.getByRole('group', { name: 'Who' });
+  await expect(list.getByRole('button')).toHaveCount(allowed.length);
+  const ruledOut = all.find((id) => !allowed.includes(id))!;
+  await expect(list.getByRole('button', { name: suspectName(ruledOut, c.guests), exact: true })).toHaveCount(0);
+  await expect(list.getByRole('button', { name: suspectName(allowed[0], c.guests), exact: true })).toBeVisible();
+});
+
+test('a reload in the middle of the questioning opens it again', async ({ page }) => {
+  const held = campaignHeld();
+  await openCampaign(page, held.save);
+  const spread = page.getByTestId('question-spread');
+  await expect(spread).toBeVisible();
+  await expect(spread.getByText(suspectName(held.guest, c.guests), { exact: true }).first()).toBeVisible();
+  await page.reload();
+  await page.getByRole('link', { name: /Your campaign, .*: continue/ }).click();
+  await expect(spread).toBeVisible();
+});
+
+test('at midnight the book opens on Answer and says why', async ({ page }) => {
+  await openCampaign(page, campaignMidnight());
+  await expect(page.getByRole('region', { name: /: Answer$/ })).toBeVisible();
+  await expect(page.getByText('Time is up, and you must name someone now.')).toBeVisible();
 });

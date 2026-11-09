@@ -83,7 +83,7 @@ What a look check judges on each:
   the dropped ribbons Room, Plan, Answer (44px+) hang over a clear header band (clock "9:00 (N games left)" at the left, three lit
   candles at the right, `aria-label` "3 accusations left") and not over "You are in the ..."; then the room's look lines, "Here with
   you: ...", "Things to try" rows (puzzle label, "The inkwell"-style name, "N clues · until 10:20") and "Walk to" buttons (44px+)
-  with "No time taken."; the notebook strip at the foot. Answer says "This page isn't drawn yet." No sideways scroll.
+  with "No time taken."; the notebook strip at the foot. Answer is the printed form (see `shelf-campaign-answer`). No sideways scroll.
 - `shelf-campaign-midnight`: chapter two in the midnight-green palette (deep green felt and cover, pale green paper, dark ink): two
   candles lit and one blown out (thin smoke), the clock past 9:00, the room with a done row (green tick, "N clues found"), the other
   picked object open and the rest saying "No puzzles left tonight" (faded, disabled); ribbons and text readable on the green
@@ -97,6 +97,19 @@ What a look check judges on each:
   readable), tabs Talk / Minigame / Clues (44px, Talk underlined in brass), the Talk tab with greeting, one filled pip, the one line
   heard and a "Go on…" or idle line; nothing clipped, the notebook strip hidden, no sideways scroll. Minigame shows the puzzle label
   with "Unlocks N clues." and a Play button; Clues has one line and "Open their page" (both 44px+). Sample: buttons do nothing saved.
+- `shelf-campaign-answer`: the chapter-one campaign book turned to Answer: "The answer / Fill in the blanks", today's two-line hint, the
+  printed form "It was [guest in pencil] in the [room], with the [blank]." (blanks 44px+ tall, the guest in the Caveat hand), a
+  "Fill both blanks first" red pill button (disabled until a weapon is picked), no rank line; no earlier tries yet in chapter one. Picking
+  the weapon and handing in asks "Guess now?" (a pop-up) while her clues point at several people, then opens the questioning (sample
+  buttons write nothing). No sideways scroll.
+- `shelf-campaign-question`: the questioning over the chapter-one book (a held wrong accusation, two questions asked): the green baize table,
+  the accused's name as a serif heading, two ivory cards ("You" and the accused), then the classic questioning below on the baize: the
+  chair line, "What X said" with two exchanges and Challenge buttons, Ask, "Their story holds", Solve, "Skip to the verdict" (all 44px+),
+  the evidence list. No Close button and Back/Escape do nothing; nothing clipped; no sideways scroll.
+- `shelf-campaign-later`: the "later that night" scene over chapter two (midnight palette behind it): a dark table, three big candles in
+  a row (two lit with a glow, the third blown out with a wisp of smoke; with motion welcome its flame shrinks away first), the heading
+  "X wasn't the killer", "Later that night, X is found dead. The killer is still among the guests, and you have 2 accusations left."
+  and a gold "On to midnight" button (48px). Continue, Back and Escape close it; no sideways scroll.
 - `shelf-new-case`: the New case book on a fresh sample Play case (fixed seed, nothing saved), opening not yet seen: the
   body line, the story paragraph and the button that goes on to Find a clue; notebook strip at the foot; no sideways
   scroll. The real book builds its case when opened ("Laying out the cards…" until it arrives).
@@ -156,6 +169,11 @@ What a look check judges on each:
   game's level in stars); four lifted (raised, bigger shadow, brass tick); under it "4 of 7 lifted" and "Logic ★★☆ · N guests",
   then Shake the tin and the gold Stick them in, both 50px; the whole screen fits 360 x 780 with no scrolling and no
   sideways scroll; sticker overhang (brass ticks) is not cut off at the sheet's edge.
+- `shelf-guest-book`, `shelf-guest-book-empty`: the #shelf guest book (sample history, nothing read or saved): a cream book
+  with a red spine edge, a "Guest book" heading, the Quick and campaign totals in blue-black handwriting, then entries newest
+  first (serif title, handwritten lines on ruled paper); a solved or caught run ends with the killer's name signed larger and
+  slightly tilted, an escaped campaign with "left before dessert" in red; "Back to the shelf" link at the top (44px+). Empty:
+  "No one has signed yet." Nothing clipped, no sideways scroll at 360px.
 - `portraits`: the portrait gallery on its own (light dev page).
 - `dogfight`: the dog fight board in each state, with a cat helper picker
   (light dev page).

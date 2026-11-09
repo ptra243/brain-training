@@ -7,13 +7,14 @@ import { ROUNDS, type CampaignRef } from '../engine/campaign.ts';
 import { caseFor, codeFor, type QuickRef } from '../engine/caseRef.ts';
 import { isSceneGame } from '../engine/gameKinds.ts';
 import type { Case } from '../engine/types.ts';
-import { newCampaign, pick, roundCase, updateRound, type CampaignSave } from '../game/campaignSave.ts';
-import { emptyHistory, recordCampaign, recordQuick } from '../game/history.ts';
+import { newCampaign, pick, roundCase, stillPossible, updateRound, type CampaignSave } from '../game/campaignSave.ts';
+import { laterScene, type LaterScene } from '../shelf/campaignAnswer.ts';
+import { emptyHistory, recordCampaign, recordQuick, type History } from '../game/history.ts';
 import { localDate } from '../game/runRecord.ts';
 import { roomContents, roundPuzzles } from '../game/explore.ts';
 import { emptyProgress, type Progress } from '../game/state.ts';
 import { questioningOf } from '../game/talk.ts';
-import { saveCampaign, saveHistory, saveQuick, saveScreen } from '../game/storage.ts';
+import { saveCampaign, saveHistory, saveQuick, saveScreen, type QuickSave } from '../game/storage.ts';
 
 export interface Scenario {
   id: string;
@@ -124,6 +125,92 @@ export function campaignChapterTwo(): { save: CampaignSave; cases: Case[] } {
   return { save: { ...save, rounds }, cases };
 }
 
+/**
+ * A solved Quick case and a caught campaign, recorded in a history (the Home scenario and the guest book
+ * preview). `more` adds an escaped campaign and an older solved case so the book has a mix.
+ */
+export function finishedRuns(more = false): { history: History; campaign: CampaignSave; quick: QuickSave } {
+  const date = localDate(new Date());
+  let n = 0;
+  const mintId = () => `dev-${++n}`;
+
+  const c = roundCase(content, newCampaign(campaignRef), 0);
+  let history = emptyHistory();
+  let save = campaignAfter(1);
+  const r1 = roundCase(content, save, 1);
+  save = updateRound(save, r1, { ...save.rounds[1], accusations: [{ suspect: r1.murderer, item: r1.weapon, correct: 2 }] }).save;
+  const cases = [c, r1];
+  const rec = recordCampaign(save, cases, history, mintId, date);
+  history = rec.history;
+
+  const quickCase = caseFor(content, quickRef);
+  const quick = { ref: quickRef, progress: { ...emptyProgress(), solved: true, accusations: [{ suspect: quickCase.murderer, item: quickCase.weapon, correct: 2 }] } };
+  const recQuick = recordQuick(quick, quickCase, history, mintId, date);
+  history = recQuick.history;
+
+  if (more) {
+    const older = '2026-10-02';
+    // The killer got away: three wrong people named.
+    const lost = campaignAfter(ROUNDS - 1);
+    const last = roundCase(content, lost, ROUNDS - 1);
+    const escaped = updateRound(lost, last, { ...lost.rounds[ROUNDS - 1], accusations: [wrongAccusation(last)] }).save;
+    history = recordCampaign(escaped, [roundCase(content, lost, 0), roundCase(content, lost, 1), last], history, mintId, older).history;
+    const otherRef: QuickRef = { ...quickRef, code: codeFor(11 * 104_729) };
+    const otherCase = caseFor(content, otherRef);
+    const other = { ref: otherRef, progress: { ...emptyProgress(), solved: true, accusations: [{ suspect: otherCase.murderer, item: otherCase.weapon, correct: 2 }] } };
+    history = recordQuick(other, otherCase, history, mintId, older).history;
+  }
+  return { history, campaign: rec.save, quick: recQuick.save };
+}
+
+/** Round 1 with every puzzle played, so the clock reads midnight (the `campaign-midnight` scenario's save). */
+export const campaignMidnight = (): CampaignSave => playedOut(openingDone(newCampaign(campaignRef)), roundCase(content, newCampaign(campaignRef), 0));
+
+/** Chapter one on the Answer page with a guest written into the form (the #shelf campaign Answer preview). */
+export function campaignAnswer(): { save: CampaignSave; cases: Case[]; section: number; guest: string } {
+  const save = campaignStart();
+  const c = roundCase(content, save, 0);
+  return { save, cases: [c], section: 2, guest: wrongAccusation(c).suspect };
+}
+
+/** Chapter one with a wrong accusation held and two questions asked (the #shelf campaign questioning preview). */
+export function campaignQuestion(): { save: CampaignSave; cases: Case[]; asked: number } {
+  const { save } = campaignHeld();
+  return { save, cases: [roundCase(content, save, 0)], asked: 2 };
+}
+
+/** Chapter one with a wrong accusation handed in and not yet questioned: a reload finds the questioning waiting. */
+export function campaignHeld(): { save: CampaignSave; guest: string } {
+  const save = campaignStart();
+  const accusation = wrongAccusation(roundCase(content, save, 0));
+  const rounds = save.rounds.slice();
+  rounds[0] = { ...rounds[0], accusations: [accusation] };
+  return { save: { ...save, rounds }, guest: accusation.suspect };
+}
+
+/** Chapter two with the scene after a wrong accusation open: the first candle out (the #shelf campaign "later" preview). */
+export function campaignLater(): { save: CampaignSave; cases: Case[]; later: LaterScene } {
+  const save = campaignAfter(1);
+  const cases = [roundCase(content, save, 0), roundCase(content, save, 1)];
+  return { save, cases, later: laterScene('next-body', save, cases[0].guests) };
+}
+
+/**
+ * A "only possible killers" campaign in round 1 where one won puzzle leaves her clues pointing at fewer
+ * guests than there are: the first puzzle that does, won. For the Answer page's shorter list.
+ */
+export function campaignPossibleOnly(): { save: CampaignSave; allowed: string[]; all: string[] } {
+  const start = openingDone(newCampaign({ ...campaignRef, possibleOnly: true }));
+  const c = { ...roundCase(content, start, 0), explore: true } as Case;
+  for (const g of puzzles(c)) {
+    const rounds = [{ ...start.rounds[0], games: { [g.kind]: { status: 'won' as const, data: null } } }];
+    const save = { ...start, rounds };
+    const allowed = stillPossible(save, [c]);
+    if (allowed.length > 0 && allowed.length < c.suspects.length) return { save, allowed, all: c.suspects.slice() };
+  }
+  throw new Error('no puzzle narrows the killers down');
+}
+
 export const SCENARIOS: readonly Scenario[] = [
   {
     id: 'campaign-opening',
@@ -138,7 +225,7 @@ export const SCENARIOS: readonly Scenario[] = [
   {
     id: 'campaign-midnight',
     about: 'Round 1 with every puzzle played: the clock reads midnight and the map is locked',
-    load: () => loadCampaign(playedOut(openingDone(newCampaign(campaignRef)), roundCase(content, newCampaign(campaignRef), 0))),
+    load: () => loadCampaign(campaignMidnight()),
   },
   {
     id: 'campaign-last-round',
@@ -149,25 +236,10 @@ export const SCENARIOS: readonly Scenario[] = [
     id: 'finished-runs',
     about: 'Home with one solved Quick case and one caught campaign, both in Your record',
     load: () => {
-      const date = localDate(new Date());
-      let n = 0;
-      const mintId = () => `dev-${++n}`;
-
-      const c = roundCase(content, newCampaign(campaignRef), 0);
-      let history = emptyHistory();
-      let save = campaignAfter(1);
-      const r1 = roundCase(content, save, 1);
-      save = updateRound(save, r1, { ...save.rounds[1], accusations: [{ suspect: r1.murderer, item: r1.weapon, correct: 2 }] }).save;
-      const cases = [c, r1];
-      const rec = recordCampaign(save, cases, history, mintId, date);
-      history = rec.history;
-      saveCampaign(rec.save);
-
-      const quickCase = caseFor(content, quickRef);
-      const quick = { ref: quickRef, progress: { ...emptyProgress(), solved: true, accusations: [{ suspect: quickCase.murderer, item: quickCase.weapon, correct: 2 }] } };
-      history = recordQuick(quick, quickCase, history, mintId, date).history;
-      saveHistory(history);
-      saveQuick(quick);
+      const runs = finishedRuns();
+      saveCampaign(runs.campaign);
+      saveHistory(runs.history);
+      saveQuick(runs.quick);
       saveScreen('home');
     },
   },

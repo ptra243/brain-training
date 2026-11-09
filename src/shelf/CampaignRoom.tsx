@@ -5,7 +5,7 @@ import type { GameKind } from '../engine/types.ts';
 import { atMidnight, clockLine, roomContents, whereAmI } from '../game/explore.ts';
 import { DIFFICULTY_LABEL } from '../game/labels.ts';
 import { GAMES } from '../game/games/registry.tsx';
-import { roomName, suspectName } from '../game/names.ts';
+import { roomName, suspectName, victimLine } from '../game/names.ts';
 import type { Subject } from '../game/state.ts';
 import { accusationsLeft, candleLabel, chapterTitle, guestLine, personGame, roomLine, roomRowAria, roomRows, walkTargets, type RoomRow } from './campaignBook.ts';
 import { clueRows } from './findAClue.ts';
@@ -116,6 +116,7 @@ export function CampaignRoom({ book, onPuzzleOpen, onSubject, initialTalk, talkR
           </div>
         </header>
 
+        {book.round > 0 ? <p className={styles.look}>{victimLine(book.c)}</p> : null}
         <h2 className={styles.here}>{roomLine(roomName(here))}</h2>
         {mine.looks.map((line) => (
           <p key={line} className={styles.look}>
