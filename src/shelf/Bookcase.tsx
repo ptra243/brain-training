@@ -178,8 +178,9 @@ function StarBadge() {
 /** The library: one honey-oak bookcase. Her save is only read, to see which books stick out. */
 export function Bookcase() {
   const campaign = loadCampaign();
-  const playing = campaign?.outcome === 'playing' ? campaign : null;
-  const round = playing ? Math.min(Math.max(playing.rounds.length, 1), ROUNDS) : 0;
+  // A finished campaign's book stays on the shelf (it opens on its closing page) until she starts a new one.
+  const finished = !!campaign && campaign.outcome !== 'playing';
+  const round = campaign ? Math.min(Math.max(campaign.rounds.length, 1), ROUNDS) : 0;
   const roundTitle = ROUND_TITLES[round - 1];
 
   // Opening a book is React state, never a hash change: `main.tsx` reloads on every hashchange.
@@ -316,9 +317,9 @@ export function Bookcase() {
 
           <section aria-labelledby="shelf-campaign">
             <div className={styles.shelf}>
-              {playing ? (
+              {campaign ? (
                 <Book
-                  label={`Your campaign, ${roundTitle}, round ${round} of ${ROUNDS}: continue`}
+                  label={finished ? 'Your campaign: finished' : `Your campaign, ${roundTitle}, round ${round} of ${ROUNDS}: continue`}
                   title={roundTitle}
                   size={16}
                   className={styles.campaignBook}
@@ -330,7 +331,7 @@ export function Bookcase() {
                   gone={taken?.id === 'campaign'}
                   note={
                     <span className={styles.note}>
-                      {round} of {ROUNDS}
+                      {finished ? 'Finished' : `${round} of ${ROUNDS}`}
                     </span>
                   }
                 />

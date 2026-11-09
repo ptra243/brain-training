@@ -163,3 +163,61 @@
   font-size: 12px;
   color: var(--ink-soft);
 }
+/* The contents list: the chapters there are, the one on the pages marked. */
+:global(body.shelf) .contents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+:global(body.shelf) .chapterBtn {
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 4px 12px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--page-line);
+  border-radius: 6px;
+  cursor: pointer;
+}
+:global(body.shelf) .chapterBtn[aria-current='true'] {
+  border-color: #a8322d;
+  box-shadow: inset 0 0 0 1px #a8322d;
+  font-weight: 600;
+}
+:global(body.shelf) .chapterBtn small {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+:global(body.shelf) .reading {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
+:global(body.shelf) .reading button {
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 4px 12px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink);
+  background: transparent;
+  border: 1.5px solid var(--ink);
+  border-radius: 22px;
+  cursor: pointer;
+}
+:global(body.shelf) .still {
+  display: block;
+  padding: 6px 4px;
+  font-size: 16px;
+  line-height: 1.2;
+}

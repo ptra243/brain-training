@@ -6,6 +6,7 @@ import { currentRound, pick, puzzlesLeft, type CampaignSave, type Verdict } from
 import { foundIds, holdRound, pendingAccusation, resolveHeld } from '../game/face.ts';
 import { reduce, unlockedClueIds, type Action, type Progress } from '../game/state.ts';
 import { finishFor, type Finish } from './notebook.ts';
+import { viewedRound } from './campaignEnd.ts';
 import { loadCampaign, saveCampaign } from '../game/storage.ts';
 import { accusable, laterScene, possibleNow, type LaterScene } from './campaignAnswer.ts';
 
@@ -24,6 +25,10 @@ export interface SampleCampaign {
   asked?: number;
   /** The "later that night" scene is open from the start (the dev preview). */
   later?: LaterScene;
+  /** Read this earlier chapter (an index) from the start (the dev preview). */
+  view?: number;
+  /** The ending is playing from the start: the got-away scene, or the night's replay (the dev preview). */
+  ending?: 'scene' | 'replay';
 }
 
 /** What resolving a held accusation did (`onResolved`). */
@@ -36,10 +41,19 @@ export interface Resolved {
 /** Her campaign's current round, explored, with her progress and a way to move (saved to the campaign save). */
 export interface CampaignBook {
   save: CampaignSave;
-  /** Index of the current round. */
+  /** Index of the chapter on the pages: the current one, or an earlier one she is reading back. */
   round: number;
-  /** The current round, as an explored copy (a UI flag the engine never sets). */
+  /** Index of the current chapter (the last one in the save). */
+  current: number;
+  /** The pages show a chapter she cannot change: an earlier one, or any once the night is over. */
+  readOnly: boolean;
+  /** Read this chapter (the current one returns to tonight). Local, never saved. */
+  showChapter: (index: number) => void;
+  /** Every round, built (the endings' replay needs them all). */
+  cases: Case[];
+  /** The chapter on the pages, as an explored copy (a UI flag the engine never sets). */
   c: Case;
+  /** That chapter's progress. */
   progress: Progress;
   /** Which of Grid and Jigsaw the notebook shows, decided as the classic Casebook does (the starting option). */
   finish: Finish;
@@ -78,12 +92,14 @@ export function useCampaignBook(sample: SampleCampaign | undefined, enabled: boo
   const [save, setSave] = useState<CampaignSave | null>(() => (sample ? sample.save : enabled ? loadCampaign() : null));
   const latest = useRef<CampaignSave | null>(null);
   const [built, setBuilt] = useState<{ key: string; cases: Case[] } | false | null>(null);
-  const [over, setOver] = useState<'caught' | 'escaped' | null>(null);
+  const [viewing, setViewing] = useState<{ index: number; at: number } | null>(() => (sample?.view !== undefined ? { index: sample.view, at: sample.save.rounds.length - 1 } : null));
   const [face, setFace] = useState<{ key: string; interrogation: Interrogation } | null>(null);
   const key = save ? roundsKey(save) : '';
   const playing = !!save && save.outcome === 'playing';
+  // The night is over once the save says so, whether it ended in this visit or an earlier one.
+  const over = save && save.outcome !== 'playing' ? save.outcome : null;
   useEffect(() => {
-    if (!enabled || sample || !save || !playing) return;
+    if (!enabled || sample || !save) return;
     let live = true;
     generate({ kind: 'campaign-rounds', save }).then(
       (cases) => live && setBuilt({ key, cases }),
@@ -99,8 +115,10 @@ export function useCampaignBook(sample: SampleCampaign | undefined, enabled: boo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, enabled, sample]);
   const cases = sample ? sample.cases : built && (built.key === key || over) ? built.cases : null;
-  const round = save ? currentRound(save) : 0;
-  const c = useMemo(() => (cases?.[round] ? ({ ...cases[round], explore: true } as Case) : null), [cases, round]);
+  const current = save ? currentRound(save) : 0;
+  // Every round is explored, as in the classic Accuse tab (its scene is known from the start).
+  const explored = useMemo(() => (cases ? cases.map((rc): Case => ({ ...rc, explore: true })) : null), [cases]);
+  const c = explored?.[current] ?? null;
 
   // An accusation is saved when she makes it but its verdict waits for the questioning (`face.ts`), as in
   // `CampaignView`: the same job and key, and a build that fails goes straight to the verdict.
@@ -115,7 +133,6 @@ export function useCampaignBook(sample: SampleCampaign | undefined, enabled: boo
       saveCampaign(next);
     }
     setSave(next);
-    if (verdict === 'caught' || verdict === 'escaped') setOver(verdict);
     const scene = verdict === 'next-body' || verdict === 'wrong-weapon' ? laterScene(verdict, next, c.guests) : null;
     onResolved?.({ verdict, scene });
   };
@@ -123,7 +140,7 @@ export function useCampaignBook(sample: SampleCampaign | undefined, enabled: boo
   useEffect(() => {
     if (!enabled || !c || !pending || !faceKey || !save) return;
     let live = true;
-    generate({ kind: 'face', ref: save.ref, victims: save.victims, accused: pending.accused, found: foundIds(cases![round], save.rounds[round]) }).then(
+    generate({ kind: 'face', ref: save.ref, victims: save.victims, accused: pending.accused, found: foundIds(cases![current], save.rounds[current]) }).then(
       (interrogation) => {
         if (live) setFace({ key: faceKey, interrogation });
       },
@@ -139,30 +156,34 @@ export function useCampaignBook(sample: SampleCampaign | undefined, enabled: boo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [faceKey, c, enabled]);
   // Who her clues, over every round so far, still allow as the killer. Only the clues she has found matter, so key the memo on those.
-  const foundKey = cases && save ? cases.slice(0, round + 1).map((rc, i) => (save.rounds[i] ? [...unlockedClueIds(rc, save.rounds[i])].sort().join(',') : '-')).join('|') : '';
+  const foundKey = cases && save ? cases.slice(0, current + 1).map((rc, i) => (save.rounds[i] ? [...unlockedClueIds(rc, save.rounds[i])].sort().join(',') : '-')).join('|') : '';
   const possible = useMemo(
     // Every round is explored, as in the classic Accuse tab (its scene is known from the start).
-    () => (cases && save ? possibleNow(save, cases.map((rc): Case => ({ ...rc, explore: true }))) : []),
+    () => (explored && save ? possibleNow(save, explored) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- save is read only through the clues that foundKey summarises
-    [foundKey, cases, round, save?.ref.possibleOnly],
+    [foundKey, explored, current, save?.ref.possibleOnly],
   );
   const questioning = pending && face && face.key === faceKey ? face.interrogation : null;
 
   if (!enabled) return false;
-  if (!save || (!playing && !over) || built === false) return false;
-  if (!c) return null;
+  if (!save || built === false) return false;
+  if (!c || !explored) return null;
+  // A held accusation keeps the pages on the current chapter, where its questioning belongs.
+  const view = pending ? current : viewedRound(viewing, current);
+  const readOnly = !!over || view !== current;
+  const showChapter = (index: number) => setViewing(index >= current ? null : { index, at: current });
   const dispatch = (a: Action) => {
-    if (sample || over) return;
+    if (sample || readOnly) return;
     const base = latest.current ?? save;
     // One accusation a chapter: while one is held, a second can't be made.
     if (a.type === 'accuse' && pendingAccusation(base)) return;
-    const next = holdRound(base, reduce(c, base.rounds[round], a));
+    const next = holdRound(base, reduce(c, base.rounds[current], a));
     latest.current = next;
     saveCampaign(next);
     setSave(next);
   };
   const onPick = (kind: GameKind) => {
-    if (sample || over) return;
+    if (sample || readOnly) return;
     const base = latest.current ?? save;
     const next = pick(base, c, kind);
     if (next === base) return;
@@ -170,7 +191,8 @@ export function useCampaignBook(sample: SampleCampaign | undefined, enabled: boo
     saveCampaign(next);
     setSave(next);
   };
-  return { save, round, c, progress: save.rounds[round], finish: finishFor(c, null, save.ref.endBoard),
-    picked: save.picked[round] ?? [], left: puzzlesLeft(save, c), dispatch, onPick, pending: pendingAccusation(save), questioning, found: foundIds(cases![round], save.rounds[round]),
+  const shown = explored[view];
+  return { save, round: view, current, readOnly, showChapter, cases: cases!, c: shown, progress: save.rounds[view], finish: finishFor(shown, null, save.ref.endBoard),
+    picked: save.picked[view] ?? [], left: readOnly ? 0 : puzzlesLeft(save, c), dispatch, onPick, pending: pendingAccusation(save), questioning, found: foundIds(cases![view], save.rounds[view]),
     allowed: accusable(save, c, possible), stillPointing: possible.length, resolve, over };
 }

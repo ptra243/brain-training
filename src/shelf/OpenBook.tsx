@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import styles from './OpenBook.module.css';
 import { FindAClue } from './FindAClue.tsx';
 import { caseTitle } from '../game/names.ts';
@@ -14,6 +14,10 @@ import { atMidnight } from '../game/explore.ts';
 import type { LaterScene } from './campaignAnswer.ts';
 import { CampaignAnswer } from './CampaignAnswer.tsx';
 import { CampaignOver } from './CampaignOver.tsx';
+import { escapedScene, nightFor } from './campaignEnd.ts';
+import { CampaignReplay } from './NightReplay.tsx';
+import { recordFinishedRuns } from './recordRuns.ts';
+import { loadCampaign } from '../game/storage.ts';
 import { CandleScene } from './CandleScene.tsx';
 import { QuestionSpread } from './QuestionSpread.tsx';
 import { chapterTitle, isNightChapter } from './campaignBook.ts';
@@ -101,12 +105,25 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
     if (r.scene) {
       setScene(r.scene);
       turnRef.current?.(0);
-    } else if (r.verdict) turnRef.current?.(sections.indexOf('Answer'));
+    } else if (r.verdict) {
+      turnRef.current?.(sections.indexOf('Answer'));
+      // The night ends: caught plays the replay once; escaped shows the got-away scene first. The guest book gets the run at once.
+      if (r.verdict === 'caught') setEnding('replay');
+      if (r.verdict === 'escaped') setEnding('scene');
+      if (!campaignSample) void recordFinishedRuns();
+    }
   };
+  // The ending playing over the book this visit: the got-away scene, then the night's replay. Never on a reload.
+  const [ending, setEnding] = useState<'scene' | 'replay' | null>(() => campaignSample?.ending ?? null);
+  // A campaign that was already finished when the book opened lands on its closing page.
+  const [startOnAnswer] = useState(() => !!campaign && !campaignSample && (loadCampaign()?.outcome ?? 'playing') !== 'playing');
   const campaignBook = useCampaignBook(campaignSample, !!campaign, resolved);
   const over = campaignBook ? campaignBook.over : null;
-  // What the notebook reads: the campaign round, or her Quick case. It steps aside once the night is over.
-  const notebookBook = campaign ? (over ? null : campaignBook || null) : book || null;
+  // What the notebook reads: the campaign chapter on the pages (read-only once it can't change), or her Quick case.
+  const notebookBook = campaign ? campaignBook || null : book || null;
+  const endSave = campaignBook ? campaignBook.save : null;
+  const endCases = campaignBook ? campaignBook.cases : null;
+  const nightSteps = useMemo(() => (ending === 'replay' && endSave && endSave.outcome !== 'playing' && endCases ? nightFor(endSave, endCases) : null), [ending, endSave, endCases]);
   const night = !!campaignBook && isNightChapter(campaignBook.round);
   // Midnight and 3am use the midnight-green palette. It is a body class so a turning leaf (added to body) takes it too.
   useLayoutEffect(() => {
@@ -207,6 +224,8 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
     );
     // A sample can open on another section (the dev previews); a real book always starts on Case.
     if (startOpen && sampleSection) controls.turnTo(sampleSection);
+    // A campaign that was already finished opens on its closing page.
+    else if (startOnAnswer) controls.turnTo(2);
     turnRef.current = controls.turnTo;
     tuckRef.current = controls.tuck;
     return () => {
@@ -214,10 +233,12 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
       tuckRef.current = null;
       controls.dispose();
     };
+    // The Answer section is the third of a campaign book; `startOnAnswer` is fixed for a mounted book.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startOpen, sampleSection]);
 
   // At midnight the book turns to Answer once a chapter (the Room and Plan pages are frozen). Not while a puzzle page is open: it waits for that to close.
-  const midnight = !!campaignBook && atMidnight(campaignBook.c, campaignBook.progress);
+  const midnight = !!campaignBook && !campaignBook.readOnly && atMidnight(campaignBook.c, campaignBook.progress);
   const chapter = campaignBook ? campaignBook.round : -1;
   const held = !!campaignBook && !!campaignBook.pending;
   const turnedFor = useRef(-1);
@@ -250,9 +271,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                   <div className={styles.running}>
                     <span>{sections[0]}</span>
                   </div>
-                  {campaign && over ? (
-                    <CampaignOver verdict={over} onBack={onBack} />
-                  ) : campaign ? (
+                  {campaign ? (
                     <CampaignRoom book={campaignBook} onPuzzleOpen={setPuzzleOpen} onSubject={showSubject} initialTalk={campaignSample?.talk} talkRequest={talkRequest} />
                   ) : tone === 'fresh' && book === null ? (
                     <p className={styles.lede}>Laying out the cards…</p>
@@ -268,12 +287,14 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                       <span>{name}</span>
                     </div>
                     {campaign ? (
-                      over ? (
-                        <CampaignOver verdict={over} onBack={onBack} />
-                      ) : name === 'Plan' ? (
+                      name === 'Plan' ? (
                         <CampaignPlan book={campaignBook} height={height} onTalk={talkTo} onSubject={showSubject} />
                       ) : name === 'Answer' && campaignBook ? (
-                        <CampaignAnswer book={campaignBook} prefill={prefill} />
+                        campaignBook.over || campaignBook.readOnly ? (
+                          <CampaignOver book={campaignBook} onBack={onBack} onReplay={() => setEnding('replay')} />
+                        ) : (
+                          <CampaignAnswer book={campaignBook} prefill={prefill} />
+                        )
                       ) : (
                         <p className={styles.lede}>This page isn&apos;t drawn yet.</p>
                       )
@@ -322,8 +343,8 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
               onHeight={setHeight}
               focus={focus}
               onPage={setPageSubject}
-              onAccuse={() => { setHeight('peek'); turnRef.current?.(sections.indexOf('Answer')); }}
-              onAccuseGuest={accuseGuest}
+              onAccuse={campaignBook && campaignBook.readOnly ? undefined : () => { setHeight('peek'); turnRef.current?.(sections.indexOf('Answer')); }}
+              onAccuseGuest={campaignBook && campaignBook.readOnly ? undefined : accuseGuest}
             />
           ) : null}
         </section>
@@ -350,6 +371,8 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
         />
       ) : null}
       {scene ? <CandleScene scene={scene} onContinue={() => setScene(null)} /> : null}
+      {campaignBook && over && ending === 'scene' ? <CandleScene scene={escapedScene(campaignBook.save, campaignBook.cases[campaignBook.current])} onContinue={() => setEnding('replay')} /> : null}
+      {campaignBook && over && nightSteps && endCases && endSave ? <CampaignReplay steps={nightSteps} cases={endCases} rounds={endSave.rounds} escaped={over === 'escaped'} onClose={() => setEnding(null)} /> : null}
     </div>
   );
 }

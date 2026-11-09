@@ -1,0 +1,18 @@
+/* A chapter read back: its verdict in red pencil. Inside OpenBook's page. */
+:global(body.shelf) .red {
+  margin: 2px 0 0;
+  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1.1;
+  color: #a8322d;
+  transform: rotate(-1deg);
+}
+:global(body.shelf) .redLine {
+  margin: 0;
+  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.4;
+  color: #a8322d;
+}

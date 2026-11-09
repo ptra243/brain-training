@@ -195,6 +195,59 @@ export function campaignLater(): { save: CampaignSave; cases: Case[]; later: Lat
   return { save, cases, later: laterScene('next-body', save, cases[0].guests) };
 }
 
+/** The last round of `save` with this accusation handed in and not yet questioned (a reload finds the questioning waiting). */
+function holding(save: CampaignSave, accusation: Progress['accusations'][number]): CampaignSave {
+  const i = save.rounds.length - 1;
+  const rounds = save.rounds.slice();
+  rounds[i] = { ...rounds[i], accusations: [accusation] };
+  return { ...save, rounds };
+}
+
+/** Chapter one with the killer and the right weapon handed in and not yet questioned: the next verdict is "caught". */
+export function campaignHeldRight(): CampaignSave {
+  const save = campaignStart();
+  const c = roundCase(content, save, 0);
+  return holding(save, { suspect: c.murderer, item: c.weapon, correct: 2 });
+}
+
+/** The last chapter after two wrong accusations, with a third wrong one handed in: the next verdict is "escaped". */
+export function campaignHeldLast(): CampaignSave {
+  const save = campaignAfter(ROUNDS - 1);
+  return holding(save, wrongAccusation(roundCase(content, save, ROUNDS - 1)));
+}
+
+/** A campaign caught in chapter two (one wrong try before it), and every round built. */
+export function campaignCaught(): { save: CampaignSave; cases: Case[]; section: number } {
+  const before = campaignAfter(1);
+  const cases = [roundCase(content, before, 0), roundCase(content, before, 1)];
+  const c = cases[1];
+  const save = updateRound(before, c, { ...before.rounds[1], accusations: [{ suspect: c.murderer, item: c.weapon, correct: 2 }] }).save;
+  return { save, cases, section: 2 };
+}
+
+/** A campaign the killer escaped: three wrong accusations. The got-away scene is open from the start. */
+export function campaignEscaped(): { save: CampaignSave; cases: Case[]; section: number; ending: 'scene' } {
+  const before = campaignAfter(ROUNDS - 1);
+  const cases = [0, 1, 2].map((i) => roundCase(content, before, i));
+  const last = cases[ROUNDS - 1];
+  const save = updateRound(before, last, { ...before.rounds[ROUNDS - 1], accusations: [wrongAccusation(last)] }).save;
+  return { save, cases, section: 2, ending: 'scene' };
+}
+
+/** Chapter two, with chapter one open to read (the earlier-chapters preview). */
+export function campaignEarlier(): { save: CampaignSave; cases: Case[]; view: number } {
+  // Chapter one: one object won (so there is a finished row to open), then a wrong accusation.
+  let start = campaignStart();
+  const c0 = roundCase(content, start, 0);
+  const won = roundPuzzles(c0).objects[0];
+  start = pick(start, c0, won.kind);
+  const contents = roomContents(houseDetails, c0);
+  const at = Object.keys(contents).find((room) => contents[room].objects.some((o) => o.kind === won.kind))!;
+  const progress = { ...start.rounds[0], at, games: { [won.kind]: { status: 'won' as const, data: null } }, accusations: [wrongAccusation(c0)] };
+  const save = updateRound(start, c0, progress).save;
+  return { save, cases: [c0, roundCase(content, save, 1)], view: 0 };
+}
+
 /**
  * A "only possible killers" campaign in round 1 where one won puzzle leaves her clues pointing at fewer
  * guests than there are: the first puzzle that does, won. For the Answer page's shorter list.

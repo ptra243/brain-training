@@ -110,6 +110,17 @@ What a look check judges on each:
   a row (two lit with a glow, the third blown out with a wisp of smoke; with motion welcome its flame shrinks away first), the heading
   "X wasn't the killer", "Later that night, X is found dead. The killer is still among the guests, and you have 2 accusations left."
   and a gold "On to midnight" button (48px). Continue, Back and Escape close it; no sideways scroll.
+- `shelf-campaign-caught`: the campaign book after the killer was caught in chapter two (midnight palette), turned to its closing page:
+  "The answer / Case closed", one crossed-out red line for chapter one, "It was X in the Y, with the Z." with the names in the Caveat hand,
+  "Solved in 2 accusations.", the effort line, a secondary "See the night again" and the red "Back to the shelf" (both 48px); the notebook
+  strip at the foot with no Accuse buttons; no sideways scroll.
+- `shelf-campaign-escaped`: the got-away scene on the dark table: three candles all out (the first just blown out, a short fade), "The killer
+  got away", "X was the third body. By dawn, Y was gone, with the Z." and a gold "See the case" button (48px). Back, Escape and the button go on
+  to the night's replay.
+- `shelf-campaign-earlier`: chapter two with chapter one open to read (the Room page, honey oak): title "Chapter one: 9pm", a "Chapters" list of
+  two 44px buttons (the one on the pages outlined in red, "tonight" under the other), the line "You are reading an earlier chapter" with a
+  "Back to tonight" button, two candles lit and one out as chapter one stood, guests as plain names (no Talk), no Walk to; only finished
+  objects are open. Answer shows "9pm: the wrong person" and the verdict line in red pencil.
 - `shelf-new-case`: the New case book on a fresh sample Play case (fixed seed, nothing saved), opening not yet seen: the
   body line, the story paragraph and the button that goes on to Find a clue; notebook strip at the foot; no sideways
   scroll. The real book builds its case when opened ("Laying out the cards…" until it arrives).

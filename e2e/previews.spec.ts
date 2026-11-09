@@ -329,6 +329,34 @@ test('shelf-campaign-question preview', async ({ page }) => {
   await checkScreen(page, 'preview shelf-campaign-question');
 });
 
+test('shelf-campaign-caught preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-campaign-caught');
+  const over = page.getByTestId('night-over');
+  await expect(over).toBeVisible();
+  await expect(over.getByText('Case closed')).toBeVisible();
+  await expect(over.getByTestId('closing-effort')).toBeVisible();
+  await expect(over.getByRole('button', { name: 'See the night again' })).toBeVisible();
+  await checkScreen(page, 'preview shelf-campaign-caught');
+});
+
+test('shelf-campaign-escaped preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-campaign-escaped');
+  const scene = page.getByTestId('escaped-scene');
+  await expect(scene).toBeVisible();
+  await expect(scene.getByRole('heading', { name: 'The killer got away' })).toBeVisible();
+  await expect(scene.getByRole('img', { name: 'No accusations left' })).toBeVisible();
+  await expect(scene.getByRole('button', { name: 'See the case' })).toBeVisible();
+  await checkScreen(page, 'preview shelf-campaign-escaped');
+});
+
+test('shelf-campaign-earlier preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-campaign-earlier');
+  await expect(page.getByRole('heading', { name: 'Chapter one: 9pm' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Chapters' }).getByRole('button')).toHaveCount(2);
+  await expect(page.getByRole('button', { name: 'Back to tonight' })).toBeVisible();
+  await checkScreen(page, 'preview shelf-campaign-earlier');
+});
+
 test('shelf-campaign-later preview', async ({ page }) => {
   await page.goto('/#dev/shelf-campaign-later');
   const later = page.getByTestId('later-scene');

@@ -91,11 +91,17 @@ export function CampaignRoom({ book, onPuzzleOpen, onSubject, initialTalk, talkR
   const mine = contents[here];
   const midnight = atMidnight(book.c, progress);
   const ref = `${book.save.ref.code}-${book.round}`;
-  const rows = roomRows(book.c, progress, ref, mine.objects, book.picked, book.left);
-  const left = accusationsLeft(book.save.victims.length);
+  const { readOnly } = book;
+  // A chapter she can only read: only finished objects open (to their won pages), and nothing spends a pick.
+  const rows = roomRows(book.c, progress, ref, mine.objects, book.picked, book.left).map((r) => (readOnly && !r.row.done ? { ...r, enabled: false, line: 'Not finished' } : r));
+  // The candles as that chapter stood: an earlier one had as many bodies as its number; the current one as the save says.
+  const left = accusationsLeft(book.round < book.current ? book.round : book.save.victims.length);
   const open = (kind: GameKind) => {
-    if (!book.picked.includes(kind) && !rows.find((r) => r.kind === kind)?.row.done) book.onPick(kind);
-    setPicked(kind);
+    if (readOnly) setPicked(kind);
+    else {
+      if (!book.picked.includes(kind) && !rows.find((r) => r.kind === kind)?.row.done) book.onPick(kind);
+      setPicked(kind);
+    }
   };
   // A guest's questioning game is not one of the room's objects, so its row comes from the whole case.
   const allRows = clueRows(book.c, progress, ref);
@@ -116,6 +122,25 @@ export function CampaignRoom({ book, onPuzzleOpen, onSubject, initialTalk, talkR
           </div>
         </header>
 
+        {book.current > 0 ? (
+          <nav className={styles.contents} aria-label="Chapters">
+            {Array.from({ length: book.current + 1 }, (_, i) => (
+              <button key={i} type="button" className={styles.chapterBtn} aria-current={i === book.round ? 'true' : undefined} onClick={() => book.showChapter(i)}>
+                {chapterTitle(i)}
+                {i === book.current ? <small>{book.over ? 'last' : 'tonight'}</small> : null}
+              </button>
+            ))}
+          </nav>
+        ) : null}
+        {book.round < book.current ? (
+          <p className={styles.reading}>
+            You are reading an earlier chapter. Nothing in it can change.{' '}
+            <button type="button" onClick={() => book.showChapter(book.current)}>
+              {book.over ? 'Back to the last chapter' : 'Back to tonight'}
+            </button>
+          </p>
+        ) : null}
+
         {book.round > 0 ? <p className={styles.look}>{victimLine(book.c)}</p> : null}
         <h2 className={styles.here}>{roomLine(roomName(here))}</h2>
         {mine.looks.map((line) => (
@@ -131,10 +156,14 @@ export function CampaignRoom({ book, onPuzzleOpen, onSubject, initialTalk, talkR
             <ul className={styles.people}>
               {mine.guests.map((s) => (
                 <li key={s}>
-                  <button type="button" disabled={midnight} onClick={() => setTalking(s)}>
-                    <span className={styles.who}>{suspectName(s, book.c.guests)}</span>
-                    <span className={styles.talk}>{guestLine(personGame(book.c, progress, s, book.picked, book.left))}</span>
-                  </button>
+                  {readOnly ? (
+                    <span className={styles.still}>{suspectName(s, book.c.guests)}</span>
+                  ) : (
+                    <button type="button" disabled={midnight} onClick={() => setTalking(s)}>
+                      <span className={styles.who}>{suspectName(s, book.c.guests)}</span>
+                      <span className={styles.talk}>{guestLine(personGame(book.c, progress, s, book.picked, book.left))}</span>
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -152,19 +181,23 @@ export function CampaignRoom({ book, onPuzzleOpen, onSubject, initialTalk, talkR
           </>
         ) : null}
 
-        <h3 className={styles.sub}>Walk to</h3>
-        <ul className={styles.walk}>
-          {walkTargets(book.c, here).map((room) => (
-            <li key={room}>
-              <button type="button" disabled={midnight} onClick={() => dispatch({ type: 'move', room })}>
-                {roomName(room)}
-              </button>
-            </li>
-          ))}
-        </ul>
-        <p className={styles.note}>{midnight ? "It's midnight. There's no time left to look around." : 'No time taken.'}</p>
+        {readOnly ? null : (
+          <>
+            <h3 className={styles.sub}>Walk to</h3>
+            <ul className={styles.walk}>
+              {walkTargets(book.c, here).map((room) => (
+                <li key={room}>
+                  <button type="button" disabled={midnight} onClick={() => dispatch({ type: 'move', room })}>
+                    {roomName(room)}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        <p className={styles.note}>{readOnly ? 'Nothing here can change now.' : midnight ? "It's midnight. There's no time left to look around." : 'No time taken.'}</p>
       </div>
-      {talking && !midnight ? (
+      {talking && !midnight && !readOnly ? (
         <TalkSpread
           c={book.c}
           progress={progress}

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { content, houseDetails } from '../src/content/index.ts';
-import { campaignHeld, campaignMidnight, campaignPossibleOnly, campaignStart } from '../src/dev/scenarios.ts';
+import { campaignCaught, campaignEarlier, campaignHeld, campaignHeldLast, campaignHeldRight, campaignMidnight, campaignPossibleOnly, campaignStart } from '../src/dev/scenarios.ts';
 import { roomContents } from '../src/game/explore.ts';
 import { roundCase } from '../src/game/campaignSave.ts';
 import { roomName, suspectName } from '../src/game/names.ts';
@@ -13,6 +13,7 @@ import { expect, test } from './fixtures.ts';
 const PREFIX = /const PREFIX = '([^']+)'/.exec(readFileSync(new URL('../src/game/storage.ts', import.meta.url), 'utf8'))?.[1];
 if (!PREFIX) throw new Error('No PREFIX in src/game/storage.ts');
 const KEY = `${PREFIX}campaign`;
+const HISTORY_KEY = `${PREFIX}history`;
 
 const start = campaignStart();
 const c = roundCase(content, start, 0);
@@ -150,7 +151,7 @@ async function openCampaign(page: import('@playwright/test').Page, value: unknow
     { key: KEY, value: JSON.stringify(value) },
   );
   await page.goto('/#shelf');
-  await page.getByRole('link', { name: /Your campaign, .*: continue/ }).click();
+  await page.getByRole('link', { name: /Your campaign(, .*: continue|: finished)/ }).click();
 }
 
 async function turnToAnswer(page: import('@playwright/test').Page) {
@@ -234,4 +235,120 @@ test('at midnight the book opens on Answer and says why', async ({ page }) => {
   await openCampaign(page, campaignMidnight());
   await expect(page.getByRole('region', { name: /: Answer$/ })).toBeVisible();
   await expect(page.getByText('Time is up, and you must name someone now.')).toBeVisible();
+});
+
+// The endings: caught plays the night once, then the closing page; escaped shows the got-away scene first.
+test('catching the killer: the verdict, the night replay, the closing page; a reload skips the replay', async ({ page }) => {
+  await openCampaign(page, campaignHeldRight());
+  const spread = page.getByTestId('question-spread');
+  await expect(spread).toBeVisible();
+  await spread.getByRole('button', { name: 'Skip to the verdict' }).click();
+
+  const night = page.getByTestId('night-replay');
+  await expect(night).toBeVisible();
+  await night.getByRole('button', { name: 'Skip' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Skip' }).click();
+  await expect(night).toHaveCount(0);
+
+  const over = page.getByTestId('night-over');
+  await expect(over).toBeVisible();
+  await expect(over.getByText('Case closed')).toBeVisible();
+  await expect(over.getByText(/^Solved (on the first accusation|in \d+ accusations)\.$/)).toBeVisible();
+  await expect(over.getByTestId('closing-effort')).toBeVisible();
+  await checkScreen(page, 'shelf campaign caught');
+  // The notebook is back, and has no Accuse button to press.
+  await expect(page.getByRole('button', { name: /^Accuse/ })).toHaveCount(0);
+  // The run is in the history at once.
+  const history = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!), HISTORY_KEY);
+  expect(history.campaign).toHaveLength(1);
+
+  // Replay it again, and close it with Back.
+  await over.getByRole('button', { name: 'See the night again' }).click();
+  await expect(night).toBeVisible();
+  await page.goBack();
+  await expect(night).toHaveCount(0);
+
+  // A reload lands on the closing page with no replay.
+  await page.reload();
+  await page.getByRole('link', { name: 'Your campaign: finished' }).click();
+  await expect(page.getByTestId('night-over')).toBeVisible();
+  await expect(night).toHaveCount(0);
+  await expect(page.getByRole('region', { name: /: Answer$/ })).toBeVisible();
+});
+
+test('the killer escapes: the got-away scene, See the case, the replay, then the closing page', async ({ page }) => {
+  await openCampaign(page, campaignHeldLast());
+  const spread = page.getByTestId('question-spread');
+  await expect(spread).toBeVisible();
+  await spread.getByRole('button', { name: 'Skip to the verdict' }).click();
+
+  const scene = page.getByTestId('escaped-scene');
+  await expect(scene).toBeVisible();
+  await expect(scene.getByRole('heading', { name: 'The killer got away' })).toBeVisible();
+  await expect(scene.getByText(/was the third body\. By dawn, .* was gone, with the /)).toBeVisible();
+  await scene.getByRole('button', { name: 'See the case' }).click();
+
+  const night = page.getByTestId('night-replay');
+  await expect(night).toBeVisible();
+  await night.getByRole('button', { name: 'Skip' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Skip' }).click();
+
+  const over = page.getByTestId('night-over');
+  await expect(over.getByText('The killer got away').first()).toBeVisible();
+  await expect(over.getByText(/^It was .*, with the /)).toBeVisible();
+  await expect(over.getByText('Three wrong guesses, and by dawn they were gone.')).toBeVisible();
+  await expect(over.getByTestId('closing-effort')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Chapter three: 3am' })).toBeVisible();
+  await over.getByRole('button', { name: 'Back to the shelf' }).click();
+  await expect(page.getByRole('link', { name: 'Your campaign: finished' })).toBeVisible();
+});
+
+test("a finished campaign's Room is read-only", async ({ page }) => {
+  await openCampaign(page, campaignCaught().save);
+  await expect(page.getByTestId('night-over')).toBeVisible();
+  await expect(page.getByRole('region', { name: /: Answer$/ })).toBeVisible();
+  // The page turn takes about half a second; a tap during it is ignored by the book.
+  await page.waitForTimeout(800);
+  await page.getByRole('button', { name: 'Show the ribbons' }).click();
+  await page.getByRole('button', { name: 'Room', exact: true }).click();
+  await expect(page.getByRole('region', { name: /: Room$/ })).toBeVisible();
+  await expect(page.getByText('Walk to')).toHaveCount(0);
+  await expect(page.getByRole('img', { name: /accusations? left$|No accusations left/ })).toBeVisible();
+});
+
+// Earlier chapters, read-only, from the contents list.
+test('an earlier chapter: its verdict, a done row opens, nothing is saved, and Back to tonight returns', async ({ page }) => {
+  await openCampaign(page, campaignEarlier().save);
+  await expect(page.getByRole('heading', { name: 'Chapter two: Midnight' })).toBeVisible();
+  const before = await page.evaluate((key) => localStorage.getItem(key), KEY);
+
+  const list = page.getByRole('navigation', { name: 'Chapters' });
+  await list.getByRole('button', { name: /^Chapter one/ }).click();
+  await expect(page.getByRole('heading', { name: 'Chapter one: 9pm' })).toBeVisible();
+  await expect(page.getByText('Walk to')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Back to tonight' })).toBeVisible();
+  await checkScreen(page, 'shelf campaign earlier chapter');
+
+  // Its Answer page is the verdict line for that chapter.
+  await page.getByRole('button', { name: 'Show the ribbons' }).click();
+  await page.getByRole('button', { name: 'Answer' }).click();
+  const verdict = page.getByTestId('earlier-verdict');
+  await expect(verdict).toBeVisible();
+  await page.waitForTimeout(800);
+  await expect(verdict.getByText('9pm: the wrong person')).toBeVisible();
+  await expect(verdict.getByText(/^You accused .*next body\.$/)).toBeVisible();
+  await page.getByRole('button', { name: 'Show the ribbons' }).click();
+  await page.getByRole('button', { name: 'Room', exact: true }).click();
+  await expect(page.getByRole('region', { name: /: Room$/ })).toBeVisible();
+
+  // A finished row opens its page and closes again; the save is untouched.
+  await page.getByRole('button', { name: /, won$/ }).first().click();
+  await expect(page.getByTestId('puzzle-page')).toBeVisible();
+  await page.getByTestId('puzzle-page').getByRole('button', { name: /^Turn back to/ }).first().click();
+  await expect(page.getByTestId('puzzle-page')).toHaveCount(0);
+  expect(await page.evaluate((key) => localStorage.getItem(key), KEY)).toBe(before);
+
+  await page.getByRole('button', { name: 'Back to tonight' }).click();
+  await expect(page.getByRole('heading', { name: 'Chapter two: Midnight' })).toBeVisible();
+  await expect(page.getByText('Walk to')).toBeVisible();
 });

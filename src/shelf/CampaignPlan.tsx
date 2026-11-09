@@ -28,7 +28,8 @@ export function CampaignPlan({ book, height, onTalk, onSubject }: Props) {
   const contents = useMemo(() => (c ? roomContents(houseDetails, c) : null), [c]);
   if (!book || !c || !contents) return null;
   const here = whereAmI(c, book.progress);
-  const frozen = atMidnight(c, book.progress);
+  // A chapter she can only read is as frozen as midnight: no walking, no talking (a guest still opens their notebook page).
+  const frozen = book.readOnly || atMidnight(c, book.progress);
   const house = houseOf(c);
   return (
     <div className={styles.scroll} data-testid="campaign-plan">
@@ -37,7 +38,7 @@ export function CampaignPlan({ book, height, onTalk, onSubject }: Props) {
         <em>The house tonight</em>
       </p>
       <div className={styles.plate}>
-        <p className="hint">{frozen ? "It's midnight. There's no time left to look around." : 'Tap a room to walk there. A red mark means something to do.'}</p>
+        <p className="hint">{book.readOnly ? 'This chapter is over. Nothing here can change now.' : frozen ? "It's midnight. There's no time left to look around." : 'Tap a room to walk there. A red mark means something to do.'}</p>
         <ExploreFloor
           c={c}
           progress={book.progress}
@@ -49,7 +50,7 @@ export function CampaignPlan({ book, height, onTalk, onSubject }: Props) {
           frozen={frozen}
           onWalk={(room) => book.dispatch({ type: 'move', room })}
           onPerson={(id) => {
-            if (contents[here].guests.includes(id)) onTalk(id);
+            if (!book.readOnly && contents[here].guests.includes(id)) onTalk(id);
             else onSubject({ kind: 'suspect', id });
           }}
         />

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { ROUNDS } from '../engine/campaign.ts';
 import { candleLabel } from './campaignBook.ts';
 import type { LaterScene } from './campaignAnswer.ts';
+import type { EndScene } from './campaignEnd.ts';
 import styles from './CandleScene.module.css';
 import { trapTab } from './focusTrap.ts';
 import { useBackLayer } from './useBackLayer.ts';
@@ -26,7 +27,7 @@ function Candle({ state }: { state: 'lit' | 'going' | 'out' }) {
  * motion it is simply out), the body that was found and what is left. Full screen over the book. Continue,
  * Back and Escape all close it: the book is then on the next chapter.
  */
-export function CandleScene({ scene, onContinue }: { scene: LaterScene; onContinue: () => void }) {
+export function CandleScene({ scene, onContinue }: { scene: LaterScene | EndScene; onContinue: () => void }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const goRef = useRef<HTMLButtonElement>(null);
   useBackLayer(true, onContinue);
@@ -43,7 +44,7 @@ export function CandleScene({ scene, onContinue }: { scene: LaterScene; onContin
     };
   }, []);
   return createPortal(
-    <div ref={rootRef} className={styles.table} role="dialog" aria-modal="true" aria-labelledby="later-title" tabIndex={-1} data-testid="later-scene">
+    <div ref={rootRef} className={styles.table} role="dialog" aria-modal="true" aria-labelledby="later-title" tabIndex={-1} data-testid={scene.kind === 'escaped' ? 'escaped-scene' : 'later-scene'}>
       <div className={styles.column}>
         <div className={styles.candles} role="img" aria-label={candleLabel(scene.lit)}>
           {Array.from({ length: ROUNDS }, (_, i) => (
@@ -55,7 +56,7 @@ export function CandleScene({ scene, onContinue }: { scene: LaterScene; onContin
         </h2>
         <p className={styles.text}>{scene.text}</p>
         <button ref={goRef} type="button" className={styles.go} onClick={onContinue}>
-          On to {scene.nextTime}
+          {'button' in scene ? scene.button : `On to ${scene.nextTime}`}
         </button>
       </div>
     </div>,
