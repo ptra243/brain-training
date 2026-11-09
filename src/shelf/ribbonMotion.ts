@@ -158,7 +158,11 @@ export function attachRibbons(els: RibbonElements, cls: RibbonClasses, opts: Rib
       .catch(() => {});
   }
 
+  // A pull on the ribbons while a leaf is turning; they drop when the turn lands.
+  let dropQueued = false;
+
   function drop() {
+    if (busy) dropQueued = true;
     if (open || busy) return;
     open = true;
     opts.onDropped?.(true);
@@ -266,8 +270,11 @@ export function attachRibbons(els: RibbonElements, cls: RibbonClasses, opts: Rib
   function landed() {
     busy = false;
     const next = queued;
+    const pulled = dropQueued;
     queued = null;
+    dropQueued = false;
     if (next !== null) turnTo(next);
+    else if (pulled) drop();
   }
 
   function turnTo(i: number) {
