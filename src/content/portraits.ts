@@ -34,7 +34,7 @@ export const portraits: Record<string, PortraitParts> = {
   host: {
     skin: '#f0cfae',
     hair: { style: 'side-part-beard', colour: '#5b5e63' },
-    costume: { style: 'shawl-jacket', main: '#2f5a43', trim: '#e0d3ac' },
+    costume: { style: 'notch-jacket-open-shirt', main: '#2f5a43', trim: '#f2efe8' },
     accent: { style: 'pocket-square', colour: '#d4a93c' },
     background: ['#5a2228', '#6f3037'],
   },
@@ -59,7 +59,7 @@ export const portraits: Record<string, PortraitParts> = {
     costume: { style: 'cape', main: '#1c1c24', trim: '#b02a37' },
     accent: { style: 'bow-tie', colour: '#f4f0e4' },
     background: ['#1f4a4c', '#2d5f61'],
-    crop: [15, 0, 70, 70],
+    crop: [15, 5, 70, 70],
   },
   housekeeper: {
     skin: '#f0d2bc',
@@ -102,8 +102,39 @@ export const portraits: Record<string, PortraitParts> = {
     costume: { style: 'blouse-bow-jacket', main: '#4a5666', trim: '#f4f0e4' },
     accent: { style: 'brooch', colour: '#c4c9cf' },
     background: ['#8a7aa0', '#9f8fb5'],
-    crop: [15, 4, 70, 70],
+    crop: [15, 9, 70, 70],
   },
+};
+
+/**
+ * Looks a guest no longer uses, kept so they can come back. When a guest's look is replaced,
+ * move the old `portraits` entry here (newest first) with the date and the reason.
+ */
+export type EarlierLook = { name: string; parts: PortraitParts; replaced: string; why: string };
+export const earlierPortraits: Record<string, readonly EarlierLook[]> = {
+  host: [
+    {
+      name: 'Smoking jacket',
+      parts: {
+        skin: '#f0cfae',
+        hair: { style: 'side-part-beard', colour: '#5b5e63' },
+        costume: { style: 'shawl-jacket', main: '#2f5a43', trim: '#e0d3ac' },
+        accent: { style: 'pocket-square', colour: '#d4a93c' },
+        background: ['#5a2228', '#6f3037'],
+      },
+      replaced: '2026-11-04',
+      why: 'The setting is modern; the smoking jacket and cravat read as a period costume.',
+    },
+  ],
+};
+
+/**
+ * Full-body standees (dev gallery for now): what a guest wears below the portrait. The head, hair,
+ * torso, accents and colours come from `portraits[id]`; style ids live in `src/game/standee.ts`.
+ */
+export type StandeeParts = { pose: string; jacket: string; trousers: { style: string; colour: string }; shoes: string };
+export const standees: Record<string, StandeeParts> = {
+  host: { pose: 'hands-on-hips', jacket: 'hip-jacket-one-button', trousers: { style: 'straight', colour: '#26282d' }, shoes: '#141416' },
 };
 
 /** The player uses the guests' model. */

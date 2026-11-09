@@ -303,6 +303,9 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
 .pg-counter { display: block; border: 3px solid var(--brass); border-radius: 50%; overflow: hidden; background: var(--card-edge); }
 .pg-big { width: 52px; height: 52px; }
 .pg-small { width: 32px; height: 32px; border-width: 2px; }
+.pg-muted, .pg-why { color: #666; font-size: 0.8rem; margin: 0; }
+.pg-why { font-family: var(--sans); font-size: 0.7rem; text-align: center; }
+.pg-card .pg-why { grid-column: 1 / -1; }
 .pg-large { width: 150px; height: 180px; border: 1px solid var(--card-edge); border-radius: 0.4rem; overflow: hidden; background: var(--card); padding: 0.3rem; }
 
 /* ---------- Clues: tonight's puzzles ---------- */

@@ -192,7 +192,8 @@ What a look check judges on each:
   first (serif title, handwritten lines on ruled paper); a solved or caught run ends with the killer's name signed larger and
   slightly tilted, an escaped campaign with "left before dessert" in red; "Back to the shelf" link at the top (44px+). Empty:
   "No one has signed yet." Nothing clipped, no sideways scroll at 360px.
-- `portraits`: the portrait gallery on its own (light dev page).
+- `portraits`: the art gallery on its own (light dev page; `docs/art-guide.md`): the guest portraits, earlier looks
+  (replaced ones, with date and reason), the sub-sections, and placeholder sections for standees, room plates and props.
 - `dogfight`: the dog fight board in each state, with a cat helper picker
   (light dev page).
 - `cases` (not a preview): the case inspector.

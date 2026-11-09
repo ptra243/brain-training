@@ -6,7 +6,8 @@ Related: `docs/tell-me-again.md` (the minigame that uses the tangent lines).
 ## Premise
 Superseded in part by `docs/story.md` (2026-10-29): the weekend is the family chocolate company's 50th, and
 the Host announces at breakfast whether it goes to an heir or is sold. Each guest's reason to be there is there.
-A dinner party at a large estate. Time period agnostic: no phones, modern slang, dates or named events.
+A dinner party at a large estate. Modern day (decided 2026-11-04): phones, laptops and chargers are fine,
+and costumes are modern (`docs/art-guide.md`). Still no slang that dates it, and no real dates or named events.
 The murder happens after dinner. Everyone is staying over because of the weather, so nobody came or went:
 one of the guests did it. After dinner the guests drift into different rooms, holding different things.
 Chosen 2026-10-22: the 10-guest cast, its bios and the drafted line pools are in `src/content/`

@@ -61,7 +61,10 @@ export const faceShapes = (t: SkinTones): Shape[] => [
   poly('40,34 54,30 60,40 58,56 50,64 42,60 38,48', t.lit),
   poly('54,30 62,34 64,46 58,56 60,40', t.shadow),
   poly('50,64 58,56 57,64', t.chin),
-  poly('46,44 43,52 48,52', t.nose),
+  // nose: bridge, shadow side, tip
+  poly('48,42 49.5,42 48,51 46,51', shade(t.lit, 1.06)),
+  poly('49.5,42 53,51 50,52.5 48,51', t.nose),
+  poly('48,51 50,52.5 47,52.5', t.chin),
 ];
 /** Body group: neck and its shadow. Drawn before the costume. */
 export const neckShapes = (t: SkinTones): Shape[] => [
@@ -296,6 +299,23 @@ export const costumeStyles: Record<string, CostumeFn> = {
     poly('46,84 56,82 58,92 52,100 46,92', trim),
     poly('52,100 58,92 54,102', shade(trim, 0.75)),
     poly('48,106 56,104 58,110 50,114', shade(m, 1.15)),
+  ],
+  // A modern dinner jacket with notch lapels over an open-collar shirt (trim = shirt colour).
+  'notch-jacket-open-shirt': (m, shirt, t) => [
+    poly('12,120 20,98 40,86 46,100 44,120', m),
+    poly('20,98 40,86 30,108', shade(m, 1.3)),
+    poly('50,120 54,100 60,86 80,96 88,120', shade(m, 0.6)),
+    poly('41,85 61,84 58,120 46,120', shirt),
+    poly('52,96 61,84 58,120 52,120', shade(shirt, 0.86)),
+    poly('46,84 57,83 52,97', t.chest),
+    poly('46,84 51,84 52,97', t.neckShade),
+    poly('40,85 46,84 50,95 39,93', shirt),
+    poly('57,83 62,85 64,93 54,95', shade(shirt, 0.8)),
+    poly('36,88 40,86 41,93 37,94', shade(m, 1.5)),
+    poly('37,96 42,95 52,120 46,120 35,103', shade(m, 1.45)),
+    poly('37,96 42,95 39,101', shade(m, 1.9)),
+    poly('62,86 66,88 66,94 62,94', shade(m, 0.8)),
+    poly('61,96 67,97 69,104 56,120 52,120', shade(m, 0.85)),
   ],
   cape: (m, trim) => [
     poly('8,120 14,98 30,84 46,90 46,120', m),

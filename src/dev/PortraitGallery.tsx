@@ -1,9 +1,11 @@
-// The #dev/portraits gallery of the faceted portraits (docs/portraits.md): cards, counters,
-// the three mood tints, the large view, the player and the cat coats.
+// The #dev/portraits art gallery (docs/art-guide.md, docs/portraits.md): the guest portraits, earlier
+// looks kept in earlierPortraits, the mood tints, large view, player, cat coats and dog, then
+// placeholder sections for standees, room plates and props that are not drawn yet.
 
 import { cats } from '../content/index.ts';
-import { catCoats, dogCoat, playerPortrait, portraits } from '../content/portraits.ts';
+import { catCoats, dogCoat, earlierPortraits, playerPortrait, portraits, standees } from '../content/portraits.ts';
 import { Portrait } from '../game/Portrait.tsx';
+import { Standee } from '../game/Standee.tsx';
 
 const roleName = (id: string) => {
   const words = id.replace(/-/g, ' ');
@@ -21,6 +23,7 @@ function Counters({ children }: { children: (size: 'big' | 'small') => React.Rea
 
 export function PortraitGallery() {
   const ids = Object.keys(portraits);
+  const earlier = Object.entries(earlierPortraits).flatMap(([id, looks]) => looks.map((look) => ({ id, look })));
   return (
     <section className="pg">
       <h2>Portraits</h2>
@@ -35,6 +38,24 @@ export function PortraitGallery() {
           </figure>
         ))}
       </div>
+
+      <h2>Earlier looks</h2>
+      {earlier.length === 0 ? (
+        <p className="pg-muted">None yet: a replaced look moves here.</p>
+      ) : (
+        <div className="pg-grid">
+          {earlier.map(({ id, look }) => (
+            <figure key={`${id}/${look.name}`} className="pg-card">
+              <div className="pg-art">
+                <Portrait parts={look.parts} view="full" label={`${roleName(id)}, ${look.name}`} />
+              </div>
+              <figcaption>{roleName(id)} — {look.name}</figcaption>
+              <Counters>{() => <Portrait parts={look.parts} view="counter" />}</Counters>
+              <p className="pg-why">Replaced {look.replaced}: {look.why}</p>
+            </figure>
+          ))}
+        </div>
+      )}
 
       <h3>Mood tints (hostile, none, warm)</h3>
       <div className="pg-row">
@@ -97,6 +118,25 @@ export function PortraitGallery() {
           </figure>
         ))}
       </div>
+
+      <h2>Standees (full body)</h2>
+      <p className="pg-muted">Frame 160 × 240; poses with elbows out use the full width.</p>
+      <div className="pg-row">
+        {Object.entries(standees).map(([id, standee]) => (
+          <figure key={id} className="pg-card">
+            <div style={{ width: 160, height: 240, background: 'var(--card-edge)' }}>
+              <Standee parts={portraits[id]} standee={standee} label={roleName(id)} />
+            </div>
+            <figcaption>{roleName(id)}</figcaption>
+          </figure>
+        ))}
+      </div>
+
+      <h2>Room plates</h2>
+      <p className="pg-muted">Not drawn yet. Frame 360 × 220 at phone width, straight-on view, the room's tint.</p>
+
+      <h2>Props</h2>
+      <p className="pg-muted">Not drawn yet. Line icons, 34 × 34 viewBox like the shelf labels.</p>
     </section>
   );
 }

@@ -1,5 +1,9 @@
 # Character portraits
 
+Part of the art guide (`docs/art-guide.md`): it holds the rules for every art type, the current cast,
+and the pipeline for changing a look. The first-pass guest table below is out of date for the Fixer,
+Investor, Lawyer and Elder heir (see the guide's Cast).
+
 Decided 2026-10-22 with the owner, from mockups on the canvas
 https://claude.ai/artifact/KawPqx6XDKshtWkMVBbAQV (the "Faceted, three-quarter" board is the chosen
 one; its SVG source is the reference drawing).
@@ -68,10 +72,13 @@ change.
 
 - **Frame:** `viewBox 0 0 100 120`. Layers, back to front: background (two tones, one diagonal lighter
   half), hair back, body group, head group, front accents. The body group is
-  `translate(-10,0) scale(1.2,1)`, the head group `translate(-12.5,-7) scale(1.25)`, as in the
+  `translate(-10,0) scale(1.2,1)`, the head group `translate(-12.5,-2) scale(1.25)` (5 lower than the
+mockup since 2026-11-04, for a shorter neck; counter crops moved down with it), as in the
   mockup; parts are drawn in the untransformed coordinates. Head and body stay separate groups (head
   tilt later).
-- **Base figure** (code): face lit plane, shadow plane, chin shadow, nose facet; neck and neck shadow;
+- **Base figure** (code): face lit plane, shadow plane, chin shadow, nose (since 2026-11-04 a thin lit
+  bridge, a shadow side and a small tip, just left of the face's centre because the head is turned slightly
+  to the viewer's left); neck and neck shadow;
   left (lit) and right (shadow) shoulder blocks in the costume colour.
 - **Per-guest data** (`src/content/portraits.ts`): `skin`, `hair {style, colour}`,
   `headwear? {style, colour}`, `costume {style, main, trim}`, `accent? {style, colour}`,
@@ -89,7 +96,7 @@ change.
 
 | Guest | Hair / headwear | Costume | Accent | Background |
 |---|---|---|---|---|
-| Host | short dark grey, side parting; full short beard | bottle-green smoking jacket, quilted shawl lapels, cravat | gold pocket square | oxblood |
+| Host | short dark grey, side parting; full short beard | bottle-green velvet dinner jacket, notch lapels, open-collar white shirt (2026-11-04; the smoking jacket and cravat are an earlier look) | gold pocket square | oxblood |
 | Hostess | dark updo | burgundy gown, gold sash | pearl necklace, one pearl earring | plum brown, lighter than the mockup so the updo shows |
 | Butler | short grey | black tailcoat, white shirt front | bow tie | stone (mockup) |
 | Conjurer | slick black; tall top hat | black cape with red lining, white tie | red lining at the collar | deep teal |
