@@ -14,6 +14,7 @@ import type { ClueRow } from './findAClue.ts';
 import { labelAngle, labelName } from './labels.ts';
 import { PuzzleLabel } from './PuzzleLabel.tsx';
 import styles from './TalkSpread.module.css';
+import { trapTab } from './focusTrap.ts';
 import { useBackLayer } from './useBackLayer.ts';
 
 type Tab = 'talk' | 'minigame' | 'clues';
@@ -48,6 +49,7 @@ interface Props {
 export function TalkSpread({ c, progress, dispatch, person, picked, left, gameRow, caseRef, onClose, onPlay, onClues }: Props) {
   const [tab, setTab] = useState<Tab>('talk');
   const closeRef = useRef<HTMLButtonElement>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
   const name = suspectName(person, c.guests);
   const tint = moodTint(setsFor(c)[person], progress.talk?.[person] ?? 0, setsFor(c)[person].greetings);
   const game = personGame(c, progress, person, picked, left);
@@ -55,14 +57,21 @@ export function TalkSpread({ c, progress, dispatch, person, picked, left, gameRo
   useBackLayer(true, onClose);
   const close = useEffectEvent(() => onClose());
   useEffect(() => {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     closeRef.current?.focus({ preventScroll: true });
+    const untrap = tableRef.current ? trapTab(tableRef.current) : undefined;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      untrap?.();
+      // Back to the guest button that opened it (a puzzle page that opens next takes focus after this).
+      if (opener?.isConnected) opener.focus({ preventScroll: true });
+    };
   }, []);
 
   return createPortal(
-    <div className={styles.table} role="dialog" aria-modal="true" aria-labelledby="talk-spread-title" data-testid="talk-spread">
+    <div ref={tableRef} className={styles.table} role="dialog" aria-modal="true" aria-labelledby="talk-spread-title" data-testid="talk-spread">
       <div className={styles.column}>
         <header className={styles.head}>
           <h2 id="talk-spread-title" className={styles.title}>

@@ -111,7 +111,7 @@ export function ExploreFloor({ c, progress, house, contents, here, picked, left,
               <button
                 key={spot.id}
                 type="button"
-                className={`map-person${faceClass(spot.id)}`}
+                className="map-hit"
                 style={{ ...pct(spot.r, spot.col), '--counter': suspectColour(spot.id) } as CSSProperties}
                 aria-label={inRoom ? `Talk to ${name}` : `Clues about ${name}`}
                 disabled={frozen}
@@ -120,7 +120,9 @@ export function ExploreFloor({ c, progress, house, contents, here, picked, left,
                   onPerson(spot.id);
                 }}
               >
-                <SuspectCounterFace id={spot.id} guests={guests} />
+                <span className={`map-person${faceClass(spot.id)}`}>
+                  <SuspectCounterFace id={spot.id} guests={guests} />
+                </span>
               </button>
             );
           });

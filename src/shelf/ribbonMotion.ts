@@ -261,8 +261,20 @@ export function attachRibbons(els: RibbonElements, cls: RibbonClasses, opts: Rib
 
   const leavesInFlight = new Set<HTMLElement>();
 
+  // The latest section asked for while a leaf was turning; it runs when that turn lands.
+  let queued: number | null = null;
+  function landed() {
+    busy = false;
+    const next = queued;
+    queued = null;
+    if (next !== null) turnTo(next);
+  }
+
   function turnTo(i: number) {
-    if (busy) return;
+    if (busy) {
+      queued = i === cur ? null : i;
+      return;
+    }
     const dir = turnDirection(cur, i);
     if (dir === 'stay') return tuck();
     busy = true;
@@ -282,7 +294,7 @@ export function attachRibbons(els: RibbonElements, cls: RibbonClasses, opts: Rib
       to.animate([{ opacity: 0 }, { opacity: 1 }], { duration: S.fade, easing: 'ease-out' }).finished.then(() => {
         from.hidden = true;
         to.style.zIndex = '';
-        busy = false;
+        landed();
       });
       return;
     }
@@ -334,7 +346,7 @@ export function attachRibbons(els: RibbonElements, cls: RibbonClasses, opts: Rib
           l.remove();
           leavesInFlight.delete(l);
         });
-        busy = false;
+        landed();
       })
       .catch(() => {});
   }

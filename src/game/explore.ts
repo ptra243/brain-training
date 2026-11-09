@@ -184,6 +184,9 @@ export function standSpots(room: Room, guests: readonly string[], playerHere: bo
     const db = (b[0] - centre[0]) ** 2 + (b[1] - centre[1]) ** 2;
     return da - db || a[0] - b[0] || a[1] - b[1];
   });
+  // The room's name is drawn in its first cell: guests only stand there when every other cell is taken.
+  const labelAt = free.findIndex((cell) => cell[0] === room.cells[0][0] && cell[1] === room.cells[0][1]);
+  if (labelAt >= 0 && labelAt < free.length - 1) free.push(...free.splice(labelAt, 1));
 
   const at = (id: string, cell: readonly [number, number], along: number) => {
     spots.push({ id, r: cell[0] + 0.5, col: cell[1] + along });

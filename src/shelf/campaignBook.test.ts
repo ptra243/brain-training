@@ -5,7 +5,8 @@ import { content } from '../content/index.ts';
 import { ROUNDS, type CampaignRef } from '../engine/campaign.ts';
 import { codeFor } from '../engine/caseRef.ts';
 import { newCampaign, roundCase } from '../game/campaignSave.ts';
-import { clockAfterNext, roomContents } from '../game/explore.ts';
+import { isSceneGame } from '../engine/gameKinds.ts';
+import { atMidnight, clockAfterNext, roomContents } from '../game/explore.ts';
 import { emptyProgress, reduce } from '../game/state.ts';
 import { questioningOf } from '../game/talk.ts';
 import { accusationsLeft, candleLabel, chapterTitle, guestLine, isNightChapter, NO_PUZZLES_LEFT, personGame, roomLine, roomRowAria, roomRows, walkTargets } from './campaignBook.ts';
@@ -102,4 +103,14 @@ test('a finished object shows the page-3 state text and stays openable', () => {
   assert.equal(r.row.done, true);
   assert.equal(r.enabled, true);
   assert.match(r.line, /clues? found$|^No new clues$/);
+});
+
+test('at midnight a finished object still opens (read-only, no pick), an unfinished one is shut', () => {
+  const objects = contents[withObjects].objects;
+  let p = emptyProgress();
+  const budget = c.campaign!.budget;
+  const games = c.games.filter((g) => g.kind !== 'finale' && !isSceneGame(g));
+  for (const g of games.slice(0, budget)) p = reduce(c, p, { type: 'game-finish', kind: g.kind, status: 'won', data: null });
+  assert.equal(atMidnight(c, p), true);
+  for (const r of roomRows(c, p, 'x', objects, [], 0)) assert.equal(r.enabled, r.row.done);
 });

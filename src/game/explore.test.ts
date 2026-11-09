@@ -167,7 +167,29 @@ test('people stand on their own cells, and share one only when the room is full'
     const db = (b[0] - cr) ** 2 + (b[1] - cc) ** 2;
     return da - db || a[0] - b[0] || a[1] - b[1];
   });
-  assert.deepEqual([theirs[0].r, theirs[0].col], [free[0][0] + 0.5, free[0][1] + 0.5]);
+  const label = room.cells[0];
+  const roomy = free.filter((cell) => cell[0] !== label[0] || cell[1] !== label[1]);
+  assert.deepEqual([theirs[0].r, theirs[0].col], [roomy[0][0] + 0.5, roomy[0][1] + 0.5]);
+
+  // Whenever the room has the cells, nobody stands in the label cell and no two spots are within one cell.
+  for (const r of content.house.rooms) {
+    const lab = r.cells[0];
+    for (const withPlayer of [true, false]) {
+      for (let n = 1; n <= 4; n++) {
+        const names = Array.from({ length: n }, (_, i) => `g${i}`);
+        const got = standSpots(r, names, withPlayer);
+        const [mr, mc] = centreCell(r);
+        const labelIsCentre = lab[0] === mr && lab[1] === mc && withPlayer;
+        const cellsLeft = r.cells.length - (withPlayer ? 1 : 0) - (labelIsCentre ? 0 : 1);
+        if (n > cellsLeft) continue;
+        const guestSpots = got.filter((s) => s.id !== 'player');
+        assert.ok(guestSpots.every((s) => s.r !== lab[0] + 0.5 || s.col !== lab[1] + 0.5), `${r.id} ${n}: label cell`);
+        for (let i = 0; i < got.length; i++)
+          for (let j = i + 1; j < got.length; j++)
+            assert.ok(Math.hypot(got[i].r - got[j].r, got[i].col - got[j].col) >= 1, `${r.id} ${n}: ${got[i].id} ${got[j].id}`);
+      }
+    }
+  }
 
   const nook: Room = { id: 'nook', name: 'Nook', tint: '#fff', objects: [], things: [], cells: [[4, 1]] };
   const shared = standSpots(nook, ['a', 'b'], false);
