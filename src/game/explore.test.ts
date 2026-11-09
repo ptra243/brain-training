@@ -4,9 +4,10 @@ import { content, houseDetails } from '../content/index.ts';
 import { campaignCast, campaignRound, type CampaignRef } from '../engine/campaign.ts';
 import { isSceneGame } from '../engine/gameKinds.ts';
 import type { Case, Room } from '../engine/types.ts';
-import { atMidnight, canOpen, centreCell, clockAfterNext, clockLine, clockTime, gamesLeft, roomContents, roomsSeen, roundPuzzles, standSpots } from './explore.ts';
+import { atMidnight, canOpen, centreCell, clockAfterNext, clockLine, clockTime, gamesLeft, roomContents, roomsSeen, roundPuzzles, standSpots, labelCells, todoSpot } from './explore.ts';
 import { emptyProgress, reduce, sceneText, sceneUnlocked, type Progress } from './state.ts';
 import { questioningOf } from './talk.ts';
+import { allHouses } from '../content/houses.ts';
 
 const refs: CampaignRef[] = [
   { mode: 'campaign', code: 'ABCDE', difficulty: 'easy' },
@@ -196,6 +197,42 @@ test('people stand on their own cells, and share one only when the room is full'
   assert.equal(shared.length, 2);
   assert.deepEqual(shared.map((s) => s.r), [4.5, 4.5]);
   assert.deepEqual(shared.map((s) => s.col), [1.3, 1.7]);
+});
+
+test('in every house, people and the "!" keep out of each other and clear of the name while there is room', () => {
+  for (const house of allHouses)
+    for (const room of house.rooms) {
+      const [lr, lc] = room.cells[0];
+      for (const cover of [1, 2, 3]) {
+        const covered = (r: number, c: number) => r === lr && c >= lc && c < lc + cover;
+        const open = room.cells.filter(([r, c]) => !covered(r, c)).length;
+        for (const withPlayer of [true, false])
+          for (let n = 0; n <= 5; n++) {
+            const names = Array.from({ length: n }, (_, i) => `g${i}`);
+            const got = standSpots(room, names, withPlayer, cover);
+            const tag = `${house.id} ${room.id} cover ${cover} n ${n} player ${withPlayer}`;
+            assert.equal(got.length, n + (withPlayer ? 1 : 0), tag);
+            const need = n + (withPlayer ? 1 : 0);
+            if (need <= room.cells.length) {
+              const cells = new Set(got.map((g) => `${Math.floor(g.r)},${Math.floor(g.col)}`));
+              assert.equal(cells.size, need, `${tag}: one to a cell`);
+              if (need <= open) assert.ok(got.every((g) => !covered(Math.floor(g.r), Math.floor(g.col))), `${tag}: under the name`);
+            }
+            const mark = todoSpot(room, got, cover);
+            if (need + 1 < room.cells.length) {
+              assert.ok(mark, `${tag}: a cell for the mark`);
+              assert.ok(got.every((g) => Math.floor(g.r) !== Math.floor(mark.r) || Math.floor(g.col) !== Math.floor(mark.col)), `${tag}: mark on a person`);
+              assert.ok(mark.r !== lr + 0.5 || mark.col !== lc + 0.5, `${tag}: mark under the name`);
+            }
+          }
+      }
+    }
+});
+
+test('the name covers more cells when it is long, and its mark counts', () => {
+  assert.equal(labelCells('Hall', true, 26), 2);
+  assert.ok(labelCells('Dining room', false, 26) >= 3);
+  assert.ok(labelCells('Hall', false, 26, 7) > labelCells('Hall', false, 26));
 });
 
 test('no object is named with a word any puzzle of the round hides', () => {

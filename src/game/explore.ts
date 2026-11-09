@@ -171,22 +171,55 @@ export function centreCell(room: Room): readonly [number, number] {
   return nearestCell(room, cr, cc);
 }
 
-/** Where she and the guests stand. `r` and `col` are map percentages: the centre of cell `i` is `i + 0.5`. */
-export function standSpots(room: Room, guests: readonly string[], playerHere: boolean): { id: string; r: number; col: number }[] {
-  const centre = centreCell(room);
+/** The cells along the room's label row (from its first cell) that the name and its marks cover. */
+function labelBlock(room: Room, labelCells: number): Set<string> {
+  const [r0, c0] = room.cells[0];
+  const out = new Set<string>();
+  for (const [r, c] of room.cells) if (r === r0 && c >= c0 && c < c0 + Math.max(1, labelCells)) out.add(`${r},${c}`);
+  return out;
+}
+
+/**
+ * How many cells along the label row the room's name covers (about 6px a letter, 4.7 when tight, 12px in from the cell's edge, a cell
+ * is `cellPx` wide). `marks` is the longest "✕ body" / "◆ scene" mark under the name, or 0.
+ */
+export function labelCells(name: string, tight: boolean, cellPx: number, marks = 0): number {
+  return Math.ceil((12 + Math.max(name.length, marks) * (tight ? 4.7 : 6)) / cellPx);
+}
+
+const key = (cell: readonly [number, number]) => `${cell[0]},${cell[1]}`;
+
+/** The cell nearest the middle of a room that the name does not cover (the middle itself if all of them are covered). */
+function playerCell(room: Room, block: Set<string>): readonly [number, number] {
+  const open = { ...room, cells: room.cells.filter((cell) => !block.has(key(cell))) };
+  return open.cells.length ? centreCell(open) : centreCell(room);
+}
+
+/**
+ * Where she and the guests stand. `r` and `col` are map percentages: the centre of cell `i` is `i + 0.5`.
+ * One person to a cell while cells remain. The cells under the room's name (`labelCells` along the first row)
+ * are used last, the first cell itself the very last, so the name stays readable. When there are more people
+ * than cells they share cells in a row, and her marker is drawn on top.
+ */
+export function standSpots(
+  room: Room,
+  guests: readonly string[],
+  playerHere: boolean,
+  labelCells = 1,
+): { id: string; r: number; col: number }[] {
+  const block = labelBlock(room, labelCells);
+  const centre = playerHere ? playerCell(room, block) : centreCell(room);
   const spots: { id: string; r: number; col: number }[] = [];
   if (playerHere) spots.push({ id: 'player', r: centre[0] + 0.5, col: centre[1] + 0.5 });
 
-  const same = (cell: readonly [number, number]) => cell[0] === centre[0] && cell[1] === centre[1];
-  const free = room.cells.filter((cell) => !playerHere || !same(cell)).slice();
+  const first = key(room.cells[0]);
+  const tier = (cell: readonly [number, number]) => (key(cell) === first ? 2 : block.has(key(cell)) ? 1 : 0);
+  const free = room.cells.filter((cell) => !playerHere || key(cell) !== key(centre));
   free.sort((a, b) => {
     const da = (a[0] - centre[0]) ** 2 + (a[1] - centre[1]) ** 2;
     const db = (b[0] - centre[0]) ** 2 + (b[1] - centre[1]) ** 2;
-    return da - db || a[0] - b[0] || a[1] - b[1];
+    return tier(a) - tier(b) || da - db || a[0] - b[0] || a[1] - b[1];
   });
-  // The room's name is drawn in its first cell: guests only stand there when every other cell is taken.
-  const labelAt = free.findIndex((cell) => cell[0] === room.cells[0][0] && cell[1] === room.cells[0][1]);
-  if (labelAt >= 0 && labelAt < free.length - 1) free.push(...free.splice(labelAt, 1));
 
   const at = (id: string, cell: readonly [number, number], along: number) => {
     spots.push({ id, r: cell[0] + 0.5, col: cell[1] + along });
@@ -216,4 +249,29 @@ export function standSpots(room: Room, guests: readonly string[], playerHere: bo
     n++;
   }
   return spots;
+}
+
+/**
+ * Where the red "!" goes: the free cell nearest the middle that nobody stands in and the name does not cover
+ * (covered cells next, never the first cell). Null when the room has no such cell: the caller tucks it by her marker.
+ */
+export function todoSpot(
+  room: Room,
+  spots: readonly { r: number; col: number }[],
+  labelCells = 1,
+): { r: number; col: number } | null {
+  const block = labelBlock(room, labelCells);
+  const used = new Set(spots.map((s) => `${Math.floor(s.r)},${Math.floor(s.col)}`));
+  const first = key(room.cells[0]);
+  const centre = centreCell(room);
+  const open = room.cells
+    .filter((cell) => key(cell) !== first && !used.has(key(cell)))
+    .sort((a, b) => {
+      const ta = block.has(key(a)) ? 1 : 0;
+      const tb = block.has(key(b)) ? 1 : 0;
+      const da = (a[0] - centre[0]) ** 2 + (a[1] - centre[1]) ** 2;
+      const db = (b[0] - centre[0]) ** 2 + (b[1] - centre[1]) ** 2;
+      return ta - tb || da - db || a[0] - b[0] || a[1] - b[1];
+    });
+  return open.length ? { r: open[0][0] + 0.5, col: open[0][1] + 0.5 } : null;
 }

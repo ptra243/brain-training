@@ -1,9 +1,9 @@
 import { useMemo, type CSSProperties } from 'react';
 import type { Case, House } from '../engine/types.ts';
 import { PlanFrame } from './PlanFrame.tsx';
-import { ownerMap, tapRect } from './plan.ts';
+import { labelClass, ownerMap, tapRect } from './plan.ts';
 import { playerPortrait } from '../content/portraits.ts';
-import { bodyRoom, centreCell, openPuzzlesIn, roomsSeen, standSpots, type RoomContents } from './explore.ts';
+import { bodyRoom, centreCell, labelCells, openPuzzlesIn, roomsSeen, standSpots, todoSpot, type RoomContents } from './explore.ts';
 import { faceClass, roomName, suspectColour, suspectName } from './names.ts';
 import { Portrait } from './Portrait.tsx';
 import { SuspectCounterFace } from './SuspectCounterFace.tsx';
@@ -43,8 +43,12 @@ export function ExploreFloor({ c, progress, house, contents, here, picked, left,
   };
   const mine = contents[here];
   const there = house.rooms.find((r) => r.id === here)!;
-  const marker = standSpots(there, mine.guests, true).find((s) => s.id === 'player')!;
   const entered = roomsSeen(c, progress);
+  // How many cells along its first row a room's name (and its body or scene mark) covers, so people stand clear of it.
+  const covered = (room: House['rooms'][number]) =>
+    labelCells(room.name, labelClass(house, room).includes('tight'), 312 / house.cols, room.id === body ? 7 : moved && room.id === c.sceneRoom ? 8 : 0);
+  const marker = standSpots(there, mine.guests, true, covered(there)).find((s) => s.id === 'player')!;
+  const sized = { '--cols': house.cols } as CSSProperties;
 
   return (
     <>
@@ -93,9 +97,13 @@ export function ExploreFloor({ c, progress, house, contents, here, picked, left,
         {house.rooms.map((room) => {
           if (!c.rooms.includes(room.id) || frozen) return null;
           if (!openPuzzlesIn(c, progress, contents[room.id], picked, left).length) return null;
+          // In a free cell of its own; with none, tucked by her (or the room's middle) as before.
+          const cover = covered(room);
+          const taken = entered.includes(room.id) ? standSpots(room, contents[room.id]?.guests ?? [], room.id === here, cover) : [];
+          const spot = todoSpot(room, taken, cover);
           const [r, col] = centreCell(room);
           return (
-            <span key={`mark-${room.id}`} className="todo-mark" style={pct(r + 0.2, col + 0.82)} aria-hidden="true">
+            <span key={`mark-${room.id}`} className="todo-mark" style={{ ...(spot ? pct(spot.r, spot.col) : pct(r + 0.2, col + 0.82)), ...sized }} aria-hidden="true">
               !
             </span>
           );
@@ -104,7 +112,7 @@ export function ExploreFloor({ c, progress, house, contents, here, picked, left,
           if (!entered.includes(room.id)) return [];
           const guests = contents[room.id]?.guests ?? [];
           const inRoom = room.id === here;
-          return standSpots(room, guests, inRoom).flatMap((spot) => {
+          return standSpots(room, guests, inRoom, covered(room)).flatMap((spot) => {
             if (spot.id === 'player') return [];
             const name = suspectName(spot.id, guests);
             return (
@@ -112,7 +120,7 @@ export function ExploreFloor({ c, progress, house, contents, here, picked, left,
                 key={spot.id}
                 type="button"
                 className="map-hit"
-                style={{ ...pct(spot.r, spot.col), '--counter': suspectColour(spot.id) } as CSSProperties}
+                style={{ ...pct(spot.r, spot.col), ...sized, '--counter': suspectColour(spot.id) } as CSSProperties}
                 aria-label={inRoom ? `Talk to ${name}` : `Clues about ${name}`}
                 disabled={frozen}
                 onClick={(e) => {
@@ -127,7 +135,7 @@ export function ExploreFloor({ c, progress, house, contents, here, picked, left,
             );
           });
         })}
-        <span className="you-marker" style={pct(marker.r, marker.col)} aria-hidden="true">
+        <span className="you-marker" style={{ ...pct(marker.r, marker.col), ...sized }} aria-hidden="true">
           <Portrait parts={playerPortrait} view="counter" />
         </span>
       </PlanFrame>
