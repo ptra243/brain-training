@@ -119,6 +119,25 @@ test('shelf-campaign preview', async ({ page }) => {
   await checkScreen(page, 'preview shelf-campaign');
 });
 
+test('shelf-campaign-title preview', async ({ page }) => {
+  await page.goto('/#dev/shelf-campaign-title');
+  await expect(page.getByTestId('campaign-title')).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'Medium' })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByRole('button', { name: 'Break the seal' })).toBeVisible();
+  await checkScreen(page, 'preview shelf-campaign-title');
+});
+
+test('shelf-campaign-opening previews', async ({ page }) => {
+  await page.goto('/#dev/shelf-campaign-opening');
+  await expect(page.getByTestId('campaign-opening')).toBeVisible();
+  await expect(page.getByTestId('opening-count')).toContainText('2 of');
+  await checkScreen(page, 'preview shelf-campaign-opening');
+  await page.goto('/#dev/shelf-campaign-opening-talk');
+  await expect(page.getByTestId('opening-spread')).toBeVisible();
+  await expect(page.getByText('New clue').first()).toBeVisible();
+  await checkScreen(page, 'preview shelf-campaign-opening-talk');
+});
+
 test('shelf-campaign-midnight preview', async ({ page }) => {
   await page.goto('/#dev/shelf-campaign-midnight');
   await expect(page.getByRole('heading', { name: 'Chapter two: Midnight' })).toBeVisible();

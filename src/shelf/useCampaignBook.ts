@@ -25,6 +25,8 @@ export interface SampleCampaign {
   asked?: number;
   /** The "later that night" scene is open from the start (the dev preview). */
   later?: LaterScene;
+  /** A guest's opening spread is open from the start (the dev preview). */
+  openingGuest?: string;
   /** Read this earlier chapter (an index) from the start (the dev preview). */
   view?: number;
   /** The ending is playing from the start: the got-away scene, or the night's replay (the dev preview). */
@@ -91,6 +93,12 @@ export interface CampaignBook {
 export function useCampaignBook(sample: SampleCampaign | undefined, enabled: boolean, onResolved?: (r: Resolved) => void): CampaignBook | null | false {
   const [save, setSave] = useState<CampaignSave | null>(() => (sample ? sample.save : enabled ? loadCampaign() : null));
   const latest = useRef<CampaignSave | null>(null);
+  // The New campaign book turns this on once it has saved the campaign: read the save then (adjusting state while rendering).
+  const [wasEnabled, setWasEnabled] = useState(enabled);
+  if (enabled !== wasEnabled) {
+    setWasEnabled(enabled);
+    if (enabled && !sample) setSave(loadCampaign());
+  }
   const [built, setBuilt] = useState<{ key: string; cases: Case[] } | false | null>(null);
   const [viewing, setViewing] = useState<{ index: number; at: number } | null>(() => (sample?.view !== undefined ? { index: sample.view, at: sample.save.rounds.length - 1 } : null));
   const [face, setFace] = useState<{ key: string; interrogation: Interrogation } | null>(null);

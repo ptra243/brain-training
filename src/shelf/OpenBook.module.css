@@ -460,3 +460,11 @@
 :global(body.shelf).midnight .leaf .page.back {
   background: linear-gradient(90deg, #d8e3d2, var(--paper) 40%);
 }
+
+/* Chapter one's opening and the title page: no ribbons hang from the top of the book (as on a puzzle page). */
+:global(body.shelf) .book[data-opening] .pull,
+:global(body.shelf) .book[data-opening] .ribbons,
+:global(body.shelf) .book[data-opening] .crease,
+:global(body.shelf) .book[data-opening] .scrim {
+  display: none;
+}

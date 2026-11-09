@@ -15,7 +15,7 @@ import styles from './Shelf.module.css';
 
 /** The book she has taken down: which one, what it says, and where it stood. */
 interface Taken {
-  id: 'quick' | 'new' | 'pick' | 'campaign';
+  id: 'quick' | 'new' | 'pick' | 'campaign' | 'campaign-new';
   title: string;
   tone: Tone;
   from: Box;
@@ -336,7 +336,18 @@ export function Bookcase() {
                   }
                 />
               ) : null}
-              <Book label="New campaign" title="New campaign" size={14} className={styles.newCampaign} seal={<EnvelopeSeal className={styles.tiltL5} />} />
+              <Book
+                label="New campaign"
+                title="New campaign"
+                size={14}
+                className={styles.newCampaign}
+                seal={<EnvelopeSeal className={styles.tiltL5} />}
+                onOpen={(e) => {
+                  e.preventDefault();
+                  take(e.currentTarget, 'campaign-new', 'New campaign', 'quick');
+                }}
+                gone={taken?.id === 'campaign-new'}
+              />
               {thin(styles.c1)}
               {thin(styles.c2)}
               <Teacup />
@@ -402,7 +413,7 @@ export function Bookcase() {
           </div>
         </Dialog>
       ) : null}
-      {taken ? <OpenBook key={taken.id} title={taken.title} tone={taken.tone} from={taken.from} onBack={() => setTaken(null)} pick={taken.pick} campaign={taken.id === 'campaign'} /> : null}
+      {taken ? <OpenBook key={taken.id} title={taken.title} tone={taken.tone} from={taken.from} onBack={() => setTaken(null)} pick={taken.pick} campaign={taken.id === 'campaign' || taken.id === 'campaign-new'} newCampaign={taken.id === 'campaign-new'} /> : null}
     </>
   );
 }

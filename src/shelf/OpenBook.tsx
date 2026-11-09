@@ -23,6 +23,9 @@ import { QuestionSpread } from './QuestionSpread.tsx';
 import { chapterTitle, isNightChapter } from './campaignBook.ts';
 import { CampaignPlan } from './CampaignPlan.tsx';
 import { CampaignRoom, type TalkRequest } from './CampaignRoom.tsx';
+import { CampaignOpening } from './CampaignOpening.tsx';
+import { CampaignTitle } from './CampaignTitle.tsx';
+import { openingActive } from './campaignOpening.ts';
 import { attachRibbons } from './ribbonMotion.ts';
 import { sectionsFor } from './ribbonPlan.ts';
 import { stepIndex, watchSwipe, type SwipeDir } from './swipe.ts';
@@ -71,6 +74,8 @@ interface OpenBookProps {
   campaign?: boolean;
   /** A campaign to show instead of her saved one (the dev preview). */
   campaignSample?: SampleCampaign;
+  /** The New campaign book: it opens on a title page, and the campaign is made and saved when she breaks the seal. */
+  newCampaign?: boolean;
 }
 
 /**
@@ -80,7 +85,7 @@ interface OpenBookProps {
  * `ribbonMotion.ts`, which owns the pages' `hidden` and the ribbons' transforms after the first render.
  * The cover is hidden by `prefers-reduced-motion`, which leaves only the page.
  */
-export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sample, pick, campaign, campaignSample }: OpenBookProps) {
+export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sample, pick, campaign, campaignSample, newCampaign }: OpenBookProps) {
   const sections = sectionsFor(campaign ? 'campaign' : 'quick');
   const backRef = useRef<HTMLButtonElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
@@ -116,14 +121,18 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   // The ending playing over the book this visit: the got-away scene, then the night's replay. Never on a reload.
   const [ending, setEnding] = useState<'scene' | 'replay' | null>(() => campaignSample?.ending ?? null);
   // A campaign that was already finished when the book opened lands on its closing page.
-  const [startOnAnswer] = useState(() => !!campaign && !campaignSample && (loadCampaign()?.outcome ?? 'playing') !== 'playing');
-  const campaignBook = useCampaignBook(campaignSample, !!campaign, resolved);
+  const [startOnAnswer] = useState(() => !!campaign && !newCampaign && !campaignSample && (loadCampaign()?.outcome ?? 'playing') !== 'playing');
+  // The New campaign book starts on its title page: 'open', then 'turning' once the campaign is saved, then 'gone'.
+  const [titlePhase, setTitlePhase] = useState<'open' | 'turning' | 'gone'>(newCampaign ? 'open' : 'gone');
+  const campaignBook = useCampaignBook(campaignSample, !!campaign && titlePhase !== 'open', resolved);
   const over = campaignBook ? campaignBook.over : null;
   // What the notebook reads: the campaign chapter on the pages (read-only once it can't change), or her Quick case.
   const notebookBook = campaign ? campaignBook || null : book || null;
   const endSave = campaignBook ? campaignBook.save : null;
   const endCases = campaignBook ? campaignBook.cases : null;
   const nightSteps = useMemo(() => (ending === 'replay' && endSave && endSave.outcome !== 'playing' && endCases ? nightFor(endSave, endCases) : null), [ending, endSave, endCases]);
+  // Chapter one opens on its opening: no ribbons or notebook until it is done, as on a puzzle page.
+  const opening = !!campaignBook && openingActive(campaignBook.round, campaignBook.current, campaignBook.progress, campaignBook.readOnly, !!campaignBook.pending);
   const night = !!campaignBook && isNightChapter(campaignBook.round);
   // Midnight and 3am use the midnight-green palette. It is a body class so a turning leaf (added to body) takes it too.
   useLayoutEffect(() => {
@@ -189,12 +198,19 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
     const to = stepIndex(section, sections.length, dir);
     if (to !== null) turnRef.current?.(to);
   });
-  const canSwipe = useEffectEvent(() => height === 'peek' && !puzzleOpen && !document.querySelector('[role="dialog"]'));
+  const canSwipe = useEffectEvent(() => height === 'peek' && !puzzleOpen && !opening && titlePhase !== 'open' && !document.querySelector('[role="dialog"]'));
   useEffect(() => {
     const app = appRef.current;
     if (!app) return;
     return watchSwipe(app, (dir) => swipeSection(dir), () => canSwipe());
   }, []);
+
+  // The title page's leaf is gone once it has turned away.
+  useEffect(() => {
+    if (titlePhase !== 'turning') return;
+    const timer = setTimeout(() => setTitlePhase('gone'), matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 540);
+    return () => clearTimeout(timer);
+  }, [titlePhase]);
 
   useEffect(() => {
     backRef.current?.focus({ preventScroll: true });
@@ -253,7 +269,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
   return (
     <div className={styles.stage}>
       <div className={styles.flyer} style={start}>
-        <section ref={appRef} className={styles.app} style={notebookBook ? ({ paddingBottom: 'calc(52px + env(safe-area-inset-bottom, 0px))' } as CSSProperties) : undefined} aria-label={`${title}: ${sections[section]}`} data-section={sections[section]}>
+        <section ref={appRef} className={styles.app} style={notebookBook && !opening ? ({ paddingBottom: 'calc(52px + env(safe-area-inset-bottom, 0px))' } as CSSProperties) : undefined} aria-label={`${title}: ${sections[section]}`} data-section={sections[section]}>
           <header className={styles.head}>
             <button ref={backRef} type="button" className={styles.round} aria-label="Back to the shelf" onClick={onBack}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -263,7 +279,7 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
             <h1 className={styles.caseTitle}>{title}</h1>
           </header>
 
-          <div className={styles.book}>
+          <div className={styles.book} data-opening={opening || titlePhase === 'open' ? '' : undefined}>
             <div className={styles.spread}>
               <div className={styles.verso} aria-hidden="true" />
               <div className={styles.pages} ref={pagesRef}>
@@ -272,7 +288,11 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                     <span>{sections[0]}</span>
                   </div>
                   {campaign ? (
-                    <CampaignRoom book={campaignBook} onPuzzleOpen={setPuzzleOpen} onSubject={showSubject} initialTalk={campaignSample?.talk} talkRequest={talkRequest} />
+                    opening && campaignBook ? (
+                      <CampaignOpening book={campaignBook} initialPerson={campaignSample?.openingGuest} />
+                    ) : (
+                      <CampaignRoom book={campaignBook} onPuzzleOpen={setPuzzleOpen} onSubject={showSubject} initialTalk={campaignSample?.talk} talkRequest={talkRequest} />
+                    )
                   ) : tone === 'fresh' && book === null ? (
                     <p className={styles.lede}>Laying out the cards…</p>
                   ) : tone === 'fresh' && book === false ? (
@@ -333,12 +353,13 @@ export function OpenBook({ title: coverTitle, tone, from, onBack, startOpen, sam
                 </div>
               ))}
             </nav>
+            {titlePhase !== 'gone' ? <CampaignTitle turning={titlePhase === 'turning'} onStarted={() => setTitlePhase('turning')} onBack={onBack} /> : null}
           </div>
           {notebookBook ? (
             <Notebook
               book={notebookBook}
               sample={sample}
-              hidden={puzzleOpen}
+              hidden={puzzleOpen || opening}
               height={height}
               onHeight={setHeight}
               focus={focus}

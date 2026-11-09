@@ -1,0 +1,146 @@
+/* The campaign opening: chapter one's first page and its talk spread's text. Inside OpenBook's page (ink,
+   paper and --display come from it); the spread's table is TalkSpread's own module. */
+:global(body.shelf) .scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: -10px;
+  padding: 0 0 14px 10px;
+}
+:global(body.shelf) .culprit {
+  margin: 4px 0 0;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+:global(body.shelf) .room {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.35;
+}
+:global(body.shelf) .said {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.4;
+  font-style: italic;
+}
+:global(body.shelf) .plain {
+  margin: 6px 0 0;
+  font-size: 17px;
+  line-height: 1.4;
+}
+:global(body.shelf) .count {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+:global(body.shelf) .guests {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+:global(body.shelf) .guests li + li {
+  border-top: 1px solid var(--page-line);
+}
+:global(body.shelf) .guest {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 4px;
+  font: inherit;
+  font-size: 18px;
+  text-align: left;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+:global(body.shelf) .guest:focus-visible {
+  outline: 3px solid var(--brass);
+  outline-offset: -3px;
+}
+:global(body.shelf) .name {
+  flex: 1;
+  min-width: 0;
+}
+:global(body.shelf) .met .name {
+  color: var(--ink-soft);
+}
+:global(body.shelf) .tick {
+  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: 26px;
+  font-weight: 700;
+  color: #2b3f6b;
+}
+:global(body.shelf) .paw {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  font-size: 22px;
+}
+:global(body.shelf) .skip {
+  align-self: flex-start;
+  box-sizing: border-box;
+  min-height: 44px;
+  margin-top: 6px;
+  padding: 6px 18px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--ink-soft);
+  border-radius: 6px;
+  cursor: pointer;
+}
+:global(body.shelf) .skip:focus-visible {
+  outline: 3px solid var(--brass);
+  outline-offset: 2px;
+}
+
+/* ---------- On the spread ---------- */
+:global(body.shelf) .spreadNote {
+  align-items: stretch;
+  color: #2a2118;
+}
+:global(body.shelf) .spreadNote .said,
+:global(body.shelf) .spreadNote .plain {
+  font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+}
+:global(body.shelf) .clues {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+:global(body.shelf) .clues li {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+:global(body.shelf) .newClue {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8e6f27;
+}
+:global(body.shelf) .added {
+  margin: 8px 0 0;
+  font-weight: 700;
+  color: #8e6f27;
+}

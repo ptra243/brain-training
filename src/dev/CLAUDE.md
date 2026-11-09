@@ -84,6 +84,13 @@ What a look check judges on each:
   candles at the right, `aria-label` "3 accusations left") and not over "You are in the ..."; then the room's look lines, "Here with
   you: ...", "Things to try" rows (puzzle label, "The inkwell"-style name, "N clues · until 10:20") and "Walk to" buttons (44px+)
   with "No time taken."; the notebook strip at the foot. Answer is the printed form (see `shelf-campaign-answer`). No sideways scroll.
+- `shelf-campaign-title`: the New campaign book open on its title page (honey oak, no ribbons from the top of the book): "A murder in
+  three chapters", a one-line lead, Easy / Medium / Hard as three satin ribbon bookmarks (Medium pulled further down), the other
+  three options as printed lines (blue-ink choice), the hint lines, and the wax seal "Break the seal". Needs no save.
+- `shelf-campaign-opening`: chapter one on its opening page (no ribbons, no notebook): "Someone in this room is the culprit.", the
+  body line, "2 of N spoken to", the guests as 48px rows (met ones ticked in ink), the cat row when it has finds, Skip.
+- `shelf-campaign-opening-talk`: the opening spread over that page on a guest who gives a free clue: her card and theirs on the
+  baize, what they say, the clue as a card with "New clue", "Added to your casebook", Close. No tabs.
 - `shelf-campaign-midnight`: chapter two in the midnight-green palette (deep green felt and cover, pale green paper, dark ink): two
   candles lit and one blown out (thin smoke), the clock past 9:00, the room with a done row (green tick, "N clues found"), the other
   picked object open and the rest saying "No puzzles left tonight" (faded, disabled); ribbons and text readable on the green

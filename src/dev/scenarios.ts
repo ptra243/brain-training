@@ -12,7 +12,8 @@ import { laterScene, type LaterScene } from '../shelf/campaignAnswer.ts';
 import { emptyHistory, recordCampaign, recordQuick, type History } from '../game/history.ts';
 import { localDate } from '../game/runRecord.ts';
 import { roomContents, roundPuzzles } from '../game/explore.ts';
-import { emptyProgress, type Progress } from '../game/state.ts';
+import { openingScript } from '../game/opening.ts';
+import { emptyProgress, reduce, type Progress } from '../game/state.ts';
 import { questioningOf } from '../game/talk.ts';
 import { saveCampaign, saveHistory, saveQuick, saveScreen, type QuickSave } from '../game/storage.ts';
 
@@ -75,6 +76,21 @@ function loadCampaign(save: CampaignSave) {
 
 /** A new campaign at the start of round 1 with the opening done, for the #shelf campaign book's preview. */
 export const campaignStart = (): CampaignSave => openingDone(newCampaign(campaignRef));
+
+/**
+ * Chapter one on its opening, two guests met (the #shelf campaign opening preview). With `spread` the opening
+ * spread is open on a guest who gives a free clue (met, so the clue card shows).
+ */
+export function campaignOpening(spread = false): { save: CampaignSave; cases: Case[]; openingGuest?: string } {
+  const start = newCampaign(campaignRef);
+  const c = roundCase(content, start, 0);
+  const script = openingScript(c);
+  const withClue = script.guests.find((g) => g.clues.length > 0)?.guest ?? c.suspects[0];
+  const met = [withClue, ...c.suspects.filter((g) => g !== withClue)].slice(0, 2);
+  const rounds = start.rounds.slice();
+  rounds[0] = met.reduce((p, guest) => reduce({ ...c, explore: true as const }, p, { type: 'opening-talk', guest }), rounds[0]);
+  return { save: { ...start, rounds }, cases: [c], ...(spread && { openingGuest: withClue }) };
+}
 
 /**
  * Chapter one with the face-to-face talk open on a guest who has a questioning game: she stands in
