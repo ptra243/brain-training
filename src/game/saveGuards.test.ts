@@ -169,6 +169,9 @@ test('a malformed run history repairs field by field or reads as empty', () => {
   assert.equal(bad.quickTotals.first, 2);
   assert.equal(bad.quickTotals.hints, 0);
   assert.deepEqual(bad.campaignTotals, emptyHistory().campaignTotals);
+  const signed = sanitizeHistory({ quick: [{ ...row, killer: 'Somebody' }, { ...row, id: 'n', killer: 5 }, { ...row, id: 'e', killer: '' }] }).quick;
+  assert.equal(signed[0].killer, 'Somebody');
+  assert.ok(!('killer' in signed[1]) && !('killer' in signed[2]));
   assert.equal(sanitizeHistory({ quick: Array.from({ length: 50 }, (_, i) => ({ ...row, id: `r${i}` })) }).quick.length, 30);
 });
 

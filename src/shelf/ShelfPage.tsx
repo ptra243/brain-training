@@ -1,12 +1,14 @@
 import './fonts.ts';
 import { Bookcase } from './Bookcase.tsx';
+import { GuestBook } from './GuestBook.tsx';
 import styles from './Shelf.module.css';
 
-/** `#shelf` is the bookcase. Any `#shelf/...` is a screen that is not drawn yet. */
+/** `#shelf` is the bookcase. `#shelf/record` is the guest book. Any other `#shelf/...` is a screen that is not drawn yet. */
 export function ShelfPage() {
   // The address with no hash is the bookcase too, when she chose the Shelf look (`main.tsx`).
   const hash = window.location.hash;
   if (hash === '#shelf' || hash === '' || hash === '#') return <Bookcase />;
+  if (hash === '#shelf/record') return <GuestBook />;
   return (
     <main className={styles.page}>
       <div className={styles.soon}>

@@ -115,7 +115,9 @@ test('a quick row snapshots a finished case', () => {
     solvedForHer: 1,
     solvedYourself: 1,
     puzzles: puzzleCounts(qc, p).total,
+    killer: row.killer,
   });
+  assert.ok(row.killer);
   assert.equal(quickClosing(1), 'Solved on the first accusation');
   assert.equal(quickClosing(3), 'Solved in 3 accusations');
 });

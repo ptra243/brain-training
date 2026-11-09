@@ -266,7 +266,7 @@ const effortFields = (v: Record<string, unknown>) => ({
 
 function sanitizeQuickEntry(v: unknown): QuickEntry | null {
   if (!isObject(v) || !isString(v.id) || !isDate(v.date) || !(isPlayRef(v.ref) || isQuickRef(v.ref))) return null;
-  return { id: v.id, ref: v.ref as QuickRef | PlayRef, date: v.date, accusations: count(v.accusations), ...effortFields(v) };
+  return { id: v.id, ref: v.ref as QuickRef | PlayRef, date: v.date, accusations: count(v.accusations), ...effortFields(v), ...(isString(v.killer) && v.killer && { killer: v.killer }) };
 }
 
 function sanitizeCampaignEntry(v: unknown): CampaignEntry | null {

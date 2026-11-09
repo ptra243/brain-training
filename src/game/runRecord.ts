@@ -6,6 +6,7 @@ import type { CampaignRef } from '../engine/campaign.ts';
 import type { CaseRef } from '../engine/caseRef.ts';
 import type { Case } from '../engine/types.ts';
 import type { CampaignSave } from './campaignSave.ts';
+import { suspectName } from './names.ts';
 import type { Progress } from './state.ts';
 import type { QuickSave } from './storage.ts';
 
@@ -101,6 +102,8 @@ export interface QuickRow {
   solvedYourself: number;
   /** Puzzles in the case. */
   puzzles: number;
+  /** The killer's name at that dinner, for the guest book's signature. Rows from before it was kept have none. */
+  killer?: string;
 }
 
 export function quickRow(save: QuickSave, c: Case, date: string): QuickRow {
@@ -113,6 +116,7 @@ export function quickRow(save: QuickSave, c: Case, date: string): QuickRow {
     solvedForHer: n.revealed,
     solvedYourself: n.won,
     puzzles: n.total,
+    killer: suspectName(c.murderer, c.guests),
   };
 }
 

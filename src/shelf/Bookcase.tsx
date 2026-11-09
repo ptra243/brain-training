@@ -8,6 +8,7 @@ import { OpenBook, type Box, type Tone } from './OpenBook.tsx';
 import { fitScale } from './fitScale.ts';
 import { StickerTin } from './StickerTin.tsx';
 import { startRootGuard } from './backStack.ts';
+import { recordFinishedRuns } from './recordRuns.ts';
 import { useBackLayer } from './useBackLayer.ts';
 import type { PickRequest } from './useQuickBook.ts';
 import styles from './Shelf.module.css';
@@ -24,6 +25,7 @@ interface Taken {
 
 // Nothing on this screen is drawn yet beyond the shelf itself, so every control goes here.
 const SOON = '#shelf/soon';
+const RECORD = '#shelf/record';
 
 const ROUND_TITLES = ['9pm', 'Midnight', '3am'];
 const ROUNDS = 3;
@@ -190,6 +192,10 @@ export function Bookcase() {
   // Back puts the book (or the tin screen) away. The first tap arms the guard so Back at the bare shelf does nothing.
   useBackLayer(tin !== null, () => setTin(null));
   useBackLayer(taken !== null, () => setTaken(null));
+  // A case finished on the shelf is recorded here, so the guest book never misses one.
+  useEffect(() => {
+    void recordFinishedRuns();
+  }, []);
   useEffect(() => (['', '#', '#shelf'].includes(window.location.hash) ? startRootGuard() : undefined), []);
   // Read again whenever a book is taken down or put back: the New case book saves a case while open.
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `taken` is the trigger, not an input
@@ -339,7 +345,7 @@ export function Bookcase() {
           </section>
 
           <section aria-labelledby="shelf-record">
-            <a href={SOON} aria-label="Your record: the guest book" className={cx(styles.shelf, styles.recordShelf)}>
+            <a href={RECORD} aria-label="Your record: the guest book" className={cx(styles.shelf, styles.recordShelf)}>
               <span aria-hidden="true" className={styles.guestStack}>
                 <span className={styles.guestBottom} />
                 <span className={styles.guestTop} />

@@ -140,8 +140,8 @@ test('swipes: the book turns sections, the raised notebook changes tab, no wrap'
 
 test('a hash route still goes back to the shelf', async ({ page }) => {
   await page.goto('/#shelf');
-  await page.getByRole('link', { name: 'Your record: the guest book' }).click();
+  await page.getByRole('link', { name: 'An odd-looking book' }).click();
   await expect(page.getByText("This page isn't drawn yet.")).toBeVisible();
   await page.goBack();
-  await expect(page.getByRole('link', { name: 'Your record: the guest book' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'An odd-looking book' })).toBeVisible();
 });
