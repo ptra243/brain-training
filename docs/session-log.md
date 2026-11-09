@@ -95,3 +95,9 @@ duration), each full check, and how many ran in order versus alongside. Older li
   (eight owner rounds, `docs/story.md` edited about 8 times), then a backlog edit and the build were
   added on top. The build was quick (one script, two re-runs of the talk lint for repeated lines), and
   clue wording went to its own session as asked.
+- 2026-11-10, Shelf UI, beside the current game (pieces 5 and 6, guest book, leftovers): 45 replies,
+  context 205k, 7.4M read from cache, 159k written, 42k output; 8 subagents, 30.8M read from cache,
+  1.0M written, 280k output (implementer runs of 13, 15, 19, 20, 15 and 11 minutes; full checks plus
+  e2e about 2 minutes). Six build sections and two look checks were run from one main session instead
+  of a new session after each commit; every hand-back report (8, about 30 lines each) and four
+  handoff briefs were written here, and a remote commit needed a merge before the push.
