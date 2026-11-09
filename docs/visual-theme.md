@@ -339,6 +339,31 @@ Jigsaw tab runs `EndBoardPanel` unchanged inside the notebook. The look is `src/
      chapters open read-only from a contents list under the chapter heading on the room page.
   6. *Title page and opening*: three ribbon bookmarks, setup options, "Break the seal"; the opening
      meets each guest once on the talk spread.
+- **Status (2026-11-10):** all six pieces are built, with the guest book. As built:
+  - *Answer* (`CampaignAnswer`): the printed form, one accusation a chapter, possible-only, the "Guess
+    now?" warning (skipped when she accuses with a weapon from a guest's notebook page), the book turns
+    to Answer once at midnight. The questioning (`QuestionSpread`) is the talk spread's look and, like
+    the classic one, can't be closed: she finishes it or taps "Skip to the verdict".
+  - *A wrong guess* (`CandleScene`): a candle goes out, then the next chapter opens on its room page.
+  - *Endings* (`CampaignOver`, `campaignEnd.ts`): caught plays the night replay once, then the Answer
+    page is the closing page; escaped shows the got-away scene first. Both closing pages have "See the
+    night again". A finished campaign's book stays on the shelf ("Your campaign: finished") and opens
+    on its closing page until a new campaign replaces it.
+  - *Earlier chapters*: a "Chapters" list on the room page opens one read-only (Room, Plan, notebook,
+    its verdict in red pencil on Answer); "Back to tonight" returns. The view is never saved.
+  - *Title page* (`CampaignTitle`): the save is the one the classic shell makes for the same choices
+    (a node test covers all 36 combinations). It is saved only once the rounds have built.
+  - *Opening* (`CampaignOpening`, `OpeningSpread`): tapping a guest's row meets them at once (one tap
+    fewer than the classic opening); same `Progress.opening`, so either shell can carry it on.
+  - *Guest book* (`GuestBook`, `#shelf/record`): one list, newest first. New Quick rows keep the
+    killer's name for the signature (optional field; older rows are unsigned). The shelf now records
+    finished runs itself (`recordRuns.ts`), when the bookcase or the guest book opens and when a
+    campaign night ends.
+  - Previews: `#dev/shelf-campaign-answer`, `-question`, `-later`, `-caught`, `-escaped`, `-earlier`,
+    `-title`, `-opening`, `-opening-talk`, `#dev/shelf-guest-book`, `-empty`.
+  - **Left**: her test of a whole campaign on her phone; the owner's midnight palette tuning list
+    (known: the Plan ribbon label is about 3.3:1 on teal); the motion (seal break, candle, page turn
+    onto chapter one) has only been seen as stills; then making Shelf the default look.
 - **Not in this plan**: the secret lever book, spine colours from the case code, solved cases
   arriving as books, sticker rewards (beyond the tick and paw stickers on page 3's labels). They
   stay under Unexplored ideas.
@@ -483,9 +508,9 @@ Quick case is asked about first (`#dev/shelf-new-case`).
 | done | Map plate (taps open subject pages) | Map, suspect sheet | `PuzzleMap` |
 | done | Answer page | Accuse panel (face to face is campaign, step 8) | `puzzle-book-answer.html` |
 | done | Jigsaw tab in the notebook, sticker version (Milestone 1) | Jigsaw end board | `StickerPage` |
-| 8 | Campaign: title page, room page, chapters | Campaign setup, view, next murder | `CampaignRoom` |
-| 9 | The sticker tin (beside Quick play, which stays) | Pick games | `docs/mockups/puzzle-labels/Tin.dc.html` |
-| 10 | Guest book | Record | none |
+| done | Campaign: title page, room page, chapters | Campaign setup, view, next murder | `CampaignRoom` |
+| done | The sticker tin (beside Quick play, which stays) | Pick games | `docs/mockups/puzzle-labels/Tin.dc.html` |
+| done | Guest book | Record | none |
 
 Each new screen needs a look check at 360 × 780. Sticker rewards and sticker branches stay later,
 and they change cases, so they are not part of this shell.
