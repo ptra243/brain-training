@@ -85,7 +85,7 @@ export function TalkView({ set, heard, ready, victimName, onHear, soFar = [], id
         </ol>
       )}
       {more && ready > heard && (
-        <button className="secondary" onClick={onHear}>
+        <button className="secondary" onClick={onHear} data-testid="talk-hear">
           {asks ? beatText(asks[heard], victimName) : heard === 0 ? 'Tell me about yourself' : 'Go on…'}
         </button>
       )}

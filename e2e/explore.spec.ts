@@ -90,7 +90,7 @@ test.describe('exploring a campaign round', () => {
     await expect(person.getByRole('tab', { name: 'Minigame' })).toBeVisible();
     await expect(person.getByRole('tab', { name: 'Clues' })).toBeVisible();
     const talk = person.getByRole('region', { name: 'Talk' });
-    await talk.getByRole('button', { name: 'Tell me about yourself' }).click();
+    await talk.getByTestId('talk-hear').click();
     await expect(talk.locator('.talk-log li')).toHaveCount(1);
     await expect(talk.getByText('Nothing more to say for now.')).toBeVisible();
     await checkScreen(page, 'person screen');
