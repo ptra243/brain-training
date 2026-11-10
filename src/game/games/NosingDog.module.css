@@ -1,5 +1,7 @@
-/* The dog fight. Foreign classes (the number grid, the nosing layout) are written with :global. */
+/* The dog fight. The nosing layout's classes are written with :global; the number grid is styled through the variables on .fight. */
 .fight, .result { display: grid; gap: 0.6rem; }
+/* The number grid reads these (NumberGrid.module.css): number cards 56px tall, the two pick-to-swap hands 4px apart (the one-hand row keeps its own 3px). */
+.fight { --grid-number-card-height: 56px; --grid-hand-gap: 4px; }
 .fight p, .result p, .result h2 { margin: 0; }
 /* The arena stage: dark baize with a floor strip on the bottom third; both fighters stand on it. */
 .top {
@@ -23,7 +25,7 @@
 .play[open] .playTitle { margin-bottom: 0; }
 .last { font-size: 0.9rem; }
 .challenge { font-family: var(--serif); font-size: 0.9rem; line-height: 1.3; color: var(--brass-deep); }
-/* Beats the global .number-grid gap, whatever the stylesheet order. */
+/* Beats the number grid's own gap (NumberGrid.module.css), whatever the stylesheet order. */
 .fight .pick { display: grid; gap: 0.4rem; }
 .pickHint { font-size: 0.85rem; text-align: center; }
 .swapButton { min-height: 44px; }
@@ -32,7 +34,5 @@
 .cardFace { display: grid; justify-items: center; align-content: center; gap: 0; line-height: 1; }
 .cardFace svg { width: 22px; height: 22px; }
 .cardValue { font-size: 1.3rem; font-weight: 700; }
-.fight :global(.grid-card):not(:global(.sign)) { height: 56px; }
-.fight :global(.grid-hand) { gap: 4px; }
 /* Lock and dog screens are tighter (see .nosing.tight in styles.css). */
 :global(.nosing.tight) .fight { gap: 0.4rem; }

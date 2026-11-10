@@ -1,0 +1,18 @@
+/* The lock: make the target on the number grid (NumberGrid.module.css). The dog fight borrows .actions.
+   The card around the lock is a global .card, whose `.card h2` margin would win over a bare `.lock h2`, so these are div.lock. */
+div.lock h2, div.lock h3 { margin: 0; }
+.lock p { margin: 0; }
+.lock { display: grid; gap: 0.7rem; }
+.target { font-family: var(--serif); font-size: 1.3rem; }
+.target strong { font-size: 1.8rem; color: var(--pencil); }
+.actions { display: grid; grid-template-columns: 1fr 2fr; gap: 0.5rem; }
+.actions :global(.primary):disabled, .actions :global(.secondary):disabled { opacity: 0.5; cursor: default; }
+.way ol { margin: 0.3rem 0 0; padding-left: 1.3rem; font-family: var(--serif); font-size: 1.1rem; line-height: 1.6; font-variant-numeric: tabular-nums; }
+.title { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+/* Lock and dog screens: tighter, so the grid, cards and buttons fit 780px without scrolling. */
+:global(.nosing.tight) .lock { gap: 0.4rem; }
+/* The action buttons stay pinned to the bottom of the screen, whatever sits above them (a hint note, say). */
+:global(.nosing.tight) .actions {
+  position: sticky; bottom: 0; z-index: 2; margin: 0 -0.75rem -0.65rem; padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom));
+  background: var(--card); border-top: 1px solid var(--card-edge); border-radius: 0 0 0.35rem 0.35rem;
+}

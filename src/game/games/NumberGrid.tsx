@@ -14,6 +14,7 @@ import {
 } from '../../games/numberGrid.ts';
 import { OP_NAME, OP_SIGN } from './nosingUi.ts';
 import { rowCaption, rowProblem, slotLabel } from './numberGridUi.ts';
+import styles from './NumberGrid.module.css';
 
 interface Props {
   hand: Hand;
@@ -87,7 +88,7 @@ export function NumberGrid({ hand, fill, evaluation, locked, disabled = false, o
     return (
       <button
         key={`${slot.row}${slot.kind}${(slot as { i?: number }).i ?? ''}`}
-        className={`grid-slot ${slot.kind === 'num' ? 'num' : 'sign'} ${slot.kind === 'rowOp' ? 'join' : ''} ${filled ? 'filled' : ''} ${isLocked(slot) ? 'locked' : ''} ${isError(slot) ? 'error' : ''} ${fits(slot) ? 'fits' : ''}`}
+        className={`${styles.slot} ${slot.kind === 'num' ? '' : styles.sign} ${filled ? styles.filled : ''} ${isLocked(slot) ? styles.locked : ''} ${isError(slot) ? styles.error : ''} ${fits(slot) ? styles.fits : ''}`}
         aria-label={isLocked(slot) ? `${label}, filled in by the cat` : isError(slot) ? `${label}, does not work` : label}
         disabled={disabled || isLocked(slot)}
         onClick={() => tapSlot(slot)}
@@ -103,7 +104,7 @@ export function NumberGrid({ hand, fill, evaluation, locked, disabled = false, o
     return (
       <button
         key={i}
-        className={`grid-card ${on ? 'selected' : ''} ${i === torchCard ? 'torch' : ''}`}
+        className={`${styles.card} ${on ? styles.selected : ''} ${i === torchCard ? styles.torch : ''}`}
         aria-pressed={on}
         aria-label={`${numberName ? numberName(value, i) : value}${placed ? ', placed' : ''}${i === torchCard ? ', you will not need this one' : ''}`}
         disabled={disabled || placed}
@@ -121,7 +122,7 @@ export function NumberGrid({ hand, fill, evaluation, locked, disabled = false, o
     return (
       <button
         key={k}
-        className={`grid-card sign ${on ? 'selected' : ''}`}
+        className={`${styles.card} ${styles.sign} ${on ? styles.selected : ''}`}
         aria-pressed={on}
         aria-label={`${OP_NAME[op]}${placed ? ', placed' : ''}`}
         disabled={disabled || placed}
@@ -133,12 +134,12 @@ export function NumberGrid({ hand, fill, evaluation, locked, disabled = false, o
   });
 
   return (
-    <div className="number-grid">
-      <div className="grid-rows" role="group" aria-label="The grid">
+    <div className={styles.grid}>
+      <div className={styles.rows} role="group" aria-label="The grid">
         {ROWS.map((r) => (
-          <div key={r} className="grid-row">
-            <div className="grid-cells">
-              {r === 0 ? <span className="grid-spacer" aria-hidden="true" /> : slotButton({ row: r, kind: 'rowOp' })}
+          <div key={r} className={styles.row}>
+            <div className={styles.cells}>
+              {r === 0 ? <span className={styles.spacer} aria-hidden="true" /> : slotButton({ row: r, kind: 'rowOp' })}
               {NUM_SLOTS.map((i) => (
                 <Fragment key={i}>
                   {slotButton({ row: r, kind: 'num', i })}
@@ -148,23 +149,23 @@ export function NumberGrid({ hand, fill, evaluation, locked, disabled = false, o
             </div>
             {(() => {
               const problem = rowProblem(hand, fill, errors, r);
-              return problem ? <p className="grid-caption error">{problem}</p> : <p className="grid-caption">{rowCaption(r, evaluation.rows[r])}</p>;
+              return problem ? <p className={`${styles.caption} ${styles.error}`}>{problem}</p> : <p className={styles.caption}>{rowCaption(r, evaluation.rows[r])}</p>;
             })()}
           </div>
         ))}
       </div>
 
       {oneHand ? (
-        <div className="grid-hand one-hand" role="group" aria-label="Your cards">
+        <div className={`${styles.hand} ${styles.oneHand}`} data-testid="one-hand" role="group" aria-label="Your cards">
           {signCards}
           {numberCards}
         </div>
       ) : (
         <>
-          <div className="grid-hand" role="group" aria-label="Your numbers">
+          <div className={styles.hand} role="group" aria-label="Your numbers">
             {numberCards}
           </div>
-          <div className="grid-hand" role="group" aria-label="Signs">
+          <div className={styles.hand} role="group" aria-label="Signs">
             {signCards}
           </div>
         </>

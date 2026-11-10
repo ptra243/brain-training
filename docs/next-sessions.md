@@ -150,18 +150,16 @@ Read docs/second-killer.md, work out how the night 2 round is built from night 1
 ```
 
 ## Session: CSS Modules for game styles
-Last touched: 2026-10-28
+Last touched: 2026-11-10
 Reads first: `docs/css-modules.md` (why, decision, shared pieces, what to watch).
-Goal: move the remaining games (nosing lock / key / speed / board, number grid, typing) to
-`<Game>.module.css`, one per commit, following `TarotGame.module.css`. Move e2e class selectors to
-roles or `data-testid`; e2e `checkScreen` is the 360px check. Done so far: Tarot, dog fight, Wordle,
-crossword, word search, cat puzzle, sudoku, interrogation, the number pad, the speed round, the
-nosing shell, the board and the key. Shared pieces are settled (question text is not shared; number
-grid and lock actions move together because the dog borrows both; `.nosing` and the icon paint stay
-global). Next piece: number grid and lock together.
+Goal: move the last piece, typing, to `TypingInput.module.css` (the three word games import its
+`host` class), following `NumberPad.module.css`. Move any e2e class selectors to roles or
+`data-testid`; e2e `checkScreen` is the 360px check. Everything else is done (the number grid and
+the lock landed 2026-11-10). After typing, clean up the rule in `src/game/CLAUDE.md` and delete
+this entry.
 Starting prompt:
 ```
-Read docs/css-modules.md. The shared pieces are already settled. Delegate the next piece in the Next list to the implementer, then run e2e.
+Read docs/css-modules.md. Delegate typing, the last piece in its Next list, to the implementer, then do the clean-up it lists and delete this entry.
 ```
 
 ## Session: Campaign in the puzzle book (design)

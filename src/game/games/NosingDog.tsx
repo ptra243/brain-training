@@ -12,6 +12,8 @@ import { gridLines, type Hand, type OpRef, type Slot } from '../../games/numberG
 import { NumberGrid } from './NumberGrid.tsx';
 import { hasClearable } from './numberGridUi.ts';
 import styles from './NosingDog.module.css';
+import grid from './NumberGrid.module.css';
+import lock from './NosingLock.module.css';
 
 /** The line about the turn just played, from the view's `last` data. */
 function lastLine(last: DogTurnResult): string {
@@ -146,13 +148,13 @@ export function NosingDog({ view, helper, hints, onMove }: Props) {
       )}
       {hints}
       {picking ? (
-        <div className={`number-grid ${styles.pick}`}>
+        <div className={`${grid.grid} ${styles.pick}`}>
           <p className={`muted ${styles.pickHint}`}>{nosingDog.swap.pickHint}</p>
-          <div className="grid-hand" role="group" aria-label="Pick cards to swap">
+          <div className={grid.hand} role="group" aria-label="Pick cards to swap">
             {view.numbers.map((c, i) => (
               <button
                 key={`n${i}`}
-                className={`grid-card ${pickedNums.includes(i) ? 'selected' : ''}`}
+                className={`${grid.card} ${pickedNums.includes(i) ? grid.selected : ''}`}
                 aria-pressed={pickedNums.includes(i)}
                 aria-label={c.name}
                 disabled={!pickedNums.includes(i) && count >= 2}
@@ -162,11 +164,11 @@ export function NosingDog({ view, helper, hints, onMove }: Props) {
               </button>
             ))}
           </div>
-          <div className="grid-hand" role="group" aria-label="Pick signs to swap">
+          <div className={grid.hand} role="group" aria-label="Pick signs to swap">
             {view.ops.map((o, k) => (
               <button
                 key={`o${k}`}
-                className={`grid-card sign ${pickedOps.includes(k) ? 'selected' : ''}`}
+                className={`${grid.card} ${grid.sign} ${pickedOps.includes(k) ? grid.selected : ''}`}
                 aria-pressed={pickedOps.includes(k)}
                 aria-label={OP_NAME[o.op]}
                 disabled={!pickedOps.includes(k) && count >= 2}
@@ -191,7 +193,7 @@ export function NosingDog({ view, helper, hints, onMove }: Props) {
       />
       )}
       {picking ? (
-        <div className={`lock-actions ${styles.swapActions}`}>
+        <div className={`${lock.actions} ${styles.swapActions}`}>
           <button className="secondary" onClick={stopPicking}>
             {nosingDog.swap.cancel}
           </button>
@@ -206,7 +208,7 @@ export function NosingDog({ view, helper, hints, onMove }: Props) {
               {nosingDog.swap.button}
             </button>
           )}
-          <div className="lock-actions">
+          <div className={lock.actions}>
             <button className="secondary" disabled={!hasClearable(view.fill, [])} onClick={() => onMove({ t: 'clearAll' })}>
               Clear
             </button>

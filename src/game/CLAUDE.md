@@ -23,8 +23,10 @@
   `<Game>.module.css` next to its component and are used as `styles.x`, so a
   class in one game can't restyle another (the dog fight's `.tarot-card svg`
   once shrank every Tarot card). Shared pieces stay global in `styles.css`:
-  colour and type variables, buttons, hint notes, `Dialog`, layout, and
-  classes two games use (`.grid-*`, `.number-grid`). To style a global class
+  colour and type variables, buttons, hint notes, `Dialog` and layout. A
+  component two games use owns its own module, which the borrowing game
+  imports (the number grid's `NumberGrid.module.css`); it exposes CSS variables
+  for what a game overrides (the dog fight's card height). To style a global class
   from a module, write `:global(.x)` inside a rule scoped by a local class.
   e2e can't use scoped names: give the element a `data-testid` or find it by
   role or label. Older games still in `styles.css` move over one at a time.

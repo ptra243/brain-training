@@ -39,6 +39,13 @@ roll, stakes and the speed wrapper.
 Board and key (2026-10-27): `NosingBoardView.module.css` and `NosingKey.module.css`. Icon paint
 stays global. The key's toggle is `button.toggle` so it beats the global `.secondary` button.
 e2e uses test ids for the board, the purr mark, the dog mark and the info line.
+Number grid and lock (2026-11-10): `NumberGrid.module.css` and `NosingLock.module.css`. The dog
+fight imports both for its swap picker and action bars. Its two overrides of the grid are now CSS
+variables set on `.fight` (`--grid-number-card-height`, `--grid-hand-gap`) that the grid reads with
+its own values as fallbacks. The lock's headings are `div.lock h2` so they beat the global
+`.card h2`. The e2e touch exception is `[data-testid="one-hand"] button`. Computed styles on
+`#dev/dogfight` were identical before and after (24 views); the lock has no preview and was checked
+by e2e only.
 
 ## Shared pieces (settled 2026-10-27)
 
@@ -68,10 +75,12 @@ e2e uses test ids for the board, the purr mark, the dog mark and the info line.
 
 ## Next
 
-Done this session: number pad, speed, the nosing shell, the board and the key. Still to do, one
-piece per commit: number grid and lock together (the dog's borrowed classes in that same change),
-then typing. e2e `checkScreen` is the 360px check. `browser-check` only where a preview exists
-(`#dev/dogfight` for the grid). `#dev/nosing-houses` passed at 360×780 after the board move.
+Still to do: typing, the last piece (`TypingInput.module.css` owns `.typing` and `.typing-input`;
+the three word games import `host` from it, see "Shared pieces"). Then grep `styles.css` for any
+game rules left, drop "Older games still in `styles.css` move over one at a time" from
+`src/game/CLAUDE.md`, and delete the session entry. e2e `checkScreen` is the 360px check.
+For a pure move, compare computed styles on a `#dev` preview before and after (a scratch Playwright
+script that dumps `getComputedStyle` per element); it caught nothing here but proves the move.
 
 ## Watch
 

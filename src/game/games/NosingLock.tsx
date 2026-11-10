@@ -4,6 +4,7 @@ import type { NosingPuzzle, NosingView } from '../../games/nosing.ts';
 import { gridLines, type GridFill, type Hand, type OpRef, type Slot } from '../../games/numberGrid.ts';
 import { NumberGrid } from './NumberGrid.tsx';
 import { hasClearable } from './numberGridUi.ts';
+import styles from './NosingLock.module.css';
 
 const STEP_MS = 900;
 
@@ -19,7 +20,7 @@ export function WayReveal({ hand, way, title }: { hand: Hand; way: GridFill; tit
     return () => clearTimeout(t);
   }, [shown, lines.length]);
   return (
-    <div className="way">
+    <div className={styles.way}>
       <h3>{title}</h3>
       <ol>
         {lines.slice(0, shown).map((line, i) => (
@@ -50,10 +51,10 @@ export function NosingLock({ puzzle, view, open, onPlace, onClear, onClearAll, o
   const canClear = hasClearable(view.grid, view.locked);
 
   return (
-    <div className="lock">
-      <div className="lock-title">
+    <div className={styles.lock}>
+      <div className={styles.title}>
         <h2>The lock</h2>
-        <p className="lock-target">
+        <p className={styles.target}>
           Make <strong>{lock.target}</strong>
         </p>
       </div>
@@ -84,7 +85,7 @@ export function NosingLock({ puzzle, view, open, onPlace, onClear, onClearAll, o
       {!open && view.torch !== null && <p className="muted">The torch shows the {view.torch} is one you will not need.</p>}
       {!open && (
         <>
-          <div className="lock-actions">
+          <div className={styles.actions}>
             <button className="secondary" disabled={!canClear} onClick={onClearAll}>
               Clear
             </button>

@@ -1,0 +1,51 @@
+/* The number grid (lock, and the dog fight): six 44px slots a row, 4px apart, so a row is 284px and fits 328.
+   The dog fight sets --grid-hand-gap and --grid-number-card-height on its own root (NosingDog.module.css). */
+.grid { display: grid; gap: 0.7rem; }
+.rows { display: grid; gap: 0.1rem; justify-content: center; }
+.row { display: grid; }
+.cells { display: grid; grid-template-columns: repeat(6, 44px); gap: 4px; }
+.spacer { width: 44px; height: 44px; }
+.caption {
+  margin: 0; min-height: 1.1rem; text-align: right; font-size: 0.85rem; line-height: 1.1rem;
+  color: var(--ink-soft); font-variant-numeric: tabular-nums;
+}
+.slot, .card {
+  width: 44px; height: 44px; padding: 0; border-radius: 0.35rem; cursor: pointer;
+  font-family: var(--serif); font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums;
+  display: inline-flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.slot { border: 2px dashed var(--ink-soft); background: rgba(30, 42, 47, 0.06); color: var(--ink); }
+.slot.filled { border-style: solid; border-color: var(--ink); background: #fffcf3; }
+.slot.sign.filled { border-color: var(--brass-deep); background: var(--card); color: var(--brass-deep); font-size: 1.3rem; font-weight: 700; }
+.slot.fits { border: 2px dashed var(--brass); background: rgba(200, 162, 76, 0.2); }
+.slot.locked { background: var(--card-edge); border-style: solid; border-color: var(--ink-soft); color: var(--ink); opacity: 1; }
+.slot.error { border-color: var(--pencil); border-style: solid; color: var(--pencil); background: #fffcf3; }
+.slot:disabled { cursor: default; }
+.hand { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--grid-hand-gap, 6px); }
+.card { border: 2px solid var(--ink); background: #fffcf3; color: var(--ink); }
+/* Number cards only (the dog fight makes them taller); a sign card stays 44px. */
+.card:not(.sign) { height: var(--grid-number-card-height, 44px); }
+.card.sign { border-color: var(--brass-deep); background: var(--card); color: var(--brass-deep); font-size: 1.4rem; font-weight: 700; }
+.card.selected { background: var(--ink); color: var(--card); box-shadow: 0 0 0 3px var(--brass); }
+.card.torch { opacity: 0.4; border-style: dashed; }
+.card:disabled { opacity: 0.35; cursor: default; }
+.card.selected.torch { opacity: 1; }
+.caption.error { color: var(--pencil); }
+/* Number-grid cards widen to fit two-digit numbers. */
+.grid .card { margin: 0; padding: 0 0.3rem; flex: none; box-sizing: border-box; width: auto; min-width: 44px; overflow: visible; }
+.slot.error, .slot.sign.filled.error { border-color: var(--pencil); color: var(--pencil); }
+/* The slot that joins a row to the rows above: round, with a brass tint, so it reads differently from number and operator slots. */
+.slot.sign { border-radius: 50%; border-color: var(--brass-deep); }
+.slot.sign:not(.filled):not(.fits):not(.locked):not(.error) { background: rgba(200, 162, 76, 0.15); }
+.slot.sign.fits { border-color: var(--brass); }
+.slot.sign.locked { border-color: var(--ink-soft); }
+.slot.sign.error, .slot.sign.filled.error { border-color: var(--pencil); }
+/* Sign cards are round too, the same brass as the sign slots they go in. */
+.card.sign, .grid .card.sign { border-radius: 50%; width: 44px; padding: 0; }
+/* One hand (dog fight): signs then numbers in one wrapping row, cards 37px wide so eight fit 328px. A deliberate exception to the 44px touch rule for these cards only (owner approved); the grid slots stay 44px. */
+.hand.oneHand { gap: 3px; }
+.grid .oneHand .card { width: 37px; min-width: 37px; padding: 0; }
+.grid .oneHand .card.sign { height: 37px; }
+/* Lock and dog screens: tighter (see .nosing.tight in styles.css). */
+:global(.nosing.tight) .grid { gap: 0.4rem; }
+:global(.nosing.tight) .rows { gap: 0; }
