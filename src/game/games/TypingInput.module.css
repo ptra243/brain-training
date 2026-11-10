@@ -1,0 +1,7 @@
+/* Hidden text box that brings up the phone keyboard (TypingInput). The word games put `host` on the wrapper. */
+.host { position: relative; }
+.typing { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.input {
+  position: absolute; left: 0; top: 0; width: 1px; height: 1px; padding: 0; border: 0;
+  opacity: 0; font-size: 16px; caret-color: transparent; pointer-events: none;
+}

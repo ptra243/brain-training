@@ -446,28 +446,7 @@ body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
 .dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
 .dialog-actions .primary, .dialog-actions .secondary { width: auto; }
 
-/* ---------- Wordle ---------- */
-.teaser-line {
-  margin: 0 0 0.9rem; padding: 0.7rem 0.9rem; background: var(--card); color: var(--ink);
-  font-family: var(--serif); font-size: 1.05rem; border-left: 5px solid var(--pencil); white-space: pre-wrap;
-}
-.check-word { margin-top: 0.4rem; }
-.letter-strip { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 0.2rem; margin-top: 0.9rem; }
-.letter-chip {
-  display: grid; place-items: center; height: 1.7rem; border-radius: 0.2rem;
-  background: var(--baize-deep); color: var(--on-baize-soft); font-size: 0.8rem; font-weight: 600;
-}
-.letter-chip.hit { background: #4f8a5f; color: #fff; }
-.letter-chip.near { background: var(--brass); color: #2a2109; }
-.letter-chip.miss { background: transparent; color: #6f7b74; text-decoration: line-through; }
-
-/* Hidden text box that brings up the phone keyboard (TypingInput) */
-.typing-host { position: relative; }
-.typing { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.typing-input {
-  position: absolute; left: 0; top: 0; width: 1px; height: 1px; padding: 0; border: 0;
-  opacity: 0; font-size: 16px; caret-color: transparent; pointer-events: none;
-}
+/* Wordle: see game/games/WordleGame.module.css. Hidden typing box: TypingInput.module.css */
 
 /* Scene game chooser */
 .scene-choices { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }

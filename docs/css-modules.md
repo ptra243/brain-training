@@ -73,14 +73,23 @@ by e2e only.
 - **Typing** matches the number pad: `TypingInput.module.css` owns `.typing` and `.typing-input`.
   The three word games set `.typing-host` on the board wrapper; they import `host` from that module.
 
-## Next
+## Last piece
 
-Still to do: typing, the last piece (`TypingInput.module.css` owns `.typing` and `.typing-input`;
-the three word games import `host` from it, see "Shared pieces"). Then grep `styles.css` for any
-game rules left, drop "Older games still in `styles.css` move over one at a time" from
-`src/game/CLAUDE.md`, and delete the session entry. e2e `checkScreen` is the 360px check.
-For a pure move, compare computed styles on a `#dev` preview before and after (a scratch Playwright
-script that dumps `getComputedStyle` per element); it caught nothing here but proves the move.
+Typing and the Wordle leftovers (2026-11-11): `TypingInput.module.css` (`host`, `typing`, `input`;
+the three word games import `host`), and the teaser line, Check button margin and letters-tried
+strip joined `WordleGame.module.css`. No specificity bumps. The word games have no preview, so this
+was checked by e2e only.
+
+## Finished
+
+Every minigame's own styles are in a module (2026-11-11). Still global in `styles.css` on purpose:
+`.game-message`, the hint notes, `.check-row` (a checkbox only sudoku uses so far), `.nosing` and
+`.nosing.tight`, and the board icon paint. Not part of this plan: the Jigsaw (`cb-*`, in
+`src/game/board/`), which is namespaced by its prefix and has never collided.
+
+For a later pure move, compare computed styles on a `#dev` preview before and after (a scratch
+Playwright script that dumps `getComputedStyle` per element), and remember module CSS loads before
+`styles.css`, so a moved rule loses to a global one of equal specificity.
 
 ## Watch
 

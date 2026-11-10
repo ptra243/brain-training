@@ -149,19 +149,6 @@ Starting prompt:
 Read docs/second-killer.md, work out how the night 2 round is built from night 1's lineup and how roundProblems proves it, then write an implementer brief.
 ```
 
-## Session: CSS Modules for game styles
-Last touched: 2026-11-10
-Reads first: `docs/css-modules.md` (why, decision, shared pieces, what to watch).
-Goal: move the last piece, typing, to `TypingInput.module.css` (the three word games import its
-`host` class), following `NumberPad.module.css`. Move any e2e class selectors to roles or
-`data-testid`; e2e `checkScreen` is the 360px check. Everything else is done (the number grid and
-the lock landed 2026-11-10). After typing, clean up the rule in `src/game/CLAUDE.md` and delete
-this entry.
-Starting prompt:
-```
-Read docs/css-modules.md. Delegate typing, the last piece in its Next list, to the implementer, then do the clean-up it lists and delete this entry.
-```
-
 ## Session: Campaign in the puzzle book (design)
 Last touched: 2026-10-27
 Reads first: `docs/puzzle-book.md` (settled decisions, open questions, how screenshots are made).

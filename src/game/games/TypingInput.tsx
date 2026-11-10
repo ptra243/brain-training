@@ -1,5 +1,6 @@
 import { useLayoutEffect, type RefObject } from 'react';
 import { typedEdit } from '../../games/typing.ts';
+import styles from './TypingInput.module.css';
 
 interface Props {
   inputRef: RefObject<HTMLInputElement | null>;
@@ -30,7 +31,7 @@ export function TypingInput({ inputRef, value, onType, onEnter, onArrow, onFocus
 
   return (
     <form
-      className="typing"
+      className={styles.typing}
       onSubmit={(e) => {
         e.preventDefault();
         onEnter?.();
@@ -38,7 +39,7 @@ export function TypingInput({ inputRef, value, onType, onEnter, onArrow, onFocus
     >
       <input
         ref={inputRef}
-        className="typing-input"
+        className={styles.input}
         aria-label={label}
         value={value}
         autoComplete="off"

@@ -17,6 +17,7 @@ import {
 } from '../../games/crossword.ts';
 import { HintButton, HintNote } from './Hints.tsx';
 import { TypingInput } from './TypingInput.tsx';
+import typingStyles from './TypingInput.module.css';
 import { focusTyping, hasFinePointer } from './typing.ts';
 import { crosswordInitial, type CrosswordData } from './saveData.ts';
 import type { GameProps } from './types.ts';
@@ -307,7 +308,7 @@ export function CrosswordGame({ puzzle, data: savedData, finished, helper = 'The
           )}
         </div>
       )}
-      <div className="typing-host">
+      <div className={typingStyles.host}>
         <div ref={scrollRef} className={wide ? styles.scroll : ''}>
         <div
           ref={gridRef}

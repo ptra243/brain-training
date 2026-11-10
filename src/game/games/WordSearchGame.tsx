@@ -1,6 +1,7 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { leftovers, lineBetween, wordAt, type Pos, type WordSearchPuzzle } from '../../games/wordsearch.ts';
 import { TypingInput } from './TypingInput.tsx';
+import typingStyles from './TypingInput.module.css';
 import { focusTyping } from './typing.ts';
 import type { WordSearchData } from './saveData.ts';
 import type { GameProps } from './types.ts';
@@ -145,7 +146,7 @@ export function WordSearchGame({ puzzle, data, finished, onChange, onFinish }: G
       {!finished && (
         <section className={`card ${styles.guess}`}>
           <h2>Know the hidden word already?</h2>
-          <div className="typing-host">
+          <div className={typingStyles.host}>
             <div className={styles.guessBoxes} onClick={() => focusTyping(guessRef)} style={{ gridTemplateColumns: `repeat(${answer.length}, minmax(0, 1fr))` }}>
               {Array.from({ length: answer.length }, (_, i) => (
                 <span key={i} className={`${styles.guessBox} ${guessFocused && i === Math.min(guess.length, answer.length - 1) ? styles.cursor : ''}`}>

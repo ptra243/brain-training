@@ -53,8 +53,8 @@ changed. Building them happens on `#shelf`, not by changing the live app (`docs/
 - **Mixed looks:** while games are on paper and the case is still on the green table, the two
   clash. Doing the game pages first and the case book soon after keeps that short.
 - **Home:** the bookcase (`library.html`) and four other themes are mocked up; none is chosen.
-- **CSS Modules:** the Nosing views and the Jigsaw (`cb-*`) are still global CSS
-  (`docs/css-modules.md`); the paper styles have to work alongside that move.
+- **CSS Modules:** every minigame's styles are in a module (`docs/css-modules.md`, finished
+  2026-11-11). Only the Jigsaw (`cb-*`) is still global CSS.
 - **Smaller than 44px in the mockups:** the "See the filled grid" link and the slim notebook strip.
 
 ## How the mockup screenshots were made

@@ -2,6 +2,7 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { isAllowedGuess, loadDictionary, type Dictionary } from '../../games/dictionary.ts';
 import { MAX_GUESSES, WORD_LENGTH, keyboardState, scoreGuess } from '../../games/wordle.ts';
 import { TypingInput } from './TypingInput.tsx';
+import typingStyles from './TypingInput.module.css';
 import { focusTyping, hasFinePointer } from './typing.ts';
 import type { WordleData } from './saveData.ts';
 import type { GameProps } from './types.ts';
@@ -61,8 +62,8 @@ export function WordleGame({ puzzle, data, finished, onChange, onFinish }: GameP
 
   return (
     <div className="wordle">
-      {puzzle.teaser && <p className="teaser-line">{puzzle.teaser}</p>}
-      <div className="typing-host">
+      {puzzle.teaser && <p className={styles.teaser}>{puzzle.teaser}</p>}
+      <div className={typingStyles.host}>
         <div className={styles.board} role="grid" aria-label="Guesses">
           {rows.map((row, r) => (
             <div
@@ -110,7 +111,7 @@ export function WordleGame({ puzzle, data, finished, onChange, onFinish }: GameP
       </p>
       {!finished && (
         <button
-          className="primary check-word"
+          className={`primary ${styles.check}`}
           // Keep the keyboard up: don't let the button take focus.
           onPointerDown={(e) => e.preventDefault()}
           onClick={submit}
@@ -118,9 +119,9 @@ export function WordleGame({ puzzle, data, finished, onChange, onFinish }: GameP
           Check word
         </button>
       )}
-      <div className="letter-strip" aria-label="Letters tried">
+      <div className={styles.strip} aria-label="Letters tried">
         {ALPHABET.map((l) => (
-          <span key={l} className={`letter-chip ${letters[l] ?? ''}`}>
+          <span key={l} className={`${styles.chip} ${letters[l] ? styles[letters[l]] : ''}`}>
             {l}
           </span>
         ))}

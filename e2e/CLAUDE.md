@@ -38,9 +38,8 @@
   allowlist it to go green. A known bug may be marked `test.fail()` with a
   comment; remove the mark when it's fixed (Playwright fails a passing one).
 - **Selectors**: role or text first; add a `data-testid` only where there is
-  no stable accessible name. Never a class selector for a game that uses a
-  CSS module (its class names are hashed); older games' global classes still
-  work until they move.
+  no stable accessible name. Never a class selector inside a minigame: every
+  game uses a CSS module, so its class names are hashed.
 - **Touch** uses real CDP events (`Input.dispatchTouchEvent`, see the drag
   helper in `map.spec.ts`): drag with several `touchMove` steps. A tap sends
   a late `click` that can land on whatever it just opened, so after a tap

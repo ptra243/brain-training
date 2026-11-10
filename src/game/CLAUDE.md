@@ -29,7 +29,8 @@
   for what a game overrides (the dog fight's card height). To style a global class
   from a module, write `:global(.x)` inside a rule scoped by a local class.
   e2e can't use scoped names: give the element a `data-testid` or find it by
-  role or label. Older games still in `styles.css` move over one at a time.
+  role or label. Module CSS loads before `styles.css`, so a module rule loses
+  to a global rule of equal specificity: raise it (`div.lock h2`).
 - **Names follow the dinner.** `suspectName(id, c.guests)` and
   `suspectInitials(id, c.guests)` (`names.ts`, via `guestName`). A lone heir is
   "The Heir" when the other heir is not in `c.guests`; the victim counts as
