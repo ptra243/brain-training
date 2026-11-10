@@ -194,16 +194,23 @@ her mother made.
 The son, and everyone's favourite. Left the company to do something of his own in the city and is
 happy there, or says so. Easy-going, funny, the one people tell things to at parties. Knows people
 assume he'll take over, and knows his sister hears it every time.
-- Versions (the card she meets them on):
+His lines are loose and unguarded: he reacts first ("Oh.", "Who told you that?"), then gives ground in
+short plain sentences. He says "my mum" and "my dad"; his sister says "my father".
+- Versions (the card she meets them on; settled 2026-11-10, no card swap):
   - **Sun (home)**
-    - Upright: Happy in the city, and truly does not want the company. But he would do anything for the people he loves, and the victim had been making one of them miserable for years.
-    - Reversed: Has been asked by the Host to take over instead of his sister, and has not told her.
+    - Upright: The Host has told him he'll be named at breakfast instead of his sister. He doesn't want it and it would break her. He came to talk his father out of it and failed; a death stops the announcement. (protecting someone)
+    - Reversed: The row was partly about his mother's name never going on the box. He has given the true founding story to a newspaper, to run on the morning of the 50th. Next to a death it reads as the son who came home to do damage. (revenge)
   - **Lovers**
-    - Upright: In love with someone the family would hate, and someone has threatened to tell.
-    - Reversed: The Host made it a condition: the job, or the person. He has to choose.
+    - Upright: Engaged to the heir of the rival chocolate family, and nobody knows. Someone has found out and wants paying. If it comes out, his family and the buyer take him for a spy. (exposure)
+    - Reversed: Knows about his father's affair and has kept it from his mother for a year, because the prenup leaves her with nothing. His father pays for his flat in the city, and it looks like blackmail. Never names the other person. (exposure)
   - **Star**
-    - Upright: His own business needs money, and the sale would give it.
-    - Reversed: His business has failed and nobody knows. He came home broke.
+    - Upright: The people on the factory floor asked him to stop the sale, because they think the buyer wants the name and not the factory. He promised he would. A death puts the sale on hold. (protecting someone)
+    - Reversed: His business has failed. Friends and people from the factory town put their savings in on the strength of the family name. Only a sale would pay them back, and a death delays it. (money)
+  - Threads: written, see "Threads written".
+- Links: the Host's fear that the founding story gets out (Sun reversed is who told it, unsaid); the
+  Hostess finding out about the affair and the Investor's "met someone here before" (Lovers reversed);
+  the Investor's bluff (Star upright says only "they think"). Every version leaves something lying
+  around for the Housekeeper to have read.
 
 ### The Detective: Justice (borrows High Priestess, Hermit)
 A retired police detective who once investigated the company; the case was dropped. The Hostess's
@@ -300,7 +307,7 @@ Any two guests' versions can be heard in the same case, so these were checked to
   gives several guests a reason to want it buried, as background only.
 - **Someone wants the Host declared unfit** (Host, Emperor upright) is unnamed; the Elder heir's Chariot
   reversed is that someone. Her version names herself only by half-admission.
-- **Three in the family want out**: the Hostess's shop (Star upright), the Younger heir's business (Star)
+- **Three in the family want out**: the Hostess's shop (Star upright), the Younger heir's failed business (Star reversed)
   and the Elder heir's business (Devil upright) can all be true at once.
 - **Watch when writing lines**: the Housekeeper knowing "the Younger heir's secret" must stay vague, since
   his secret differs by version.
@@ -331,7 +338,7 @@ Vary the motive kinds across a guest's six (exposure, money, protecting someone,
 "the victim was about to expose me" is not everyone's story. A thread may break the shape (openly hostile
 from beat 1, or volunteering the motive because they think it clears them).
 
-Each beat is 2 to 4 sentences, enough to state the key facts plainly; each of her lines is written for
+Each beat is a few short plain sentences (2 to 4, or up to 6 when they are fragments), enough to state the key facts; each of her lines is written for
 that thread and becomes the button. Her lines say what she found, never where or when tonight. The test:
 after reading, she can explain the motive in one sentence, and every line is something a real person
 would say to a stranger at that point. Past dates and places are fine ("twelve years ago", "at the
@@ -343,6 +350,14 @@ person, and how could she know it? Their reply: why don't they just tell her to 
 Later beats open after more games, so she can't pick up a word from the last beat as if no time had
 passed. Nobody confesses a crime to a stranger: use half-admissions, hypotheticals and slips, and let
 her work out the rest. Who a "someone told me" could have come from must make sense too.
+
+**It has to sound said, not written (owner, 2026-11-10).** Four habits make a thread read as prose:
+every reply ending on a neat closing line; the guest never reacting to what she just said ("Oh.",
+"Who told you that?") before answering; explaining in finished sentences in the right order instead
+of giving ground a bit at a time; and her lines sounding like evidence read out, where a stranger
+would soften it ("Sorry, I overheard…"). The Younger heir's threads are the model. The Fixer's,
+Lawyer's and Elder heir's were written before this and need the same pass (the Lawyer may stay
+clipped: that is the character).
 
 **Nothing that hints at a weapon.** No nut allergies, and no chemicals, sprays or anything that
 sounds like poison in a motive: poison is a weapon, so it would read as a clue to how someone died.
@@ -366,7 +381,7 @@ Each guest gets a session like the Fixer's, in this order:
 ## Threads written
 
 Guarded questioning, her line before each beat (see "How a thread reads"). Settled with the owner
-and in the game (`src/content/talk/motives.ts`): the Fixer 2026-10-29, the Lawyer 2026-11-02, the Elder heir 2026-11-03.
+and in the game (`src/content/talk/motives.ts`): the Fixer 2026-10-29, the Lawyer 2026-11-02, the Elder heir 2026-11-03, the Younger heir 2026-11-10.
 
 ### The Fixer
 
@@ -517,6 +532,56 @@ and in the game (`src/content/talk/motives.ts`): the Fixer 2026-10-29, the Lawye
 - **Elder heir:** Then somebody in the family gave them. My father has had eight years to hand me this company. If he won't, I'll run it for whoever he sells it to, and they'll know exactly who made that possible.
 - **You:** {victim} is dead. Is your deal off?
 - **Elder heir:** It stops, and an inquiry reads everyone's messages. Mine with the buyer won't look much like family loyalty. I'd have liked the sale to go through first.
+
+### The Younger heir
+
+**Sun upright (named instead of her)**
+- **You:** Everyone seems really pleased to see you.
+- **Younger heir:** Ha, yeah. Distance makes the heart grow fonder, right? I left, so I never had to butt heads with anyone over the business. My sister's been here doing the actual work for eight years, and nobody makes a fuss of her.
+- **You:** I wasn't snooping, but I found a note signed "Dad". It says he's decided, and it's you.
+- **Younger heir:** Oh. You weren't meant to see that. Look, he asked me in the spring and I said no. I don't want it, I really don't. He says he'll announce it anyway, because I won't say no in front of everyone. My sister doesn't know. Please don't tell her.
+- **You:** {victim} is dead. Is the announcement still happening?
+- **Younger heir:** No. God, no, not after this. I've been trying to stop it for months and I couldn't, and now it's stopped. I know how that looks, believe me.
+
+**Sun reversed (the newspaper)**
+- **You:** You seem to be the only one having a good time.
+- **Younger heir:** Someone should. Honestly, it's the speech I can't stand. Fifty years, one man, one recipe. I've heard it my whole life, and what it leaves out is the reason I left.
+- **You:** Someone told me a reporter keeps ringing the house and asking for you.
+- **Younger heir:** Ah. Right. They're only checking a date. It was my mum's recipe. Everyone in this family knows that, and her name's never been on the box. I asked, years ago, and he laughed at me. So I've told a newspaper. It comes out on the morning of the fiftieth.
+- **You:** {victim} is dead. Is the paper still printing your story?
+- **Younger heir:** Yes, and I can't stop it. I've tried. It was meant to be about my mum getting the credit. Now it comes out the same week someone died here, and it just looks like I came home to hurt people. I didn't. Not like that.
+
+**Lovers upright (the wrong surname)**
+- **You:** Is there someone waiting for you back in the city?
+- **Younger heir:** There is, actually. And that's all I'm saying. My family has opinions about who I see. A lot of opinions.
+- **You:** Sorry, I overheard you on the phone. You said you'd pay, as long as nobody here finds out who it is.
+- **Younger heir:** You heard that. Okay. I'm engaged. And the family I'm marrying into makes the other chocolate, the one my dad won't have in the house. We were going to wait until the sale was settled. Then someone found out, and now they want money to keep quiet.
+- **You:** {victim} is dead. Can you still keep it quiet?
+- **Younger heir:** I doubt it. The police will want to know who everyone's been calling, and I've called the competition every night for a year. My family will think I've been spying on them. The buyer will too. I just fell for someone. That's all it is.
+
+**Lovers reversed (the monthly payment)**
+- **You:** You're close to your mum, aren't you?
+- **Younger heir:** Yeah. She fed me, she backed me, and she never once asked me to come back. I'd do a lot to stop her getting hurt. I have, actually.
+- **You:** Someone told me your father pays for your flat in the city. I thought you two didn't speak.
+- **Younger heir:** Who told you that? We don't speak. He pays. Look, say I saw him once, with someone who wasn't my mum. And say she'd leave with nothing if she walked out, because of what she signed. Then it isn't a present, is it? It's him making sure I stay quiet. And I have.
+- **You:** {victim} is dead. What are you worried about?
+- **Younger heir:** My bank statements. There's a payment every month for a year, and I can't give a reason for it. Anyone who sees that is going to say blackmail. And I can't explain it without saying what I saw. I kept quiet so nobody got hurt, and it's going to look like the opposite.
+
+**Star upright (the letter)**
+- **You:** The people who work for your family talk about you like you never left.
+- **Younger heir:** Do they? That's nice. I spent every summer on the factory floor, and I was useless. They taught me how to temper chocolate, and how to swear. I still owe them.
+- **You:** I found a letter to you with about two hundred signatures on it. They want you to stop the sale.
+- **Younger heir:** Two hundred and twelve. I counted. They think the buyer wants the name and not the factory, and honestly, I think they're right. I don't want the company. But I told them I'd stop it, and I had no idea how.
+- **You:** {victim} is dead. Is the sale off?
+- **Younger heir:** For now, yes. Nobody's signing anything with the police here. I promised those people I'd find a way to stop it. I didn't mean this. I really didn't mean this.
+
+**Star reversed (the phone)**
+- **You:** How's business in the city?
+- **Younger heir:** Great. Booming. That's what I tell everyone here, anyway. Ask me again when I've had a drink.
+- **You:** Your phone keeps ringing, and you turn it face down every time.
+- **Younger heir:** You noticed that. They're people who want their money back. The business went under in the summer. Friends put their savings in. People from the factory town too, because of the family name. The only way I can pay them is if the sale goes through.
+- **You:** {victim} is dead. Can you still pay them back?
+- **Younger heir:** No. Not now. The sale was the only money coming, and it's on hold until someone's caught. So I'm the one person this is terrible for. Although I'd probably still check me, if I were you.
 
 ## Still to do
 

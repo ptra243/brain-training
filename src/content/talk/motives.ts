@@ -281,4 +281,95 @@ export const motives: TalkContent['motives'] = [
       "It stops, and an inquiry reads everyone's messages. Mine with the buyer won't look much like family loyalty. I'd have liked the sale to go through first.",
     ],
   },
+  // The Younger heir (id `younger-heir`): guarded questioning, `asks` are her line before each beat.
+  {
+    suspect: 'younger-heir',
+    card: 'sun',
+    reversed: false,
+    asks: [
+      'Everyone seems really pleased to see you.',
+      "I wasn't snooping, but I found a note signed \"Dad\". It says he's decided, and it's you.",
+      '{victim} is dead. Is the announcement still happening?',
+    ],
+    thread: [
+      "Ha, yeah. Distance makes the heart grow fonder, right? I left, so I never had to butt heads with anyone over the business. My sister's been here doing the actual work for eight years, and nobody makes a fuss of her.",
+      "Oh. You weren't meant to see that. Look, he asked me in the spring and I said no. I don't want it, I really don't. He says he'll announce it anyway, because I won't say no in front of everyone. My sister doesn't know. Please don't tell her.",
+      "No. God, no, not after this. I've been trying to stop it for months and I couldn't, and now it's stopped. I know how that looks, believe me.",
+    ],
+  },
+  {
+    suspect: 'younger-heir',
+    card: 'sun',
+    reversed: true,
+    asks: [
+      'You seem to be the only one having a good time.',
+      'Someone told me a reporter keeps ringing the house and asking for you.',
+      '{victim} is dead. Is the paper still printing your story?',
+    ],
+    thread: [
+      "Someone should. Honestly, it's the speech I can't stand. Fifty years, one man, one recipe. I've heard it my whole life, and what it leaves out is the reason I left.",
+      "Ah. Right. They're only checking a date. It was my mum's recipe. Everyone in this family knows that, and her name's never been on the box. I asked, years ago, and he laughed at me. So I've told a newspaper. It comes out on the morning of the fiftieth.",
+      "Yes, and I can't stop it. I've tried. It was meant to be about my mum getting the credit. Now it comes out the same week someone died here, and it just looks like I came home to hurt people. I didn't. Not like that.",
+    ],
+  },
+  {
+    suspect: 'younger-heir',
+    card: 'lovers',
+    reversed: false,
+    asks: [
+      'Is there someone waiting for you back in the city?',
+      "Sorry, I overheard you on the phone. You said you'd pay, as long as nobody here finds out who it is.",
+      '{victim} is dead. Can you still keep it quiet?',
+    ],
+    thread: [
+      "There is, actually. And that's all I'm saying. My family has opinions about who I see. A lot of opinions.",
+      "You heard that. Okay. I'm engaged. And the family I'm marrying into makes the other chocolate, the one my dad won't have in the house. We were going to wait until the sale was settled. Then someone found out, and now they want money to keep quiet.",
+      "I doubt it. The police will want to know who everyone's been calling, and I've called the competition every night for a year. My family will think I've been spying on them. The buyer will too. I just fell for someone. That's all it is.",
+    ],
+  },
+  {
+    suspect: 'younger-heir',
+    card: 'lovers',
+    reversed: true,
+    asks: [
+      "You're close to your mum, aren't you?",
+      "Someone told me your father pays for your flat in the city. I thought you two didn't speak.",
+      '{victim} is dead. What are you worried about?',
+    ],
+    thread: [
+      "Yeah. She fed me, she backed me, and she never once asked me to come back. I'd do a lot to stop her getting hurt. I have, actually.",
+      "Who told you that? We don't speak. He pays. Look, say I saw him once, with someone who wasn't my mum. And say she'd leave with nothing if she walked out, because of what she signed. Then it isn't a present, is it? It's him making sure I stay quiet. And I have.",
+      "My bank statements. There's a payment every month for a year, and I can't give a reason for it. Anyone who sees that is going to say blackmail. And I can't explain it without saying what I saw. I kept quiet so nobody got hurt, and it's going to look like the opposite.",
+    ],
+  },
+  {
+    suspect: 'younger-heir',
+    card: 'star',
+    reversed: false,
+    asks: [
+      'The people who work for your family talk about you like you never left.',
+      'I found a letter to you with about two hundred signatures on it. They want you to stop the sale.',
+      '{victim} is dead. Is the sale off?',
+    ],
+    thread: [
+      "Do they? That's nice. I spent every summer on the factory floor, and I was useless. They taught me how to temper chocolate, and how to swear. I still owe them.",
+      "Two hundred and twelve. I counted. They think the buyer wants the name and not the factory, and honestly, I think they're right. I don't want the company. But I told them I'd stop it, and I had no idea how.",
+      "For now, yes. Nobody's signing anything with the police here. I promised those people I'd find a way to stop it. I didn't mean this. I really didn't mean this.",
+    ],
+  },
+  {
+    suspect: 'younger-heir',
+    card: 'star',
+    reversed: true,
+    asks: [
+      "How's business in the city?",
+      'Your phone keeps ringing, and you turn it face down every time.',
+      '{victim} is dead. Can you still pay them back?',
+    ],
+    thread: [
+      "Great. Booming. That's what I tell everyone here, anyway. Ask me again when I've had a drink.",
+      "You noticed that. They're people who want their money back. The business went under in the summer. Friends put their savings in. People from the factory town too, because of the family name. The only way I can pay them is if the sale goes through.",
+      "No. Not now. The sale was the only money coming, and it's on hold until someone's caught. So I'm the one person this is terrible for. Although I'd probably still check me, if I were you.",
+    ],
+  },
 ];

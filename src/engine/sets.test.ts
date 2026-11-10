@@ -143,7 +143,7 @@ test('only guests on a motive with asks carry asks, one per beat', () => {
       if (set.asks) {
         withAsks++;
         assert.equal(set.asks.length, set.thread.length, `${seed} ${s}`);
-        assert.ok(s === 'butler' || s === 'financier' || s === 'elder-heir', `${seed} ${s}`);
+        assert.ok(s === 'butler' || s === 'financier' || s === 'elder-heir' || s === 'younger-heir', `${seed} ${s}`);
       }
     }
   }
