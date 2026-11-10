@@ -101,3 +101,12 @@ duration), each full check, and how many ran in order versus alongside. Older li
   e2e about 2 minutes). Six build sections and two look checks were run from one main session instead
   of a new session after each commit; every hand-back report (8, about 30 lines each) and four
   handoff briefs were written here, and a remote commit needed a merge before the push.
+- 2026-11-10, Tarot games critique (read-only): 19 replies at the reminder, context 211k, 2.5M read from
+  cache, 165k written, 10k output; no subagents, no checks run. The request was read as the in-repo tarot
+  match and dog fight first, then the prototypes turned out to be artifacts: a 60-session listing, a 43-
+  artifact listing, two Docs reads and one artifact's full HTML (about 35k) all landed in the main context.
+- 2026-11-10, Housekeeper's hour critique, then the in-app text prototype: 33 replies at the reminder,
+  context 203k, 5.1M read from cache, 146k written, 37k output; 2 implementers (30 replies, 1.9M read,
+  148k written, 56k output). A read-only critique turned into a design round and then a build in the
+  same session; the first prototype's full HTML was read here, and a key-clue rule was built, measured
+  (usable in 37% of seated cases) and removed again by a second agent the same day.

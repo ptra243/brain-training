@@ -1,6 +1,6 @@
 # The Housekeeper's hour (dispatch minigame): content catalogue
 
-Status: design reference, nothing built in the app. Worked out with the owner 2026-11-01 to 2026-11-03
+Status: design reference; a second prototype is being built in the app (see the next section). Worked out with the owner 2026-11-01 to 2026-11-03
 against a standalone prototype (claude.ai artifact "The Housekeeper's Desk", private to the owner).
 This doc lists everything that can come up in the game and what can appear with what, so a case
 generator (and content writers) can build it for any house and cast.
@@ -8,6 +8,52 @@ generator (and content writers) can build it for any house and cast.
 Related: `docs/story.md` (the evening, the cast, the storm), `docs/secrets.md` and
 `docs/relationships.md` (story secrets, rolled blind), `docs/visual-theme.md` (the #shelf look),
 `docs/portraits.md`, `src/content/index.ts` and `src/content/extraRooms.ts` (rooms, guests, weapons).
+
+## Second prototype, in the app (2026-11-10)
+
+The first prototype was hand-written, so it could not show whether an evening generated under the
+app's rules is still worth playing. The second one is built from a real case. Stage 1 is a generator
+and a script that prints evenings (`node scripts/housekeeper-evening.ts`); stage 2 is a `#dev` page.
+It is not wired into any case.
+
+Settled with the owner:
+- **Dispatching is there to help her remember**, by doing the evening herself. It is not a puzzle.
+- **What the staff bring back are red herrings**: true, innocent-looking beats about each guest,
+  rolled blind, eventually from the guest's secret (`docs/secrets.md`; a placeholder table for now).
+  They must be resolved at the end of the case.
+- **No generator.** It was only the first prototype's reason nobody leaves. The storm stays as weather.
+- **The clue is a reward, not something she saw** (after stage 1's counts, below). The game holds its
+  clues like any other minigame and hands them over when the statement is done, so it works at every
+  difficulty. Whether her own 8:55 errand stays as a scene with no clue in it is open.
+
+Tried in the prototype, for the owner to confirm after playing (these replace the sections below
+where they disagree):
+- Always three jobs for the three staff each round. No leftovers, impatient guests or late returns.
+- No right or wrong person and no stars. A mismatch only adds its funny line.
+- One red-pencil tick per round on a report; only ticked beats are asked, cued by who she sent.
+- No vanishing object (its answer was a weapon, and it needs the most art).
+- No hunch cards and one difficulty.
+
+### What stage 1 showed (2026-11-10)
+
+Built: `src/games/housekeeperHour.ts` (the builder takes a view of the case with no killer, weapon or
+scene in it), placeholder content in `src/content/housekeeperHour.ts`, tests, and the print script
+(`--survey` for the counts below).
+
+- **The key-clue rule does not work.** "The first clue saying a guest or weapon was in a room" exists
+  in only 37% of cases that seat the Housekeeper (she is seated in 49% of 900 cases): most easy cases,
+  medium numbered cases through weapon clues only, and no hard case or medium or hard campaign
+  round 1. The clue's own wording is also often another guest's testimony. So the rule was dropped the
+  same day: the clue is a reward (above), and the generator no longer picks a key clue.
+- **One beat per guest per kind is too thin.** With four or five guests asking nine jobs, everyone asks
+  twice and the same line comes back. A guest needs a short thread that moves on between visits (the
+  first prototype's contract, then the contract gone), like the talk threads.
+- **The job does not change what comes back.** Beats hang on the guest only, so the room and the
+  request are decoration. A beat should use the room or the errand to tie the memory to the send.
+- **Placeholder beats are inventory, not red herrings** ("a briefcase full of tidy papers"), and their
+  blanks ask for arbitrary words (sleeve, cuff or lapel). The beats need writing by hand from the
+  secrets, the way the talk threads were.
+- **What works:** the three-by-three round, the mismatch lines, the statement cued by her own send.
 
 ## The game in one paragraph
 

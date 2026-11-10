@@ -183,6 +183,16 @@ Starting prompt:
 Read docs/visual-theme.md. This is paused. Do not change src/styles.css or replace Home or Casebook. New screens belong to the Shelf UI session, on #shelf only.
 ```
 
+## Session: Housekeeper's hour, prototype (design)
+Last touched: 2026-11-10
+Reads first: `docs/housekeeper-dispatch.md` ("Second prototype, in the app" and "What stage 1 showed"), `docs/secrets.md`.
+Done: stage 1, a killer-blind generator with placeholder content and a script that prints evenings for real cases (`node scripts/housekeeper-evening.ts`). Not wired into any case.
+Next: give each guest a thread that moves on between visits and uses the room, then stage 2, a `#dev` page to play it. Better beats wait on "Everyone has a secret". The clue is now a plain reward (decided 2026-11-10).
+Starting prompt:
+```
+Read "Second prototype, in the app" and "What stage 1 showed" in docs/housekeeper-dispatch.md and run node scripts/housekeeper-evening.ts. Give me a concrete proposal for guest threads (with one guest's thread written out, and whether her own 8:55 errand stays), and after I agree, brief the implementer for the changes and then the #dev page.
+```
+
 ## Session: Card solitaire, the witness deal (design)
 Last touched: 2026-11-03
 Reads first: `docs/clear-the-dungeon.md` (rules, the 6-card slack, detective reskin, open questions).
