@@ -268,6 +268,14 @@ body.dev { background: #f2f1ec; color: #222; }
 body.dev.dev-game { background: var(--baize); color: var(--on-baize); }
 .dev-back { position: fixed; top: 0.5rem; right: 0.5rem; z-index: 50; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 1.75rem; line-height: 1; text-decoration: none; }
 .inspector { grid-template-columns: minmax(0, 1fr); max-width: 34rem; margin: 0 auto; padding: 1rem 1rem 3rem; display: grid; gap: 1.25rem; color: #222; }
+.dev-filter { display: grid; gap: 0.25rem; font-weight: 600; }
+.dev-filter input { min-height: 44px; padding: 0 0.75rem; font: inherit; border: 1px solid #bbb; border-radius: 0.4rem; background: #fff; color: #222; }
+.dev-jumps { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.dev-jumps button { min-height: 44px; padding: 0 0.75rem; font: inherit; font-size: 0.85rem; border: 1px solid #bbb; border-radius: 0.4rem; background: #fff; color: #222; }
+.inspector .dev-rows { list-style: none; margin: 0; padding: 0; }
+.dev-rows li { display: flex; align-items: center; gap: 0.5rem; min-height: 44px; min-width: 0; }
+.dev-rows a { flex: none; display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
+.dev-about { flex: 1 1 0; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .inspector h1 { font-size: 1.5rem; }
 .inspector h2 { font-size: 1.1rem; margin-bottom: 0.5rem; }
 .inspector .muted { color: #666; }

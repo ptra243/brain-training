@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures.ts';
+import { checkScreen } from './rules.ts';
 
 test('Shelf from Home opens the bookcase at the plain address; Classic from the bookcase goes back', async ({ page }) => {
   await page.goto('/');
@@ -32,4 +33,17 @@ test('#dev still opens the dev index when Shelf is chosen', async ({ page }) => 
   await expect(page.getByText('Take a book off the shelf.')).toHaveCount(0);
   await expect(page.getByRole('heading').first()).toBeVisible();
   await expect(page.locator('body.dev')).toHaveCount(1);
+});
+
+test('#dev index shows grouped sections and the filter narrows them', async ({ page }) => {
+  await page.goto('/#dev');
+  await expect(page.getByRole('heading', { name: /^Tools \(/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^Load a game state \(/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^Shelf: notebook \(/ })).toBeVisible();
+  await checkScreen(page, 'dev index');
+  await page.getByRole('searchbox', { name: 'Filter' }).fill('shelf-tin');
+  await expect(page.getByRole('heading', { name: /^Shelf: shelf and extras \(1\)/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^Tools \(/ })).toHaveCount(0);
+  await page.getByRole('searchbox', { name: 'Filter' }).fill('zzz-nothing');
+  await expect(page.getByText('No dev page matches.')).toBeVisible();
 });

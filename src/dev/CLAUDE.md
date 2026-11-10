@@ -1,7 +1,8 @@
 # Dev pages (`#dev`)
 
-`#dev` is an index listing every dev page with a link (built from
-`DEV_PAGES` in `src/dev/previews.ts`). `#dev/cases` is the case inspector.
+`#dev` is an index listing every dev page with a link, grouped into sections
+(`PREVIEW_GROUPS` in `src/dev/previews.ts`, sectioned by `devIndex.ts`), with
+jump buttons and a filter on id and text. `#dev/cases` is the case inspector.
 Her game does not open this hash. A look check opens a preview URL instead of playing
 through to the screen. A test that proves a click loads a save one real
 action before that click (`e2e/CLAUDE.md`).
@@ -27,7 +28,7 @@ Add the id here so the index, the docs and `browser-check` agree.
 
 A screen the save cannot show gets its own `#dev/<id>`, rendering the
 component with sample lines. So does a screen a look check would otherwise
-reach by solving puzzles. Register the id in `src/dev/previews.ts`, render it
+reach by solving puzzles. Register the id and its `group` in `src/dev/previews.ts`, render it
 in `DevPreview.tsx`, add it here and add a landmark to `e2e/previews.spec.ts`. The index lists it
 automatically.
 Sample names come from `src/content` (`suspectName`, `itemName`); buttons do
