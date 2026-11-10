@@ -102,6 +102,18 @@ Starting prompt:
 Read docs/side-missions.md, then help me decide whether side missions are worth building and what one would look like.
 ```
 
+## Session: Confidants, ranks across campaigns
+Last touched: 2026-11-04 (split from "Confidant arcs and case framing"; its openings and endings moved
+to Relationships and Act breaks)
+Reads first: `docs/theme-draft.md` (Extension: Confidants, proposed, not settled), `docs/story.md` (the
+people and fixed history, which the chapters should draw on).
+Goal: decide whether each guest's card becomes a Confidant with 5 ranks that carry over between
+campaigns (5 chapters × 3 beats each, card revealed at rank 3). Best after the theme content threads.
+Starting prompt:
+```
+Read the Extension: Confidants section of docs/theme-draft.md and the people in docs/story.md, then help me decide whether Confidant ranks are still worth building alongside the threads.
+```
+
 ## Session: Property tests for the engine
 Last touched: 2026-10-21
 Reads first: `docs/code-review-followups.md` section 5, `src/engine/CLAUDE.md`, `scripts/check-cases.ts`.

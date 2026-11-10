@@ -27,7 +27,7 @@ open questions go in a linked `docs/<slug>.md`, and the entry points to it. An e
 settled design may stay as a short stub; give it a doc when someone starts it.
 
 ## Session: Theme content, land the lines
-Last touched: 2026-11-03
+Last touched: 2026-11-10
 Reads first: `docs/story.md` ("How a thread reads", the people and their versions, "Threads written"), `docs/talk-threads.md` ("Two topics").
 Done: the story (the chocolate company's 50th), all 60 versions with real motives, the feelings grid, and guarded threads with her line before each beat, built and in the game for the Fixer, the Lawyer and the Elder heir (`src/content/talk/motives.ts`; the Elder heir now borrows the Empress). A new guest with asks also goes in the list in `src/engine/sets.test.ts`; the talk lint rejects room words and any line another thread already uses.
 Next: the Younger heir, the same way (his sister's threads are the nearest model). Then the other guests, the "About the others" pools, and "Still to do" in `docs/story.md` (renames, reaction line, the motherly Empress lines).
@@ -191,6 +191,15 @@ Next: give each guest a thread that moves on between visits and uses the room, t
 Starting prompt:
 ```
 Read "Second prototype, in the app" and "What stage 1 showed" in docs/housekeeper-dispatch.md and run node scripts/housekeeper-evening.ts. Give me a concrete proposal for guest threads (with one guest's thread written out, and whether her own 8:55 errand stays), and after I agree, brief the implementer for the changes and then the #dev page.
+```
+
+## Session: Tarot reading, the Ashby Sitting (design)
+Last touched: 2026-11-10
+Reads first: `docs/tarot-reading.md` (the owner's feedback, the six earlier prototypes, what the current one does, open questions).
+Goal: a tarot reading where she is a detective behind the cards. A playable prototype exists as an artifact (monologue, a choice of spread, three help levels); the owner has not yet said how it plays. Decide whether it keeps the feel of doing a reading, then whether it joins the questioning or stands alone.
+Starting prompt:
+```
+Read docs/tarot-reading.md and the Ashby Sitting artifact it links. I'll tell you how the current prototype played; then help me decide what to change and where this would live in the game.
 ```
 
 ## Session: Card solitaire, the witness deal (design)
