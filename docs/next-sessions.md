@@ -169,7 +169,7 @@ Read docs/visual-theme.md. This is paused. Do not change src/styles.css or repla
 ```
 
 ## Session: Housekeeper's hour, prototype (design)
-Last touched: 2026-11-10
+Last touched: 2026-11-11
 Reads first: `docs/housekeeper-dispatch.md` ("Second prototype, in the app" and "What stage 1 showed"), `docs/secrets.md`.
 Done: stage 1, a killer-blind generator with placeholder content and a script that prints evenings for real cases (`node scripts/housekeeper-evening.ts`). Not wired into any case.
 Next: give each guest a thread that moves on between visits and uses the room, then stage 2, a `#dev` page to play it. Better beats wait on "Everyone has a secret". The clue is now a plain reward (decided 2026-11-10).
@@ -179,12 +179,12 @@ Read "Second prototype, in the app" and "What stage 1 showed" in docs/housekeepe
 ```
 
 ## Session: Tarot reading, the Ashby Sitting (design)
-Last touched: 2026-11-10
-Reads first: `docs/tarot-reading.md` (the owner's feedback, the six earlier prototypes, what the current one does, open questions).
-Goal: a tarot reading where she is a detective behind the cards. A playable prototype exists as an artifact (monologue, a choice of spread, three help levels); the owner has not yet said how it plays. Decide whether it keeps the feel of doing a reading, then whether it joins the questioning or stands alone.
+Last touched: 2026-11-11
+Reads first: `docs/tarot-reading.md` (the owner's feedback, the earlier prototypes, how the Ashby Sitting played, and what The Rigged Sitting does).
+Goal: a tarot reading where she is a detective behind the cards. The Ashby Sitting played as separate exchanges with arbitrary choices and no goal. The Rigged Sitting replaces it: a stated goal, five cards packed in her sleeve, and four beats built backwards from the clue. The owner has not yet said how it plays. Then decide whether it joins the questioning or stands alone.
 Starting prompt:
 ```
-Read docs/tarot-reading.md and the Ashby Sitting artifact it links. I'll tell you how the current prototype played; then help me decide what to change and where this would live in the game.
+Read docs/tarot-reading.md, the section "The Rigged Sitting", and the artifact it links. I'll tell you how it played; then help me decide what to change and whether a sitting can be generated from a case's clue.
 ```
 
 ## Session: Card solitaire, the witness deal (design)

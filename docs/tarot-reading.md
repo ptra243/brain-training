@@ -31,8 +31,49 @@ original idea, and the version he liked most, is The Ashby Case.
 - **How much the detective helps could be the difficulty setting.**
 - **The Nine Cards was a different direction he wanted to try; it was too confusing.**
 
-Still to get from him: how the current version (monologue, spread choice, levels) plays. He had not
-played it when this was written.
+## How the current version played (owner, 2026-11-11)
+
+- **It does not play like a conversation.** Each card is its own exchange.
+- **The choices feel arbitrary**, even though they come from the card.
+- **There is no goal to aim at.**
+- His idea: start at the clue and build the deck towards it, so the sitting reads like a story.
+
+Why, from the prototype's code:
+
+- Her answer is keyed to the position, not to what you said: "Yes. X" or "No. X" with the same X.
+  Nothing she says changes the next card, and the cards can be read in any order.
+- Your notes are not on screen while you read a card, so nothing favours one reading over the other.
+  The choice only moves trust. Landing on the hidden truth earns a flat "No" and less text, so the
+  best play is to tell her what she wants to hear.
+- The detecting happens afterwards, in a separate thinking step. The reading and the puzzle are two
+  games back to back.
+- What you are trying to find out is never stated; it only appears at the last card.
+
+## The Rigged Sitting (prototype, 2026-11-11)
+
+Artifact: https://claude.ai/artifact/KBqDgaASHVGmYnr3XB4ipE. The owner's framing: the detective is
+rigging the deck to get the answers she wants. He has not yet said how it plays.
+
+- **The goal is pinned at the top** as a statement ("Find out who was in the house at nine"), and
+  turns into the clue when she says it.
+- **Before she arrives**, read three notes and pick 5 of 8 cards for your sleeve.
+- **The first and last cards are honest**, off the deck: turn, read, listen.
+- **Four beats, built backwards from the clue.** Each of her lines leaves a thread; two of the eight
+  cards pick each one up (The Sun fits two beats, The Tower fits none). The choice is which card to
+  palm, not which reading to give.
+- **A card on the wrong thread** gets a true line that goes nowhere, and the card is spent.
+- **"Deal honestly and hope"** always advances her, so she can't get stuck; it counts as luck.
+- **Levels change only the detective's voice**: easy names what to pack and what to ask for, medium
+  marks the thread words in her line, hard says nothing.
+- No lies, no trust meter, no thinking step. She is guarded, not lying, so every line is true.
+- One hand-written sitting, the Ashby cast again. The page runs as a transcript, each exchange led
+  by its card.
+
+Left out on purpose, to add only if it plays too easily: a card that is too on the nose makes her
+wary; an honest card mid-sitting; catching a lie as a beat inside the conversation.
+
+To judge: does it read as a conversation; is choosing the card a decision or word-matching; does
+packing the sleeve matter; is four beats the right length.
 
 ## The earlier prototypes (all artifacts on the owner's account, 2026-10-25/26)
 
