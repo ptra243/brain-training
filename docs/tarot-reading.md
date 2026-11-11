@@ -54,26 +54,58 @@ Why, from the prototype's code:
 Artifact: https://claude.ai/artifact/KBqDgaASHVGmYnr3XB4ipE. The owner's framing: the detective is
 rigging the deck to get the answers she wants. He has not yet said how it plays.
 
-- **The goal is pinned at the top** as a statement ("Find out who was in the house at nine"), and
-  turns into the clue when she says it.
-- **Before she arrives**, read three notes and pick 5 of 8 cards for your sleeve.
-- **The first and last cards are honest**, off the deck: turn, read, listen.
-- **Four beats, built backwards from the clue.** Each of her lines leaves a thread; two of the eight
-  cards pick each one up (The Sun fits two beats, The Tower fits none). The choice is which card to
-  palm, not which reading to give.
-- **A card on the wrong thread** gets a true line that goes nowhere, and the card is spent.
-- **"Deal honestly and hope"** always advances her, so she can't get stuck; it counts as luck.
-- **Levels change only the detective's voice**: easy names what to pack and what to ask for, medium
-  marks the thread words in her line, hard says nothing.
+Version 1 (five cards in the sleeve, four beats, palm a card after each of her lines): he liked it,
+but there was too much scrolling. The current one (version 6) is two spreads of three cards, laid
+out for one phone screen at a time:
+
+- **The first spread is honest**, on her own question (behind her, where she stands, what she
+  asks). Whichever card falls, she lets one thing drop per card. Those three things replace most
+  of the detective's notes, so the stacking that follows builds on what she said. Tap the
+  face-down card, or the button, to turn.
+- **You choose what the card means for her** (version 6). The owner asked why "I see someone
+  walking a house alone, with a lamp" would get an answer: the line described the picture and said
+  nothing about her. Now the card's picture is read out, then you pick one of two statements about
+  her. One repeats what she has already told you and gets a nod; the other is a near miss she can
+  put right ("...while you sat with him." "I wasn't with him. I was at evensong"), and the
+  correction is what she lets drop. A nod costs nothing: the other line is still there. Easy says
+  which gap to aim at, medium gives the principle, hard nothing. **Owner, after playing it: "I
+  think it worked."** The rigged spread's lines have not had the same treatment yet; that is the
+  next step.
+- **The goal sits at the top** as a statement ("Find out who was in the house at nine"), and turns
+  into the clue when she says it.
+- **Three positions, built backwards from the clue:** the anchor (something she will agree with,
+  taken from the notes), the obstacle (what she is guarding), the resolution (what brings it out).
+  This is the form that looks easiest to generate from a case: a known fact fills the first slot
+  and the clue fills the last.
+- **Stack the deck for the second spread:** from what she let drop and two notes, place one of six
+  cards in each position. Two cards fit each position; The Sun fits two of them and The Tower fits none. All the
+  choosing happens here.
+- **The sitting is turn, read, listen.** A card that suits its position gets her talking; one that
+  doesn't gets a true line that goes nowhere.
+- **After a miss, an honest card off the deck** moves her along, so she can't get stuck; it counts
+  as luck.
+- **The reading is told back as one sentence** at the end, a clause per card that landed ("She left
+  for evensong at eight, her husband sat on with Dr Marsh, and the doctor was still there at nine").
+- **Levels change only the detective's voice** while stacking: easy gives the plan, medium the
+  principle, hard nothing.
 - No lies, no trust meter, no thinking step. She is guarded, not lying, so every line is true.
-- One hand-written sitting, the Ashby cast again. The page runs as a transcript, each exchange led
-  by its card.
+- One hand-written sitting, the Ashby cast again. One exchange shows at a time; the rest folds away.
 
-Left out on purpose, to add only if it plays too easily: a card that is too on the nose makes her
-wary; an honest card mid-sitting; catching a lie as a beat inside the conversation.
+Ideas not yet tried (owner asked for ideas, 2026-11-11): upright or reversed chosen when stacking
+(gentle or pressing); one card with two meanings by position as the core; the card that doesn't fit
+her story, as lie-catching inside the conversation; a spare card up the sleeve for when the plan
+breaks; and "order the evening" as a small minigame of its own (cards stand for events, the answer
+is an order, generated from the case's timeline).
 
-To judge: does it read as a conversation; is choosing the card a decision or word-matching; does
-packing the sleeve matter; is four beats the right length.
+Next idea, agreed in principle but not built: different spreads for different things, chosen by
+what you need. Past, present, future for where or when; the relationship spread (her, the other,
+the bond) for who was with whom; the decision spread (wants, fears, cost) for why. In the game the
+clue's kind would pick the spread; in the prototype it would be a choice after the honest spread,
+with the goal as the guide.
+
+To judge: is picking the line a decision or "always take the one that sounds wrong"; is stacking a decision or matching cards to
+labels; does the story at the end pay off; does anything still scroll. Nobody has checked the
+rendered layout at 360px: the browser pane only shows a local file as a static snapshot.
 
 ## The earlier prototypes (all artifacts on the owner's account, 2026-10-25/26)
 

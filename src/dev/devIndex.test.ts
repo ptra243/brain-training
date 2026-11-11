@@ -28,7 +28,7 @@ test('sections come in the agreed order', () => {
       'Shelf: shelf and extras',
     ],
   );
-  assert.deepEqual(devSections('')[0].rows.map((r) => r.id), ['cases', 'motives', 'portraits', 'dogfight']);
+  assert.deepEqual(devSections('')[0].rows.map((r) => r.id), ['cases', 'motives', 'portraits', 'housekeeper', 'dogfight']);
 });
 
 test('the filter matches the id or the text, ignoring case and spaces round it', () => {

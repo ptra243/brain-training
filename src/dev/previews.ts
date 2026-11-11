@@ -29,6 +29,7 @@ export interface PreviewInfo {
 export const PREVIEWS: readonly PreviewInfo[] = [
   { id: 'motives', group: 'tools', about: 'Talk to any guest on any card, thread and mood, one beat at a time or all at once', look: 'game' },
   { id: 'portraits', group: 'tools', about: 'The portrait gallery', look: 'plain' },
+  { id: 'housekeeper', group: 'tools', about: 'The Housekeeper’s hour as a playable text prototype: deal a case code, send three staff to three jobs for three rounds, tick a report, fill the statement', look: 'game' },
   { id: 'dogfight', group: 'tools', about: 'The dog fight board in each state, with any cat helper', look: 'plain' },
   { id: 'opening', group: 'classic-opening', about: 'The campaign opening at the start: the culprit line, 0 of N spoken to, the guests in a grid, Skip', look: 'game' },
   { id: 'opening-midway', group: 'classic-opening', about: 'The opening part-way: some guests spoken to, one guest sheet open with the victim line and a clue', look: 'game' },

@@ -110,3 +110,13 @@ duration), each full check, and how many ran in order versus alongside. Older li
   148k written, 56k output). A read-only critique turned into a design round and then a build in the
   same session; the first prototype's full HTML was read here, and a key-clue rule was built, measured
   (usable in 37% of seated cases) and removed again by a second agent the same day.
+- 2026-11-11, Tarot reading, the Rigged Sitting prototype: 33 replies at the reminder, context 215k,
+  5.1M read from cache, 158k written, 85k output; no agents, no full checks. Five versions of one
+  hand-written HTML prototype were written and republished in the main session (about 10 edit rounds on
+  one mockup), after the Ashby prototype's full HTML was read here for the diagnosis.
+- 2026-11-11, Housekeeper's hour, guest threads then the watched guest: 57 replies at the reminder,
+  context 212k, 8.9M read from cache, 282k written, 64k output; 3 implementers and 2 browser checks
+  (82 replies, 4.8M read, 370k written, 69k output). A built design (three guests, three calls each)
+  was replaced after five design turns in chat, so the generator, tests and page were written twice;
+  the nine draft threads (81 beats) were written in the main session. Minutes: implementers about
+  5, 2 and 5 in order, look checks 1 and 1.5 alongside, four full checks of about 30 s each.

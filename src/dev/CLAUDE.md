@@ -195,6 +195,14 @@ What a look check judges on each:
   "No one has signed yet." Nothing clipped, no sideways scroll at 360px.
 - `portraits`: the art gallery on its own (light dev page; `docs/art-guide.md`): the guest portraits, earlier looks
   (replaced ones, with date and reason), the sub-sections, and placeholder sections for standees, room plates and props.
+- `housekeeper`: the Housekeeper's hour prototype (baize page, playable, nothing saved): case code box and Deal, the "8:00" round
+  with three job cards (guest, room, request) each with three 44px+ staff buttons and "Send them" (disabled until all three
+  jobs have someone), then report cards (who went, scene line, speech bubble; a tapped one is ringed red with "I'll remember
+  that."; "Tap the one you want to remember." and Next disabled until one is ringed), then "Your questions": per line an italic
+  serif question, the answer sentence with its blank and 44px+ option buttons, "Check my statement" / "Start over"; once
+  checked each line says Right or "No… I remember now.", the last line adds "After that I can't say.", and an ending card shows
+  "That fits what I have.", "New clue" cards, the stand-in line and "You remembered N of M."; nothing names the watched
+  guest; text wraps, no sideways scroll.
 - `dogfight`: the dog fight board in each state, with a cat helper picker
   (light dev page).
 - `cases` (not a preview): the case inspector.

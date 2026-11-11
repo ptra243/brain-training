@@ -40,16 +40,21 @@ function show(label: string, c: Case): boolean {
   }
   const ev = buildEvening(hour, input);
   console.log(`Cast: ${c.suspects.map((s) => input.names[s]).join(', ')}; victim: ${input.names[c.victim]}`);
+  const counts = new Map<string, number>();
+  for (const j of ev.rounds.flat()) counts.set(j.guest, (counts.get(j.guest) ?? 0) + 1);
+  console.log(`Callers: ${ev.callers.map((g) => `${input.names[g]} x${counts.get(g)}`).join(', ')}`);
+  console.log(`Watched: ${input.names[ev.watched]}`);
+  for (const cl of ev.clues) console.log(`Stand-in clue: ${cl.text}   [${cl.fact.type}]`);
   ev.rounds.forEach((jobs, r) => {
-    console.log(`\n-- Round ${r + 1} (${['8:00', '8:15', '8:30'][r]})`);
+    console.log(`\n-- Round ${r + 1} (${['8:00', '8:15', '8:30'][r]}), thread steps by call`);
     jobs.forEach((j, k) => {
       const def = hour.requests.find((d) => d.id === j.request)!;
-      console.log(`  Job ${k + 1}: ${input.names[j.guest]} in the ${input.roomNames[j.room]}: "${def.words}"  [fits: ${def.fits.join(' or ')}]`);
+      console.log(`  Job ${k + 1}: ${input.names[j.guest]} (step ${j.step}) in the ${input.roomNames[j.room]}: "${def.words}"  [fits: ${def.fits.join(' or ')}]`);
+      console.log(`      Scene: ${fill(def.scene, ev, j)}`);
       for (const s of hour.staff) {
-        // Beats as if no earlier visits: the first visit of each staff member.
-        const rep = reportFor(hour, ev, r, k, s.id, []);
+        const rep = reportFor(hour, ev, r, k, s.id);
         console.log(`      ${s.name} (${s.kind}):${rep.mismatch ? ` ${rep.mismatch}` : ''}`);
-        console.log(`        "${rep.line}"${rep.beat ? `   [${fill(rep.beat.pre, ev, j)}${rep.beat.answer}${fill(rep.beat.post, ev, j)}]` : '   [repeat visit]'}`);
+        console.log(`        "${rep.line}"   [${fill(rep.beat.pre, ev, j)}${rep.beat.answer}${fill(rep.beat.post, ev, j)}]`);
       }
     });
   });
@@ -70,11 +75,12 @@ function playthrough(ev: Evening, seed: number) {
   sends.forEach((row, r) => {
     const parts = row.map((id, k) => `job ${k + 1} -> ${hour.staff.find((s) => s.id === id)!.name}`);
     const t = ticks[r];
-    console.log(`  Round ${r + 1}: ${parts.join(', ')}; tick: ${t === null ? 'none' : `job ${t + 1}${reportFor(hour, ev, r, t, row[t], sends.slice(0, r)).tickable ? '' : ' (repeat visit, cannot be ticked)'}`}`);
+    console.log(`  Round ${r + 1}: ${parts.join(', ')}; tick: ${t === null ? 'none' : `job ${t + 1}`}`);
   });
-  console.log('Statement:');
+  console.log('Interview:');
   for (const line of statementFor(hour, ev, moves)) {
-    console.log(`  ${line.before}___${line.after}   [${line.options.join(' / ')}]  answer: ${line.answer}`);
+    console.log(`  You: ${line.question}
+    ${line.before}___${line.after}   [${line.options.join(' / ')}]  answer: ${line.answer}${line.follow ? `  then: ${line.follow}` : ''}`);
   }
 }
 

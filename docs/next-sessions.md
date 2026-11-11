@@ -170,21 +170,21 @@ Read docs/visual-theme.md. This is paused. Do not change src/styles.css or repla
 
 ## Session: Housekeeper's hour, prototype (design)
 Last touched: 2026-11-11
-Reads first: `docs/housekeeper-dispatch.md` ("Second prototype, in the app" and "What stage 1 showed"), `docs/secrets.md`.
-Done: stage 1, a killer-blind generator with placeholder content and a script that prints evenings for real cases (`node scripts/housekeeper-evening.ts`). Not wired into any case.
-Next: give each guest a thread that moves on between visits and uses the room, then stage 2, a `#dev` page to play it. Better beats wait on "Everyone has a secret". The clue is now a plain reward (decided 2026-11-10).
+Reads first: `docs/housekeeper-dispatch.md` ("Second prototype, in the app", "What stage 1 showed" and "Guest threads").
+Done: a killer-blind generator where one watched guest (picked by the game's clues) calls every round and the others make ordinary calls, a statement played as an interview that ends in the clues, each guest with a three-step thread (`src/content/housekeeperThreads.ts`, drafts), a print script (`node scripts/housekeeper-evening.ts`), and a text-only playable page at `#dev/housekeeper`. Not wired into any case. No 8:55 errand.
+Next: the owner plays it and says what works (the "Tried in the prototype" list in the doc is still unconfirmed), then reviews the nine draft threads. After that: pictures in place of text, and whether it goes into a case. Final threads wait on "Everyone has a secret".
 Starting prompt:
 ```
-Read "Second prototype, in the app" and "What stage 1 showed" in docs/housekeeper-dispatch.md and run node scripts/housekeeper-evening.ts. Give me a concrete proposal for guest threads (with one guest's thread written out, and whether her own 8:55 errand stays), and after I agree, brief the implementer for the changes and then the #dev page.
+Read "Second prototype, in the app", "What stage 1 showed" and "Guest threads" in docs/housekeeper-dispatch.md. I have played #dev/housekeeper; ask me what worked and what did not (the "Tried in the prototype" list and the draft threads in src/content/housekeeperThreads.ts), then propose the next change.
 ```
 
 ## Session: Tarot reading, the Ashby Sitting (design)
 Last touched: 2026-11-11
 Reads first: `docs/tarot-reading.md` (the owner's feedback, the earlier prototypes, how the Ashby Sitting played, and what The Rigged Sitting does).
-Goal: a tarot reading where she is a detective behind the cards. The Ashby Sitting played as separate exchanges with arbitrary choices and no goal. The Rigged Sitting replaces it: a stated goal, five cards packed in her sleeve, and four beats built backwards from the clue. The owner has not yet said how it plays. Then decide whether it joins the questioning or stands alone.
+Goal: a tarot reading where she is a detective behind the cards. The Ashby Sitting played as separate exchanges with arbitrary choices and no goal. The Rigged Sitting replaces it: a stated goal, an honest spread of three where she lets things drop, then a deck stacked into three positions (anchor, obstacle, resolution) built backwards from the clue, and the reading told back as a story. He liked the first version but it scrolled too much; he has not yet said how the two-spread version plays. After that: different spreads for different kinds of clue. Then decide whether it joins the questioning or stands alone.
 Starting prompt:
 ```
-Read docs/tarot-reading.md, the section "The Rigged Sitting", and the artifact it links. I'll tell you how it played; then help me decide what to change and whether a sitting can be generated from a case's clue.
+Read docs/tarot-reading.md, the section "The Rigged Sitting", and the artifact it links. Picking what the card means for her worked in the honest spread (version 6). Propose how the rigged spread's lines get the same treatment (the card's picture, then a statement about her that she corrects), show me sample lines before building, then we look at different spreads for different clues and whether a sitting can be generated from a case's clue.
 ```
 
 ## Session: Card solitaire, the witness deal (design)

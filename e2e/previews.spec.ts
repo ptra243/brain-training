@@ -102,6 +102,13 @@ test('dogfight preview', async ({ page }) => {
   await checkScreen(page, 'preview dogfight');
 });
 
+test('housekeeper preview', async ({ page }) => {
+  await page.goto('/#dev/housekeeper');
+  await expect(page.getByRole('heading', { name: '8:00' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Send them' })).toBeDisabled();
+  await checkScreen(page, 'preview housekeeper');
+});
+
 test('shelf-ribbons preview', async ({ page }) => {
   await page.goto('/#dev/shelf-ribbons');
   await expect(page.getByRole('heading', { name: 'Find a clue' })).toBeVisible();

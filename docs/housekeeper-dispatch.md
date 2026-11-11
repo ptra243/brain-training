@@ -55,6 +55,44 @@ scene in it), placeholder content in `src/content/housekeeperHour.ts`, tests, an
   secrets, the way the talk threads were.
 - **What works:** the three-by-three round, the mismatch lines, the statement cued by her own send.
 
+### Guest threads (2026-11-11)
+
+Agreed with the owner after stage 1, and built into the generator:
+
+- **The clue shapes the evening.** The game knows the clues it will hand over (in the prototype, two
+  of the case's own clues as stand-ins). The first one that names a seated guest makes that guest the
+  **watched guest**; otherwise the watched guest is rolled blind. It reads only its own clues, never
+  the killer.
+- **The watched guest calls every round; everyone else makes ordinary calls.** The other seated
+  guests and the victim share the other six jobs as evenly as they can (4 callers: 2 each; 7: 1 each).
+  Nobody tells her who to watch: she notices the same guest calling again with a story that has moved.
+  (First built as three guests calling three times each; replaced the same day.)
+- **Each guest has a thread of three steps**, one per call. A step is one event seen three ways
+  (what the bar heard, what housekeeping saw, what the handyman noticed), so who she sends picks the
+  side she sees. Only the watched guest's thread is told to the end.
+- **One tick is required each round**, so the tick is her guess at what matters.
+- **The statement is an interview.** She, the investigator, asks; the Housekeeper answers with a
+  blank: who went to a room at eight, what each ticked report said, and last "Where was {watched} at
+  half past eight?" with rooms as choices. The Housekeeper then says "After that I can't say.", and
+  the clues arrive as the investigator's reply ("That fits what I have."). The clues always arrive,
+  whatever she remembered.
+- **Sightings in the hour are never case facts.** The case is about nine o'clock, so a room at 8:30
+  goes on the guest's notebook page with its time, never in the Clues tab or the grid. A room as the
+  last answer is an agreed exception to "the answer is never a room name": a wrong answer costs nothing.
+- **Considered and left for later:** a nine o'clock round where she picks a guest and a room to check
+  (true "was there" or "couldn't find them" facts, extra to the dealt clues), and placing the 8:30 job
+  in or next to the guest's true room so the sighting becomes a soft "next to" clue. Both add
+  information to every case with the Housekeeper; decide after playing the interview.
+- **Each request has a scene line** (what the guest was doing when the staff arrived), shown above
+  the speech bubble, so the errand is part of what she remembers.
+- **No 8:55 errand.** Without a clue it is a scene nobody asks about, and taking something to the
+  victim would show them in a room five minutes before the murder and suggest a scene.
+- The threads are drafts in `src/content/housekeeperThreads.ts`, one per guest, each from a
+  placeholder secret with its innocent ending in a comment. They get rewritten (one per secret kind)
+  when "Everyone has a secret" is content. The case's ending must tell her each innocent ending.
+
+Stage 2 is `#dev/housekeeper`: a text-only playable evening for any case ref, nothing saved.
+
 ## The game in one paragraph
 
 Only in runs where the Housekeeper is in the cast. It is the Housekeeper's testimony about the hour
